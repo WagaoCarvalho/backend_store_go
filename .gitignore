@@ -1,0 +1,53 @@
+important.MD
+docker-compose.yaml
+architecture.MD
+
+# Diretórios do Go
+bin/
+pkg/
+build/
+vendor/
+
+# Dependências de módulos Go
+go.sum
+go.work
+go.work.sum
+
+# Executáveis e arquivos compilados
+*.exe
+*.dll
+*.so
+*.dylib
+*.out
+*.a
+
+# Arquivos temporários do editor
+*.swp
+*.swo
+*.vscode/
+.idea/
+*.iml
+
+# Logs e caches
+*.log
+*.tmp
+.DS_Store
+npm-debug.log
+yarn-error.log
+
+# Cobertura de testes
+coverage.out
+
+# Configurações locais e credenciais
+.env
+.env.*
+config.yaml
+config.json
+secrets.yaml
+secrets.json
+
+# Dados do Docker
+docker-compose.override.yml
+
+# Arquivos do sistema
+Thumbs.db
