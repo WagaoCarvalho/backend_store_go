@@ -2,7 +2,7 @@
 include .env
 export $(shell sed 's/=.*//' .env)
 
-.PHONY: server db stop_db clean_db migrate_create_users_table migrate_create_product_sales_table migrate_create_product_purchase_items_table migrate_create_services_table migrate_up migrate_down
+.PHONY: server db stop_db clean_db migrate_create_users_table migrate_create_users_categories_table migrate_create_user_category_relations_table migrate_create_clients_table migrate_create_client_categories_table migrate_create_client_category_relations_table migrate_create_suppliers_table migrate_create_supplier_categories_table migrate_create_supplier_category_relations_table migrate_create_addresses_table migrate_create_contacts_table migrate_create_products_table migrate_create_product_categories_table migrate_create_product_category_relations_table migrate_create_services_table migrate_create_service_category_table migrate_create_service_category_relations_table migrate_create_sales_table migrate_create_sale_categories_table migrate_create_sale_category_relations_table migrate_create_sale_product_relations_table migrate_create_sale_services_table migrate_create_purchases_table migrate_create_purchase_categories_table migrate_create_purchase_category_relations_table migrate_create_purchase_product_relations_table migrate_create_purchase_services_table migrate_create_client_payments_table migrate_create_product_suppliers_assignments_table migrate_create_supplier_payments_table migrate_create_price_history_table migrate_create_activity_log_table migrate_up migrate_down
 
 server:
 	@echo "Iniciando servidor Go..."
@@ -160,14 +160,9 @@ migrate_create_purchase_product_relations_table:
 migrate_create_purchase_services_table:
 	@migrate create -ext sql -dir db/migrations -seq create_purchase_services_table
 
-###
-
-
 ##########
-
-
-
-
+# Não implementadas
+##########
 # client_payments
 migrate_create_client_payments_table:
 	@migrate create -ext sql -dir db/migrations -seq create_client_payments_table
