@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS purchase_category_relations ;
