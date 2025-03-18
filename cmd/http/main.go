@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/WagaoCarvalho/backend_store_go/cmd/http/routes"
 	"github.com/WagaoCarvalho/backend_store_go/config"
 )
 
@@ -17,5 +18,6 @@ func main() {
 
 	fmt.Printf("API running on port %s\n", port)
 
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+	r := routes.NewRouter()
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), r))
 }
