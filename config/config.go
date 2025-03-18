@@ -7,7 +7,8 @@ import (
 )
 
 type Config struct {
-	Server Server
+	Database Database
+	Server   Server
 }
 
 func LoadConfig() Config {
@@ -17,6 +18,7 @@ func LoadConfig() Config {
 	}
 
 	return Config{
-		Server: LoadServerConfig(),
+		Database: LoadDatabaseConfig(),
+		Server:   LoadServerConfig(),
 	}
 }
