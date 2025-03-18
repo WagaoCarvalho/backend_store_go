@@ -1,6 +1,7 @@
-important.MD
-docker-compose.yaml
 architecture.MD
+important.MD
+bk
+db_postgres.sql
 
 # Diretórios do Go
 bin/
