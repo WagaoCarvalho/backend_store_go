@@ -21,16 +21,6 @@ func (m *MockUserRepository) GetUsers(ctx context.Context) ([]models.User, error
 	return args.Get(0).([]models.User), args.Error(1)
 }
 
-func (m *MockUserRepository) GetUserById(ctx context.Context, uid int64) (models.User, error) {
-	args := m.Called(ctx, uid)
-	return args.Get(0).(models.User), args.Error(1)
-}
-
-func (m *MockUserRepository) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
-	args := m.Called(ctx, email)
-	return args.Get(0).(models.User), args.Error(1)
-}
-
 func TestUserService_GetUsers(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 
@@ -66,6 +56,11 @@ func TestUserService_GetUsers(t *testing.T) {
 	assert.Equal(t, expectedUsers, users)
 
 	mockRepo.AssertCalled(t, "GetUsers", mock.Anything)
+}
+
+func (m *MockUserRepository) GetUserById(ctx context.Context, uid int64) (models.User, error) {
+	args := m.Called(ctx, uid)
+	return args.Get(0).(models.User), args.Error(1)
 }
 
 func TestUserService_GetUserById(t *testing.T) {
@@ -110,6 +105,11 @@ func TestUserService_GetUserById_UserNotFound(t *testing.T) {
 	mockRepo.AssertCalled(t, "GetUserById", mock.Anything, int64(999))
 }
 
+func (m *MockUserRepository) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
+	args := m.Called(ctx, email)
+	return args.Get(0).(models.User), args.Error(1)
+}
+
 func TestUserService_GetUserByEmail(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 
@@ -150,4 +150,58 @@ func TestUserService_GetUserByEmail_UserNotFound(t *testing.T) {
 	assert.Equal(t, models.User{}, user)
 
 	mockRepo.AssertCalled(t, "GetUserByEmail", mock.Anything, "nonexistent@example.com")
+}
+
+func (m *MockUserRepository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
+	args := m.Called(ctx, user)
+	return args.Get(0).(models.User), args.Error(1)
+}
+
+func TestUserService_CreateUser(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+
+	newUser := models.User{
+		Username:  "newuser",
+		Email:     "newuser@example.com",
+		Password:  "hashedpassword",
+		Status:    true,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	mockRepo.On("CreateUser", mock.Anything, newUser).Return(newUser, nil)
+
+	userService := services.NewUserService(mockRepo)
+
+	createdUser, err := userService.CreateUser(context.Background(), newUser)
+
+	assert.NoError(t, err)
+
+	assert.Equal(t, newUser, createdUser)
+
+	mockRepo.AssertCalled(t, "CreateUser", mock.Anything, newUser)
+}
+
+func TestUserService_CreateUser_Error(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+
+	newUser := models.User{
+		Username: "failuser",
+		Email:    "failuser@example.com",
+		Password: "hashedpassword",
+		Status:   true,
+	}
+
+	mockRepo.On("CreateUser", mock.Anything, newUser).Return(models.User{}, fmt.Errorf("erro ao criar usuário"))
+
+	userService := services.NewUserService(mockRepo)
+
+	createdUser, err := userService.CreateUser(context.Background(), newUser)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "erro ao criar usuário")
+
+	assert.Equal(t, models.User{}, createdUser)
+
+	mockRepo.AssertCalled(t, "CreateUser", mock.Anything, newUser)
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/WagaoCarvalho/backend_store_go/internal/models"
 	"github.com/WagaoCarvalho/backend_store_go/internal/services"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"github.com/gorilla/mux"
@@ -92,4 +93,31 @@ func (h *UserHandler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Erro ao gerar resposta", http.StatusInternalServerError)
 	}
+}
+
+func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
+	var user models.User
+
+	// Decodificando o corpo da requisição
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, `{"status":400, "message":"Dados inválidos"}`, http.StatusBadRequest)
+		return
+	}
+
+	// Criando o usuário
+	createdUser, err := h.service.CreateUser(r.Context(), user)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"status":500, "message":"%s"}`, err.Error()), http.StatusInternalServerError)
+		return
+	}
+
+	// Enviando resposta com os dados do usuário criado
+	response := utils.DefaultResponse{
+		Status:  http.StatusCreated,
+		Message: "Usuário criado com sucesso",
+		Data:    createdUser,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(response)
 }

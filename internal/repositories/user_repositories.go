@@ -13,6 +13,7 @@ type UserRepository interface {
 	GetUsers(ctx context.Context) ([]models.User, error)
 	GetUserById(ctx context.Context, uid int64) (models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
+	CreateUser(ctx context.Context, user models.User) (models.User, error)
 }
 
 type userRepository struct {
@@ -95,6 +96,24 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (mode
 			return user, fmt.Errorf("usuário não encontrado")
 		}
 		return user, fmt.Errorf("erro ao buscar usuário: %w", err)
+	}
+
+	return user, nil
+}
+
+func (r *userRepository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
+	query := `INSERT INTO users (username, email, password_hash, status, created_at, updated_at) 
+	          VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING id, created_at, updated_at`
+
+	err := r.db.QueryRow(ctx, query,
+		user.Username,
+		user.Email,
+		user.Password,
+		user.Status,
+	).Scan(&user.UID, &user.CreatedAt, &user.UpdatedAt)
+
+	if err != nil {
+		return models.User{}, fmt.Errorf("erro ao criar usuário: %w", err)
 	}
 
 	return user, nil

@@ -107,3 +107,69 @@ func TestGetUserByEmail_UserNotFound(t *testing.T) {
 
 	mockRepo.AssertCalled(t, "GetUserByEmail", mock.Anything, "nonexistent@example.com")
 }
+
+func TestCreateUser_Success(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+
+	inputUser := models.User{
+		Username: "user1",
+		Email:    "user1@example.com",
+		Password: "plaintextpassword",
+		Status:   true,
+	}
+
+	expectedUser := inputUser
+	expectedUser.UID = 1
+	expectedUser.Password = "hashedpassword" // Senha deve ser armazenada como hash
+
+	mockRepo.On("CreateUser", mock.Anything, mock.Anything).Return(expectedUser, nil)
+
+	user, err := mockRepo.CreateUser(context.Background(), inputUser)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedUser, user)
+
+	mockRepo.AssertCalled(t, "CreateUser", mock.Anything, mock.Anything)
+}
+
+func TestCreateUser_EmailAlreadyExists(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+
+	inputUser := models.User{
+		Username: "user1",
+		Email:    "existing@example.com",
+		Password: "plaintextpassword",
+		Status:   true,
+	}
+
+	mockRepo.On("CreateUser", mock.Anything, mock.Anything).Return(models.User{}, fmt.Errorf("email já cadastrado"))
+
+	user, err := mockRepo.CreateUser(context.Background(), inputUser)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "email já cadastrado")
+	assert.Equal(t, models.User{}, user)
+
+	mockRepo.AssertCalled(t, "CreateUser", mock.Anything, mock.Anything)
+}
+
+func TestCreateUser_InternalError(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+
+	inputUser := models.User{
+		Username: "user1",
+		Email:    "user1@example.com",
+		Password: "plaintextpassword",
+		Status:   true,
+	}
+
+	mockRepo.On("CreateUser", mock.Anything, mock.Anything).Return(models.User{}, fmt.Errorf("erro interno no banco de dados"))
+
+	user, err := mockRepo.CreateUser(context.Background(), inputUser)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "erro interno no banco de dados")
+	assert.Equal(t, models.User{}, user)
+
+	mockRepo.AssertCalled(t, "CreateUser", mock.Anything, mock.Anything)
+}
