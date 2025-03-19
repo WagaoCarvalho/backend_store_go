@@ -11,6 +11,7 @@ import (
 type UserService interface {
 	GetUsers(ctx context.Context) ([]models.User, error)
 	GetUserById(ctx context.Context, uid int64) (models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 }
 
 type userService struct {
@@ -27,6 +28,14 @@ func (s *userService) GetUsers(ctx context.Context) ([]models.User, error) {
 
 func (s *userService) GetUserById(ctx context.Context, uid int64) (models.User, error) {
 	user, err := s.repo.GetUserById(ctx, uid)
+	if err != nil {
+		return models.User{}, fmt.Errorf("erro ao buscar usuário: %w", err)
+	}
+	return user, nil
+}
+
+func (s *userService) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
+	user, err := s.repo.GetUserByEmail(ctx, email)
 	if err != nil {
 		return models.User{}, fmt.Errorf("erro ao buscar usuário: %w", err)
 	}

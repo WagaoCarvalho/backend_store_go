@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -11,10 +12,8 @@ import (
 )
 
 func TestGetUsers(t *testing.T) {
-	// Cria uma instância do mock
 	mockRepo := new(MockUserRepository)
 
-	// Define os dados que serão retornados pelo mock
 	expectedUsers := []models.User{
 		{
 			UID:       1,
@@ -36,27 +35,20 @@ func TestGetUsers(t *testing.T) {
 		},
 	}
 
-	// Configura o mock para retornar os dados esperados
 	mockRepo.On("GetUsers", mock.Anything).Return(expectedUsers, nil)
 
-	// Chama o método que queremos testar
 	users, err := mockRepo.GetUsers(context.Background())
 
-	// Verifica se o erro é nulo
 	assert.NoError(t, err)
 
-	// Verifica se os usuários retornados são os esperados
 	assert.Equal(t, expectedUsers, users)
 
-	// Verifica se o método foi chamado com os parâmetros corretos
 	mockRepo.AssertCalled(t, "GetUsers", mock.Anything)
 }
 
 func TestGetUserById(t *testing.T) {
-	// Cria uma instância do mock do repositório
 	mockRepo := new(MockUserRepository)
 
-	// Define os dados que serão retornados pelo mock para o GetUserById
 	expectedUser := models.User{
 		UID:       1,
 		Username:  "user1",
@@ -67,18 +59,51 @@ func TestGetUserById(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	// Configura o mock para retornar o usuário esperado quando GetUserById for chamado
 	mockRepo.On("GetUserById", mock.Anything, int64(1)).Return(expectedUser, nil)
 
-	// Chama o método GetUserById para testar
 	user, err := mockRepo.GetUserById(context.Background(), 1)
 
-	// Verifica se não houve erro
 	assert.NoError(t, err)
 
-	// Verifica se o usuário retornado é o esperado
 	assert.Equal(t, expectedUser, user)
 
-	// Verifica se o método GetUserById foi chamado com o uid correto
 	mockRepo.AssertCalled(t, "GetUserById", mock.Anything, int64(1))
+}
+
+func TestGetUserByEmail(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+
+	expectedUser := models.User{
+		UID:       1,
+		Username:  "user1",
+		Email:     "user1@example.com",
+		Password:  "hashedpassword",
+		Status:    true,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	mockRepo.On("GetUserByEmail", mock.Anything, "user1@example.com").Return(expectedUser, nil)
+
+	user, err := mockRepo.GetUserByEmail(context.Background(), "user1@example.com")
+
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedUser, user)
+
+	mockRepo.AssertCalled(t, "GetUserByEmail", mock.Anything, "user1@example.com")
+}
+
+func TestGetUserByEmail_UserNotFound(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+
+	mockRepo.On("GetUserByEmail", mock.Anything, "nonexistent@example.com").Return(models.User{}, fmt.Errorf("usuário não encontrado"))
+
+	user, err := mockRepo.GetUserByEmail(context.Background(), "nonexistent@example.com")
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "usuário não encontrado")
+	assert.Equal(t, models.User{}, user)
+
+	mockRepo.AssertCalled(t, "GetUserByEmail", mock.Anything, "nonexistent@example.com")
 }

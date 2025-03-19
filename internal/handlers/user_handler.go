@@ -22,21 +22,17 @@ func NewUserHandler(service services.UserService) *UserHandler {
 func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// Chama o serviço para obter os usuários
 	users, err := h.service.GetUsers(ctx)
 	if err != nil {
-		// Erro ao buscar usuários, retorna uma resposta de erro
 		utils.ErrorResponse(w, fmt.Errorf("erro ao buscar usuários: %w", err), http.StatusInternalServerError)
 		return
 	}
 
-	// Cria a resposta padrão
 	response := utils.DefaultResponse{
 		Data:   users,
 		Status: http.StatusOK,
 	}
 
-	// Converte a resposta para JSON e envia para o cliente
 	utils.ToJson(w, response)
 }
 
@@ -44,14 +40,12 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	uid := vars["id"]
 
-	// Convertendo o ID para int64
 	id, err := strconv.ParseInt(uid, 10, 64)
 	if err != nil {
 		http.Error(w, "ID inválido", http.StatusBadRequest)
 		return
 	}
 
-	// Buscando o usuário
 	user, err := h.service.GetUserById(r.Context(), id)
 	if err != nil {
 		if err.Error() == "usuário não encontrado" {
@@ -62,7 +56,32 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Enviar resposta com dados do usuário
+	response := utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Usuário encontrado",
+		Data:    user,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Erro ao gerar resposta", http.StatusInternalServerError)
+	}
+}
+
+func (h *UserHandler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	email := vars["email"]
+
+	user, err := h.service.GetUserByEmail(r.Context(), email)
+	if err != nil {
+		if err.Error() == "usuário não encontrado" {
+			http.Error(w, `{"status":404, "message":"usuário não encontrado"}`, http.StatusNotFound)
+		} else {
+			http.Error(w, `{"status":500, "message":"Erro interno"}`, http.StatusInternalServerError)
+		}
+		return
+	}
+
 	response := utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Usuário encontrado",

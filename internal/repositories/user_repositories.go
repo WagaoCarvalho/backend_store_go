@@ -12,6 +12,7 @@ import (
 type UserRepository interface {
 	GetUsers(ctx context.Context) ([]models.User, error)
 	GetUserById(ctx context.Context, uid int64) (models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 }
 
 type userRepository struct {
@@ -56,6 +57,30 @@ func (r *userRepository) GetUserById(ctx context.Context, uid int64) (models.Use
 	query := `SELECT id, username, email, password_hash, status, created_at, updated_at FROM users WHERE id = $1`
 
 	err := r.db.QueryRow(ctx, query, uid).Scan(
+		&user.UID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.Status,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return user, fmt.Errorf("usuário não encontrado")
+		}
+		return user, fmt.Errorf("erro ao buscar usuário: %w", err)
+	}
+
+	return user, nil
+}
+
+func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
+	var user models.User
+	query := `SELECT id, username, email, password_hash, status, created_at, updated_at FROM users WHERE email = $1`
+
+	err := r.db.QueryRow(ctx, query, email).Scan(
 		&user.UID,
 		&user.Username,
 		&user.Email,

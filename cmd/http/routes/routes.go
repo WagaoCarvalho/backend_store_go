@@ -16,7 +16,8 @@ func NewRouter() *mux.Router {
 	userHandler := handlers.NewUserHandler(userService)
 
 	r.HandleFunc("/users", userHandler.GetUsers).Methods("GET")
-	r.HandleFunc("/user/{id}", userHandler.GetUserById).Methods("GET")
+	r.HandleFunc("/user/id/{id}", userHandler.GetUserById).Methods("GET")
+	r.HandleFunc("/user/email/{email}", userHandler.GetUserByEmail).Methods("GET")
 
 	return r
 }
