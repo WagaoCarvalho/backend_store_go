@@ -10,7 +10,6 @@ build/
 vendor/
 
 # Dependências de módulos Go
-go.sum
 go.work
 go.work.sum
 
