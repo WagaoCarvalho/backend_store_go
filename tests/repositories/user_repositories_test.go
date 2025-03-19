@@ -51,3 +51,34 @@ func TestGetUsers(t *testing.T) {
 	// Verifica se o método foi chamado com os parâmetros corretos
 	mockRepo.AssertCalled(t, "GetUsers", mock.Anything)
 }
+
+func TestGetUserById(t *testing.T) {
+	// Cria uma instância do mock do repositório
+	mockRepo := new(MockUserRepository)
+
+	// Define os dados que serão retornados pelo mock para o GetUserById
+	expectedUser := models.User{
+		UID:       1,
+		Username:  "user1",
+		Email:     "user1@example.com",
+		Password:  "hash1",
+		Status:    true,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	// Configura o mock para retornar o usuário esperado quando GetUserById for chamado
+	mockRepo.On("GetUserById", mock.Anything, int64(1)).Return(expectedUser, nil)
+
+	// Chama o método GetUserById para testar
+	user, err := mockRepo.GetUserById(context.Background(), 1)
+
+	// Verifica se não houve erro
+	assert.NoError(t, err)
+
+	// Verifica se o usuário retornado é o esperado
+	assert.Equal(t, expectedUser, user)
+
+	// Verifica se o método GetUserById foi chamado com o uid correto
+	mockRepo.AssertCalled(t, "GetUserById", mock.Anything, int64(1))
+}

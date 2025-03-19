@@ -5,11 +5,13 @@ import (
 	"fmt"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/models"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserRepository interface {
 	GetUsers(ctx context.Context) ([]models.User, error)
+	GetUserById(ctx context.Context, uid int64) (models.User, error)
 }
 
 type userRepository struct {
@@ -47,4 +49,28 @@ func (r *userRepository) GetUsers(ctx context.Context) ([]models.User, error) {
 	}
 
 	return users, nil
+}
+
+func (r *userRepository) GetUserById(ctx context.Context, uid int64) (models.User, error) {
+	var user models.User
+	query := `SELECT id, username, email, password_hash, status, created_at, updated_at FROM users WHERE id = $1`
+
+	err := r.db.QueryRow(ctx, query, uid).Scan(
+		&user.UID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.Status,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return user, fmt.Errorf("usuário não encontrado")
+		}
+		return user, fmt.Errorf("erro ao buscar usuário: %w", err)
+	}
+
+	return user, nil
 }
