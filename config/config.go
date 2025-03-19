@@ -12,9 +12,9 @@ type Config struct {
 }
 
 func LoadConfig() Config {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Erro ao carregar .env")
+	// Tenta carregar o .env, mas não interrompe a execução se falhar
+	if err := godotenv.Load(); err != nil {
+		log.Println("Aviso: Não foi possível carregar o .env. Usando variáveis de ambiente.")
 	}
 
 	return Config{
