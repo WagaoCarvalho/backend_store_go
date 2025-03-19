@@ -81,11 +81,11 @@ func TestGetUsers(t *testing.T) {
 	assert.Equal(t, 2, len(users))
 
 	assert.Equal(t, float64(1), users[0].(map[string]interface{})["uid"])
-	assert.Equal(t, "user1", users[0].(map[string]interface{})["nickname"])
+	assert.Equal(t, "user1", users[0].(map[string]interface{})["username"])
 	assert.Equal(t, "user1@example.com", users[0].(map[string]interface{})["email"])
 
 	assert.Equal(t, float64(2), users[1].(map[string]interface{})["uid"])
-	assert.Equal(t, "user2", users[1].(map[string]interface{})["nickname"])
+	assert.Equal(t, "user2", users[1].(map[string]interface{})["username"])
 	assert.Equal(t, "user2@example.com", users[1].(map[string]interface{})["email"])
 }
 
@@ -117,7 +117,7 @@ func TestGetUserById(t *testing.T) {
 
 	user := response.Data.(map[string]interface{})
 	assert.Equal(t, float64(1), user["uid"])
-	assert.Equal(t, "user1", user["nickname"])
+	assert.Equal(t, "user1", user["username"])
 	assert.Equal(t, "user1@example.com", user["email"])
 }
 
