@@ -12,6 +12,10 @@ db:
 	@echo "Subindo o banco de dados com Docker..."
 	@docker compose --env-file .env up -d
 
+db_test:
+	@echo "Subindo o banco de dados para TESTES com Docker..."
+	@docker compose -f docker-compose.test.yaml up -d
+
 stop_db:
 	@echo "Parando o banco de dados..."
 	@docker-compose down
