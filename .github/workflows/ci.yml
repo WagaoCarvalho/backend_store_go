@@ -1,51 +1,44 @@
-name: Run Tests
+name: Go Test Coverage
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   test:
+    name: Test with coverage
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_pass
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U test_user"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
-      - name: Checkout código-fonte
-        uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v2
 
-      - name: Instalar Go
-        uses: actions/setup-go@v5
+      - name: Set up Go
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.21
+          go-version: '1.23.4'  # Ou a versão que você está usando
 
-      - name: Configurar ambiente
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/*.go') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install dependencies
         run: |
-          echo "DATABASE_URL=postgres://test_user:test_pass@localhost:5432/test_db?sslmode=disable" > .env
+          go mod tidy
 
-      - name: Baixar dependências
-        run: go mod download
-
-      - name: Aguardar PostgreSQL ficar pronto
+      - name: Run tests with coverage
         run: |
-          for i in {1..10}; do
-            pg_isready -h localhost -p 5432 -U test_user && exit 0
-            echo "Aguardando PostgreSQL..."
-            sleep 2
-          done
-          echo "PostgreSQL não respondeu a tempo." && exit 1
+          go test -coverprofile=coverage.out ./...
 
-      - name: Executar testes
-        env:
-          DATABASE_URL: postgres://test_user:test_pass@localhost:5432/test_db?sslmode=disable
-        run: go test ./...
+      - name: Upload coverage to GitHub
+        uses: codecov/codecov-action@v2
+        with:
+          file: coverage.out
