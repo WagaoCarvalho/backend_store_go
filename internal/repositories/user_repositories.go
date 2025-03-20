@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"regexp"
+
 	"github.com/WagaoCarvalho/backend_store_go/internal/models"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepository interface {
@@ -14,6 +17,7 @@ type UserRepository interface {
 	GetUserById(ctx context.Context, uid int64) (models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 	CreateUser(ctx context.Context, user models.User) (models.User, error)
+	UpdateUser(ctx context.Context, user models.User) (models.User, error)
 }
 
 type userRepository struct {
@@ -36,18 +40,14 @@ func (r *userRepository) GetUsers(ctx context.Context) ([]models.User, error) {
 	var users []models.User
 	for rows.Next() {
 		var user models.User
-		scanErr := rows.Scan(
-			&user.UID, &user.Username, &user.Email,
-			&user.Password, &user.Status, &user.CreatedAt, &user.UpdatedAt,
-		)
-		if scanErr != nil {
-			return nil, fmt.Errorf("erro ao ler os dados do usuário: %w", scanErr)
+		if err := rows.Scan(&user.UID, &user.Username, &user.Email, &user.Password, &user.Status, &user.CreatedAt, &user.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("erro ao ler os dados do usuário: %w", err)
 		}
 		users = append(users, user)
 	}
 
-	if rowsErr := rows.Err(); rowsErr != nil {
-		return nil, fmt.Errorf("erro ao iterar sobre os resultados: %w", rowsErr)
+	if rows.Err() != nil {
+		return nil, fmt.Errorf("erro ao iterar sobre os resultados: %w", rows.Err())
 	}
 
 	return users, nil
@@ -102,19 +102,65 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (mode
 }
 
 func (r *userRepository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
+
+	if !isValidEmail(user.Email) {
+		return models.User{}, fmt.Errorf("email inválido")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return models.User{}, fmt.Errorf("erro ao criptografar a senha: %w", err)
+	}
+	user.Password = string(hashedPassword)
+
 	query := `INSERT INTO users (username, email, password_hash, status, created_at, updated_at) 
 	          VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING id, created_at, updated_at`
+
+	err = r.db.QueryRow(ctx, query, user.Username, user.Email, user.Password, user.Status).Scan(&user.UID, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		return models.User{}, fmt.Errorf("erro ao criar usuário: %w", err)
+	}
+
+	return user, nil
+}
+
+func (r *userRepository) UpdateUser(ctx context.Context, user models.User) (models.User, error) {
+
+	if !isValidEmail(user.Email) {
+		return models.User{}, fmt.Errorf("email inválido")
+	}
+
+	if user.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return models.User{}, fmt.Errorf("erro ao criptografar a senha: %w", err)
+		}
+		user.Password = string(hashedPassword)
+	}
+
+	query := `UPDATE users 
+			  SET username = $1, email = $2, password_hash = $3, status = $4, updated_at = NOW() 
+			  WHERE id = $5 
+			  RETURNING updated_at`
 
 	err := r.db.QueryRow(ctx, query,
 		user.Username,
 		user.Email,
 		user.Password,
 		user.Status,
-	).Scan(&user.UID, &user.CreatedAt, &user.UpdatedAt)
+		user.UID,
+	).Scan(&user.UpdatedAt)
 
 	if err != nil {
-		return models.User{}, fmt.Errorf("erro ao criar usuário: %w", err)
+		return models.User{}, fmt.Errorf("erro ao atualizar usuário: %w", err)
 	}
 
 	return user, nil
+}
+
+func isValidEmail(email string) bool {
+
+	const emailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	re := regexp.MustCompile(emailRegex)
+	return re.MatchString(email)
 }

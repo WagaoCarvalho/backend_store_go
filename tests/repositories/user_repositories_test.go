@@ -173,3 +173,71 @@ func TestCreateUser_InternalError(t *testing.T) {
 
 	mockRepo.AssertCalled(t, "CreateUser", mock.Anything, mock.Anything)
 }
+
+func TestUpdateUser_Success(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+
+	inputUser := models.User{
+		UID:      1,
+		Username: "updatedUser",
+		Email:    "updated@example.com",
+		Password: "newpassword",
+		Status:   false,
+	}
+
+	updatedUser := inputUser
+	updatedUser.UpdatedAt = time.Now()
+
+	mockRepo.On("UpdateUser", mock.Anything, inputUser).Return(updatedUser, nil)
+
+	user, err := mockRepo.UpdateUser(context.Background(), inputUser)
+
+	assert.NoError(t, err)
+	assert.Equal(t, updatedUser, user)
+
+	mockRepo.AssertCalled(t, "UpdateUser", mock.Anything, inputUser)
+}
+
+func TestUpdateUser_UserNotFound(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+
+	inputUser := models.User{
+		UID:      999,
+		Username: "nonexistent",
+		Email:    "nonexistent@example.com",
+		Password: "password",
+		Status:   true,
+	}
+
+	mockRepo.On("UpdateUser", mock.Anything, inputUser).Return(models.User{}, fmt.Errorf("usuário não encontrado"))
+
+	user, err := mockRepo.UpdateUser(context.Background(), inputUser)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "usuário não encontrado")
+	assert.Equal(t, models.User{}, user)
+
+	mockRepo.AssertCalled(t, "UpdateUser", mock.Anything, inputUser)
+}
+
+func TestUpdateUser_InternalError(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+
+	inputUser := models.User{
+		UID:      1,
+		Username: "user1",
+		Email:    "user1@example.com",
+		Password: "plaintextpassword",
+		Status:   true,
+	}
+
+	mockRepo.On("UpdateUser", mock.Anything, mock.Anything).Return(models.User{}, fmt.Errorf("erro interno no banco de dados"))
+
+	user, err := mockRepo.UpdateUser(context.Background(), inputUser)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "erro interno no banco de dados")
+	assert.Equal(t, models.User{}, user)
+
+	mockRepo.AssertCalled(t, "UpdateUser", mock.Anything, mock.Anything)
+}

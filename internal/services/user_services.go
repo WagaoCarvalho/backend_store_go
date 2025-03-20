@@ -14,6 +14,7 @@ type UserService interface {
 	GetUserById(ctx context.Context, uid int64) (models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 	CreateUser(ctx context.Context, user models.User) (models.User, error)
+	UpdateUser(ctx context.Context, user models.User) (models.User, error)
 }
 
 type userService struct {
@@ -45,16 +46,29 @@ func (s *userService) GetUserByEmail(ctx context.Context, email string) (models.
 }
 
 func (s *userService) CreateUser(ctx context.Context, user models.User) (models.User, error) {
-	// Validação básica do e-mail
+
 	if !utils.IsValidEmail(user.Email) {
 		return models.User{}, fmt.Errorf("email inválido")
 	}
 
-	// Inserindo usuário no banco
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		return models.User{}, fmt.Errorf("erro ao criar usuário: %w", err)
 	}
 
 	return createdUser, nil
+}
+
+func (s *userService) UpdateUser(ctx context.Context, user models.User) (models.User, error) {
+
+	if !utils.IsValidEmail(user.Email) {
+		return models.User{}, fmt.Errorf("email inválido")
+	}
+
+	updatedUser, err := s.repo.UpdateUser(ctx, user)
+	if err != nil {
+		return models.User{}, fmt.Errorf("erro ao atualizar usuário: %w", err)
+	}
+
+	return updatedUser, nil
 }

@@ -19,6 +19,7 @@ func NewRouter() *mux.Router {
 	r.HandleFunc("/user/id/{id}", userHandler.GetUserById).Methods("GET")
 	r.HandleFunc("/user/email/{email}", userHandler.GetUserByEmail).Methods("GET")
 	r.HandleFunc("/user", userHandler.CreateUser).Methods("POST")
+	r.HandleFunc("/user/{id}", userHandler.UpdateUser).Methods("PUT")
 
 	return r
 }

@@ -205,3 +205,57 @@ func TestUserService_CreateUser_Error(t *testing.T) {
 
 	mockRepo.AssertCalled(t, "CreateUser", mock.Anything, newUser)
 }
+
+func (m *MockUserRepository) UpdateUser(ctx context.Context, user models.User) (models.User, error) {
+	args := m.Called(ctx, user)
+	return args.Get(0).(models.User), args.Error(1)
+}
+
+func TestUserService_UpdateUser_Success(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+
+	updatedUser := models.User{
+		UID:       1,
+		Username:  "updateduser",
+		Email:     "updateduser@example.com",
+		Password:  "newhashedpassword",
+		Status:    true,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	mockRepo.On("UpdateUser", mock.Anything, updatedUser).Return(updatedUser, nil)
+
+	userService := services.NewUserService(mockRepo)
+
+	resultUser, err := userService.UpdateUser(context.Background(), updatedUser)
+
+	assert.NoError(t, err)
+	assert.Equal(t, updatedUser, resultUser)
+
+	mockRepo.AssertCalled(t, "UpdateUser", mock.Anything, updatedUser)
+}
+
+func TestUserService_UpdateUser_Error(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+
+	updatedUser := models.User{
+		UID:      1,
+		Username: "failuser",
+		Email:    "failuser@example.com",
+		Password: "newhashedpassword",
+		Status:   true,
+	}
+
+	mockRepo.On("UpdateUser", mock.Anything, updatedUser).Return(models.User{}, fmt.Errorf("erro ao atualizar usuário"))
+
+	userService := services.NewUserService(mockRepo)
+
+	resultUser, err := userService.UpdateUser(context.Background(), updatedUser)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "erro ao atualizar usuário")
+	assert.Equal(t, models.User{}, resultUser)
+
+	mockRepo.AssertCalled(t, "UpdateUser", mock.Anything, updatedUser)
+}
