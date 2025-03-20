@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"regexp"
-
 	"github.com/WagaoCarvalho/backend_store_go/internal/models"
+	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
@@ -18,6 +17,7 @@ type UserRepository interface {
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 	CreateUser(ctx context.Context, user models.User) (models.User, error)
 	UpdateUser(ctx context.Context, user models.User) (models.User, error)
+	DeleteUserById(ctx context.Context, uid int64) error
 }
 
 type userRepository struct {
@@ -103,7 +103,7 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (mode
 
 func (r *userRepository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
 
-	if !isValidEmail(user.Email) {
+	if !utils.IsValidEmail(user.Email) {
 		return models.User{}, fmt.Errorf("email inválido")
 	}
 
@@ -126,7 +126,7 @@ func (r *userRepository) CreateUser(ctx context.Context, user models.User) (mode
 
 func (r *userRepository) UpdateUser(ctx context.Context, user models.User) (models.User, error) {
 
-	if !isValidEmail(user.Email) {
+	if !utils.IsValidEmail(user.Email) {
 		return models.User{}, fmt.Errorf("email inválido")
 	}
 
@@ -158,9 +158,17 @@ func (r *userRepository) UpdateUser(ctx context.Context, user models.User) (mode
 	return user, nil
 }
 
-func isValidEmail(email string) bool {
+func (r *userRepository) DeleteUserById(ctx context.Context, uid int64) error {
+	query := `DELETE FROM users WHERE id = $1`
 
-	const emailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-	re := regexp.MustCompile(emailRegex)
-	return re.MatchString(email)
+	result, err := r.db.Exec(ctx, query, uid)
+	if err != nil {
+		return fmt.Errorf("erro ao deletar usuário: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("usuário não encontrado")
+	}
+
+	return nil
 }

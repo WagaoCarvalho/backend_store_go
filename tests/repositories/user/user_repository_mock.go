@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// Mock do repositório de usuários
 type MockUserRepository struct {
 	mock.Mock
 }
@@ -34,4 +35,9 @@ func (m *MockUserRepository) CreateUser(ctx context.Context, user models.User) (
 func (m *MockUserRepository) UpdateUser(ctx context.Context, user models.User) (models.User, error) {
 	args := m.Called(ctx, user)
 	return args.Get(0).(models.User), args.Error(1)
+}
+
+func (m *MockUserRepository) DeleteUserById(ctx context.Context, uid int64) error {
+	args := m.Called(ctx, uid)
+	return args.Error(0)
 }

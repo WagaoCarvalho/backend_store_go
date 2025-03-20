@@ -15,6 +15,7 @@ type UserService interface {
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 	CreateUser(ctx context.Context, user models.User) (models.User, error)
 	UpdateUser(ctx context.Context, user models.User) (models.User, error)
+	DeleteUserById(ctx context.Context, uid int64) error
 }
 
 type userService struct {
@@ -46,7 +47,6 @@ func (s *userService) GetUserByEmail(ctx context.Context, email string) (models.
 }
 
 func (s *userService) CreateUser(ctx context.Context, user models.User) (models.User, error) {
-
 	if !utils.IsValidEmail(user.Email) {
 		return models.User{}, fmt.Errorf("email inválido")
 	}
@@ -60,7 +60,6 @@ func (s *userService) CreateUser(ctx context.Context, user models.User) (models.
 }
 
 func (s *userService) UpdateUser(ctx context.Context, user models.User) (models.User, error) {
-
 	if !utils.IsValidEmail(user.Email) {
 		return models.User{}, fmt.Errorf("email inválido")
 	}
@@ -71,4 +70,11 @@ func (s *userService) UpdateUser(ctx context.Context, user models.User) (models.
 	}
 
 	return updatedUser, nil
+}
+
+func (s *userService) DeleteUserById(ctx context.Context, uid int64) error {
+	if err := s.repo.DeleteUserById(ctx, uid); err != nil {
+		return fmt.Errorf("erro ao deletar usuário: %w", err)
+	}
+	return nil
 }

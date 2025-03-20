@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/models"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
@@ -156,6 +157,41 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		Status:  http.StatusOK,
 		Message: "Usuário atualizado com sucesso",
 		Data:    updatedUser,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *UserHandler) DeleteUserById(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.DeleteUserById(r.Context(), id)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "usuário não encontrado") {
+			utils.ErrorResponse(w, fmt.Errorf("usuário não encontrado"), http.StatusNotFound)
+		} else {
+			utils.ErrorResponse(w, fmt.Errorf("erro ao deletar usuário"), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response := utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Usuário deletado com sucesso",
+		Data:    nil,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

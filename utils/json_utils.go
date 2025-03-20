@@ -14,14 +14,23 @@ type DefaultResponse struct {
 	Status  int         `json:"status"`
 }
 
-func ErrorResponse(w http.ResponseWriter, err error, status int) {
-	w.WriteHeader(status)
-	ToJson(w, struct {
-		Message string `json:"message"`
-	}{
-		Message: err.Error(),
-	})
+func ErrorResponse(w http.ResponseWriter, err error, statusCode int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
 
+	var message string
+	if err != nil {
+		message = err.Error()
+	}
+
+	response := DefaultResponse{
+		Status:  statusCode,
+		Message: message,
+	}
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Erro ao codificar a resposta", http.StatusInternalServerError)
+	}
 }
 
 func ToJson(w http.ResponseWriter, data interface{}) {

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -17,35 +16,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
-
-type mockUserService struct {
-	mock.Mock
-}
-
-func (m *mockUserService) GetUsers(ctx context.Context) ([]models.User, error) {
-	args := m.Called(ctx)
-	return args.Get(0).([]models.User), args.Error(1)
-}
-
-func (m *mockUserService) GetUserById(ctx context.Context, uid int64) (models.User, error) {
-	args := m.Called(ctx, uid)
-	return args.Get(0).(models.User), args.Error(1)
-}
-
-func (m *mockUserService) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
-	args := m.Called(ctx, email)
-	return args.Get(0).(models.User), args.Error(1)
-}
-
-func (m *mockUserService) CreateUser(ctx context.Context, user models.User) (models.User, error) {
-	args := m.Called(ctx, user)
-	return args.Get(0).(models.User), args.Error(1)
-}
-
-func (m *mockUserService) UpdateUser(ctx context.Context, user models.User) (models.User, error) {
-	args := m.Called(ctx, user)
-	return args.Get(0).(models.User), args.Error(1)
-}
 
 func TestGetUsers(t *testing.T) {
 	mockService := &mockUserService{}
@@ -323,4 +293,79 @@ func TestUpdateUser_Failure(t *testing.T) {
 	mockService.AssertCalled(t, "UpdateUser", mock.Anything, mock.MatchedBy(func(user models.User) bool {
 		return user.Username == "errorUser" && user.Email == "error@example.com" && user.Password == "hashedpassword" && user.Status == true
 	}))
+}
+
+func TestDeleteUserById(t *testing.T) {
+	mockService := &mockUserService{}
+	userHandler := handlers.NewUserHandler(mockService)
+
+	mockService.On("DeleteUserById", mock.Anything, int64(1)).Return(nil)
+
+	r := mux.NewRouter()
+	r.HandleFunc("/user/{id}", userHandler.DeleteUserById).Methods("DELETE")
+
+	req := httptest.NewRequest("DELETE", "/user/1", nil)
+	rr := httptest.NewRecorder()
+
+	r.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+
+	var response utils.DefaultResponse
+	err := json.Unmarshal(rr.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, response.Status)
+	assert.Equal(t, "Usuário deletado com sucesso", response.Message)
+
+	mockService.AssertCalled(t, "DeleteUserById", mock.Anything, int64(1))
+}
+
+func TestDeleteUserById_UserNotFound(t *testing.T) {
+	mockService := &mockUserService{}
+	userHandler := handlers.NewUserHandler(mockService)
+
+	mockService.On("DeleteUserById", mock.Anything, int64(999)).Return(fmt.Errorf("usuário não encontrado"))
+
+	r := mux.NewRouter()
+	r.HandleFunc("/user/{id}", userHandler.DeleteUserById).Methods("DELETE")
+
+	req := httptest.NewRequest("DELETE", "/user/999", nil)
+	rr := httptest.NewRecorder()
+
+	r.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusNotFound, rr.Code)
+
+	var response utils.DefaultResponse
+	err := json.Unmarshal(rr.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, response.Status)
+	assert.Contains(t, response.Message, "usuário não encontrado")
+
+	mockService.AssertCalled(t, "DeleteUserById", mock.Anything, int64(999))
+}
+
+func TestDeleteUserById_InternalError(t *testing.T) {
+	mockService := &mockUserService{}
+	userHandler := handlers.NewUserHandler(mockService)
+
+	mockService.On("DeleteUserById", mock.Anything, int64(1)).Return(fmt.Errorf("erro ao deletar usuário"))
+
+	r := mux.NewRouter()
+	r.HandleFunc("/user/{id}", userHandler.DeleteUserById).Methods("DELETE")
+
+	req := httptest.NewRequest("DELETE", "/user/1", nil)
+	rr := httptest.NewRecorder()
+
+	r.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
+
+	var response utils.DefaultResponse
+	err := json.Unmarshal(rr.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, response.Status)
+	assert.Contains(t, response.Message, "erro ao deletar usuário")
+
+	mockService.AssertCalled(t, "DeleteUserById", mock.Anything, int64(1))
 }
