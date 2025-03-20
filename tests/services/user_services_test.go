@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/models"
-	"github.com/WagaoCarvalho/backend_store_go/internal/services"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

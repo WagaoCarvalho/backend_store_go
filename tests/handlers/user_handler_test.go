@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/handlers"
+	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user"
 	"github.com/WagaoCarvalho/backend_store_go/internal/models"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"github.com/gorilla/mux"

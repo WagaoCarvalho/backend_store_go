@@ -1,15 +1,16 @@
 package routes
 
 import (
-	"github.com/WagaoCarvalho/backend_store_go/internal/handlers"
-	"github.com/WagaoCarvalho/backend_store_go/internal/repositories"
-	"github.com/WagaoCarvalho/backend_store_go/internal/services"
+	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
 	"github.com/gorilla/mux"
 )
 
 func NewRouter() *mux.Router {
 	r := mux.NewRouter().StrictSlash(true)
-	db := repositories.Connect()
+	db := repo.Connect()
 
 	userRepo := repositories.NewUserRepository(db)
 	userService := services.NewUserService(userRepo)
