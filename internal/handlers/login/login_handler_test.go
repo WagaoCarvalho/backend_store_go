@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/login"
 	"github.com/WagaoCarvalho/backend_store_go/internal/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -16,7 +15,7 @@ import (
 
 func TestLoginHandler_Success(t *testing.T) {
 	mockService := new(MockLoginService)
-	handler := handlers.NewLoginHandler(mockService)
+	handler := NewLoginHandler(mockService)
 
 	credentials := models.LoginCredentials{
 		Email:    "user@example.com",
@@ -44,7 +43,7 @@ func TestLoginHandler_Success(t *testing.T) {
 
 func TestLoginHandler_InvalidCredentials(t *testing.T) {
 	mockService := new(MockLoginService)
-	handler := handlers.NewLoginHandler(mockService)
+	handler := NewLoginHandler(mockService)
 
 	credentials := models.LoginCredentials{
 		Email:    "user@example.com",
@@ -71,7 +70,7 @@ func TestLoginHandler_InvalidCredentials(t *testing.T) {
 
 func TestLoginHandler_InvalidMethod(t *testing.T) {
 	mockService := new(MockLoginService)
-	handler := handlers.NewLoginHandler(mockService)
+	handler := NewLoginHandler(mockService)
 
 	r := httptest.NewRequest(http.MethodGet, "/login", nil)
 	w := httptest.NewRecorder()

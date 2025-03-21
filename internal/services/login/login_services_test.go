@@ -6,16 +6,24 @@ import (
 	"testing"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/models"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/login"
-	services_test "github.com/WagaoCarvalho/backend_store_go/tests/services/user"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/bcrypt"
 )
 
+type MockLoginService struct {
+	mock.Mock
+}
+
+func (m *MockLoginService) Login(ctx context.Context, email string, password string) (string, error) {
+	args := m.Called(ctx, email, password)
+	return args.String(0), args.Error(1)
+}
+
 func TestLoginService_Login_Success(t *testing.T) {
-	mockRepo := new(services_test.MockUserRepository)
-	service := services.NewLoginService(mockRepo)
+	mockRepo := new(services.MockUserRepository)
+	service := NewLoginService(mockRepo)
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("senha123"), bcrypt.DefaultCost)
 
@@ -38,8 +46,8 @@ func TestLoginService_Login_Success(t *testing.T) {
 }
 
 func TestLoginService_Login_Failure_WrongPassword(t *testing.T) {
-	mockRepo := new(services_test.MockUserRepository)
-	service := services.NewLoginService(mockRepo)
+	mockRepo := new(services.MockUserRepository)
+	service := NewLoginService(mockRepo)
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("outrasenha"), bcrypt.DefaultCost)
 
@@ -62,8 +70,8 @@ func TestLoginService_Login_Failure_WrongPassword(t *testing.T) {
 }
 
 func TestLoginService_Login_Failure_UserNotFound(t *testing.T) {
-	mockRepo := new(services_test.MockUserRepository)
-	service := services.NewLoginService(mockRepo)
+	mockRepo := new(services.MockUserRepository)
+	service := NewLoginService(mockRepo)
 
 	mockRepo.On("GetUserByEmail", mock.Anything, "naoexiste@email.com").Return(models.User{}, errors.New("usuário não encontrado"))
 

@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user"
 	"github.com/WagaoCarvalho/backend_store_go/internal/models"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"github.com/gorilla/mux"
@@ -19,7 +18,7 @@ import (
 
 func TestGetUsers(t *testing.T) {
 	mockService := &mockUserService{}
-	userHandler := handlers.NewUserHandler(mockService)
+	userHandler := NewUserHandler(mockService)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/users", userHandler.GetUsers).Methods("GET")
@@ -65,7 +64,7 @@ func TestGetUsers(t *testing.T) {
 
 func TestGetUserById(t *testing.T) {
 	mockService := &mockUserService{}
-	userHandler := handlers.NewUserHandler(mockService)
+	userHandler := NewUserHandler(mockService)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/user/{id}", userHandler.GetUserById).Methods("GET")
@@ -97,7 +96,7 @@ func TestGetUserById(t *testing.T) {
 
 func TestGetUserById_UserNotFound(t *testing.T) {
 	mockService := &mockUserService{}
-	userHandler := handlers.NewUserHandler(mockService)
+	userHandler := NewUserHandler(mockService)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/user/{id}", userHandler.GetUserById).Methods("GET")
@@ -121,7 +120,7 @@ func TestGetUserById_UserNotFound(t *testing.T) {
 
 func TestCreateUser(t *testing.T) {
 	mockService := &mockUserService{}
-	userHandler := handlers.NewUserHandler(mockService)
+	userHandler := NewUserHandler(mockService)
 
 	now := time.Now()
 	expectedUser := models.User{
@@ -172,7 +171,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestCreateUser_Failure(t *testing.T) {
 	mockService := &mockUserService{}
-	userHandler := handlers.NewUserHandler(mockService)
+	userHandler := NewUserHandler(mockService)
 
 	newUser := models.User{
 		Username: "user2",
@@ -211,7 +210,7 @@ func TestCreateUser_Failure(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	mockService := &mockUserService{}
-	userHandler := handlers.NewUserHandler(mockService)
+	userHandler := NewUserHandler(mockService)
 
 	now := time.Now()
 	updatedUser := models.User{
@@ -261,7 +260,7 @@ func TestUpdateUser(t *testing.T) {
 
 func TestUpdateUser_Failure(t *testing.T) {
 	mockService := &mockUserService{}
-	userHandler := handlers.NewUserHandler(mockService)
+	userHandler := NewUserHandler(mockService)
 
 	mockService.On("UpdateUser", mock.Anything, mock.MatchedBy(func(user models.User) bool {
 		return user.Username == "errorUser" && user.Email == "error@example.com" && user.Password == "hashedpassword" && user.Status == true
@@ -297,7 +296,7 @@ func TestUpdateUser_Failure(t *testing.T) {
 
 func TestDeleteUserById(t *testing.T) {
 	mockService := &mockUserService{}
-	userHandler := handlers.NewUserHandler(mockService)
+	userHandler := NewUserHandler(mockService)
 
 	mockService.On("DeleteUserById", mock.Anything, int64(1)).Return(nil)
 
@@ -322,7 +321,7 @@ func TestDeleteUserById(t *testing.T) {
 
 func TestDeleteUserById_UserNotFound(t *testing.T) {
 	mockService := &mockUserService{}
-	userHandler := handlers.NewUserHandler(mockService)
+	userHandler := NewUserHandler(mockService)
 
 	mockService.On("DeleteUserById", mock.Anything, int64(999)).Return(fmt.Errorf("usuário não encontrado"))
 
@@ -347,7 +346,7 @@ func TestDeleteUserById_UserNotFound(t *testing.T) {
 
 func TestDeleteUserById_InternalError(t *testing.T) {
 	mockService := &mockUserService{}
-	userHandler := handlers.NewUserHandler(mockService)
+	userHandler := NewUserHandler(mockService)
 
 	mockService.On("DeleteUserById", mock.Anything, int64(1)).Return(fmt.Errorf("erro ao deletar usuário"))
 
