@@ -8,16 +8,19 @@ import (
 
 type Config struct {
 	Database Database
+	Jwt      Jwt
 	Server   Server
 }
 
 func LoadConfig() Config {
-	if err := godotenv.Load(); err != nil {
-		log.Println("Aviso: Não foi possível carregar o .env. Usando variáveis de ambiente.")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Erro ao carregar .env")
 	}
 
 	return Config{
 		Database: LoadDatabaseConfig(),
+		Jwt:      LoadJwtConfig(),
 		Server:   LoadServerConfig(),
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/handlers"
+	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/home"
 )
 
 type response struct {
