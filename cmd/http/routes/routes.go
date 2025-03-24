@@ -17,11 +17,7 @@ import (
 func NewRouter() *mux.Router {
 	r := mux.NewRouter().StrictSlash(true)
 
-	// Cria uma instância de PgxPool (usando a implementação real)
-	pgx := &repo.RealPgxPool{}
-
-	// Conecta ao banco de dados e trata o erro
-	db, err := repo.Connect(pgx)
+	db, err := repo.Connect(&repo.RealPgxPool{})
 	if err != nil {
 		log.Fatalf("Erro ao conectar ao banco de dados: %v", err)
 	}

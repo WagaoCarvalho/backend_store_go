@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"log"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
@@ -10,7 +10,6 @@ import (
 )
 
 var dbPool *pgxpool.Pool
-var configs = config.LoadConfig()
 
 type PgxPool interface {
 	ParseConfig(connString string) (*pgxpool.Config, error)
@@ -27,19 +26,28 @@ func (r *RealPgxPool) NewWithConfig(ctx context.Context, config *pgxpool.Config)
 	return pgxpool.NewWithConfig(ctx, config)
 }
 
-func Connect(pgx PgxPool) (*pgxpool.Pool, error) {
-	url := configs.Database.ConnURL
+// Connect inicializa a conexão com o banco de dados
+func Connect(pool PgxPool) (*pgxpool.Pool, error) {
+	// Obtém a configuração do banco de dados
+	dbConfig := config.LoadDatabaseConfig()
 
-	config, err := pgx.ParseConfig(url)
-	if err != nil {
-		return nil, fmt.Errorf("erro ao configurar a conexão: %v", err)
+	// Verifica se a URL de conexão foi carregada corretamente
+	if dbConfig.ConnURL == "" {
+		return nil, errors.New("variável de ambiente DB_CONN_URL não definida")
 	}
 
-	dbPool, err = pgx.NewWithConfig(context.Background(), config)
+	// Parseia a configuração do pool
+	pgxConfig, err := pool.ParseConfig(dbConfig.ConnURL)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao conectar ao banco de dados: %v", err)
+		return nil, err
 	}
 
-	log.Println("Banco de dados conectado com sucesso!")
+	// Cria a conexão com o pool
+	dbPool, err = pool.NewWithConfig(context.Background(), pgxConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println("✅ Conectado ao banco de dados com sucesso!")
 	return dbPool, nil
 }
