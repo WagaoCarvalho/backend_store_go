@@ -2,6 +2,7 @@ architecture.MD
 important.MD
 bk
 corrigir.MD
+db_postgres_connection_test.go
 
 # Diretórios do Go
 bin/
