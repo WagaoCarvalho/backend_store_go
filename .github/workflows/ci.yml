@@ -37,8 +37,8 @@ jobs:
 
       - name: Set environment variables from GitHub secrets
         env:
-          DB_CONN_URL: ${{ secrets.DB_CONN_URL }}
-        run: echo "Variáveis de ambiente carregadas a partir do GitHub Secrets"
+          DB_CONN_URL: ${{ secrets.DB_CONN_URL }} # A variável de ambiente secreta
+        run: echo "Variável de ambiente DB_CONN_URL definida"
 
       - name: Run tests with coverage
         run: go test -coverprofile=coverage.out ./...
