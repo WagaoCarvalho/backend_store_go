@@ -51,6 +51,31 @@ func TestUserService_GetUserById_UserNotFound(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
+func TestUserService_GetUserByEmail(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	expectedUser := models.User{UID: 1, Username: "user1", Email: "user1@example.com", Status: true}
+	mockRepo.On("GetUserByEmail", mock.Anything, "user1@example.com").Return(expectedUser, nil)
+
+	userService := NewUserService(mockRepo)
+	user, err := userService.GetUserByEmail(context.Background(), "user1@example.com")
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedUser, user)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestUserService_GetUserByEmail_UserNotFound(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	mockRepo.On("GetUserByEmail", mock.Anything, "notfound@example.com").Return(models.User{}, fmt.Errorf("usuário não encontrado"))
+
+	userService := NewUserService(mockRepo)
+	user, err := userService.GetUserByEmail(context.Background(), "notfound@example.com")
+
+	assert.ErrorContains(t, err, "usuário não encontrado")
+	assert.Equal(t, models.User{}, user)
+	mockRepo.AssertExpectations(t)
+}
+
 func TestUserService_CreateUser(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	newUser := models.User{Username: "newuser", Email: "newuser@example.com", Status: true}
