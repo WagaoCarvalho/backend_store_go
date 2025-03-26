@@ -5,7 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/models"
+	login "github.com/WagaoCarvalho/backend_store_go/internal/models"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -35,7 +36,7 @@ func TestLoginService_Login_Success(t *testing.T) {
 
 	mockRepo.On("GetUserByEmail", mock.Anything, "teste@email.com").Return(user, nil)
 
-	token, err := service.Login(context.Background(), models.LoginCredentials{
+	token, err := service.Login(context.Background(), login.LoginCredentials{
 		Email:    "teste@email.com",
 		Password: "senha123",
 	})
@@ -59,7 +60,7 @@ func TestLoginService_Login_Failure_WrongPassword(t *testing.T) {
 
 	mockRepo.On("GetUserByEmail", mock.Anything, "teste@email.com").Return(user, nil)
 
-	token, err := service.Login(context.Background(), models.LoginCredentials{
+	token, err := service.Login(context.Background(), login.LoginCredentials{
 		Email:    "teste@email.com",
 		Password: "senhaErrada",
 	})
@@ -75,7 +76,7 @@ func TestLoginService_Login_Failure_UserNotFound(t *testing.T) {
 
 	mockRepo.On("GetUserByEmail", mock.Anything, "naoexiste@email.com").Return(models.User{}, errors.New("usuário não encontrado"))
 
-	token, err := service.Login(context.Background(), models.LoginCredentials{
+	token, err := service.Login(context.Background(), login.LoginCredentials{
 		Email:    "naoexiste@email.com",
 		Password: "senha123",
 	})

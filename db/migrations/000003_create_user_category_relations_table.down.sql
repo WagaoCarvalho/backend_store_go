@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS users_categories;
+DROP TABLE IF EXISTS user_categories;

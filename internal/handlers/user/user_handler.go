@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/models"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"github.com/gorilla/mux"

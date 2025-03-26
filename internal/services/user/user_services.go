@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/models"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 )

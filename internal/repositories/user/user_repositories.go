@@ -2,13 +2,21 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/models"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	ErrUserNotFound      = errors.New("usuário não encontrado")
+	ErrInvalidEmail      = errors.New("email inválido")
+	ErrPasswordHash      = errors.New("erro ao criptografar senha")
+	ErrUserAlreadyExists = errors.New("usuário já existe")
 )
 
 type UserRepository interface {
@@ -69,7 +77,7 @@ func (r *userRepository) GetUserById(ctx context.Context, uid int64) (models.Use
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return user, fmt.Errorf("usuário não encontrado")
+			return user, ErrUserNotFound
 		}
 		return user, fmt.Errorf("erro ao buscar usuário: %w", err)
 	}
@@ -93,7 +101,7 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (mode
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return user, fmt.Errorf("usuário não encontrado")
+			return user, ErrUserNotFound
 		}
 		return user, fmt.Errorf("erro ao buscar usuário: %w", err)
 	}
@@ -102,14 +110,22 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (mode
 }
 
 func (r *userRepository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
-
 	if !utils.IsValidEmail(user.Email) {
-		return models.User{}, fmt.Errorf("email inválido")
+		return models.User{}, ErrInvalidEmail
+	}
+
+	// Verifica se o usuário já existe
+	_, err := r.GetUserByEmail(ctx, user.Email)
+	if err == nil {
+		return models.User{}, ErrUserAlreadyExists
+	}
+	if !errors.Is(err, ErrUserNotFound) {
+		return models.User{}, fmt.Errorf("erro ao verificar usuário existente: %w", err)
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return models.User{}, fmt.Errorf("erro ao criptografar a senha: %w", err)
+		return models.User{}, ErrPasswordHash
 	}
 	user.Password = string(hashedPassword)
 
@@ -125,15 +141,14 @@ func (r *userRepository) CreateUser(ctx context.Context, user models.User) (mode
 }
 
 func (r *userRepository) UpdateUser(ctx context.Context, user models.User) (models.User, error) {
-
 	if !utils.IsValidEmail(user.Email) {
-		return models.User{}, fmt.Errorf("email inválido")
+		return models.User{}, ErrInvalidEmail
 	}
 
 	if user.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 		if err != nil {
-			return models.User{}, fmt.Errorf("erro ao criptografar a senha: %w", err)
+			return models.User{}, ErrPasswordHash
 		}
 		user.Password = string(hashedPassword)
 	}
@@ -152,6 +167,9 @@ func (r *userRepository) UpdateUser(ctx context.Context, user models.User) (mode
 	).Scan(&user.UpdatedAt)
 
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return models.User{}, ErrUserNotFound
+		}
 		return models.User{}, fmt.Errorf("erro ao atualizar usuário: %w", err)
 	}
 
@@ -167,7 +185,7 @@ func (r *userRepository) DeleteUserById(ctx context.Context, uid int64) error {
 	}
 
 	if result.RowsAffected() == 0 {
-		return fmt.Errorf("usuário não encontrado")
+		return ErrUserNotFound
 	}
 
 	return nil
