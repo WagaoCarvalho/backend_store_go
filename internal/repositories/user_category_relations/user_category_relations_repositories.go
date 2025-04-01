@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user_category_relations"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user_category_relations"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user_category_relations"
 )
 
