@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user_categories"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

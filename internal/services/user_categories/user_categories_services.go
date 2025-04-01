@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user_categories"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user_categories"
 )
 
