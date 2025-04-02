@@ -4,16 +4,19 @@ import (
 	"log"
 	"net/http"
 
+	addressHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/address"
 	homeHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/home"
 	loginHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/login"
 	productHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/product"
 	userHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user"
 	userCategoryHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/middlewares"
+	addressRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/db_postgres"
 	productRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
-	userRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user"
-	userCategoryRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_categories"
+	userRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
+	userCategoryRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
+	addressServices "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
 	loginServices "github.com/WagaoCarvalho/backend_store_go/internal/services/login"
 	productServices "github.com/WagaoCarvalho/backend_store_go/internal/services/products"
 	userServices "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
@@ -45,6 +48,11 @@ func NewRouter() *mux.Router {
 	userCategoryRepo := userCategoryRepositories.NewUserCategoryRepository(db)
 	userCategoryService := userCategoryServices.NewUserCategoryService(userCategoryRepo)
 	userCategoryHandler := userCategoryHandlers.NewUserCategoryHandler(userCategoryService)
+
+	// Address repository, service and handler setup
+	addressRepo := addressRepositories.NewAddressRepository(db)
+	addressService := addressServices.NewAddressService(addressRepo)
+	addressHandler := addressHandlers.NewAddressHandler(addressService)
 
 	// Home, login and user routes
 	r.HandleFunc("/", homeHandlers.GetHome).Methods(http.MethodGet)
@@ -83,6 +91,13 @@ func NewRouter() *mux.Router {
 	protectedRoutes.HandleFunc("/products/search", productHandler.GetProductsByName).Methods(http.MethodGet)
 	//protectedRoutes.HandleFunc("/products/price", productHandler.GetProductsByPriceRange).Methods(http.MethodGet)
 	protectedRoutes.HandleFunc("/products/low-stock", productHandler.GetProductsLowInStock).Methods(http.MethodGet)
+
+	// Address routes
+	protectedRoutes.HandleFunc("/addresses", addressHandler.CreateAddress).Methods(http.MethodPost)
+	//protectedRoutes.HandleFunc("/addresses", addressHandler.GetAddresses).Methods(http.MethodGet)
+	protectedRoutes.HandleFunc("/address/{id:[0-9]+}", addressHandler.GetAddress).Methods(http.MethodGet)
+	protectedRoutes.HandleFunc("/address/{id:[0-9]+}", addressHandler.UpdateAddress).Methods(http.MethodPut)
+	protectedRoutes.HandleFunc("/address/{id:[0-9]+}", addressHandler.DeleteAddress).Methods(http.MethodDelete)
 
 	return r
 }

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/models"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"golang.org/x/crypto/bcrypt"
 )
