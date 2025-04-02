@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user_categories"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_categories"
 )
 
 type UserCategoryService interface {
