@@ -23,7 +23,7 @@ type UserRepository interface {
 	GetUsers(ctx context.Context) ([]models.User, error)
 	GetUserById(ctx context.Context, uid int64) (models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
-	CreateUser(ctx context.Context, user models.User) (models.User, error)
+	CreateUser(ctx context.Context, user models.User, categoryID int64) (models.User, error)
 	UpdateUser(ctx context.Context, user models.User) (models.User, error)
 	DeleteUserById(ctx context.Context, uid int64) error
 }
@@ -109,7 +109,7 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (mode
 	return user, nil
 }
 
-func (r *userRepository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
+func (r *userRepository) CreateUser(ctx context.Context, user models.User, categoryID int64) (models.User, error) {
 	if !utils.IsValidEmail(user.Email) {
 		return models.User{}, ErrInvalidEmail
 	}
@@ -132,9 +132,21 @@ func (r *userRepository) CreateUser(ctx context.Context, user models.User) (mode
 	query := `INSERT INTO users (username, email, password_hash, status, created_at, updated_at) 
 	          VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING id, created_at, updated_at`
 
-	err = r.db.QueryRow(ctx, query, user.Username, user.Email, user.Password, user.Status).Scan(&user.UID, &user.CreatedAt, &user.UpdatedAt)
+	err = r.db.QueryRow(ctx, query, user.Username, user.Email, user.Password, user.Status).
+		Scan(&user.UID, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return models.User{}, fmt.Errorf("erro ao criar usuário: %w", err)
+	}
+
+	// Criar relação usuário-categoria
+	relationQuery := `
+		INSERT INTO user_category_relations (user_id, category_id, created_at, updated_at)
+		VALUES ($1, $2, NOW(), NOW())`
+
+	var relationID int64
+	err = r.db.QueryRow(ctx, relationQuery, user.UID, categoryID).Scan(&relationID)
+	if err != nil {
+		return models.User{}, fmt.Errorf("erro ao criar relação usuário-categoria: %w", err)
 	}
 
 	return user, nil

@@ -1,13 +1,13 @@
 -- ## Category Queries (CRUD)
 
 -- Criar categorias
-INSERT INTO user_categories (name, description, created_at, updated_at) 
-VALUES 
-('Admin', 'Administradores do sistema', NOW(), NOW()),
-('Editor', 'Usuários que podem editar conteúdos', NOW(), NOW()),
-('Viewer', 'Usuários com acesso somente leitura', NOW(), NOW()),
-('Premium', 'Usuários com acesso premium', NOW(), NOW()),
-('Guest', 'Usuários temporários', NOW(), NOW());
+INSERT INTO user_categories (id, name, description, created_at, updated_at) VALUES
+(1, 'Admin', 'Usuários com acesso total ao sistema', NOW(), NOW()),
+(2, 'Cliente', 'Usuários que compram produtos', NOW(), NOW()),
+(3, 'Fornecedor', 'Usuários que fornecem produtos', NOW(), NOW()),
+(4, 'Gerente', 'Usuários que gerenciam vendas e estoque', NOW(), NOW()),
+(5, 'Suporte', 'Usuários responsáveis pelo atendimento ao cliente', NOW(), NOW());
+
 
 -- Todas as categorias
 SELECT * FROM user_categories;

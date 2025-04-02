@@ -101,14 +101,18 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
 		return
 	}
-	var user models.User
 
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+	var requestData struct {
+		User       models.User `json:"user"`
+		CategoryID int64       `json:"category_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
 		http.Error(w, `{"status":400, "message":"Dados inválidos"}`, http.StatusBadRequest)
 		return
 	}
 
-	createdUser, err := h.service.CreateUser(r.Context(), user)
+	createdUser, err := h.service.CreateUser(r.Context(), requestData.User, requestData.CategoryID)
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"status":500, "message":"%s"}`, err.Error()), http.StatusInternalServerError)
 		return

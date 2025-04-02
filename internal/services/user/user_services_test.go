@@ -79,10 +79,11 @@ func TestUserService_GetUserByEmail_UserNotFound(t *testing.T) {
 func TestUserService_CreateUser(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	newUser := models.User{Username: "newuser", Email: "newuser@example.com", Status: true}
-	mockRepo.On("CreateUser", mock.Anything, newUser).Return(newUser, nil)
+	categoryID := int64(1) // Adicionando categoryID
+	mockRepo.On("CreateUser", mock.Anything, newUser, categoryID).Return(newUser, nil)
 
 	userService := NewUserService(mockRepo)
-	createdUser, err := userService.CreateUser(context.Background(), newUser)
+	createdUser, err := userService.CreateUser(context.Background(), newUser, categoryID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, newUser, createdUser)
@@ -92,10 +93,11 @@ func TestUserService_CreateUser(t *testing.T) {
 func TestUserService_CreateUser_Error(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	newUser := models.User{Username: "failuser", Email: "failuser@example.com", Status: true}
-	mockRepo.On("CreateUser", mock.Anything, newUser).Return(models.User{}, fmt.Errorf("erro ao criar usuário"))
+	categoryID := int64(1) // Adicionando categoryID
+	mockRepo.On("CreateUser", mock.Anything, newUser, categoryID).Return(models.User{}, fmt.Errorf("erro ao criar usuário"))
 
 	userService := NewUserService(mockRepo)
-	createdUser, err := userService.CreateUser(context.Background(), newUser)
+	createdUser, err := userService.CreateUser(context.Background(), newUser, categoryID)
 
 	assert.ErrorContains(t, err, "erro ao criar usuário")
 	assert.Equal(t, models.User{}, createdUser)

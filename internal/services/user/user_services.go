@@ -13,7 +13,7 @@ type UserService interface {
 	GetUsers(ctx context.Context) ([]models.User, error)
 	GetUserById(ctx context.Context, uid int64) (models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
-	CreateUser(ctx context.Context, user models.User) (models.User, error)
+	CreateUser(ctx context.Context, user models.User, categoryID int64) (models.User, error)
 	UpdateUser(ctx context.Context, user models.User) (models.User, error)
 	DeleteUserById(ctx context.Context, uid int64) error
 }
@@ -46,12 +46,12 @@ func (s *userService) GetUserByEmail(ctx context.Context, email string) (models.
 	return user, nil
 }
 
-func (s *userService) CreateUser(ctx context.Context, user models.User) (models.User, error) {
+func (s *userService) CreateUser(ctx context.Context, user models.User, categoryID int64) (models.User, error) {
 	if !utils.IsValidEmail(user.Email) {
 		return models.User{}, fmt.Errorf("email inválido")
 	}
 
-	createdUser, err := s.repo.CreateUser(ctx, user)
+	createdUser, err := s.repo.CreateUser(ctx, user, categoryID)
 	if err != nil {
 		return models.User{}, fmt.Errorf("erro ao criar usuário: %w", err)
 	}

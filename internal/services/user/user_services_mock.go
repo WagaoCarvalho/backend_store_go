@@ -35,8 +35,8 @@ func (m *MockUserRepository) GetUserByEmail(ctx context.Context, email string) (
 	return models.User{}, args.Error(1)
 }
 
-func (m *MockUserRepository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
-	args := m.Called(ctx, user)
+func (m *MockUserRepository) CreateUser(ctx context.Context, user models.User, categoryID int64) (models.User, error) {
+	args := m.Called(ctx, user, categoryID)
 	if createdUser, ok := args.Get(0).(models.User); ok {
 		return createdUser, args.Error(1)
 	}
