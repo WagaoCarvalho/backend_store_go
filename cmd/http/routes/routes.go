@@ -17,7 +17,7 @@ import (
 	loginServices "github.com/WagaoCarvalho/backend_store_go/internal/services/login"
 	productServices "github.com/WagaoCarvalho/backend_store_go/internal/services/products"
 	userServices "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
-	userCategoryServices "github.com/WagaoCarvalho/backend_store_go/internal/services/user_categories"
+	userCategoryServices "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories"
 	"github.com/gorilla/mux"
 )
 

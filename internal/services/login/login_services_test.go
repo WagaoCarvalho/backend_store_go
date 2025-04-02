@@ -32,6 +32,7 @@ func TestLoginService_Login_Success(t *testing.T) {
 		UID:      1,
 		Email:    "teste@email.com",
 		Password: string(hashedPassword),
+		Status:   true,
 	}
 
 	mockRepo.On("GetUserByEmail", mock.Anything, "teste@email.com").Return(user, nil)

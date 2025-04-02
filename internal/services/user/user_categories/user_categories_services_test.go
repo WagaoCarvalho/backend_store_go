@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user_categories"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
