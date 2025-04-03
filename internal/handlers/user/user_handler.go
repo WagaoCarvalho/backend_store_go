@@ -7,7 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
+	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"github.com/gorilla/mux"
@@ -103,8 +104,9 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requestData struct {
-		User       models.User `json:"user"`
-		CategoryID int64       `json:"category_id"`
+		User       models_user.User       `json:"user"`
+		CategoryID int64                  `json:"category_id"`
+		Address    models_address.Address `json:"address"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
@@ -112,7 +114,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdUser, err := h.service.CreateUser(r.Context(), requestData.User, requestData.CategoryID)
+	createdUser, err := h.service.CreateUser(r.Context(), requestData.User, requestData.CategoryID, requestData.Address)
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"status":500, "message":"%s"}`, err.Error()), http.StatusInternalServerError)
 		return
@@ -133,7 +135,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
 		return
 	}
-	var user models.User
+	var user models_user.User
 
 	vars := mux.Vars(r)
 	idStr := vars["id"]
