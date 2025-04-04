@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/models"
@@ -25,6 +26,7 @@ func NewLoginService(userRepo repositories.UserRepository) LoginService {
 }
 
 func (s *loginService) Login(ctx context.Context, credentials models.LoginCredentials) (string, error) {
+	log.Printf("Tentativa de login com email: %s", credentials.Email)
 	// Validação básica
 	if !utils.IsValidEmail(credentials.Email) {
 		return "", fmt.Errorf("formato de email inválido")
@@ -35,6 +37,7 @@ func (s *loginService) Login(ctx context.Context, credentials models.LoginCreden
 
 	user, err := s.userRepo.GetUserByEmail(ctx, credentials.Email)
 	if err != nil {
+		log.Printf("Erro ao buscar usuário: %v", err)
 		if errors.Is(err, repositories.ErrUserNotFound) {
 			// Delay para prevenir timing attacks
 			time.Sleep(time.Second)
@@ -42,6 +45,9 @@ func (s *loginService) Login(ctx context.Context, credentials models.LoginCreden
 		}
 		return "", fmt.Errorf("erro ao buscar usuário")
 	}
+
+	log.Printf("Hash armazenado: %s", user.Password)
+	log.Printf("Senha fornecida: %s", credentials.Password)
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password))
 	if err != nil {

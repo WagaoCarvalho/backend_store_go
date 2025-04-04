@@ -6,6 +6,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type DefaultResponse struct {
@@ -47,4 +50,10 @@ func FromJson(r io.Reader, target interface{}) error {
 		return fmt.Errorf("erro ao decodificar JSON: %w", err)
 	}
 	return nil
+}
+
+// Função auxiliar para extrair ID da URL
+func GetIDParam(r *http.Request, key string) (int64, error) {
+	vars := mux.Vars(r)
+	return strconv.ParseInt(vars[key], 10, 64)
 }
