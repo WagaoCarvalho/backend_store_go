@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// Mock do AddressRepository
 type MockAddressRepository struct {
 	mock.Mock
 }
@@ -36,7 +35,6 @@ func (m *MockAddressRepository) DeleteAddress(ctx context.Context, id int) error
 	return args.Error(0)
 }
 
-// Teste de criação de endereço com sucesso
 func TestAddressService_CreateAddress_Success(t *testing.T) {
 	mockRepo := new(MockAddressRepository)
 	service := services.NewAddressService(mockRepo)
@@ -60,30 +58,25 @@ func TestAddressService_CreateAddress_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-// Teste de erro ao criar endereço
 func TestAddressService_CreateAddress_Error(t *testing.T) {
 	mockRepo := new(MockAddressRepository)
 	service := services.NewAddressService(mockRepo)
 
-	// Simulando um endereço inválido (faltando campos obrigatórios)
 	address := models.Address{
-		Street: "", // Campo obrigatório vazio
+		Street: "",
 		City:   "Cidade Teste",
 		State:  "Estado Teste",
 	}
 
-	// Não precisa mockar `CreateAddress`, pois o erro acontece antes de chamá-lo
 	createdAddress, err := service.CreateAddress(context.Background(), address)
 
 	assert.Error(t, err)
 	assert.Equal(t, "dados do endereço inválidos", err.Error())
 	assert.Equal(t, models.Address{}, createdAddress)
 
-	// Nenhuma chamada ao mock deve ser feita, pois a função retorna erro antes disso
 	mockRepo.AssertNotCalled(t, "CreateAddress")
 }
 
-// Teste de obtenção de endereço com sucesso
 func TestAddressService_GetAddressByID_Success(t *testing.T) {
 	mockRepo := new(MockAddressRepository)
 	service := services.NewAddressService(mockRepo)
@@ -107,7 +100,6 @@ func TestAddressService_GetAddressByID_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-// Teste de erro ao buscar um endereço inexistente
 func TestAddressService_GetAddressByID_NotFound(t *testing.T) {
 	mockRepo := new(MockAddressRepository)
 	service := services.NewAddressService(mockRepo)
@@ -121,7 +113,6 @@ func TestAddressService_GetAddressByID_NotFound(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-// Teste de atualização de endereço com sucesso
 func TestAddressService_UpdateAddress_Success(t *testing.T) {
 	mockRepo := new(MockAddressRepository)
 	service := services.NewAddressService(mockRepo)
@@ -143,7 +134,6 @@ func TestAddressService_UpdateAddress_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-// Teste de erro ao tentar atualizar endereço sem ID
 func TestAddressService_UpdateAddress_InvalidID(t *testing.T) {
 	mockRepo := new(MockAddressRepository)
 	service := services.NewAddressService(mockRepo)
@@ -158,7 +148,6 @@ func TestAddressService_UpdateAddress_InvalidID(t *testing.T) {
 	assert.Equal(t, "ID do endereço é obrigatório", err.Error())
 }
 
-// Teste de exclusão de endereço com sucesso
 func TestAddressService_DeleteAddress_Success(t *testing.T) {
 	mockRepo := new(MockAddressRepository)
 	service := services.NewAddressService(mockRepo)
@@ -171,7 +160,6 @@ func TestAddressService_DeleteAddress_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-// Teste de erro ao excluir endereço sem ID válido
 func TestAddressService_DeleteAddress_InvalidID(t *testing.T) {
 	mockRepo := new(MockAddressRepository)
 	service := services.NewAddressService(mockRepo)

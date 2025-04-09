@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
+	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
@@ -14,9 +15,15 @@ type UserService interface {
 	GetUsers(ctx context.Context) ([]models_user.User, error)
 	GetUserById(ctx context.Context, uid int64) (models_user.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models_user.User, error)
-	CreateUser(ctx context.Context, user models_user.User, categoryID int64, address models_address.Address) (models_user.User, error)
-	UpdateUser(ctx context.Context, user models_user.User) (models_user.User, error)
 	DeleteUserById(ctx context.Context, uid int64) error
+	UpdateUser(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error)
+	CreateUser(
+		ctx context.Context,
+		user models_user.User,
+		categoryID int64,
+		address models_address.Address,
+		contact models_contact.Contact,
+	) (models_user.User, error)
 }
 
 type userService struct {
@@ -47,12 +54,19 @@ func (s *userService) GetUserByEmail(ctx context.Context, email string) (models_
 	return user, nil
 }
 
-func (s *userService) CreateUser(ctx context.Context, user models_user.User, categoryID int64, address models_address.Address) (models_user.User, error) {
+func (s *userService) CreateUser(
+	ctx context.Context,
+	user models_user.User,
+	categoryID int64,
+	address models_address.Address,
+	contact models_contact.Contact,
+) (models_user.User, error) {
+
 	if !utils.IsValidEmail(user.Email) {
 		return models_user.User{}, fmt.Errorf("email inválido")
 	}
 
-	createdUser, err := s.repo.CreateUser(ctx, user, categoryID, address)
+	createdUser, err := s.repo.CreateUser(ctx, user, categoryID, address, contact)
 	if err != nil {
 		return models_user.User{}, fmt.Errorf("erro ao criar usuário: %w", err)
 	}
@@ -60,12 +74,12 @@ func (s *userService) CreateUser(ctx context.Context, user models_user.User, cat
 	return createdUser, nil
 }
 
-func (s *userService) UpdateUser(ctx context.Context, user models_user.User) (models_user.User, error) {
+func (s *userService) UpdateUser(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error) {
 	if !utils.IsValidEmail(user.Email) {
 		return models_user.User{}, fmt.Errorf("email inválido")
 	}
 
-	updatedUser, err := s.repo.UpdateUser(ctx, user)
+	updatedUser, err := s.repo.UpdateUser(ctx, user, contact)
 	if err != nil {
 		return models_user.User{}, fmt.Errorf("erro ao atualizar usuário: %w", err)
 	}

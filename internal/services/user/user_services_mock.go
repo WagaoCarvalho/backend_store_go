@@ -4,6 +4,7 @@ import (
 	"context"
 
 	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
+	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	"github.com/stretchr/testify/mock"
 )
@@ -36,16 +37,23 @@ func (m *MockUserRepository) GetUserByEmail(ctx context.Context, email string) (
 	return models_user.User{}, args.Error(1)
 }
 
-func (m *MockUserRepository) CreateUser(ctx context.Context, user models_user.User, categoryID int64, address models_address.Address) (models_user.User, error) {
-	args := m.Called(ctx, user, categoryID, address)
+func (m *MockUserRepository) CreateUser(
+	ctx context.Context,
+	user models_user.User,
+	categoryID int64,
+	address models_address.Address,
+	contact models_contact.Contact,
+) (models_user.User, error) {
+
+	args := m.Called(ctx, user, categoryID, address, contact)
 	if createdUser, ok := args.Get(0).(models_user.User); ok {
 		return createdUser, args.Error(1)
 	}
 	return models_user.User{}, args.Error(1)
 }
 
-func (m *MockUserRepository) UpdateUser(ctx context.Context, user models_user.User) (models_user.User, error) {
-	args := m.Called(ctx, user)
+func (m *MockUserRepository) UpdateUser(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error) {
+	args := m.Called(ctx, user, contact)
 	if updatedUser, ok := args.Get(0).(models_user.User); ok {
 		return updatedUser, args.Error(1)
 	}

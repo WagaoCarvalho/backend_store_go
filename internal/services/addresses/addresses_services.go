@@ -15,12 +15,10 @@ type AddressService interface {
 	DeleteAddress(ctx context.Context, id int) error
 }
 
-// Implementação concreta da interface AddressService
 type addressService struct {
 	repo repositories.AddressRepository
 }
 
-// Função para criar um novo serviço de endereço
 func NewAddressService(repo repositories.AddressRepository) AddressService {
 	return &addressService{repo: repo}
 }

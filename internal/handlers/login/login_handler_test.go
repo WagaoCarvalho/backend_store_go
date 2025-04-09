@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -12,6 +13,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
+
+// MockLoginService representa um mock do LoginService
+type MockLoginService struct {
+	mock.Mock
+}
+
+func (m *MockLoginService) Login(ctx context.Context, credentials models.LoginCredentials) (string, error) {
+	args := m.Called(ctx, credentials)
+	return args.String(0), args.Error(1)
+}
 
 func TestLoginHandler_Success(t *testing.T) {
 	mockService := new(MockLoginService)
@@ -66,6 +77,28 @@ func TestLoginHandler_InvalidCredentials(t *testing.T) {
 	assert.Equal(t, "credenciais inválidas", responseData["message"]) // Corrigido para "message"
 
 	mockService.AssertExpectations(t)
+}
+
+func TestLoginHandler_InvalidJSON(t *testing.T) {
+	mockService := new(MockLoginService)
+	handler := NewLoginHandler(mockService)
+
+	// JSON malformado
+	invalidJSON := []byte(`{email: "user@example.com", password: }`)
+
+	r := httptest.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(invalidJSON))
+	r.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	handler.Login(w, r)
+
+	resp := w.Result()
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var responseData map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&responseData)
+
+	assert.Equal(t, "dados inválidos", responseData["message"])
 }
 
 func TestLoginHandler_InvalidMethod(t *testing.T) {

@@ -35,7 +35,7 @@ func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
 		Status: http.StatusOK,
 	}
 
-	utils.ToJson(w, response)
+	utils.ToJson(w, http.StatusOK, response)
 }
 
 func (h *ProductHandler) GetProductById(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +63,7 @@ func (h *ProductHandler) GetProductById(w http.ResponseWriter, r *http.Request) 
 		Message: "Produto encontrado",
 		Data:    product,
 	}
-	utils.ToJson(w, response)
+	utils.ToJson(w, http.StatusOK, response)
 }
 
 func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
@@ -136,7 +136,7 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		Message: "Produto atualizado com sucesso",
 		Data:    updatedProduct,
 	}
-	utils.ToJson(w, response)
+	utils.ToJson(w, http.StatusOK, response)
 }
 
 func (h *ProductHandler) DeleteProductById(w http.ResponseWriter, r *http.Request) {
@@ -169,7 +169,7 @@ func (h *ProductHandler) DeleteProductById(w http.ResponseWriter, r *http.Reques
 		Message: "Produto deletado com sucesso",
 		Data:    nil,
 	}
-	utils.ToJson(w, response)
+	utils.ToJson(w, http.StatusOK, response)
 }
 
 func (h *ProductHandler) GetProductsByName(w http.ResponseWriter, r *http.Request) {
@@ -190,7 +190,7 @@ func (h *ProductHandler) GetProductsByName(w http.ResponseWriter, r *http.Reques
 		Message: "Produtos encontrados",
 		Data:    products,
 	}
-	utils.ToJson(w, response)
+	utils.ToJson(w, http.StatusOK, response)
 }
 
 func (h *ProductHandler) GetProductsByCostPriceRange(w http.ResponseWriter, r *http.Request) {
@@ -220,7 +220,7 @@ func (h *ProductHandler) GetProductsByCostPriceRange(w http.ResponseWriter, r *h
 		Message: "Produtos encontrados por faixa de preço de custo",
 		Data:    products,
 	}
-	utils.ToJson(w, response)
+	utils.ToJson(w, http.StatusOK, response)
 }
 
 func (h *ProductHandler) GetProductsBySalePriceRange(w http.ResponseWriter, r *http.Request) {
@@ -250,7 +250,7 @@ func (h *ProductHandler) GetProductsBySalePriceRange(w http.ResponseWriter, r *h
 		Message: "Produtos encontrados por faixa de preço de venda",
 		Data:    products,
 	}
-	utils.ToJson(w, response)
+	utils.ToJson(w, http.StatusOK, response)
 }
 
 func (h *ProductHandler) GetProductsLowInStock(w http.ResponseWriter, r *http.Request) {
@@ -272,5 +272,5 @@ func (h *ProductHandler) GetProductsLowInStock(w http.ResponseWriter, r *http.Re
 		Message: "Produtos com estoque baixo encontrados",
 		Data:    products,
 	}
-	utils.ToJson(w, response)
+	utils.ToJson(w, http.StatusOK, response)
 }

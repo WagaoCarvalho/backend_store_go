@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
@@ -26,9 +26,15 @@ type UserRepository interface {
 	GetUsers(ctx context.Context) ([]models_user.User, error)
 	GetUserById(ctx context.Context, uid int64) (models_user.User, error)
 	GetUserByEmail(ctx context.Context, email string) (models_user.User, error)
-	CreateUser(ctx context.Context, user models_user.User, categoryID int64, address models_address.Address) (models_user.User, error)
-	UpdateUser(ctx context.Context, user models_user.User) (models_user.User, error)
 	DeleteUserById(ctx context.Context, uid int64) error
+	UpdateUser(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error)
+	CreateUser(
+		ctx context.Context,
+		user models_user.User,
+		categoryID int64,
+		address models_address.Address,
+		contact models_contact.Contact,
+	) (models_user.User, error)
 }
 
 type userRepository struct {
@@ -67,9 +73,10 @@ func (r *userRepository) GetUsers(ctx context.Context) ([]models_user.User, erro
 func (r *userRepository) GetUserById(ctx context.Context, uid int64) (models_user.User, error) {
 	var user models_user.User
 	var address models_address.Address
+	var contact models_contact.Contact
 	var categories []models_user_categories.UserCategory
 
-	// Consulta para obter os dados do usuário
+	// 🔹 Consulta dados do usuário
 	userQuery := `
 		SELECT id, username, email, password_hash, status, created_at, updated_at 
 		FROM users WHERE id = $1`
@@ -84,7 +91,7 @@ func (r *userRepository) GetUserById(ctx context.Context, uid int64) (models_use
 		return user, fmt.Errorf("erro ao buscar usuário: %w", err)
 	}
 
-	// Consulta para obter as categorias associadas ao usuário
+	// 🔹 Consulta categorias associadas
 	categoryQuery := `
 		SELECT c.id, c.name, c.description, c.created_at, c.updated_at 
 		FROM user_category_relations ucr
@@ -105,7 +112,7 @@ func (r *userRepository) GetUserById(ctx context.Context, uid int64) (models_use
 	}
 	user.Categories = categories
 
-	// Consulta para obter o endereço do usuário
+	// 🔹 Consulta endereço
 	addressQuery := `
 		SELECT id, street, city, state, country, postal_code, created_at, updated_at 
 		FROM addresses WHERE user_id = $1`
@@ -117,6 +124,22 @@ func (r *userRepository) GetUserById(ctx context.Context, uid int64) (models_use
 		return user, fmt.Errorf("erro ao buscar endereço do usuário: %w", err)
 	} else if err == nil {
 		user.Address = &address
+	}
+
+	// 🔹 Consulta contato
+	contactQuery := `
+		SELECT id, user_id, client_id, supplier_id, contact_name, contact_position, email, phone, cell, contact_type, created_at, updated_at 
+		FROM contacts WHERE user_id = $1`
+	err = r.db.QueryRow(ctx, contactQuery, uid).Scan(
+		&contact.ID, &contact.UserID, &contact.ClientID, &contact.SupplierID,
+		&contact.ContactName, &contact.ContactPosition, &contact.Email,
+		&contact.Phone, &contact.Cell, &contact.ContactType,
+		&contact.CreatedAt, &contact.UpdatedAt,
+	)
+	if err != nil && err != pgx.ErrNoRows {
+		return user, fmt.Errorf("erro ao buscar contato do usuário: %w", err)
+	} else if err == nil {
+		user.Contact = &contact
 	}
 
 	return user, nil
@@ -146,9 +169,16 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (mode
 	return user, nil
 }
 
-func (r *userRepository) CreateUser(ctx context.Context, user models_user.User, categoryID int64, address models_address.Address) (models_user.User, error) {
+func (r *userRepository) CreateUser(
+	ctx context.Context,
+	user models_user.User,
+	categoryID int64,
+	address models_address.Address,
+	contact models_contact.Contact,
+) (models_user.User, error) {
+
 	if !utils.IsValidEmail(user.Email) {
-		return models.User{}, ErrInvalidEmail
+		return models_user.User{}, ErrInvalidEmail
 	}
 
 	// Verifica se o usuário já existe
@@ -160,49 +190,73 @@ func (r *userRepository) CreateUser(ctx context.Context, user models_user.User, 
 		return models_user.User{}, fmt.Errorf("erro ao verificar usuário existente: %w", err)
 	}
 
+	// 🔐 Criptografar senha
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return models_user.User{}, ErrPasswordHash
 	}
 	user.Password = string(hashedPassword)
 
-	// 🔹 Iniciar Transação
+	// 🔹 Iniciar transação
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return models_user.User{}, fmt.Errorf("erro ao iniciar transação: %w", err)
 	}
-	defer tx.Rollback(ctx) // Se algo der errado, reverte as operações.
+	defer tx.Rollback(ctx)
 
-	// 🔹 Criar Usuário
-	userQuery := `INSERT INTO users (username, email, password_hash, status, created_at, updated_at) 
-	              VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING id, created_at, updated_at`
-
+	// 🔹 Criar usuário
+	userQuery := `
+		INSERT INTO users (username, email, password_hash, status, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, NOW(), NOW())
+		RETURNING id, created_at, updated_at
+	`
 	err = tx.QueryRow(ctx, userQuery, user.Username, user.Email, user.Password, user.Status).
 		Scan(&user.UID, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return models_user.User{}, fmt.Errorf("erro ao criar usuário: %w", err)
 	}
 
-	// 🔹 Criar Endereço
-	addressQuery := `INSERT INTO addresses (user_id, street, city, state, country, postal_code, created_at, updated_at)
-	                 VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING id`
-
+	// 🔹 Criar endereço
+	addressQuery := `
+		INSERT INTO addresses (user_id, street, city, state, country, postal_code, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING id
+	`
 	err = tx.QueryRow(ctx, addressQuery, user.UID, address.Street, address.City, address.State, address.Country, address.PostalCode).
 		Scan(&address.ID)
 	if err != nil {
 		return models_user.User{}, fmt.Errorf("erro ao criar endereço: %w", err)
 	}
 
-	// 🔹 Criar Relação Usuário-Categoria
-	relationQuery := `INSERT INTO user_category_relations (user_id, category_id, created_at, updated_at)
-	                  VALUES ($1, $2, NOW(), NOW())`
+	// 🔹 Criar contato associado ao usuário
+	contactQuery := `
+		INSERT INTO contacts (user_id, contact_name, contact_position, email, phone, cell, contact_type, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+		RETURNING id
+	`
+	err = tx.QueryRow(ctx, contactQuery,
+		user.UID,
+		contact.ContactName,
+		contact.ContactPosition,
+		contact.Email,
+		contact.Phone,
+		contact.Cell,
+		contact.ContactType,
+	).Scan(&contact.ID)
+	if err != nil {
+		return models_user.User{}, fmt.Errorf("erro ao criar contato: %w", err)
+	}
 
+	// 🔹 Criar relação usuário-categoria
+	relationQuery := `
+		INSERT INTO user_category_relations (user_id, category_id, created_at, updated_at)
+		VALUES ($1, $2, NOW(), NOW())
+	`
 	_, err = tx.Exec(ctx, relationQuery, user.UID, categoryID)
 	if err != nil {
 		return models_user.User{}, fmt.Errorf("erro ao criar relação usuário-categoria: %w", err)
 	}
 
-	// 🔹 Confirmar Transação
+	// 🔹 Commitar transação
 	if err := tx.Commit(ctx); err != nil {
 		return models_user.User{}, fmt.Errorf("erro ao confirmar transação: %w", err)
 	}
@@ -210,12 +264,12 @@ func (r *userRepository) CreateUser(ctx context.Context, user models_user.User, 
 	return user, nil
 }
 
-func (r *userRepository) UpdateUser(ctx context.Context, user models_user.User) (models_user.User, error) {
+func (r *userRepository) UpdateUser(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error) {
 	if !utils.IsValidEmail(user.Email) {
 		return models_user.User{}, ErrInvalidEmail
 	}
 
-	// Atualiza os dados do usuário (sem a senha)
+	// Atualiza os dados do usuário
 	query := `UPDATE users 
 			  SET username = $1, email = $2, status = $3, updated_at = NOW() 
 			  WHERE id = $4 
@@ -235,7 +289,7 @@ func (r *userRepository) UpdateUser(ctx context.Context, user models_user.User) 
 		return models_user.User{}, fmt.Errorf("erro ao atualizar usuário: %w", err)
 	}
 
-	// Atualiza as categorias do usuário
+	// Atualiza categorias
 	deleteCategoriesQuery := `DELETE FROM user_category_relations WHERE user_id = $1`
 	_, err = r.db.Exec(ctx, deleteCategoriesQuery, user.UID)
 	if err != nil {
@@ -250,7 +304,7 @@ func (r *userRepository) UpdateUser(ctx context.Context, user models_user.User) 
 		}
 	}
 
-	// Atualiza o endereço do usuário
+	// Atualiza endereço
 	if user.Address != nil {
 		addressQuery := `UPDATE addresses 
 						SET street = $1, city = $2, state = $3, country = $4, postal_code = $5, updated_at = NOW() 
@@ -265,6 +319,28 @@ func (r *userRepository) UpdateUser(ctx context.Context, user models_user.User) 
 		)
 		if err != nil {
 			return models_user.User{}, fmt.Errorf("erro ao atualizar endereço do usuário: %w", err)
+		}
+	}
+
+	// Atualiza contato
+	if contact != nil {
+		contactQuery := `
+			UPDATE contacts
+			SET contact_name = $1, contact_position = $2, email = $3, phone = $4, cell = $5, contact_type = $6, updated_at = NOW()
+			WHERE user_id = $7`
+
+		_, err = r.db.Exec(ctx, contactQuery,
+			contact.ContactName,
+			contact.ContactPosition,
+			contact.Email,
+			contact.Phone,
+			contact.Cell,
+			contact.ContactType,
+			user.UID,
+		)
+
+		if err != nil {
+			return models_user.User{}, fmt.Errorf("erro ao atualizar contato do usuário: %w", err)
 		}
 	}
 

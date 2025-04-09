@@ -1,120 +1,112 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
-	"strconv"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
-	"github.com/gorilla/mux"
+	"github.com/WagaoCarvalho/backend_store_go/utils"
 )
+
+type AddressHandlerInterface interface {
+	CreateAddress(w http.ResponseWriter, r *http.Request)
+	GetAddress(w http.ResponseWriter, r *http.Request)
+	UpdateAddress(w http.ResponseWriter, r *http.Request)
+	DeleteAddress(w http.ResponseWriter, r *http.Request)
+}
 
 type AddressHandler struct {
 	service services.AddressService
 }
 
-func NewAddressHandler(service services.AddressService) *AddressHandler {
+func NewAddressHandler(service services.AddressService) AddressHandlerInterface {
 	return &AddressHandler{service: service}
 }
 
 // Criar um endereço
 func (h *AddressHandler) CreateAddress(w http.ResponseWriter, r *http.Request) {
 	var address models.Address
-	if err := json.NewDecoder(r.Body).Decode(&address); err != nil {
-		http.Error(w, `{"status":400, "message":"Dados inválidos"}`, http.StatusBadRequest)
+	if err := utils.FromJson(r.Body, &address); err != nil {
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	createdAddress, err := h.service.CreateAddress(r.Context(), address)
 	if err != nil {
-		http.Error(w, `{"status":500, "message":"Erro ao criar endereço"}`, http.StatusInternalServerError)
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	response := map[string]interface{}{
-		"status":  http.StatusCreated,
-		"message": "Endereço criado com sucesso",
-		"data":    createdAddress,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(response)
+	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
+		Status:  http.StatusCreated,
+		Message: "Endereço criado com sucesso",
+		Data:    createdAddress,
+	})
 }
 
 // Buscar endereço por ID
 func (h *AddressHandler) GetAddress(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id, err := strconv.Atoi(params["id"])
+	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		http.Error(w, `{"status":400, "message":"ID inválido"}`, http.StatusBadRequest)
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	address, err := h.service.GetAddressByID(r.Context(), id)
+	address, err := h.service.GetAddressByID(r.Context(), int(id))
 	if err != nil {
-		http.Error(w, `{"status":404, "message":"Endereço não encontrado"}`, http.StatusNotFound)
+		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
-	response := map[string]interface{}{
-		"status":  http.StatusOK,
-		"message": "Endereço encontrado",
-		"data":    address,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusCreated,
+		Message: "Endereço criado com sucesso",
+		Data:    address,
+	})
 }
 
 // Atualizar endereço
 func (h *AddressHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id, err := strconv.Atoi(params["id"])
+	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		http.Error(w, `{"status":400, "message":"ID inválido"}`, http.StatusBadRequest)
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	var address models.Address
-	if err := json.NewDecoder(r.Body).Decode(&address); err != nil {
-		http.Error(w, `{"status":400, "message":"Dados inválidos"}`, http.StatusBadRequest)
+	if err := utils.FromJson(r.Body, &address); err != nil {
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// Atribuir o ID corretamente
-	address.ID = id
+	address.ID = int(id)
 
 	if err := h.service.UpdateAddress(r.Context(), address); err != nil {
-		http.Error(w, `{"status":500, "message":"Erro ao atualizar endereço"}`, http.StatusInternalServerError)
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	response := map[string]interface{}{
-		"status":  http.StatusOK,
-		"message": "Endereço atualizado com sucesso",
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Endereço atualizado com sucesso",
+	})
 }
 
 // Deletar endereço
 func (h *AddressHandler) DeleteAddress(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id, err := strconv.Atoi(params["id"])
+	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		http.Error(w, `{"status":400, "message":"ID inválido"}`, http.StatusBadRequest)
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	if err := h.service.DeleteAddress(r.Context(), id); err != nil {
-		http.Error(w, `{"status":500, "message":"Erro ao deletar endereço"}`, http.StatusInternalServerError)
+	if err := h.service.DeleteAddress(r.Context(), int(id)); err != nil {
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	response := map[string]interface{}{
-		"status":  http.StatusOK,
-		"message": "Endereço deletado com sucesso",
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Endereço deletado com sucesso",
+	})
 }

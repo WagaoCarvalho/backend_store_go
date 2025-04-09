@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 
@@ -9,16 +8,6 @@ import (
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 )
-
-type ContactService interface {
-	CreateContact(ctx context.Context, contact *models.Contact) error
-	GetContactByID(ctx context.Context, id int64) (*models.Contact, error)
-	ListContactsByUser(ctx context.Context, userID int64) ([]*models.Contact, error)
-	ListContactsByClient(ctx context.Context, clientID int64) ([]*models.Contact, error)
-	ListContactsBySupplier(ctx context.Context, supplierID int64) ([]*models.Contact, error)
-	UpdateContact(ctx context.Context, contact *models.Contact) error
-	DeleteContact(ctx context.Context, id int64) error
-}
 
 type ContactHandler struct {
 	service services.ContactService
@@ -30,7 +19,6 @@ func NewContactHandler(service services.ContactService) *ContactHandler {
 	}
 }
 
-// POST /contacts
 func (h *ContactHandler) CreateContact(w http.ResponseWriter, r *http.Request) {
 	var contact models.Contact
 	if err := json.NewDecoder(r.Body).Decode(&contact); err != nil {
@@ -47,7 +35,6 @@ func (h *ContactHandler) CreateContact(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(contact)
 }
 
-// GET /contacts/{id:[0-9]+}
 func (h *ContactHandler) GetContactByID(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
@@ -64,7 +51,6 @@ func (h *ContactHandler) GetContactByID(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(contact)
 }
 
-// GET /contacts/user/{userID:[0-9]+}
 func (h *ContactHandler) ListContactsByUser(w http.ResponseWriter, r *http.Request) {
 	userID, err := utils.GetIDParam(r, "userID")
 	if err != nil {
@@ -81,7 +67,6 @@ func (h *ContactHandler) ListContactsByUser(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(contacts)
 }
 
-// GET /contacts/client/{clientID:[0-9]+}
 func (h *ContactHandler) ListContactsByClient(w http.ResponseWriter, r *http.Request) {
 	clientID, err := utils.GetIDParam(r, "clientID")
 	if err != nil {
@@ -98,7 +83,6 @@ func (h *ContactHandler) ListContactsByClient(w http.ResponseWriter, r *http.Req
 	json.NewEncoder(w).Encode(contacts)
 }
 
-// GET /contacts/supplier/{supplierID:[0-9]+}
 func (h *ContactHandler) ListContactsBySupplier(w http.ResponseWriter, r *http.Request) {
 	supplierID, err := utils.GetIDParam(r, "supplierID")
 	if err != nil {
@@ -115,7 +99,6 @@ func (h *ContactHandler) ListContactsBySupplier(w http.ResponseWriter, r *http.R
 	json.NewEncoder(w).Encode(contacts)
 }
 
-// PUT /contacts/{id:[0-9]+}
 func (h *ContactHandler) UpdateContact(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
@@ -139,7 +122,6 @@ func (h *ContactHandler) UpdateContact(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(contact)
 }
 
-// DELETE /contacts/{id:[0-9]+}
 func (h *ContactHandler) DeleteContact(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {

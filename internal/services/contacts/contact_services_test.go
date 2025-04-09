@@ -1,4 +1,3 @@
-// mocks/contact_repository.go
 package services
 
 import (
@@ -177,9 +176,8 @@ func TestUpdateContact(t *testing.T) {
 			Email:       "new@example.com",
 		}
 
-		// Primeiro mock para verificar se existe
 		mockRepo.On("GetContactByID", mock.Anything, int64(1)).Return(existingContact, nil)
-		// Depois mock para atualizar
+
 		mockRepo.On("Updatecontac", mock.Anything, updatedContact).Return(nil)
 
 		err := service.UpdateContact(context.Background(), updatedContact)
@@ -211,7 +209,7 @@ func TestUpdateContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		invalidContact := &models.Contact{
-			ID: 1, // Name missing
+			ID: 1,
 		}
 
 		err := service.UpdateContact(context.Background(), invalidContact)
@@ -268,7 +266,7 @@ func TestDeleteContact(t *testing.T) {
 	})
 }
 
-func TestListContactsByUser(t *testing.T) {
+func TestGetContactsByUser(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockRepo := new(MockContactRepository)
 		service := NewContactService(mockRepo)
@@ -288,7 +286,7 @@ func TestListContactsByUser(t *testing.T) {
 
 		mockRepo.On("GetContactByUserID", mock.Anything, int64(1)).Return(expectedContacts, nil)
 
-		contacts, err := service.ListContactsByUser(context.Background(), 1)
+		contacts, err := service.GetContactsByUser(context.Background(), 1)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedContacts, contacts)
@@ -301,7 +299,7 @@ func TestListContactsByUser(t *testing.T) {
 
 		mockRepo.On("GetContactByUserID", mock.Anything, int64(1)).Return([]*models.Contact{}, nil)
 
-		contacts, err := service.ListContactsByUser(context.Background(), 1)
+		contacts, err := service.GetContactsByUser(context.Background(), 1)
 
 		assert.NoError(t, err)
 		assert.Empty(t, contacts)
@@ -312,7 +310,7 @@ func TestListContactsByUser(t *testing.T) {
 		mockRepo := new(MockContactRepository)
 		service := NewContactService(mockRepo)
 
-		contacts, err := service.ListContactsByUser(context.Background(), 0)
+		contacts, err := service.GetContactsByUser(context.Background(), 0)
 
 		assert.Error(t, err)
 		assert.Nil(t, contacts)
@@ -321,7 +319,6 @@ func TestListContactsByUser(t *testing.T) {
 	})
 }
 
-// Função auxiliar para criar ponteiros de int64
 func ptrInt64(i int64) *int64 {
 	return &i
 }

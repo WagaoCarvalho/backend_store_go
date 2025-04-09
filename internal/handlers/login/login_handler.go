@@ -41,5 +41,5 @@ func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Message: "Login realizado com sucesso",
 		Data:    map[string]string{"token": token},
 	}
-	utils.ToJson(w, response)
+	utils.ToJson(w, http.StatusOK, response)
 }

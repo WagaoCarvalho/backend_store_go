@@ -13,9 +13,9 @@ import (
 type ContactService interface {
 	CreateContact(ctx context.Context, contact *models.Contact) error
 	GetContactByID(ctx context.Context, id int64) (*models.Contact, error)
-	ListContactsByUser(ctx context.Context, userID int64) ([]*models.Contact, error)
-	ListContactsByClient(ctx context.Context, clientID int64) ([]*models.Contact, error)
-	ListContactsBySupplier(ctx context.Context, supplierID int64) ([]*models.Contact, error)
+	GetContactsByUser(ctx context.Context, userID int64) ([]*models.Contact, error)
+	GetContactsByClient(ctx context.Context, clientID int64) ([]*models.Contact, error)
+	GetContactsBySupplier(ctx context.Context, supplierID int64) ([]*models.Contact, error)
 	UpdateContact(ctx context.Context, contact *models.Contact) error
 	DeleteContact(ctx context.Context, id int64) error
 }
@@ -69,7 +69,7 @@ func (s *contactService) GetContactByID(ctx context.Context, id int64) (*models.
 	return contact, nil
 }
 
-func (s *contactService) ListContactsByUser(ctx context.Context, userID int64) ([]*models.Contact, error) {
+func (s *contactService) GetContactsByUser(ctx context.Context, userID int64) ([]*models.Contact, error) {
 	if userID <= 0 {
 		return nil, fmt.Errorf("ID de usuário inválido")
 	}
@@ -82,7 +82,7 @@ func (s *contactService) ListContactsByUser(ctx context.Context, userID int64) (
 	return contacts, nil
 }
 
-func (s *contactService) ListContactsByClient(ctx context.Context, clientID int64) ([]*models.Contact, error) {
+func (s *contactService) GetContactsByClient(ctx context.Context, clientID int64) ([]*models.Contact, error) {
 	if clientID <= 0 {
 		return nil, fmt.Errorf("ID de cliente inválido")
 	}
@@ -95,7 +95,7 @@ func (s *contactService) ListContactsByClient(ctx context.Context, clientID int6
 	return contacts, nil
 }
 
-func (s *contactService) ListContactsBySupplier(ctx context.Context, supplierID int64) ([]*models.Contact, error) {
+func (s *contactService) GetContactsBySupplier(ctx context.Context, supplierID int64) ([]*models.Contact, error) {
 	if supplierID <= 0 {
 		return nil, fmt.Errorf("ID de fornecedor inválido")
 	}
