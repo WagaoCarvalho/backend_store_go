@@ -110,9 +110,9 @@ func NewRouter() *mux.Router {
 	// Contact routes (padronizadas com regex e ordem consistente)
 	protectedRoutes.HandleFunc("/contact", contactHandler.CreateContact).Methods(http.MethodPost)
 	protectedRoutes.HandleFunc("/contact/{id:[0-9]+}", contactHandler.GetContactByID).Methods(http.MethodGet)
-	protectedRoutes.HandleFunc("/contact/user/{userID:[0-9]+}", contactHandler.ListContactsByUser).Methods(http.MethodGet)
-	protectedRoutes.HandleFunc("/contact/client/{clientID:[0-9]+}", contactHandler.ListContactsByClient).Methods(http.MethodGet)
-	protectedRoutes.HandleFunc("/contact/supplier/{supplierID:[0-9]+}", contactHandler.ListContactsBySupplier).Methods(http.MethodGet)
+	protectedRoutes.HandleFunc("/contact/user/{userID:[0-9]+}", contactHandler.GetContactsByUser).Methods(http.MethodGet)
+	protectedRoutes.HandleFunc("/contact/client/{clientID:[0-9]+}", contactHandler.GetContactsByClient).Methods(http.MethodGet)
+	protectedRoutes.HandleFunc("/contact/supplier/{supplierID:[0-9]+}", contactHandler.GetContactsBySupplier).Methods(http.MethodGet)
 	protectedRoutes.HandleFunc("/contact/{id:[0-9]+}", contactHandler.UpdateContact).Methods(http.MethodPut)
 	protectedRoutes.HandleFunc("/contact/{id:[0-9]+}", contactHandler.DeleteContact).Methods(http.MethodDelete)
 

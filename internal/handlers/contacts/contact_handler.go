@@ -51,14 +51,14 @@ func (h *ContactHandler) GetContactByID(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(contact)
 }
 
-func (h *ContactHandler) ListContactsByUser(w http.ResponseWriter, r *http.Request) {
+func (h *ContactHandler) GetContactsByUser(w http.ResponseWriter, r *http.Request) {
 	userID, err := utils.GetIDParam(r, "userID")
 	if err != nil {
 		http.Error(w, "userID inválido", http.StatusBadRequest)
 		return
 	}
 
-	contacts, err := h.service.ListContactsByUser(r.Context(), userID)
+	contacts, err := h.service.GetContactsByUser(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -67,14 +67,14 @@ func (h *ContactHandler) ListContactsByUser(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(contacts)
 }
 
-func (h *ContactHandler) ListContactsByClient(w http.ResponseWriter, r *http.Request) {
+func (h *ContactHandler) GetContactsByClient(w http.ResponseWriter, r *http.Request) {
 	clientID, err := utils.GetIDParam(r, "clientID")
 	if err != nil {
 		http.Error(w, "clientID inválido", http.StatusBadRequest)
 		return
 	}
 
-	contacts, err := h.service.ListContactsByClient(r.Context(), clientID)
+	contacts, err := h.service.GetContactsByClient(r.Context(), clientID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -83,14 +83,14 @@ func (h *ContactHandler) ListContactsByClient(w http.ResponseWriter, r *http.Req
 	json.NewEncoder(w).Encode(contacts)
 }
 
-func (h *ContactHandler) ListContactsBySupplier(w http.ResponseWriter, r *http.Request) {
+func (h *ContactHandler) GetContactsBySupplier(w http.ResponseWriter, r *http.Request) {
 	supplierID, err := utils.GetIDParam(r, "supplierID")
 	if err != nil {
 		http.Error(w, "supplierID inválido", http.StatusBadRequest)
 		return
 	}
 
-	contacts, err := h.service.ListContactsBySupplier(r.Context(), supplierID)
+	contacts, err := h.service.GetContactsBySupplier(r.Context(), supplierID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

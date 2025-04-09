@@ -30,7 +30,7 @@ func (m *MockContactService) GetContactByID(ctx context.Context, id int64) (*con
 	return args.Get(0).(*contact.Contact), args.Error(1)
 }
 
-func (m *MockContactService) ListContactsByUser(ctx context.Context, userID int64) ([]*contact.Contact, error) {
+func (m *MockContactService) GetContactsByUser(ctx context.Context, userID int64) ([]*contact.Contact, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -38,7 +38,7 @@ func (m *MockContactService) ListContactsByUser(ctx context.Context, userID int6
 	return args.Get(0).([]*contact.Contact), args.Error(1)
 }
 
-func (m *MockContactService) ListContactsByClient(ctx context.Context, clientID int64) ([]*contact.Contact, error) {
+func (m *MockContactService) GetContactsByClient(ctx context.Context, clientID int64) ([]*contact.Contact, error) {
 	args := m.Called(ctx, clientID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -46,7 +46,7 @@ func (m *MockContactService) ListContactsByClient(ctx context.Context, clientID 
 	return args.Get(0).([]*contact.Contact), args.Error(1)
 }
 
-func (m *MockContactService) ListContactsBySupplier(ctx context.Context, supplierID int64) ([]*contact.Contact, error) {
+func (m *MockContactService) GetContactsBySupplier(ctx context.Context, supplierID int64) ([]*contact.Contact, error) {
 	args := m.Called(ctx, supplierID)
 	return args.Get(0).([]*contact.Contact), args.Error(1)
 }
@@ -152,88 +152,88 @@ func TestGetContactByID_NotFound(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
-func TestListContactsByUser_Success(t *testing.T) {
+func TestGetContactsByUser_Success(t *testing.T) {
 	mockSvc := new(MockContactService)
 	handler := NewContactHandler(mockSvc)
 
-	mockSvc.On("ListContactsByUser", mock.Anything, int64(1)).Return([]*contact.Contact{}, nil)
+	mockSvc.On("GetContactsByUser", mock.Anything, int64(1)).Return([]*contact.Contact{}, nil)
 
 	req := newRequestWithVars("GET", "/contacts/user/1", nil, map[string]string{"userID": "1"})
 	w := httptest.NewRecorder()
 
-	handler.ListContactsByUser(w, req)
+	handler.GetContactsByUser(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestListContactsByUser_InvalidID(t *testing.T) {
+func TestGetContactsByUser_InvalidID(t *testing.T) {
 	handler := NewContactHandler(new(MockContactService))
 
 	req := newRequestWithVars("GET", "/contacts/user/abc", nil, map[string]string{"userID": "abc"})
 	w := httptest.NewRecorder()
 
-	handler.ListContactsByUser(w, req)
+	handler.GetContactsByUser(w, req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestListContactsByClient_Success(t *testing.T) {
+func TestGetContactsByClient_Success(t *testing.T) {
 	mockSvc := new(MockContactService)
 	handler := NewContactHandler(mockSvc)
 
-	mockSvc.On("ListContactsByClient", mock.Anything, int64(10)).Return([]*contact.Contact{}, nil)
+	mockSvc.On("GetContactsByClient", mock.Anything, int64(10)).Return([]*contact.Contact{}, nil)
 
 	req := newRequestWithVars("GET", "/contacts/client/10", nil, map[string]string{"clientID": "10"})
 	w := httptest.NewRecorder()
 
-	handler.ListContactsByClient(w, req)
+	handler.GetContactsByClient(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestListContactsByClient_InvalidID(t *testing.T) {
+func TestGetContactsByClient_InvalidID(t *testing.T) {
 	handler := NewContactHandler(new(MockContactService))
 
 	req := newRequestWithVars("GET", "/contacts/client/abc", nil, map[string]string{"clientID": "abc"})
 	w := httptest.NewRecorder()
 
-	handler.ListContactsByClient(w, req)
+	handler.GetContactsByClient(w, req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestListContactsBySupplier_Success(t *testing.T) {
+func TestGetContactsBySupplier_Success(t *testing.T) {
 	mockSvc := new(MockContactService)
 	handler := NewContactHandler(mockSvc)
 
-	mockSvc.On("ListContactsBySupplier", mock.Anything, int64(5)).Return([]*contact.Contact{}, nil)
+	mockSvc.On("GetContactsBySupplier", mock.Anything, int64(5)).Return([]*contact.Contact{}, nil)
 
 	req := newRequestWithVars("GET", "/contacts/supplier/5", nil, map[string]string{"supplierID": "5"})
 	w := httptest.NewRecorder()
 
-	handler.ListContactsBySupplier(w, req)
+	handler.GetContactsBySupplier(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestListContactsBySupplier_InvalidID(t *testing.T) {
+func TestGetContactsBySupplier_InvalidID(t *testing.T) {
 	handler := NewContactHandler(new(MockContactService))
 
 	req := newRequestWithVars("GET", "/contacts/supplier/abc", nil, map[string]string{"supplierID": "abc"})
 	w := httptest.NewRecorder()
 
-	handler.ListContactsBySupplier(w, req)
+	handler.GetContactsBySupplier(w, req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestListContactsByUser_Error(t *testing.T) {
+func TestGetContactsByUser_Error(t *testing.T) {
 	mockSvc := new(MockContactService)
 	handler := NewContactHandler(mockSvc)
 
-	mockSvc.On("ListContactsByUser", mock.Anything, int64(2)).Return(nil, errors.New("erro ao buscar"))
+	mockSvc.On("GetContactsByUser", mock.Anything, int64(2)).Return(nil, errors.New("erro ao buscar"))
 
 	req := newRequestWithVars("GET", "/contacts/user/2", nil, map[string]string{"userID": "2"})
 	w := httptest.NewRecorder()
 
-	handler.ListContactsByUser(w, req)
+	handler.GetContactsByUser(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
