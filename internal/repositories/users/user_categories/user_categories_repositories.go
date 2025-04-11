@@ -17,11 +17,11 @@ var (
 )
 
 type UserCategoryRepository interface {
-	GetCategories(ctx context.Context) ([]models.UserCategory, error)
-	GetCategoryById(ctx context.Context, id int64) (models.UserCategory, error)
-	CreateCategory(ctx context.Context, category models.UserCategory) (models.UserCategory, error)
-	UpdateCategory(ctx context.Context, category models.UserCategory) (models.UserCategory, error)
-	DeleteCategoryById(ctx context.Context, id int64) error
+	GetAll(ctx context.Context) ([]models.UserCategory, error)
+	GetById(ctx context.Context, id int64) (models.UserCategory, error)
+	Create(ctx context.Context, category models.UserCategory) (models.UserCategory, error)
+	Update(ctx context.Context, category models.UserCategory) (models.UserCategory, error)
+	Delete(ctx context.Context, id int64) error
 }
 
 type userCategoryRepository struct {
@@ -32,7 +32,7 @@ func NewUserCategoryRepository(db *pgxpool.Pool) UserCategoryRepository {
 	return &userCategoryRepository{db: db}
 }
 
-func (r *userCategoryRepository) GetCategories(ctx context.Context) ([]models.UserCategory, error) {
+func (r *userCategoryRepository) GetAll(ctx context.Context) ([]models.UserCategory, error) {
 	query := `SELECT id, name, description, created_at, updated_at FROM user_categories`
 
 	rows, err := r.db.Query(ctx, query)
@@ -58,7 +58,7 @@ func (r *userCategoryRepository) GetCategories(ctx context.Context) ([]models.Us
 	return categories, nil
 }
 
-func (r *userCategoryRepository) GetCategoryById(ctx context.Context, id int64) (models.UserCategory, error) {
+func (r *userCategoryRepository) GetById(ctx context.Context, id int64) (models.UserCategory, error) {
 	var category models.UserCategory
 	query := `SELECT id, name, description, created_at, updated_at FROM user_categories WHERE id = $1`
 
@@ -80,14 +80,14 @@ func (r *userCategoryRepository) GetCategoryById(ctx context.Context, id int64) 
 	return category, nil
 }
 
-func (r *userCategoryRepository) CreateCategory(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
+func (r *userCategoryRepository) Create(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
 	// Validação básica
 	if category.Name == "" {
 		return models.UserCategory{}, ErrInvalidCategoryData
 	}
 
 	// Verifica se categoria já existe
-	_, err := r.GetCategoryById(ctx, int64(category.ID))
+	_, err := r.GetById(ctx, int64(category.ID))
 	if err == nil {
 		return models.UserCategory{}, ErrCategoryAlreadyExists
 	} else if !errors.Is(err, ErrCategoryNotFound) {
@@ -106,7 +106,7 @@ func (r *userCategoryRepository) CreateCategory(ctx context.Context, category mo
 	return category, nil
 }
 
-func (r *userCategoryRepository) UpdateCategory(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
+func (r *userCategoryRepository) Update(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
 	// Validação básica
 	if category.Name == "" {
 		return models.UserCategory{}, ErrInvalidCategoryData
@@ -132,7 +132,7 @@ func (r *userCategoryRepository) UpdateCategory(ctx context.Context, category mo
 	return category, nil
 }
 
-func (r *userCategoryRepository) DeleteCategoryById(ctx context.Context, id int64) error {
+func (r *userCategoryRepository) Delete(ctx context.Context, id int64) error {
 	query := `DELETE FROM user_categories WHERE id = $1`
 
 	result, err := r.db.Exec(ctx, query, id)

@@ -20,10 +20,10 @@ func TestUserService_GetUsers(t *testing.T) {
 		{UID: 1, Username: "user1", Email: "user1@example.com", Status: true},
 		{UID: 2, Username: "user2", Email: "user2@example.com", Status: false},
 	}
-	mockRepo.On("GetUsers", mock.Anything).Return(expectedUsers, nil)
+	mockRepo.On("GetAll", mock.Anything).Return(expectedUsers, nil)
 
 	userService := NewUserService(mockRepo)
-	users, err := userService.GetUsers(context.Background())
+	users, err := userService.GetAll(context.Background())
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedUsers, users)
@@ -48,10 +48,10 @@ func TestUserService_GetUserById(t *testing.T) {
 		},
 	}
 
-	mockRepo.On("GetUserById", mock.Anything, int64(1)).Return(expectedUser, nil)
+	mockRepo.On("GetById", mock.Anything, int64(1)).Return(expectedUser, nil)
 
 	userService := NewUserService(mockRepo)
-	user, err := userService.GetUserById(context.Background(), 1)
+	user, err := userService.GetById(context.Background(), 1)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedUser, user)
@@ -60,10 +60,10 @@ func TestUserService_GetUserById(t *testing.T) {
 
 func TestUserService_GetUserById_UserNotFound(t *testing.T) {
 	mockRepo := new(MockUserRepository)
-	mockRepo.On("GetUserById", mock.Anything, int64(999)).Return(models_user.User{}, fmt.Errorf("usuário não encontrado"))
+	mockRepo.On("GetById", mock.Anything, int64(999)).Return(models_user.User{}, fmt.Errorf("usuário não encontrado"))
 
 	userService := NewUserService(mockRepo)
-	user, err := userService.GetUserById(context.Background(), 999)
+	user, err := userService.GetById(context.Background(), 999)
 
 	assert.ErrorContains(t, err, "usuário não encontrado")
 	assert.Equal(t, models_user.User{}, user)
@@ -73,10 +73,10 @@ func TestUserService_GetUserById_UserNotFound(t *testing.T) {
 func TestUserService_GetUserByEmail(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	expectedUser := models_user.User{UID: 1, Username: "user1", Email: "user1@example.com", Status: true}
-	mockRepo.On("GetUserByEmail", mock.Anything, "user1@example.com").Return(expectedUser, nil)
+	mockRepo.On("GetByEmail", mock.Anything, "user1@example.com").Return(expectedUser, nil)
 
 	userService := NewUserService(mockRepo)
-	user, err := userService.GetUserByEmail(context.Background(), "user1@example.com")
+	user, err := userService.GetByEmail(context.Background(), "user1@example.com")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedUser, user)
@@ -85,10 +85,10 @@ func TestUserService_GetUserByEmail(t *testing.T) {
 
 func TestUserService_GetUserByEmail_UserNotFound(t *testing.T) {
 	mockRepo := new(MockUserRepository)
-	mockRepo.On("GetUserByEmail", mock.Anything, "notfound@example.com").Return(models_user.User{}, fmt.Errorf("usuário não encontrado"))
+	mockRepo.On("GetByEmail", mock.Anything, "notfound@example.com").Return(models_user.User{}, fmt.Errorf("usuário não encontrado"))
 
 	userService := NewUserService(mockRepo)
-	user, err := userService.GetUserByEmail(context.Background(), "notfound@example.com")
+	user, err := userService.GetByEmail(context.Background(), "notfound@example.com")
 
 	assert.ErrorContains(t, err, "usuário não encontrado")
 	assert.Equal(t, models_user.User{}, user)
@@ -115,11 +115,11 @@ func TestUserService_CreateUser(t *testing.T) {
 		ContactType:     "Pessoal",
 	}
 
-	mockRepo.On("CreateUser", mock.Anything, newUser, categoryID, newAddress, newContact).
+	mockRepo.On("Create", mock.Anything, newUser, categoryID, newAddress, newContact).
 		Return(newUser, nil)
 
 	userService := NewUserService(mockRepo)
-	createdUser, err := userService.CreateUser(context.Background(), newUser, categoryID, newAddress, newContact)
+	createdUser, err := userService.Create(context.Background(), newUser, categoryID, newAddress, newContact)
 
 	assert.NoError(t, err)
 	assert.Equal(t, newUser, createdUser)
@@ -146,11 +146,11 @@ func TestUserService_CreateUser_Error(t *testing.T) {
 		ContactType:     "Profissional",
 	}
 
-	mockRepo.On("CreateUser", mock.Anything, newUser, categoryID, newAddress, newContact).
+	mockRepo.On("Create", mock.Anything, newUser, categoryID, newAddress, newContact).
 		Return(models_user.User{}, fmt.Errorf("erro ao criar usuário"))
 
 	userService := NewUserService(mockRepo)
-	createdUser, err := userService.CreateUser(context.Background(), newUser, categoryID, newAddress, newContact)
+	createdUser, err := userService.Create(context.Background(), newUser, categoryID, newAddress, newContact)
 
 	assert.ErrorContains(t, err, "erro ao criar usuário")
 	assert.Equal(t, models_user.User{}, createdUser)
@@ -185,10 +185,10 @@ func TestUserService_UpdateUser(t *testing.T) {
 		},
 	}
 
-	mockRepo.On("UpdateUser", mock.Anything, updatedUser, contact).Return(updatedUser, nil)
+	mockRepo.On("Update", mock.Anything, updatedUser, contact).Return(updatedUser, nil)
 
 	userService := NewUserService(mockRepo)
-	resultUser, err := userService.UpdateUser(context.Background(), updatedUser, contact)
+	resultUser, err := userService.Update(context.Background(), updatedUser, contact)
 
 	assert.NoError(t, err)
 	assert.Equal(t, updatedUser, resultUser)
@@ -213,11 +213,11 @@ func TestUserService_UpdateUser_Error(t *testing.T) {
 		Status:   true,
 	}
 
-	mockRepo.On("UpdateUser", mock.Anything, updatedUser, contact).
+	mockRepo.On("Update", mock.Anything, updatedUser, contact).
 		Return(models_user.User{}, fmt.Errorf("erro ao atualizar usuário"))
 
 	userService := NewUserService(mockRepo)
-	resultUser, err := userService.UpdateUser(context.Background(), updatedUser, contact)
+	resultUser, err := userService.Update(context.Background(), updatedUser, contact)
 
 	assert.ErrorContains(t, err, "erro ao atualizar usuário")
 	assert.Equal(t, models_user.User{}, resultUser)
@@ -226,10 +226,10 @@ func TestUserService_UpdateUser_Error(t *testing.T) {
 
 func TestUserService_DeleteUserById(t *testing.T) {
 	mockRepo := new(MockUserRepository)
-	mockRepo.On("DeleteUserById", mock.Anything, int64(1)).Return(nil)
+	mockRepo.On("Delete", mock.Anything, int64(1)).Return(nil)
 
 	userService := NewUserService(mockRepo)
-	err := userService.DeleteUserById(context.Background(), 1)
+	err := userService.Delete(context.Background(), 1)
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -237,10 +237,10 @@ func TestUserService_DeleteUserById(t *testing.T) {
 
 func TestUserService_DeleteUserById_Error(t *testing.T) {
 	mockRepo := new(MockUserRepository)
-	mockRepo.On("DeleteUserById", mock.Anything, int64(999)).Return(fmt.Errorf("usuário não encontrado"))
+	mockRepo.On("Delete", mock.Anything, int64(999)).Return(fmt.Errorf("usuário não encontrado"))
 
 	userService := NewUserService(mockRepo)
-	err := userService.DeleteUserById(context.Background(), 999)
+	err := userService.Delete(context.Background(), 999)
 
 	assert.ErrorContains(t, err, "usuário não encontrado")
 	mockRepo.AssertExpectations(t)

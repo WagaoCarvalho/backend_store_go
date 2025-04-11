@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/models"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/product"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/products"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"github.com/gorilla/mux"
@@ -24,7 +24,7 @@ func NewProductHandler(service services.ProductService) *ProductHandler {
 func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	products, err := h.service.GetProducts(ctx)
+	products, err := h.service.GetAll(ctx)
 	if err != nil {
 		utils.ErrorResponse(w, fmt.Errorf("erro ao buscar produtos: %w", err), http.StatusInternalServerError)
 		return
@@ -48,7 +48,7 @@ func (h *ProductHandler) GetProductById(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	product, err := h.service.GetProductById(r.Context(), id)
+	product, err := h.service.GetById(r.Context(), id)
 	if err != nil {
 		if err.Error() == "produto não encontrado" {
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
@@ -78,7 +78,7 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdProduct, err := h.service.CreateProduct(r.Context(), product)
+	createdProduct, err := h.service.Create(r.Context(), product)
 	if err != nil {
 		if strings.Contains(err.Error(), "validação falhou") {
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -121,7 +121,7 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 	product.ID = int(id)
 
-	updatedProduct, err := h.service.UpdateProduct(r.Context(), product)
+	updatedProduct, err := h.service.Update(r.Context(), product)
 	if err != nil {
 		if err.Error() == "produto não encontrado" {
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
@@ -154,7 +154,7 @@ func (h *ProductHandler) DeleteProductById(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = h.service.DeleteProductById(r.Context(), id)
+	err = h.service.Delete(r.Context(), id)
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "produto não encontrado") {
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
@@ -179,7 +179,7 @@ func (h *ProductHandler) GetProductsByName(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	products, err := h.service.GetProductsByName(r.Context(), name)
+	products, err := h.service.GetByName(r.Context(), name)
 	if err != nil {
 		utils.ErrorResponse(w, fmt.Errorf("erro ao buscar produtos por nome"), http.StatusInternalServerError)
 		return
@@ -209,7 +209,7 @@ func (h *ProductHandler) GetProductsByCostPriceRange(w http.ResponseWriter, r *h
 		return
 	}
 
-	products, err := h.service.GetProductsByCostPriceRange(r.Context(), min, max)
+	products, err := h.service.GetByCostPriceRange(r.Context(), min, max)
 	if err != nil {
 		utils.ErrorResponse(w, fmt.Errorf("erro ao buscar produtos por faixa de preço de custo"), http.StatusInternalServerError)
 		return
@@ -239,7 +239,7 @@ func (h *ProductHandler) GetProductsBySalePriceRange(w http.ResponseWriter, r *h
 		return
 	}
 
-	products, err := h.service.GetProductsBySalePriceRange(r.Context(), min, max)
+	products, err := h.service.GetBySalePriceRange(r.Context(), min, max)
 	if err != nil {
 		utils.ErrorResponse(w, fmt.Errorf("erro ao buscar produtos por faixa de preço de venda"), http.StatusInternalServerError)
 		return
@@ -261,7 +261,7 @@ func (h *ProductHandler) GetProductsLowInStock(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	products, err := h.service.GetProductsLowInStock(r.Context(), threshold)
+	products, err := h.service.GetLowInStock(r.Context(), threshold)
 	if err != nil {
 		utils.ErrorResponse(w, fmt.Errorf("erro ao buscar produtos com estoque baixo"), http.StatusInternalServerError)
 		return

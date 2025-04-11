@@ -15,22 +15,22 @@ type MockAddressRepository struct {
 	mock.Mock
 }
 
-func (m *MockAddressRepository) CreateAddress(ctx context.Context, address models.Address) (models.Address, error) {
+func (m *MockAddressRepository) Create(ctx context.Context, address models.Address) (models.Address, error) {
 	args := m.Called(ctx, address)
 	return args.Get(0).(models.Address), args.Error(1)
 }
 
-func (m *MockAddressRepository) GetAddressByID(ctx context.Context, id int) (models.Address, error) {
+func (m *MockAddressRepository) GetByID(ctx context.Context, id int) (models.Address, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(models.Address), args.Error(1)
 }
 
-func (m *MockAddressRepository) UpdateAddress(ctx context.Context, address models.Address) error {
+func (m *MockAddressRepository) Update(ctx context.Context, address models.Address) error {
 	args := m.Called(ctx, address)
 	return args.Error(0)
 }
 
-func (m *MockAddressRepository) DeleteAddress(ctx context.Context, id int) error {
+func (m *MockAddressRepository) Delete(ctx context.Context, id int) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -49,9 +49,9 @@ func TestAddressService_CreateAddress_Success(t *testing.T) {
 		PostalCode: "12345-678",
 	}
 
-	mockRepo.On("CreateAddress", mock.Anything, address).Return(address, nil)
+	mockRepo.On("Create", mock.Anything, address).Return(address, nil)
 
-	createdAddress, err := service.CreateAddress(context.Background(), address)
+	createdAddress, err := service.Create(context.Background(), address)
 
 	assert.NoError(t, err)
 	assert.Equal(t, address, createdAddress)
@@ -68,7 +68,7 @@ func TestAddressService_CreateAddress_Error(t *testing.T) {
 		State:  "Estado Teste",
 	}
 
-	createdAddress, err := service.CreateAddress(context.Background(), address)
+	createdAddress, err := service.Create(context.Background(), address)
 
 	assert.Error(t, err)
 	assert.Equal(t, "dados do endereço inválidos", err.Error())
@@ -91,9 +91,9 @@ func TestAddressService_GetAddressByID_Success(t *testing.T) {
 		PostalCode: "12345-678",
 	}
 
-	mockRepo.On("GetAddressByID", mock.Anything, 1).Return(address, nil)
+	mockRepo.On("GetByID", mock.Anything, 1).Return(address, nil)
 
-	result, err := service.GetAddressByID(context.Background(), 1)
+	result, err := service.GetByID(context.Background(), 1)
 
 	assert.NoError(t, err)
 	assert.Equal(t, address, result)
@@ -104,9 +104,9 @@ func TestAddressService_GetAddressByID_NotFound(t *testing.T) {
 	mockRepo := new(MockAddressRepository)
 	service := services.NewAddressService(mockRepo)
 
-	mockRepo.On("GetAddressByID", mock.Anything, 1).Return(models.Address{}, errors.New("endereço não encontrado"))
+	mockRepo.On("GetByID", mock.Anything, 1).Return(models.Address{}, errors.New("endereço não encontrado"))
 
-	result, err := service.GetAddressByID(context.Background(), 1)
+	result, err := service.GetByID(context.Background(), 1)
 
 	assert.Error(t, err)
 	assert.Equal(t, models.Address{}, result)
@@ -126,9 +126,9 @@ func TestAddressService_UpdateAddress_Success(t *testing.T) {
 		PostalCode: "99999-999",
 	}
 
-	mockRepo.On("UpdateAddress", mock.Anything, address).Return(nil)
+	mockRepo.On("Update", mock.Anything, address).Return(nil)
 
-	err := service.UpdateAddress(context.Background(), address)
+	err := service.Update(context.Background(), address)
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -142,7 +142,7 @@ func TestAddressService_UpdateAddress_InvalidID(t *testing.T) {
 		Street: "Nova Rua",
 	}
 
-	err := service.UpdateAddress(context.Background(), address)
+	err := service.Update(context.Background(), address)
 
 	assert.Error(t, err)
 	assert.Equal(t, "ID do endereço é obrigatório", err.Error())
@@ -152,9 +152,9 @@ func TestAddressService_DeleteAddress_Success(t *testing.T) {
 	mockRepo := new(MockAddressRepository)
 	service := services.NewAddressService(mockRepo)
 
-	mockRepo.On("DeleteAddress", mock.Anything, 1).Return(nil)
+	mockRepo.On("Delete", mock.Anything, 1).Return(nil)
 
-	err := service.DeleteAddress(context.Background(), 1)
+	err := service.Delete(context.Background(), 1)
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -164,7 +164,7 @@ func TestAddressService_DeleteAddress_InvalidID(t *testing.T) {
 	mockRepo := new(MockAddressRepository)
 	service := services.NewAddressService(mockRepo)
 
-	err := service.DeleteAddress(context.Background(), 0)
+	err := service.Delete(context.Background(), 0)
 
 	assert.Error(t, err)
 	assert.Equal(t, "ID do endereço é obrigatório", err.Error())

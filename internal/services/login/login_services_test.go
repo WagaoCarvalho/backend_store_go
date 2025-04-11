@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	login "github.com/WagaoCarvalho/backend_store_go/internal/models"
+	login "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
 	"github.com/stretchr/testify/assert"
@@ -35,7 +35,7 @@ func TestLoginService_Login_Success(t *testing.T) {
 		Status:   true,
 	}
 
-	mockRepo.On("GetUserByEmail", mock.Anything, "teste@email.com").Return(user, nil)
+	mockRepo.On("GetByEmail", mock.Anything, "teste@email.com").Return(user, nil)
 
 	token, err := service.Login(context.Background(), login.LoginCredentials{
 		Email:    "teste@email.com",
@@ -59,7 +59,7 @@ func TestLoginService_Login_Failure_WrongPassword(t *testing.T) {
 		Password: string(hashedPassword),
 	}
 
-	mockRepo.On("GetUserByEmail", mock.Anything, "teste@email.com").Return(user, nil)
+	mockRepo.On("GetByEmail", mock.Anything, "teste@email.com").Return(user, nil)
 
 	token, err := service.Login(context.Background(), login.LoginCredentials{
 		Email:    "teste@email.com",
@@ -75,7 +75,7 @@ func TestLoginService_Login_Failure_UserNotFound(t *testing.T) {
 	mockRepo := new(services.MockUserRepository)
 	service := NewLoginService(mockRepo)
 
-	mockRepo.On("GetUserByEmail", mock.Anything, "naoexiste@email.com").Return(models.User{}, errors.New("usuário não encontrado"))
+	mockRepo.On("GetByEmail", mock.Anything, "naoexiste@email.com").Return(models.User{}, errors.New("usuário não encontrado"))
 
 	token, err := service.Login(context.Background(), login.LoginCredentials{
 		Email:    "naoexiste@email.com",

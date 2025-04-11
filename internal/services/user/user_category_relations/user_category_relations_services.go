@@ -15,12 +15,12 @@ var (
 )
 
 type UserCategoryRelationServices interface {
-	CreateRelation(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelation, error)
-	GetUserRelations(ctx context.Context, userID int64) ([]models.UserCategoryRelation, error)
-	GetCategoryRelations(ctx context.Context, categoryID int64) ([]models.UserCategoryRelation, error)
-	DeleteRelation(ctx context.Context, userID, categoryID int64) error
-	DeleteAllUserRelations(ctx context.Context, userID int64) error
-	UserHasCategory(ctx context.Context, userID, categoryID int64) (bool, error)
+	Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelation, error)
+	GetAll(ctx context.Context, userID int64) ([]models.UserCategoryRelation, error)
+	GetRelations(ctx context.Context, categoryID int64) ([]models.UserCategoryRelation, error)
+	Delete(ctx context.Context, userID, categoryID int64) error
+	DeleteAll(ctx context.Context, userID int64) error
+	GetByCategoryID(ctx context.Context, userID, categoryID int64) (bool, error)
 }
 
 type userCategoryRelationServices struct {
@@ -33,7 +33,7 @@ func NewUserCategoryRelationServices(repo repositories.UserCategoryRelationRepos
 	}
 }
 
-func (s *userCategoryRelationServices) CreateRelation(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelation, error) {
+func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelation, error) {
 	if userID <= 0 {
 		return nil, ErrInvalidUserID
 	}
@@ -46,11 +46,11 @@ func (s *userCategoryRelationServices) CreateRelation(ctx context.Context, userI
 		CategoryID: categoryID,
 	}
 
-	createdRelation, err := s.relationRepo.CreateRelation(ctx, relation)
+	createdRelation, err := s.relationRepo.Create(ctx, relation)
 	if err != nil {
 		if errors.Is(err, repositories.ErrRelationExists) {
 			// Se a relação já existe, retornamos ela
-			relations, err := s.relationRepo.GetRelationsByUserID(ctx, userID)
+			relations, err := s.relationRepo.GetByUserID(ctx, userID)
 			if err != nil {
 				return nil, fmt.Errorf("erro ao verificar relação existente: %w", err)
 			}
@@ -67,12 +67,12 @@ func (s *userCategoryRelationServices) CreateRelation(ctx context.Context, userI
 	return &createdRelation, nil
 }
 
-func (s *userCategoryRelationServices) GetUserRelations(ctx context.Context, userID int64) ([]models.UserCategoryRelation, error) {
+func (s *userCategoryRelationServices) GetAll(ctx context.Context, userID int64) ([]models.UserCategoryRelation, error) {
 	if userID <= 0 {
 		return nil, ErrInvalidUserID
 	}
 
-	relations, err := s.relationRepo.GetRelationsByUserID(ctx, userID)
+	relations, err := s.relationRepo.GetByUserID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao buscar relações do usuário: %w", err)
 	}
@@ -80,12 +80,12 @@ func (s *userCategoryRelationServices) GetUserRelations(ctx context.Context, use
 	return relations, nil
 }
 
-func (s *userCategoryRelationServices) GetCategoryRelations(ctx context.Context, categoryID int64) ([]models.UserCategoryRelation, error) {
+func (s *userCategoryRelationServices) GetRelations(ctx context.Context, categoryID int64) ([]models.UserCategoryRelation, error) {
 	if categoryID <= 0 {
 		return nil, ErrInvalidCategoryID
 	}
 
-	relations, err := s.relationRepo.GetRelationsByCategoryID(ctx, categoryID)
+	relations, err := s.relationRepo.GetByCategoryID(ctx, categoryID)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao buscar relações da categoria: %w", err)
 	}
@@ -93,7 +93,7 @@ func (s *userCategoryRelationServices) GetCategoryRelations(ctx context.Context,
 	return relations, nil
 }
 
-func (s *userCategoryRelationServices) DeleteRelation(ctx context.Context, userID, categoryID int64) error {
+func (s *userCategoryRelationServices) Delete(ctx context.Context, userID, categoryID int64) error {
 	if userID <= 0 {
 		return ErrInvalidUserID
 	}
@@ -101,7 +101,7 @@ func (s *userCategoryRelationServices) DeleteRelation(ctx context.Context, userI
 		return ErrInvalidCategoryID
 	}
 
-	err := s.relationRepo.DeleteRelation(ctx, userID, categoryID)
+	err := s.relationRepo.Delete(ctx, userID, categoryID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrRelationNotFound) {
 			return err
@@ -112,12 +112,12 @@ func (s *userCategoryRelationServices) DeleteRelation(ctx context.Context, userI
 	return nil
 }
 
-func (s *userCategoryRelationServices) DeleteAllUserRelations(ctx context.Context, userID int64) error {
+func (s *userCategoryRelationServices) DeleteAll(ctx context.Context, userID int64) error {
 	if userID <= 0 {
 		return ErrInvalidUserID
 	}
 
-	err := s.relationRepo.DeleteAllUserRelations(ctx, userID)
+	err := s.relationRepo.DeleteAll(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("erro ao deletar todas as relações do usuário: %w", err)
 	}
@@ -125,7 +125,7 @@ func (s *userCategoryRelationServices) DeleteAllUserRelations(ctx context.Contex
 	return nil
 }
 
-func (s *userCategoryRelationServices) UserHasCategory(ctx context.Context, userID, categoryID int64) (bool, error) {
+func (s *userCategoryRelationServices) GetByCategoryID(ctx context.Context, userID, categoryID int64) (bool, error) {
 	if userID <= 0 {
 		return false, ErrInvalidUserID
 	}
@@ -133,7 +133,7 @@ func (s *userCategoryRelationServices) UserHasCategory(ctx context.Context, user
 		return false, ErrInvalidCategoryID
 	}
 
-	relations, err := s.GetUserRelations(ctx, userID)
+	relations, err := s.GetAll(ctx, userID)
 	if err != nil {
 		return false, fmt.Errorf("erro ao verificar relações do usuário: %w", err)
 	}

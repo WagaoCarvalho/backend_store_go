@@ -23,12 +23,12 @@ var (
 )
 
 type UserRepository interface {
-	GetUsers(ctx context.Context) ([]models_user.User, error)
-	GetUserById(ctx context.Context, uid int64) (models_user.User, error)
-	GetUserByEmail(ctx context.Context, email string) (models_user.User, error)
-	DeleteUserById(ctx context.Context, uid int64) error
-	UpdateUser(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error)
-	CreateUser(
+	GetAll(ctx context.Context) ([]models_user.User, error)
+	GetById(ctx context.Context, uid int64) (models_user.User, error)
+	GetByEmail(ctx context.Context, email string) (models_user.User, error)
+	Delete(ctx context.Context, uid int64) error
+	Update(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error)
+	Create(
 		ctx context.Context,
 		user models_user.User,
 		categoryID int64,
@@ -45,7 +45,7 @@ func NewUserRepository(db *pgxpool.Pool) UserRepository {
 	return &userRepository{db: db}
 }
 
-func (r *userRepository) GetUsers(ctx context.Context) ([]models_user.User, error) {
+func (r *userRepository) GetAll(ctx context.Context) ([]models_user.User, error) {
 	query := `SELECT id, username, email, password_hash, status, created_at, updated_at FROM users`
 
 	rows, err := r.db.Query(ctx, query)
@@ -70,7 +70,7 @@ func (r *userRepository) GetUsers(ctx context.Context) ([]models_user.User, erro
 	return users, nil
 }
 
-func (r *userRepository) GetUserById(ctx context.Context, uid int64) (models_user.User, error) {
+func (r *userRepository) GetById(ctx context.Context, uid int64) (models_user.User, error) {
 	var user models_user.User
 	var address models_address.Address
 	var contact models_contact.Contact
@@ -145,7 +145,7 @@ func (r *userRepository) GetUserById(ctx context.Context, uid int64) (models_use
 	return user, nil
 }
 
-func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (models_user.User, error) {
+func (r *userRepository) GetByEmail(ctx context.Context, email string) (models_user.User, error) {
 	var user models_user.User
 	query := `SELECT id, username, email, password_hash, status, created_at, updated_at FROM users WHERE email = $1`
 
@@ -169,7 +169,7 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (mode
 	return user, nil
 }
 
-func (r *userRepository) CreateUser(
+func (r *userRepository) Create(
 	ctx context.Context,
 	user models_user.User,
 	categoryID int64,
@@ -182,7 +182,7 @@ func (r *userRepository) CreateUser(
 	}
 
 	// Verifica se o usuário já existe
-	_, err := r.GetUserByEmail(ctx, user.Email)
+	_, err := r.GetByEmail(ctx, user.Email)
 	if err == nil {
 		return models_user.User{}, ErrUserAlreadyExists
 	}
@@ -264,7 +264,7 @@ func (r *userRepository) CreateUser(
 	return user, nil
 }
 
-func (r *userRepository) UpdateUser(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error) {
+func (r *userRepository) Update(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error) {
 	if !utils.IsValidEmail(user.Email) {
 		return models_user.User{}, ErrInvalidEmail
 	}
@@ -347,7 +347,7 @@ func (r *userRepository) UpdateUser(ctx context.Context, user models_user.User, 
 	return user, nil
 }
 
-func (r *userRepository) DeleteUserById(ctx context.Context, uid int64) error {
+func (r *userRepository) Delete(ctx context.Context, uid int64) error {
 	query := `DELETE FROM users WHERE id = $1`
 
 	result, err := r.db.Exec(ctx, query, uid)

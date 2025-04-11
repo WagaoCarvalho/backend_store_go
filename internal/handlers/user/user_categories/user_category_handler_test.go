@@ -21,27 +21,27 @@ type MockUserCategoryService struct {
 	mock.Mock
 }
 
-func (m *MockUserCategoryService) GetCategories(ctx context.Context) ([]user_categories.UserCategory, error) {
+func (m *MockUserCategoryService) GetAll(ctx context.Context) ([]user_categories.UserCategory, error) {
 	args := m.Called(ctx)
 	return args.Get(0).([]user_categories.UserCategory), args.Error(1)
 }
 
-func (m *MockUserCategoryService) GetCategoryById(ctx context.Context, id int64) (user_categories.UserCategory, error) {
+func (m *MockUserCategoryService) GetById(ctx context.Context, id int64) (user_categories.UserCategory, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(user_categories.UserCategory), args.Error(1)
 }
 
-func (m *MockUserCategoryService) CreateCategory(ctx context.Context, cat user_categories.UserCategory) (user_categories.UserCategory, error) {
+func (m *MockUserCategoryService) Create(ctx context.Context, cat user_categories.UserCategory) (user_categories.UserCategory, error) {
 	args := m.Called(ctx, cat)
 	return args.Get(0).(user_categories.UserCategory), args.Error(1)
 }
 
-func (m *MockUserCategoryService) UpdateCategory(ctx context.Context, cat user_categories.UserCategory) (user_categories.UserCategory, error) {
+func (m *MockUserCategoryService) Update(ctx context.Context, cat user_categories.UserCategory) (user_categories.UserCategory, error) {
 	args := m.Called(ctx, cat)
 	return args.Get(0).(user_categories.UserCategory), args.Error(1)
 }
 
-func (m *MockUserCategoryService) DeleteCategoryById(ctx context.Context, id int64) error {
+func (m *MockUserCategoryService) Delete(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -51,7 +51,7 @@ func TestGetCategories_Success(t *testing.T) {
 	handler := handlers.NewUserCategoryHandler(mockSvc)
 
 	expected := []user_categories.UserCategory{{ID: 1, Name: "Categoria"}}
-	mockSvc.On("GetCategories", mock.Anything).Return(expected, nil)
+	mockSvc.On("GetAll", mock.Anything).Return(expected, nil)
 
 	req := httptest.NewRequest("GET", "/categories", nil)
 	w := httptest.NewRecorder()
@@ -85,7 +85,7 @@ func TestGetCategoryById_Success(t *testing.T) {
 	handler := handlers.NewUserCategoryHandler(mockSvc)
 
 	expected := user_categories.UserCategory{ID: 1, Name: "Teste"}
-	mockSvc.On("GetCategoryById", mock.Anything, int64(1)).Return(expected, nil)
+	mockSvc.On("GetById", mock.Anything, int64(1)).Return(expected, nil)
 
 	req := mux.SetURLVars(httptest.NewRequest("GET", "/categories/1", nil), map[string]string{"id": "1"})
 	w := httptest.NewRecorder()
@@ -127,7 +127,7 @@ func TestGetCategoryById_NotFound(t *testing.T) {
 	mockSvc := new(MockUserCategoryService)
 	handler := handlers.NewUserCategoryHandler(mockSvc)
 
-	mockSvc.On("GetCategoryById", mock.Anything, int64(999)).Return(user_categories.UserCategory{}, errors.New("categoria não encontrada"))
+	mockSvc.On("GetById", mock.Anything, int64(999)).Return(user_categories.UserCategory{}, errors.New("categoria não encontrada"))
 
 	req := mux.SetURLVars(httptest.NewRequest("GET", "/categories/999", nil), map[string]string{"id": "999"})
 	w := httptest.NewRecorder()
@@ -148,7 +148,7 @@ func TestCreateCategory_Success(t *testing.T) {
 	handler := handlers.NewUserCategoryHandler(mockSvc)
 
 	category := user_categories.UserCategory{Name: "Nova"}
-	mockSvc.On("CreateCategory", mock.Anything, category).Return(category, nil)
+	mockSvc.On("Create", mock.Anything, category).Return(category, nil)
 
 	body, _ := json.Marshal(category)
 	req := httptest.NewRequest("POST", "/categories", bytes.NewBuffer(body))
@@ -191,7 +191,7 @@ func TestUpdateCategory_Success(t *testing.T) {
 	handler := handlers.NewUserCategoryHandler(mockSvc)
 
 	category := user_categories.UserCategory{ID: 1, Name: "Atualizada"}
-	mockSvc.On("UpdateCategory", mock.Anything, category).Return(category, nil)
+	mockSvc.On("Update", mock.Anything, category).Return(category, nil)
 
 	body, _ := json.Marshal(category)
 	req := mux.SetURLVars(httptest.NewRequest("PUT", "/categories/1", bytes.NewBuffer(body)), map[string]string{"id": "1"})
@@ -252,7 +252,7 @@ func TestDeleteCategoryById_Success(t *testing.T) {
 	mockSvc := new(MockUserCategoryService)
 	handler := handlers.NewUserCategoryHandler(mockSvc)
 
-	mockSvc.On("DeleteCategoryById", mock.Anything, int64(1)).Return(nil)
+	mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil)
 
 	req := mux.SetURLVars(httptest.NewRequest("DELETE", "/categories/1", nil), map[string]string{"id": "1"})
 	w := httptest.NewRecorder()
@@ -283,7 +283,7 @@ func TestDeleteCategoryById_Error(t *testing.T) {
 	mockSvc := new(MockUserCategoryService)
 	handler := handlers.NewUserCategoryHandler(mockSvc)
 
-	mockSvc.On("DeleteCategoryById", mock.Anything, int64(10)).Return(errors.New("erro ao deletar"))
+	mockSvc.On("Delete", mock.Anything, int64(10)).Return(errors.New("erro ao deletar"))
 
 	req := mux.SetURLVars(httptest.NewRequest("DELETE", "/categories/10", nil), map[string]string{"id": "10"})
 	w := httptest.NewRecorder()

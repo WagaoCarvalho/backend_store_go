@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/models"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"golang.org/x/crypto/bcrypt"
@@ -35,7 +35,7 @@ func (s *loginService) Login(ctx context.Context, credentials models.LoginCreden
 	// 	return "", fmt.Errorf("a senha deve ter pelo menos 8 caracteres")
 	// }
 
-	user, err := s.userRepo.GetUserByEmail(ctx, credentials.Email)
+	user, err := s.userRepo.GetByEmail(ctx, credentials.Email)
 	if err != nil {
 		log.Printf("Erro ao buscar usuário: %v", err)
 		if errors.Is(err, repositories.ErrUserNotFound) {

@@ -17,11 +17,11 @@ var (
 )
 
 type UserCategoryRelationRepositories interface {
-	CreateRelation(ctx context.Context, relation models.UserCategoryRelation) (models.UserCategoryRelation, error)
-	GetRelationsByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelation, error)
-	GetRelationsByCategoryID(ctx context.Context, categoryID int64) ([]models.UserCategoryRelation, error)
-	DeleteRelation(ctx context.Context, userID, categoryID int64) error
-	DeleteAllUserRelations(ctx context.Context, userID int64) error
+	Create(ctx context.Context, relation models.UserCategoryRelation) (models.UserCategoryRelation, error)
+	GetByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelation, error)
+	GetByCategoryID(ctx context.Context, categoryID int64) ([]models.UserCategoryRelation, error)
+	Delete(ctx context.Context, userID, categoryID int64) error
+	DeleteAll(ctx context.Context, userID int64) error
 }
 
 type userCategoryRelationRepositories struct {
@@ -32,7 +32,7 @@ func NewUserCategoryRelationRepositories(db *pgxpool.Pool) UserCategoryRelationR
 	return &userCategoryRelationRepositories{db: db}
 }
 
-func (r *userCategoryRelationRepositories) CreateRelation(ctx context.Context, relation models.UserCategoryRelation) (models.UserCategoryRelation, error) {
+func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation models.UserCategoryRelation) (models.UserCategoryRelation, error) {
 	if relation.UserID == 0 || relation.CategoryID == 0 {
 		return models.UserCategoryRelation{}, ErrInvalidRelationData
 	}
@@ -55,7 +55,7 @@ func (r *userCategoryRelationRepositories) CreateRelation(ctx context.Context, r
 	return relation, nil
 }
 
-func (r *userCategoryRelationRepositories) GetRelationsByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelation, error) {
+func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelation, error) {
 	query := `
 		SELECT id, user_id, category_id, created_at, updated_at 
 		FROM user_category_relations 
@@ -83,7 +83,7 @@ func (r *userCategoryRelationRepositories) GetRelationsByUserID(ctx context.Cont
 	return relations, nil
 }
 
-func (r *userCategoryRelationRepositories) GetRelationsByCategoryID(ctx context.Context, categoryID int64) ([]models.UserCategoryRelation, error) {
+func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, categoryID int64) ([]models.UserCategoryRelation, error) {
 	query := `
 		SELECT id, user_id, category_id, created_at, updated_at 
 		FROM user_category_relations 
@@ -111,7 +111,7 @@ func (r *userCategoryRelationRepositories) GetRelationsByCategoryID(ctx context.
 	return relations, nil
 }
 
-func (r *userCategoryRelationRepositories) DeleteRelation(ctx context.Context, userID, categoryID int64) error {
+func (r *userCategoryRelationRepositories) Delete(ctx context.Context, userID, categoryID int64) error {
 	query := `
 		DELETE FROM user_category_relations 
 		WHERE user_id = $1 AND category_id = $2`
@@ -128,7 +128,7 @@ func (r *userCategoryRelationRepositories) DeleteRelation(ctx context.Context, u
 	return nil
 }
 
-func (r *userCategoryRelationRepositories) DeleteAllUserRelations(ctx context.Context, userID int64) error {
+func (r *userCategoryRelationRepositories) DeleteAll(ctx context.Context, userID int64) error {
 	query := `DELETE FROM user_category_relations WHERE user_id = $1`
 
 	_, err := r.db.Exec(ctx, query, userID)

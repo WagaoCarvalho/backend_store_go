@@ -8,30 +8,22 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 )
 
-type AddressHandlerInterface interface {
-	CreateAddress(w http.ResponseWriter, r *http.Request)
-	GetAddress(w http.ResponseWriter, r *http.Request)
-	UpdateAddress(w http.ResponseWriter, r *http.Request)
-	DeleteAddress(w http.ResponseWriter, r *http.Request)
-}
-
 type AddressHandler struct {
 	service services.AddressService
 }
 
-func NewAddressHandler(service services.AddressService) AddressHandlerInterface {
+func NewAddressHandler(service services.AddressService) *AddressHandler {
 	return &AddressHandler{service: service}
 }
 
-// Criar um endereço
-func (h *AddressHandler) CreateAddress(w http.ResponseWriter, r *http.Request) {
+func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var address models.Address
 	if err := utils.FromJson(r.Body, &address); err != nil {
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	createdAddress, err := h.service.CreateAddress(r.Context(), address)
+	createdAddress, err := h.service.Create(r.Context(), address)
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
@@ -44,29 +36,27 @@ func (h *AddressHandler) CreateAddress(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Buscar endereço por ID
-func (h *AddressHandler) GetAddress(w http.ResponseWriter, r *http.Request) {
+func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	address, err := h.service.GetAddressByID(r.Context(), int(id))
+	address, err := h.service.GetByID(r.Context(), int(id))
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
 	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusCreated,
-		Message: "Endereço criado com sucesso",
+		Status:  http.StatusOK,
+		Message: "Endereço encontrado",
 		Data:    address,
 	})
 }
 
-// Atualizar endereço
-func (h *AddressHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
+func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -81,7 +71,7 @@ func (h *AddressHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
 
 	address.ID = int(id)
 
-	if err := h.service.UpdateAddress(r.Context(), address); err != nil {
+	if err := h.service.Update(r.Context(), address); err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -92,15 +82,14 @@ func (h *AddressHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Deletar endereço
-func (h *AddressHandler) DeleteAddress(w http.ResponseWriter, r *http.Request) {
+func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	if err := h.service.DeleteAddress(r.Context(), int(id)); err != nil {
+	if err := h.service.Delete(r.Context(), int(id)); err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}

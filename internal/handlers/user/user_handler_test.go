@@ -26,32 +26,32 @@ type MockUserService struct {
 	mock.Mock
 }
 
-func (m *MockUserService) GetUsers(ctx context.Context) ([]models_user.User, error) {
+func (m *MockUserService) GetAll(ctx context.Context) ([]models_user.User, error) {
 	args := m.Called(ctx)
 	return args.Get(0).([]models_user.User), args.Error(1)
 }
 
-func (m *MockUserService) GetUserById(ctx context.Context, id int64) (models_user.User, error) {
+func (m *MockUserService) GetById(ctx context.Context, id int64) (models_user.User, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(models_user.User), args.Error(1)
 }
 
-func (m *MockUserService) GetUserByEmail(ctx context.Context, email string) (models_user.User, error) {
+func (m *MockUserService) GetByEmail(ctx context.Context, email string) (models_user.User, error) {
 	args := m.Called(ctx, email)
 	return args.Get(0).(models_user.User), args.Error(1)
 }
 
-func (m *MockUserService) CreateUser(ctx context.Context, user models_user.User, categoryID int64, address models_address.Address, contact models_contact.Contact) (models_user.User, error) {
+func (m *MockUserService) Create(ctx context.Context, user models_user.User, categoryID int64, address models_address.Address, contact models_contact.Contact) (models_user.User, error) {
 	args := m.Called(ctx, user, categoryID, address, contact)
 	return args.Get(0).(models_user.User), args.Error(1)
 }
 
-func (m *MockUserService) UpdateUser(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error) {
+func (m *MockUserService) Update(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error) {
 	args := m.Called(ctx, user, contact)
 	return args.Get(0).(models_user.User), args.Error(1)
 }
 
-func (m *MockUserService) DeleteUserById(ctx context.Context, id int64) error {
+func (m *MockUserService) Delete(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -61,7 +61,7 @@ func TestGetUsers_Success(t *testing.T) {
 	handler := NewUserHandler(mockService)
 
 	users := []models_user.User{{UID: 1, Username: "João"}}
-	mockService.On("GetUsers", mock.Anything).Return(users, nil)
+	mockService.On("GetAll", mock.Anything).Return(users, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/users", nil)
 	rec := httptest.NewRecorder()
@@ -81,7 +81,7 @@ func TestGetUserById_Success(t *testing.T) {
 	handler := NewUserHandler(mockService)
 
 	expectedUser := models_user.User{UID: 10, Username: "Carlos"}
-	mockService.On("GetUserById", mock.Anything, int64(10)).Return(expectedUser, nil)
+	mockService.On("GetById", mock.Anything, int64(10)).Return(expectedUser, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/users/10", nil)
 	req = muxSetVars(req, map[string]string{"id": "10"})
@@ -101,7 +101,7 @@ func TestGetUserByEmail_Success(t *testing.T) {
 	handler := NewUserHandler(mockService)
 
 	expectedUser := models_user.User{UID: 20, Email: "carlos@email.com"}
-	mockService.On("GetUserByEmail", mock.Anything, "carlos@email.com").Return(expectedUser, nil)
+	mockService.On("GetByEmail", mock.Anything, "carlos@email.com").Return(expectedUser, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/users/email/carlos@email.com", nil)
 	req = muxSetVars(req, map[string]string{"email": "carlos@email.com"})
@@ -123,7 +123,7 @@ func TestGetUsers_Error(t *testing.T) {
 	mockService := new(MockUserService)
 	handler := NewUserHandler(mockService)
 
-	mockService.On("GetUsers", mock.Anything).Return([]models_user.User(nil), assert.AnError)
+	mockService.On("GetAll", mock.Anything).Return([]models_user.User(nil), assert.AnError)
 
 	req := httptest.NewRequest(http.MethodGet, "/users", nil)
 	rec := httptest.NewRecorder()
@@ -156,7 +156,7 @@ func TestGetUserById_NotFound(t *testing.T) {
 	mockService := new(MockUserService)
 	handler := NewUserHandler(mockService)
 
-	mockService.On("GetUserById", mock.Anything, int64(99)).Return(models_user.User{}, fmt.Errorf("usuário não encontrado"))
+	mockService.On("GetById", mock.Anything, int64(99)).Return(models_user.User{}, fmt.Errorf("usuário não encontrado"))
 
 	req := httptest.NewRequest(http.MethodGet, "/users/99", nil)
 	req = muxSetVars(req, map[string]string{"id": "99"})

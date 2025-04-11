@@ -12,12 +12,12 @@ import (
 )
 
 type UserService interface {
-	GetUsers(ctx context.Context) ([]models_user.User, error)
-	GetUserById(ctx context.Context, uid int64) (models_user.User, error)
-	GetUserByEmail(ctx context.Context, email string) (models_user.User, error)
-	DeleteUserById(ctx context.Context, uid int64) error
-	UpdateUser(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error)
-	CreateUser(
+	GetAll(ctx context.Context) ([]models_user.User, error)
+	GetById(ctx context.Context, uid int64) (models_user.User, error)
+	GetByEmail(ctx context.Context, email string) (models_user.User, error)
+	Delete(ctx context.Context, uid int64) error
+	Update(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error)
+	Create(
 		ctx context.Context,
 		user models_user.User,
 		categoryID int64,
@@ -34,27 +34,27 @@ func NewUserService(repo repositories.UserRepository) UserService {
 	return &userService{repo: repo}
 }
 
-func (s *userService) GetUsers(ctx context.Context) ([]models_user.User, error) {
-	return s.repo.GetUsers(ctx)
+func (s *userService) GetAll(ctx context.Context) ([]models_user.User, error) {
+	return s.repo.GetAll(ctx)
 }
 
-func (s *userService) GetUserById(ctx context.Context, uid int64) (models_user.User, error) {
-	user, err := s.repo.GetUserById(ctx, uid)
+func (s *userService) GetById(ctx context.Context, uid int64) (models_user.User, error) {
+	user, err := s.repo.GetById(ctx, uid)
 	if err != nil {
 		return models_user.User{}, fmt.Errorf("erro ao buscar usuário: %w", err)
 	}
 	return user, nil
 }
 
-func (s *userService) GetUserByEmail(ctx context.Context, email string) (models_user.User, error) {
-	user, err := s.repo.GetUserByEmail(ctx, email)
+func (s *userService) GetByEmail(ctx context.Context, email string) (models_user.User, error) {
+	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
 		return models_user.User{}, fmt.Errorf("erro ao buscar usuário: %w", err)
 	}
 	return user, nil
 }
 
-func (s *userService) CreateUser(
+func (s *userService) Create(
 	ctx context.Context,
 	user models_user.User,
 	categoryID int64,
@@ -66,7 +66,7 @@ func (s *userService) CreateUser(
 		return models_user.User{}, fmt.Errorf("email inválido")
 	}
 
-	createdUser, err := s.repo.CreateUser(ctx, user, categoryID, address, contact)
+	createdUser, err := s.repo.Create(ctx, user, categoryID, address, contact)
 	if err != nil {
 		return models_user.User{}, fmt.Errorf("erro ao criar usuário: %w", err)
 	}
@@ -74,12 +74,12 @@ func (s *userService) CreateUser(
 	return createdUser, nil
 }
 
-func (s *userService) UpdateUser(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error) {
+func (s *userService) Update(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error) {
 	if !utils.IsValidEmail(user.Email) {
 		return models_user.User{}, fmt.Errorf("email inválido")
 	}
 
-	updatedUser, err := s.repo.UpdateUser(ctx, user, contact)
+	updatedUser, err := s.repo.Update(ctx, user, contact)
 	if err != nil {
 		return models_user.User{}, fmt.Errorf("erro ao atualizar usuário: %w", err)
 	}
@@ -87,8 +87,8 @@ func (s *userService) UpdateUser(ctx context.Context, user models_user.User, con
 	return updatedUser, nil
 }
 
-func (s *userService) DeleteUserById(ctx context.Context, uid int64) error {
-	if err := s.repo.DeleteUserById(ctx, uid); err != nil {
+func (s *userService) Delete(ctx context.Context, uid int64) error {
+	if err := s.repo.Delete(ctx, uid); err != nil {
 		return fmt.Errorf("erro ao deletar usuário: %w", err)
 	}
 	return nil

@@ -19,14 +19,14 @@ func NewContactHandler(service services.ContactService) *ContactHandler {
 	}
 }
 
-func (h *ContactHandler) CreateContact(w http.ResponseWriter, r *http.Request) {
+func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var contact models.Contact
 	if err := json.NewDecoder(r.Body).Decode(&contact); err != nil {
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.service.CreateContact(r.Context(), &contact); err != nil {
+	if err := h.service.Create(r.Context(), &contact); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -35,14 +35,14 @@ func (h *ContactHandler) CreateContact(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(contact)
 }
 
-func (h *ContactHandler) GetContactByID(w http.ResponseWriter, r *http.Request) {
+func (h *ContactHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		http.Error(w, "ID inválido", http.StatusBadRequest)
 		return
 	}
 
-	contact, err := h.service.GetContactByID(r.Context(), id)
+	contact, err := h.service.GetByID(r.Context(), id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -51,14 +51,14 @@ func (h *ContactHandler) GetContactByID(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(contact)
 }
 
-func (h *ContactHandler) GetContactsByUser(w http.ResponseWriter, r *http.Request) {
+func (h *ContactHandler) GetByUser(w http.ResponseWriter, r *http.Request) {
 	userID, err := utils.GetIDParam(r, "userID")
 	if err != nil {
 		http.Error(w, "userID inválido", http.StatusBadRequest)
 		return
 	}
 
-	contacts, err := h.service.GetContactsByUser(r.Context(), userID)
+	contacts, err := h.service.GetByUser(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -67,14 +67,14 @@ func (h *ContactHandler) GetContactsByUser(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(contacts)
 }
 
-func (h *ContactHandler) GetContactsByClient(w http.ResponseWriter, r *http.Request) {
+func (h *ContactHandler) GetByClient(w http.ResponseWriter, r *http.Request) {
 	clientID, err := utils.GetIDParam(r, "clientID")
 	if err != nil {
 		http.Error(w, "clientID inválido", http.StatusBadRequest)
 		return
 	}
 
-	contacts, err := h.service.GetContactsByClient(r.Context(), clientID)
+	contacts, err := h.service.GetByClient(r.Context(), clientID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -83,14 +83,14 @@ func (h *ContactHandler) GetContactsByClient(w http.ResponseWriter, r *http.Requ
 	json.NewEncoder(w).Encode(contacts)
 }
 
-func (h *ContactHandler) GetContactsBySupplier(w http.ResponseWriter, r *http.Request) {
+func (h *ContactHandler) GetBySupplier(w http.ResponseWriter, r *http.Request) {
 	supplierID, err := utils.GetIDParam(r, "supplierID")
 	if err != nil {
 		http.Error(w, "supplierID inválido", http.StatusBadRequest)
 		return
 	}
 
-	contacts, err := h.service.GetContactsBySupplier(r.Context(), supplierID)
+	contacts, err := h.service.GetBySupplier(r.Context(), supplierID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -99,7 +99,7 @@ func (h *ContactHandler) GetContactsBySupplier(w http.ResponseWriter, r *http.Re
 	json.NewEncoder(w).Encode(contacts)
 }
 
-func (h *ContactHandler) UpdateContact(w http.ResponseWriter, r *http.Request) {
+func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		http.Error(w, "ID inválido", http.StatusBadRequest)
@@ -114,7 +114,7 @@ func (h *ContactHandler) UpdateContact(w http.ResponseWriter, r *http.Request) {
 
 	contact.ID = id
 
-	if err := h.service.UpdateContact(r.Context(), &contact); err != nil {
+	if err := h.service.Update(r.Context(), &contact); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -122,14 +122,14 @@ func (h *ContactHandler) UpdateContact(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(contact)
 }
 
-func (h *ContactHandler) DeleteContact(w http.ResponseWriter, r *http.Request) {
+func (h *ContactHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		http.Error(w, "ID inválido", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.service.DeleteContact(r.Context(), id); err != nil {
+	if err := h.service.Delete(r.Context(), id); err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}

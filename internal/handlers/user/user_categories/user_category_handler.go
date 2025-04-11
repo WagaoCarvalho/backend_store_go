@@ -23,7 +23,7 @@ func NewUserCategoryHandler(service services.UserCategoryService) *UserCategoryH
 func (h *UserCategoryHandler) GetCategories(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	categories, err := h.service.GetCategories(ctx)
+	categories, err := h.service.GetAll(ctx)
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
@@ -46,7 +46,7 @@ func (h *UserCategoryHandler) GetCategoryById(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	category, err := h.service.GetCategoryById(ctx, id)
+	category, err := h.service.GetById(ctx, id)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if err.Error() == "categoria não encontrada" {
@@ -73,7 +73,7 @@ func (h *UserCategoryHandler) CreateCategory(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	createdCategory, err := h.service.CreateCategory(ctx, category)
+	createdCategory, err := h.service.Create(ctx, category)
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
@@ -103,7 +103,7 @@ func (h *UserCategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.Requ
 	}
 	category.ID = uint(id)
 
-	updatedCategory, err := h.service.UpdateCategory(ctx, category)
+	updatedCategory, err := h.service.Update(ctx, category)
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
@@ -126,7 +126,7 @@ func (h *UserCategoryHandler) DeleteCategoryById(w http.ResponseWriter, r *http.
 		return
 	}
 
-	if err := h.service.DeleteCategoryById(ctx, id); err != nil {
+	if err := h.service.Delete(ctx, id); err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}

@@ -9,6 +9,7 @@ import (
 	homeHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/home"
 	loginHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/login"
 	productHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/product"
+	supplierHandler "github.com/WagaoCarvalho/backend_store_go/internal/handlers/supplier"
 	userHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user"
 	userCategoryHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/middlewares"
@@ -16,12 +17,14 @@ import (
 	contactRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/db_postgres"
 	productRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
+	supplierRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers"
 	userRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	userCategoryRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
 	addressServices "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
 	contactServices "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
 	loginServices "github.com/WagaoCarvalho/backend_store_go/internal/services/login"
 	productServices "github.com/WagaoCarvalho/backend_store_go/internal/services/products"
+	supplierServices "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers"
 	userServices "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
 	userCategoryServices "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories"
 	"github.com/gorilla/mux"
@@ -62,6 +65,11 @@ func NewRouter() *mux.Router {
 	contactService := contactServices.NewContactService(contactRepo)
 	contactHandler := contactHandlers.NewContactHandler(contactService)
 
+	// Supplier repository, service and handler setup
+	supplierRepo := supplierRepositories.NewSupplierRepository(db)
+	supplierService := supplierServices.NewSupplierService(supplierRepo)
+	supplierHandler := supplierHandler.NewSupplierHandler(supplierService)
+
 	// Home, login and user routes
 	r.HandleFunc("/", homeHandlers.GetHome).Methods(http.MethodGet)
 	r.HandleFunc("/user", userHandler.CreateUser).Methods(http.MethodPost)
@@ -87,6 +95,9 @@ func NewRouter() *mux.Router {
 	protectedRoutes.HandleFunc("/product", productHandler.CreateProduct).Methods(http.MethodPost)
 	protectedRoutes.HandleFunc("/product/{id}", productHandler.UpdateProduct).Methods(http.MethodPut)
 	protectedRoutes.HandleFunc("/product/{id}", productHandler.DeleteProductById).Methods(http.MethodDelete)
+	protectedRoutes.HandleFunc("/products/search", productHandler.GetProductsByName).Methods(http.MethodGet)
+	protectedRoutes.HandleFunc("/products/price", productHandler.GetProductsBySalePriceRange).Methods(http.MethodGet)
+	protectedRoutes.HandleFunc("/products/low-stock", productHandler.GetProductsLowInStock).Methods(http.MethodGet)
 
 	// UserCategory routes
 	protectedRoutes.HandleFunc("/user-categories", userCategoryHandler.GetCategories).Methods(http.MethodGet)
@@ -95,26 +106,28 @@ func NewRouter() *mux.Router {
 	protectedRoutes.HandleFunc("/user-category/{id}", userCategoryHandler.UpdateCategory).Methods(http.MethodPut)
 	protectedRoutes.HandleFunc("/user-category/{id}", userCategoryHandler.DeleteCategoryById).Methods(http.MethodDelete)
 
-	// Additional product search routes
-	protectedRoutes.HandleFunc("/products/search", productHandler.GetProductsByName).Methods(http.MethodGet)
-	//protectedRoutes.HandleFunc("/products/price", productHandler.GetProductsByPriceRange).Methods(http.MethodGet)
-	protectedRoutes.HandleFunc("/products/low-stock", productHandler.GetProductsLowInStock).Methods(http.MethodGet)
-
 	// Address routes
-	protectedRoutes.HandleFunc("/addresses", addressHandler.CreateAddress).Methods(http.MethodPost)
+	protectedRoutes.HandleFunc("/addresses", addressHandler.Create).Methods(http.MethodPost)
 	//protectedRoutes.HandleFunc("/addresses", addressHandler.GetAddresses).Methods(http.MethodGet)
-	protectedRoutes.HandleFunc("/address/{id:[0-9]+}", addressHandler.GetAddress).Methods(http.MethodGet)
-	protectedRoutes.HandleFunc("/address/{id:[0-9]+}", addressHandler.UpdateAddress).Methods(http.MethodPut)
-	protectedRoutes.HandleFunc("/address/{id:[0-9]+}", addressHandler.DeleteAddress).Methods(http.MethodDelete)
+	protectedRoutes.HandleFunc("/address/{id:[0-9]+}", addressHandler.GetByID).Methods(http.MethodGet)
+	protectedRoutes.HandleFunc("/address/{id:[0-9]+}", addressHandler.Update).Methods(http.MethodPut)
+	protectedRoutes.HandleFunc("/address/{id:[0-9]+}", addressHandler.Delete).Methods(http.MethodDelete)
 
 	// Contact routes (padronizadas com regex e ordem consistente)
-	protectedRoutes.HandleFunc("/contact", contactHandler.CreateContact).Methods(http.MethodPost)
-	protectedRoutes.HandleFunc("/contact/{id:[0-9]+}", contactHandler.GetContactByID).Methods(http.MethodGet)
-	protectedRoutes.HandleFunc("/contact/user/{userID:[0-9]+}", contactHandler.GetContactsByUser).Methods(http.MethodGet)
-	protectedRoutes.HandleFunc("/contact/client/{clientID:[0-9]+}", contactHandler.GetContactsByClient).Methods(http.MethodGet)
-	protectedRoutes.HandleFunc("/contact/supplier/{supplierID:[0-9]+}", contactHandler.GetContactsBySupplier).Methods(http.MethodGet)
-	protectedRoutes.HandleFunc("/contact/{id:[0-9]+}", contactHandler.UpdateContact).Methods(http.MethodPut)
-	protectedRoutes.HandleFunc("/contact/{id:[0-9]+}", contactHandler.DeleteContact).Methods(http.MethodDelete)
+	protectedRoutes.HandleFunc("/contact", contactHandler.Create).Methods(http.MethodPost)
+	protectedRoutes.HandleFunc("/contact/{id:[0-9]+}", contactHandler.GetByID).Methods(http.MethodGet)
+	protectedRoutes.HandleFunc("/contact/user/{userID:[0-9]+}", contactHandler.GetByUser).Methods(http.MethodGet)
+	protectedRoutes.HandleFunc("/contact/client/{clientID:[0-9]+}", contactHandler.GetByClient).Methods(http.MethodGet)
+	protectedRoutes.HandleFunc("/contact/supplier/{supplierID:[0-9]+}", contactHandler.GetBySupplier).Methods(http.MethodGet)
+	protectedRoutes.HandleFunc("/contact/{id:[0-9]+}", contactHandler.Update).Methods(http.MethodPut)
+	protectedRoutes.HandleFunc("/contact/{id:[0-9]+}", contactHandler.Delete).Methods(http.MethodDelete)
+
+	// Supplier routes (padronizadas com regex e ordem consistente)
+	protectedRoutes.HandleFunc("/supplier", supplierHandler.CreateSupplier).Methods(http.MethodPost)
+	protectedRoutes.HandleFunc("/supplier/{id:[0-9]+}", supplierHandler.GetSupplierByID).Methods(http.MethodGet)
+	protectedRoutes.HandleFunc("/suppliers", supplierHandler.GetAllSuppliers).Methods(http.MethodGet)
+	protectedRoutes.HandleFunc("/supplier/{id:[0-9]+}", supplierHandler.UpdateSupplier).Methods(http.MethodPut)
+	protectedRoutes.HandleFunc("/supplier/{id:[0-9]+}", supplierHandler.DeleteSupplier).Methods(http.MethodDelete)
 
 	return r
 }

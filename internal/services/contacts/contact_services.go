@@ -11,13 +11,13 @@ import (
 )
 
 type ContactService interface {
-	CreateContact(ctx context.Context, contact *models.Contact) error
-	GetContactByID(ctx context.Context, id int64) (*models.Contact, error)
-	GetContactsByUser(ctx context.Context, userID int64) ([]*models.Contact, error)
-	GetContactsByClient(ctx context.Context, clientID int64) ([]*models.Contact, error)
-	GetContactsBySupplier(ctx context.Context, supplierID int64) ([]*models.Contact, error)
-	UpdateContact(ctx context.Context, contact *models.Contact) error
-	DeleteContact(ctx context.Context, id int64) error
+	Create(ctx context.Context, contact *models.Contact) error
+	GetByID(ctx context.Context, id int64) (*models.Contact, error)
+	GetByUser(ctx context.Context, userID int64) ([]*models.Contact, error)
+	GetByClient(ctx context.Context, clientID int64) ([]*models.Contact, error)
+	GetBySupplier(ctx context.Context, supplierID int64) ([]*models.Contact, error)
+	Update(ctx context.Context, contact *models.Contact) error
+	Delete(ctx context.Context, id int64) error
 }
 
 type contactService struct {
@@ -30,7 +30,7 @@ func NewContactService(contactRepo repositories.ContactRepository) ContactServic
 	}
 }
 
-func (s *contactService) CreateContact(ctx context.Context, c *models.Contact) error {
+func (s *contactService) Create(ctx context.Context, c *models.Contact) error {
 	// Validações básicas
 	if c.ContactName == "" {
 		return fmt.Errorf("nome do contato é obrigatório")
@@ -45,7 +45,7 @@ func (s *contactService) CreateContact(ctx context.Context, c *models.Contact) e
 		return fmt.Errorf("email inválido")
 	}
 
-	err := s.contactRepo.CreateContact(ctx, c)
+	err := s.contactRepo.Create(ctx, c)
 	if err != nil {
 		return fmt.Errorf("erro ao criar contato: %w", err)
 	}
@@ -53,12 +53,12 @@ func (s *contactService) CreateContact(ctx context.Context, c *models.Contact) e
 	return nil
 }
 
-func (s *contactService) GetContactByID(ctx context.Context, id int64) (*models.Contact, error) {
+func (s *contactService) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
 	if id <= 0 {
 		return nil, fmt.Errorf("ID inválido")
 	}
 
-	contact, err := s.contactRepo.GetContactByID(ctx, id)
+	contact, err := s.contactRepo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repositories.ErrContactNotFound) {
 			return nil, fmt.Errorf("contato não encontrado")
@@ -69,12 +69,12 @@ func (s *contactService) GetContactByID(ctx context.Context, id int64) (*models.
 	return contact, nil
 }
 
-func (s *contactService) GetContactsByUser(ctx context.Context, userID int64) ([]*models.Contact, error) {
+func (s *contactService) GetByUser(ctx context.Context, userID int64) ([]*models.Contact, error) {
 	if userID <= 0 {
 		return nil, fmt.Errorf("ID de usuário inválido")
 	}
 
-	contacts, err := s.contactRepo.GetContactByUserID(ctx, userID)
+	contacts, err := s.contactRepo.GetByUserID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao listar contatos do usuário: %w", err)
 	}
@@ -82,12 +82,12 @@ func (s *contactService) GetContactsByUser(ctx context.Context, userID int64) ([
 	return contacts, nil
 }
 
-func (s *contactService) GetContactsByClient(ctx context.Context, clientID int64) ([]*models.Contact, error) {
+func (s *contactService) GetByClient(ctx context.Context, clientID int64) ([]*models.Contact, error) {
 	if clientID <= 0 {
 		return nil, fmt.Errorf("ID de cliente inválido")
 	}
 
-	contacts, err := s.contactRepo.GetContactByClientID(ctx, clientID)
+	contacts, err := s.contactRepo.GetByClientID(ctx, clientID)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao listar contatos do cliente: %w", err)
 	}
@@ -95,12 +95,12 @@ func (s *contactService) GetContactsByClient(ctx context.Context, clientID int64
 	return contacts, nil
 }
 
-func (s *contactService) GetContactsBySupplier(ctx context.Context, supplierID int64) ([]*models.Contact, error) {
+func (s *contactService) GetBySupplier(ctx context.Context, supplierID int64) ([]*models.Contact, error) {
 	if supplierID <= 0 {
 		return nil, fmt.Errorf("ID de fornecedor inválido")
 	}
 
-	contacts, err := s.contactRepo.GetContactBySupplierID(ctx, supplierID)
+	contacts, err := s.contactRepo.GetBySupplierID(ctx, supplierID)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao listar contatos do fornecedor: %w", err)
 	}
@@ -108,7 +108,7 @@ func (s *contactService) GetContactsBySupplier(ctx context.Context, supplierID i
 	return contacts, nil
 }
 
-func (s *contactService) UpdateContact(ctx context.Context, c *models.Contact) error {
+func (s *contactService) Update(ctx context.Context, c *models.Contact) error {
 	// Validações básicas
 	if c.ID <= 0 {
 		return fmt.Errorf("ID inválido")
@@ -119,7 +119,7 @@ func (s *contactService) UpdateContact(ctx context.Context, c *models.Contact) e
 	}
 
 	// Verifica se o contato existe antes de atualizar
-	_, err := s.contactRepo.GetContactByID(ctx, c.ID)
+	_, err := s.contactRepo.GetByID(ctx, c.ID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrContactNotFound) {
 			return fmt.Errorf("contato não encontrado")
@@ -127,7 +127,7 @@ func (s *contactService) UpdateContact(ctx context.Context, c *models.Contact) e
 		return fmt.Errorf("erro ao verificar contato: %w", err)
 	}
 
-	err = s.contactRepo.Updatecontac(ctx, c)
+	err = s.contactRepo.Update(ctx, c)
 	if err != nil {
 		return fmt.Errorf("erro ao atualizar contato: %w", err)
 	}
@@ -135,13 +135,13 @@ func (s *contactService) UpdateContact(ctx context.Context, c *models.Contact) e
 	return nil
 }
 
-func (s *contactService) DeleteContact(ctx context.Context, id int64) error {
+func (s *contactService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return fmt.Errorf("ID inválido")
 	}
 
 	// Verifica se o contato existe antes de deletar
-	_, err := s.contactRepo.GetContactByID(ctx, id)
+	_, err := s.contactRepo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repositories.ErrContactNotFound) {
 			return fmt.Errorf("contato não encontrado")
@@ -149,7 +149,7 @@ func (s *contactService) DeleteContact(ctx context.Context, id int64) error {
 		return fmt.Errorf("erro ao verificar contato: %w", err)
 	}
 
-	err = s.contactRepo.Deletecontact(ctx, id)
+	err = s.contactRepo.Delete(ctx, id)
 	if err != nil {
 		return fmt.Errorf("erro ao deletar contato: %w", err)
 	}

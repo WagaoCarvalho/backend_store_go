@@ -13,7 +13,7 @@ type MockUserRepository struct {
 	mock.Mock
 }
 
-func (m *MockUserRepository) GetUsers(ctx context.Context) ([]models_user.User, error) {
+func (m *MockUserRepository) GetAll(ctx context.Context) ([]models_user.User, error) {
 	args := m.Called(ctx)
 	if users, ok := args.Get(0).([]models_user.User); ok {
 		return users, args.Error(1)
@@ -21,7 +21,7 @@ func (m *MockUserRepository) GetUsers(ctx context.Context) ([]models_user.User, 
 	return nil, args.Error(1)
 }
 
-func (m *MockUserRepository) GetUserById(ctx context.Context, uid int64) (models_user.User, error) {
+func (m *MockUserRepository) GetById(ctx context.Context, uid int64) (models_user.User, error) {
 	args := m.Called(ctx, uid)
 	if user, ok := args.Get(0).(models_user.User); ok {
 		return user, args.Error(1)
@@ -29,7 +29,7 @@ func (m *MockUserRepository) GetUserById(ctx context.Context, uid int64) (models
 	return models_user.User{}, args.Error(1)
 }
 
-func (m *MockUserRepository) GetUserByEmail(ctx context.Context, email string) (models_user.User, error) {
+func (m *MockUserRepository) GetByEmail(ctx context.Context, email string) (models_user.User, error) {
 	args := m.Called(ctx, email)
 	if user, ok := args.Get(0).(models_user.User); ok {
 		return user, args.Error(1)
@@ -37,7 +37,7 @@ func (m *MockUserRepository) GetUserByEmail(ctx context.Context, email string) (
 	return models_user.User{}, args.Error(1)
 }
 
-func (m *MockUserRepository) CreateUser(
+func (m *MockUserRepository) Create(
 	ctx context.Context,
 	user models_user.User,
 	categoryID int64,
@@ -52,7 +52,7 @@ func (m *MockUserRepository) CreateUser(
 	return models_user.User{}, args.Error(1)
 }
 
-func (m *MockUserRepository) UpdateUser(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error) {
+func (m *MockUserRepository) Update(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error) {
 	args := m.Called(ctx, user, contact)
 	if updatedUser, ok := args.Get(0).(models_user.User); ok {
 		return updatedUser, args.Error(1)
@@ -60,7 +60,7 @@ func (m *MockUserRepository) UpdateUser(ctx context.Context, user models_user.Us
 	return models_user.User{}, args.Error(1)
 }
 
-func (m *MockUserRepository) DeleteUserById(ctx context.Context, uid int64) error {
+func (m *MockUserRepository) Delete(ctx context.Context, uid int64) error {
 	args := m.Called(ctx, uid)
 	return args.Error(0)
 }

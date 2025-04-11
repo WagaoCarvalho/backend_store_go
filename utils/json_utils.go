@@ -63,7 +63,6 @@ func ParseErrorResponse(body []byte) (DefaultResponse, error) {
 	var resp DefaultResponse
 	err := json.Unmarshal(body, &resp)
 	if err != nil {
-		// Erro ao fazer o unmarshal, retornando DefaultResponse com status 500
 		return DefaultResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "Erro ao decodificar resposta",

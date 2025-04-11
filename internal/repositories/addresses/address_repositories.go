@@ -12,10 +12,10 @@ import (
 
 // AddressRepository define a interface para o repositório de endereços.
 type AddressRepository interface {
-	CreateAddress(ctx context.Context, address models.Address) (models.Address, error)
-	GetAddressByID(ctx context.Context, id int) (models.Address, error)
-	UpdateAddress(ctx context.Context, address models.Address) error
-	DeleteAddress(ctx context.Context, id int) error
+	Create(ctx context.Context, address models.Address) (models.Address, error)
+	GetByID(ctx context.Context, id int) (models.Address, error)
+	Update(ctx context.Context, address models.Address) error
+	Delete(ctx context.Context, id int) error
 }
 
 // addressRepository é a implementação da interface AddressRepository.
@@ -28,8 +28,8 @@ func NewAddressRepository(db *pgxpool.Pool) AddressRepository {
 	return &addressRepository{db: db}
 }
 
-// CreateAddress insere um novo endereço no banco de dados.
-func (r *addressRepository) CreateAddress(ctx context.Context, address models.Address) (models.Address, error) {
+// Create insere um novo endereço no banco de dados.
+func (r *addressRepository) Create(ctx context.Context, address models.Address) (models.Address, error) {
 	query := `
 		INSERT INTO addresses (user_id, client_id, supplier_id, street, city, state, country, postal_code, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
@@ -48,8 +48,8 @@ func (r *addressRepository) CreateAddress(ctx context.Context, address models.Ad
 	return address, nil
 }
 
-// GetAddressByID retorna um endereço pelo ID.
-func (r *addressRepository) GetAddressByID(ctx context.Context, id int) (models.Address, error) {
+// GetByID retorna um endereço pelo ID.
+func (r *addressRepository) GetByID(ctx context.Context, id int) (models.Address, error) {
 	query := `
 		SELECT id, user_id, client_id, supplier_id, street, city, state, country, postal_code, created_at, updated_at
 		FROM addresses WHERE id = $1
@@ -72,8 +72,8 @@ func (r *addressRepository) GetAddressByID(ctx context.Context, id int) (models.
 	return address, nil
 }
 
-// UpdateAddress atualiza um endereço existente.
-func (r *addressRepository) UpdateAddress(ctx context.Context, address models.Address) error {
+// Update atualiza um endereço existente.
+func (r *addressRepository) Update(ctx context.Context, address models.Address) error {
 	query := `
 		UPDATE addresses
 		SET user_id = $1, client_id = $2, supplier_id = $3, street = $4, city = $5, state = $6, 
@@ -98,8 +98,8 @@ func (r *addressRepository) UpdateAddress(ctx context.Context, address models.Ad
 	return nil
 }
 
-// DeleteAddress remove um endereço pelo ID.
-func (r *addressRepository) DeleteAddress(ctx context.Context, id int) error {
+// Delete remove um endereço pelo ID.
+func (r *addressRepository) Delete(ctx context.Context, id int) error {
 	query := `DELETE FROM addresses WHERE id = $1`
 	ct, err := r.db.Exec(ctx, query, id)
 	if err != nil {

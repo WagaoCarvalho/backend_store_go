@@ -11,13 +11,13 @@ import (
 )
 
 type ContactRepository interface {
-	CreateContact(ctx context.Context, contact *models.Contact) error
-	GetContactByID(ctx context.Context, id int64) (*models.Contact, error)
-	GetContactByUserID(ctx context.Context, userID int64) ([]*models.Contact, error)
-	GetContactByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error)
-	GetContactBySupplierID(ctx context.Context, supplierID int64) ([]*models.Contact, error)
-	Updatecontac(ctx context.Context, contact *models.Contact) error
-	Deletecontact(ctx context.Context, id int64) error
+	Create(ctx context.Context, contact *models.Contact) error
+	GetByID(ctx context.Context, id int64) (*models.Contact, error)
+	GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error)
+	GetByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error)
+	GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Contact, error)
+	Update(ctx context.Context, contact *models.Contact) error
+	Delete(ctx context.Context, id int64) error
 }
 
 type contactRepository struct {
@@ -28,7 +28,7 @@ func NewContactRepository(db *pgxpool.Pool) ContactRepository {
 	return &contactRepository{db: db}
 }
 
-func (r *contactRepository) CreateContact(ctx context.Context, contact *models.Contact) error {
+func (r *contactRepository) Create(ctx context.Context, contact *models.Contact) error {
 	query := `
 		INSERT INTO contacts (
 			user_id, client_id, supplier_id, contact_name, contact_position,
@@ -56,7 +56,7 @@ func (r *contactRepository) CreateContact(ctx context.Context, contact *models.C
 	return nil
 }
 
-func (r *contactRepository) GetContactByID(ctx context.Context, id int64) (*models.Contact, error) {
+func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
 	query := `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
@@ -91,7 +91,7 @@ func (r *contactRepository) GetContactByID(ctx context.Context, id int64) (*mode
 	return &contact, nil
 }
 
-func (r *contactRepository) GetContactByUserID(ctx context.Context, userID int64) ([]*models.Contact, error) {
+func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error) {
 	query := `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
@@ -132,7 +132,7 @@ func (r *contactRepository) GetContactByUserID(ctx context.Context, userID int64
 	return contacts, nil
 }
 
-func (r *contactRepository) GetContactByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error) {
+func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error) {
 	query := `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
@@ -173,7 +173,7 @@ func (r *contactRepository) GetContactByClientID(ctx context.Context, clientID i
 	return contacts, nil
 }
 
-func (r *contactRepository) GetContactBySupplierID(ctx context.Context, supplierID int64) ([]*models.Contact, error) {
+func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Contact, error) {
 	query := `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
@@ -214,7 +214,7 @@ func (r *contactRepository) GetContactBySupplierID(ctx context.Context, supplier
 	return contacts, nil
 }
 
-func (r *contactRepository) Updatecontac(ctx context.Context, contact *models.Contact) error {
+func (r *contactRepository) Update(ctx context.Context, contact *models.Contact) error {
 	query := `
 		UPDATE contacts SET
 			user_id = $1,
@@ -254,7 +254,7 @@ func (r *contactRepository) Updatecontac(ctx context.Context, contact *models.Co
 	return nil
 }
 
-func (r *contactRepository) Deletecontact(ctx context.Context, id int64) error {
+func (r *contactRepository) Delete(ctx context.Context, id int64) error {
 	query := `DELETE FROM contacts WHERE id = $1`
 
 	result, err := r.db.Exec(ctx, query, id)

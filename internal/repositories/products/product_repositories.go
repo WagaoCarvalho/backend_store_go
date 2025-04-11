@@ -4,22 +4,22 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/models"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/product"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ProductRepository interface {
-	GetProducts(ctx context.Context) ([]models.Product, error)
-	GetProductById(ctx context.Context, id int64) (models.Product, error)
-	GetProductsByName(ctx context.Context, name string) ([]models.Product, error)
-	GetProductsByManufacturer(ctx context.Context, manufacturer string) ([]models.Product, error)
-	CreateProduct(ctx context.Context, product models.Product) (models.Product, error)
-	UpdateProduct(ctx context.Context, product models.Product) (models.Product, error)
-	DeleteProductById(ctx context.Context, id int64) error
-	GetProductsByCostPriceRange(ctx context.Context, min, max float64) ([]models.Product, error)
-	GetProductsBySalePriceRange(ctx context.Context, min, max float64) ([]models.Product, error)
-	GetProductsLowInStock(ctx context.Context, threshold int) ([]models.Product, error)
+	GetAll(ctx context.Context) ([]models.Product, error)
+	GetById(ctx context.Context, id int64) (models.Product, error)
+	GetByName(ctx context.Context, name string) ([]models.Product, error)
+	GetByManufacturer(ctx context.Context, manufacturer string) ([]models.Product, error)
+	Create(ctx context.Context, product models.Product) (models.Product, error)
+	Update(ctx context.Context, product models.Product) (models.Product, error)
+	DeleteById(ctx context.Context, id int64) error
+	GetByCostPriceRange(ctx context.Context, min, max float64) ([]models.Product, error)
+	GetBySalePriceRange(ctx context.Context, min, max float64) ([]models.Product, error)
+	GetLowInStock(ctx context.Context, threshold int) ([]models.Product, error)
 }
 
 type productRepository struct {
@@ -30,7 +30,7 @@ func NewProductRepository(db *pgxpool.Pool) ProductRepository {
 	return &productRepository{db: db}
 }
 
-func (r *productRepository) GetProducts(ctx context.Context) ([]models.Product, error) {
+func (r *productRepository) GetAll(ctx context.Context) ([]models.Product, error) {
 	query := `SELECT 
 		id, product_name, manufacturer, product_description, 
 		cost_price, sale_price, stock_quantity, barcode, 
@@ -70,7 +70,7 @@ func (r *productRepository) GetProducts(ctx context.Context) ([]models.Product, 
 	return products, nil
 }
 
-func (r *productRepository) GetProductById(ctx context.Context, id int64) (models.Product, error) {
+func (r *productRepository) GetById(ctx context.Context, id int64) (models.Product, error) {
 	var product models.Product
 	query := `SELECT 
 		id, product_name, manufacturer, product_description, 
@@ -101,7 +101,7 @@ func (r *productRepository) GetProductById(ctx context.Context, id int64) (model
 	return product, nil
 }
 
-func (r *productRepository) GetProductsByName(ctx context.Context, name string) ([]models.Product, error) {
+func (r *productRepository) GetByName(ctx context.Context, name string) ([]models.Product, error) {
 	query := `SELECT 
 		id, product_name, manufacturer, product_description, 
 		cost_price, sale_price, stock_quantity, barcode, 
@@ -141,7 +141,7 @@ func (r *productRepository) GetProductsByName(ctx context.Context, name string) 
 	return products, nil
 }
 
-func (r *productRepository) GetProductsByManufacturer(ctx context.Context, manufacturer string) ([]models.Product, error) {
+func (r *productRepository) GetByManufacturer(ctx context.Context, manufacturer string) ([]models.Product, error) {
 	query := `SELECT 
 		id, product_name, manufacturer, product_description, 
 		cost_price, sale_price, stock_quantity, barcode, 
@@ -181,7 +181,7 @@ func (r *productRepository) GetProductsByManufacturer(ctx context.Context, manuf
 	return products, nil
 }
 
-func (r *productRepository) CreateProduct(ctx context.Context, product models.Product) (models.Product, error) {
+func (r *productRepository) Create(ctx context.Context, product models.Product) (models.Product, error) {
 	query := `INSERT INTO products (
 		product_name, manufacturer, product_description, 
 		cost_price, sale_price, stock_quantity, barcode,
@@ -206,7 +206,7 @@ func (r *productRepository) CreateProduct(ctx context.Context, product models.Pr
 	return product, nil
 }
 
-func (r *productRepository) UpdateProduct(ctx context.Context, product models.Product) (models.Product, error) {
+func (r *productRepository) Update(ctx context.Context, product models.Product) (models.Product, error) {
 	query := `UPDATE products SET
 		product_name = $1,
 		manufacturer = $2,
@@ -240,7 +240,7 @@ func (r *productRepository) UpdateProduct(ctx context.Context, product models.Pr
 	return product, nil
 }
 
-func (r *productRepository) DeleteProductById(ctx context.Context, id int64) error {
+func (r *productRepository) DeleteById(ctx context.Context, id int64) error {
 	query := `DELETE FROM products WHERE id = $1`
 
 	result, err := r.db.Exec(ctx, query, id)
@@ -255,7 +255,7 @@ func (r *productRepository) DeleteProductById(ctx context.Context, id int64) err
 	return nil
 }
 
-func (r *productRepository) GetProductsByCostPriceRange(ctx context.Context, min, max float64) ([]models.Product, error) {
+func (r *productRepository) GetByCostPriceRange(ctx context.Context, min, max float64) ([]models.Product, error) {
 	query := `SELECT 
 		id, product_name, manufacturer, product_description, 
 		cost_price, sale_price, stock_quantity, barcode, 
@@ -265,7 +265,7 @@ func (r *productRepository) GetProductsByCostPriceRange(ctx context.Context, min
 	return r.getProductsByPriceRange(ctx, query, min, max)
 }
 
-func (r *productRepository) GetProductsBySalePriceRange(ctx context.Context, min, max float64) ([]models.Product, error) {
+func (r *productRepository) GetBySalePriceRange(ctx context.Context, min, max float64) ([]models.Product, error) {
 	query := `SELECT 
 		id, product_name, manufacturer, product_description, 
 		cost_price, sale_price, stock_quantity, barcode, 
@@ -309,7 +309,7 @@ func (r *productRepository) getProductsByPriceRange(ctx context.Context, query s
 	return products, nil
 }
 
-func (r *productRepository) GetProductsLowInStock(ctx context.Context, threshold int) ([]models.Product, error) {
+func (r *productRepository) GetLowInStock(ctx context.Context, threshold int) ([]models.Product, error) {
 	query := `SELECT 
 		id, product_name, manufacturer, product_description, 
 		cost_price, sale_price, stock_quantity, barcode, 

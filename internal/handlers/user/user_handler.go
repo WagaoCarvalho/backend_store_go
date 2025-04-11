@@ -21,7 +21,7 @@ func NewUserHandler(service services.UserService) *UserHandler {
 }
 
 func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.service.GetUsers(r.Context())
+	users, err := h.service.GetAll(r.Context())
 	if err != nil {
 		utils.ErrorResponse(w, fmt.Errorf("erro ao buscar usuários: %w", err), http.StatusInternalServerError)
 		return
@@ -41,7 +41,7 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.GetUserById(r.Context(), id)
+	user, err := h.service.GetById(r.Context(), id)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if err.Error() == "usuário não encontrado" {
@@ -62,7 +62,7 @@ func (h *UserHandler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	email := vars["email"]
 
-	user, err := h.service.GetUserByEmail(r.Context(), email)
+	user, err := h.service.GetByEmail(r.Context(), email)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if err.Error() == "usuário não encontrado" {
@@ -97,7 +97,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdUser, err := h.service.CreateUser(r.Context(), requestData.User, requestData.CategoryID, requestData.Address, requestData.Contact)
+	createdUser, err := h.service.Create(r.Context(), requestData.User, requestData.CategoryID, requestData.Address, requestData.Contact)
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
@@ -137,7 +137,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		requestData.Contact.UserID = &id
 	}
 
-	updatedUser, err := h.service.UpdateUser(r.Context(), requestData.User, requestData.Contact)
+	updatedUser, err := h.service.Update(r.Context(), requestData.User, requestData.Contact)
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
@@ -162,7 +162,7 @@ func (h *UserHandler) DeleteUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.service.DeleteUserById(r.Context(), id)
+	err = h.service.Delete(r.Context(), id)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if err.Error() == "usuário não encontrado" {
