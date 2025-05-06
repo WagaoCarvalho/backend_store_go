@@ -69,7 +69,7 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	address.ID = int(id)
+	address.ID = &id
 
 	if err := h.service.Update(r.Context(), address); err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)

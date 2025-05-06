@@ -26,7 +26,6 @@ func NewLoginService(userRepo repositories.UserRepository) LoginService {
 }
 
 func (s *loginService) Login(ctx context.Context, credentials models.LoginCredentials) (string, error) {
-	log.Printf("Tentativa de login com email: %s", credentials.Email)
 	// Validação básica
 	if !utils.IsValidEmail(credentials.Email) {
 		return "", fmt.Errorf("formato de email inválido")
@@ -45,9 +44,6 @@ func (s *loginService) Login(ctx context.Context, credentials models.LoginCreden
 		}
 		return "", fmt.Errorf("erro ao buscar usuário")
 	}
-
-	log.Printf("Hash armazenado: %s", user.Password)
-	log.Printf("Senha fornecida: %s", credentials.Password)
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password))
 	if err != nil {

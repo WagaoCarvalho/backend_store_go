@@ -40,7 +40,7 @@ func TestAddressService_CreateAddress_Success(t *testing.T) {
 	service := services.NewAddressService(mockRepo)
 
 	address := models.Address{
-		ID:         1,
+		ID:         nil,
 		UserID:     nil,
 		Street:     "Rua Teste",
 		City:       "Cidade Teste",
@@ -82,7 +82,7 @@ func TestAddressService_GetAddressByID_Success(t *testing.T) {
 	service := services.NewAddressService(mockRepo)
 
 	address := models.Address{
-		ID:         1,
+		ID:         nil,
 		UserID:     nil,
 		Street:     "Rua Teste",
 		City:       "Cidade Teste",
@@ -118,7 +118,7 @@ func TestAddressService_UpdateAddress_Success(t *testing.T) {
 	service := services.NewAddressService(mockRepo)
 
 	address := models.Address{
-		ID:         1,
+		ID:         nil,
 		Street:     "Nova Rua",
 		City:       "Nova Cidade",
 		State:      "Novo Estado",

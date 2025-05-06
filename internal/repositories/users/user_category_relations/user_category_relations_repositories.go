@@ -17,9 +17,9 @@ var (
 )
 
 type UserCategoryRelationRepositories interface {
-	Create(ctx context.Context, relation models.UserCategoryRelation) (models.UserCategoryRelation, error)
-	GetByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelation, error)
-	GetByCategoryID(ctx context.Context, categoryID int64) ([]models.UserCategoryRelation, error)
+	Create(ctx context.Context, relation models.UserCategoryRelations) (models.UserCategoryRelations, error)
+	GetByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelations, error)
+	GetByCategoryID(ctx context.Context, categoryID int64) ([]models.UserCategoryRelations, error)
 	Delete(ctx context.Context, userID, categoryID int64) error
 	DeleteAll(ctx context.Context, userID int64) error
 }
@@ -32,9 +32,9 @@ func NewUserCategoryRelationRepositories(db *pgxpool.Pool) UserCategoryRelationR
 	return &userCategoryRelationRepositories{db: db}
 }
 
-func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation models.UserCategoryRelation) (models.UserCategoryRelation, error) {
+func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation models.UserCategoryRelations) (models.UserCategoryRelations, error) {
 	if relation.UserID == 0 || relation.CategoryID == 0 {
-		return models.UserCategoryRelation{}, ErrInvalidRelationData
+		return models.UserCategoryRelations{}, ErrInvalidRelationData
 	}
 
 	query := `
@@ -47,15 +47,15 @@ func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation 
 
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key") {
-			return models.UserCategoryRelation{}, ErrRelationExists
+			return models.UserCategoryRelations{}, ErrRelationExists
 		}
-		return models.UserCategoryRelation{}, fmt.Errorf("erro ao criar relação: %w", err)
+		return models.UserCategoryRelations{}, fmt.Errorf("erro ao criar relação: %w", err)
 	}
 
 	return relation, nil
 }
 
-func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelation, error) {
+func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelations, error) {
 	query := `
 		SELECT id, user_id, category_id, created_at, updated_at 
 		FROM user_category_relations 
@@ -67,9 +67,9 @@ func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, user
 	}
 	defer rows.Close()
 
-	var relations []models.UserCategoryRelation
+	var relations []models.UserCategoryRelations
 	for rows.Next() {
-		var rel models.UserCategoryRelation
+		var rel models.UserCategoryRelations
 		if err := rows.Scan(&rel.ID, &rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("erro ao ler relação: %w", err)
 		}
@@ -83,7 +83,7 @@ func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, user
 	return relations, nil
 }
 
-func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, categoryID int64) ([]models.UserCategoryRelation, error) {
+func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, categoryID int64) ([]models.UserCategoryRelations, error) {
 	query := `
 		SELECT id, user_id, category_id, created_at, updated_at 
 		FROM user_category_relations 
@@ -95,9 +95,9 @@ func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, 
 	}
 	defer rows.Close()
 
-	var relations []models.UserCategoryRelation
+	var relations []models.UserCategoryRelations
 	for rows.Next() {
-		var rel models.UserCategoryRelation
+		var rel models.UserCategoryRelations
 		if err := rows.Scan(&rel.ID, &rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("erro ao ler relação: %w", err)
 		}

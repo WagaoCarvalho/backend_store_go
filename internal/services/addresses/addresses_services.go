@@ -36,7 +36,7 @@ func (s *addressService) GetByID(ctx context.Context, id int) (models.Address, e
 }
 
 func (s *addressService) Update(ctx context.Context, address models.Address) error {
-	if address.ID == 0 {
+	if address.ID == nil {
 		return errors.New("ID do endereço é obrigatório")
 	}
 

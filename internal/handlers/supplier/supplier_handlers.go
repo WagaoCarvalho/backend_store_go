@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
+	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
+	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
+	models_supplier "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 )
@@ -17,29 +19,34 @@ func NewSupplierHandler(service services.SupplierService) *SupplierHandler {
 	return &SupplierHandler{service: service}
 }
 
-// CreateSupplier - POST /suppliers
-func (h *SupplierHandler) CreateSupplier(w http.ResponseWriter, r *http.Request) {
-	var s models.Supplier
-	if err := utils.FromJson(r.Body, &s); err != nil {
+func (h *SupplierHandler) Create(w http.ResponseWriter, r *http.Request) {
+	type request struct {
+		Supplier   models_supplier.Supplier `json:"supplier"`
+		CategoryID int64                    `json:"category_id"`
+		Address    *models_address.Address  `json:"address,omitempty"`
+		Contact    *models_contact.Contact  `json:"contact,omitempty"`
+	}
+
+	var req request
+	if err := utils.FromJson(r.Body, &req); err != nil {
 		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
 		return
 	}
 
-	id, err := h.service.Create(r.Context(), &s)
+	id, err := h.service.Create(r.Context(), &req.Supplier, req.CategoryID, req.Address, req.Contact)
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	s.ID = id
+	req.Supplier.ID = id
 	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
-		Message: "Fornecedor criado com sucesso",
-		Data:    s,
+		Message: "Fornecedor com categoria criado com sucesso",
+		Data:    req.Supplier,
 	})
 }
 
-// GetSupplierByID - GET /suppliers/{id}
 func (h *SupplierHandler) GetSupplierByID(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
@@ -60,7 +67,6 @@ func (h *SupplierHandler) GetSupplierByID(w http.ResponseWriter, r *http.Request
 	})
 }
 
-// GetAllSuppliers - GET /suppliers
 func (h *SupplierHandler) GetAllSuppliers(w http.ResponseWriter, r *http.Request) {
 	suppliers, err := h.service.GetAll(r.Context())
 	if err != nil {
@@ -75,7 +81,6 @@ func (h *SupplierHandler) GetAllSuppliers(w http.ResponseWriter, r *http.Request
 	})
 }
 
-// UpdateSupplier - PUT /suppliers/{id}
 func (h *SupplierHandler) UpdateSupplier(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
@@ -83,7 +88,7 @@ func (h *SupplierHandler) UpdateSupplier(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var s models.Supplier
+	var s models_supplier.Supplier
 	if err := utils.FromJson(r.Body, &s); err != nil {
 		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
 		return
@@ -102,7 +107,6 @@ func (h *SupplierHandler) UpdateSupplier(w http.ResponseWriter, r *http.Request)
 	})
 }
 
-// DeleteSupplier - DELETE /suppliers/{id}
 func (h *SupplierHandler) DeleteSupplier(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {

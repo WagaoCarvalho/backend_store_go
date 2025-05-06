@@ -17,19 +17,19 @@ type MockUserCategoryRelationRepo struct {
 	mock.Mock
 }
 
-func (m *MockUserCategoryRelationRepo) Create(ctx context.Context, rel models.UserCategoryRelation) (models.UserCategoryRelation, error) {
+func (m *MockUserCategoryRelationRepo) Create(ctx context.Context, rel models.UserCategoryRelations) (models.UserCategoryRelations, error) {
 	args := m.Called(ctx, rel)
-	return args.Get(0).(models.UserCategoryRelation), args.Error(1)
+	return args.Get(0).(models.UserCategoryRelations), args.Error(1)
 }
 
-func (m *MockUserCategoryRelationRepo) GetByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelation, error) {
+func (m *MockUserCategoryRelationRepo) GetByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelations, error) {
 	args := m.Called(ctx, userID)
-	return args.Get(0).([]models.UserCategoryRelation), args.Error(1)
+	return args.Get(0).([]models.UserCategoryRelations), args.Error(1)
 }
 
-func (m *MockUserCategoryRelationRepo) GetByCategoryID(ctx context.Context, categoryID int64) ([]models.UserCategoryRelation, error) {
+func (m *MockUserCategoryRelationRepo) GetByCategoryID(ctx context.Context, categoryID int64) ([]models.UserCategoryRelations, error) {
 	args := m.Called(ctx, categoryID)
-	return args.Get(0).([]models.UserCategoryRelation), args.Error(1)
+	return args.Get(0).([]models.UserCategoryRelations), args.Error(1)
 }
 
 func (m *MockUserCategoryRelationRepo) Delete(ctx context.Context, userID, categoryID int64) error {
@@ -46,7 +46,7 @@ func TestCreate_Success(t *testing.T) {
 	mockRepo := new(MockUserCategoryRelationRepo)
 	service := NewUserCategoryRelationServices(mockRepo)
 
-	input := models.UserCategoryRelation{UserID: 1, CategoryID: 2}
+	input := models.UserCategoryRelations{UserID: 1, CategoryID: 2}
 	expected := input
 
 	mockRepo.On("Create", mock.Anything, input).Return(expected, nil)
@@ -73,9 +73,9 @@ func TestCreate_AlreadyExists_ReturnsExisting(t *testing.T) {
 	mockRepo := new(MockUserCategoryRelationRepo)
 	service := NewUserCategoryRelationServices(mockRepo)
 
-	existing := models.UserCategoryRelation{UserID: 1, CategoryID: 2}
-	mockRepo.On("Create", mock.Anything, mock.Anything).Return(models.UserCategoryRelation{}, repoMocks.ErrRelationExists)
-	mockRepo.On("GetByUserID", mock.Anything, int64(1)).Return([]models.UserCategoryRelation{existing}, nil)
+	existing := models.UserCategoryRelations{UserID: 1, CategoryID: 2}
+	mockRepo.On("Create", mock.Anything, mock.Anything).Return(models.UserCategoryRelations{}, repoMocks.ErrRelationExists)
+	mockRepo.On("GetByUserID", mock.Anything, int64(1)).Return([]models.UserCategoryRelations{existing}, nil)
 
 	result, err := service.Create(context.Background(), 1, 2)
 
@@ -88,7 +88,7 @@ func TestCreate_Error(t *testing.T) {
 	mockRepo := new(MockUserCategoryRelationRepo)
 	service := NewUserCategoryRelationServices(mockRepo)
 
-	mockRepo.On("Create", mock.Anything, mock.Anything).Return(models.UserCategoryRelation{}, errors.New("db error"))
+	mockRepo.On("Create", mock.Anything, mock.Anything).Return(models.UserCategoryRelations{}, errors.New("db error"))
 
 	_, err := service.Create(context.Background(), 1, 2)
 
@@ -100,7 +100,7 @@ func TestGetAll_Success(t *testing.T) {
 	mockRepo := new(MockUserCategoryRelationRepo)
 	service := NewUserCategoryRelationServices(mockRepo)
 
-	expected := []models.UserCategoryRelation{{UserID: 1, CategoryID: 2}}
+	expected := []models.UserCategoryRelations{{UserID: 1, CategoryID: 2}}
 	mockRepo.On("GetByUserID", mock.Anything, int64(1)).Return(expected, nil)
 
 	result, err := service.GetAll(context.Background(), 1)
@@ -122,7 +122,7 @@ func TestGetRelations_Success(t *testing.T) {
 	mockRepo := new(MockUserCategoryRelationRepo)
 	service := NewUserCategoryRelationServices(mockRepo)
 
-	expected := []models.UserCategoryRelation{{UserID: 1, CategoryID: 2}}
+	expected := []models.UserCategoryRelations{{UserID: 1, CategoryID: 2}}
 	mockRepo.On("GetByCategoryID", mock.Anything, int64(2)).Return(expected, nil)
 
 	result, err := service.GetRelations(context.Background(), 2)
@@ -187,7 +187,7 @@ func TestGetByCategoryID_SuccessTrue(t *testing.T) {
 	userID := int64(1)
 	categoryID := int64(10)
 
-	relations := []models.UserCategoryRelation{
+	relations := []models.UserCategoryRelations{
 		{UserID: userID, CategoryID: 5},
 		{UserID: userID, CategoryID: categoryID}, // match
 	}
@@ -208,7 +208,7 @@ func TestGetByCategoryID_SuccessFalse(t *testing.T) {
 	userID := int64(1)
 	categoryID := int64(99)
 
-	relations := []models.UserCategoryRelation{
+	relations := []models.UserCategoryRelations{
 		{UserID: userID, CategoryID: 1},
 		{UserID: userID, CategoryID: 2},
 	}
@@ -245,7 +245,7 @@ func TestGetByCategoryID_RepoError(t *testing.T) {
 	service := NewUserCategoryRelationServices(mockRepo)
 
 	mockRepo.On("GetByUserID", mock.Anything, int64(1)).
-		Return([]models.UserCategoryRelation(nil), errors.New("erro inesperado"))
+		Return([]models.UserCategoryRelations(nil), errors.New("erro inesperado"))
 
 	result, err := service.GetByCategoryID(context.Background(), 1, 2)
 

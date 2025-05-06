@@ -20,6 +20,7 @@ import (
 	productRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
 	supplierRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers"
 	supplierCategoryRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_categories"
+	supplierCategoryRelationRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_category_relations"
 	userRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	userCategoryRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
 	addressServices "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
@@ -28,6 +29,7 @@ import (
 	productServices "github.com/WagaoCarvalho/backend_store_go/internal/services/products"
 	supplierServices "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers"
 	supplierCategoryServices "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_categories"
+	supplierCategoryRelations "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_category_relations"
 	userServices "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
 	userCategoryServices "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories"
 	"github.com/gorilla/mux"
@@ -64,12 +66,18 @@ func NewRouter() *mux.Router {
 	contactService := contactServices.NewContactService(contactRepo)
 	contactHandler := contactHandlers.NewContactHandler(contactService)
 
+	// Repositórios
 	supplierRepo := supplierRepositories.NewSupplierRepository(db)
-	supplierService := supplierServices.NewSupplierService(supplierRepo)
-	supplierHandler := supplierHandler.NewSupplierHandler(supplierService)
-
 	supplierCategoryRepo := supplierCategoryRepositories.NewSupplierCategoryRepository(db)
+	supplierCategoryRelationRepo := supplierCategoryRelationRepositories.NewSupplierCategoryRelationRepo(db)
+
+	// Serviços
+	relationService := supplierCategoryRelations.NewSupplierCategoryRelationService(supplierCategoryRelationRepo)
+	supplierService := supplierServices.NewSupplierService(supplierRepo, relationService, addressService, contactService)
 	supplierCategoryService := supplierCategoryServices.NewSupplierCategoryService(supplierCategoryRepo)
+
+	// Handlers
+	supplierHandler := supplierHandler.NewSupplierHandler(supplierService)
 	supplierCategoryHandler := supplierCategoryHandler.NewSupplierCategoryHandler(supplierCategoryService)
 
 	r.HandleFunc("/", homeHandlers.GetHome).Methods(http.MethodGet)
@@ -118,7 +126,7 @@ func NewRouter() *mux.Router {
 	protectedRoutes.HandleFunc("/contact/{id:[0-9]+}", contactHandler.Update).Methods(http.MethodPut)
 	protectedRoutes.HandleFunc("/contact/{id:[0-9]+}", contactHandler.Delete).Methods(http.MethodDelete)
 
-	protectedRoutes.HandleFunc("/supplier", supplierHandler.CreateSupplier).Methods(http.MethodPost)
+	protectedRoutes.HandleFunc("/supplier", supplierHandler.Create).Methods(http.MethodPost)
 	protectedRoutes.HandleFunc("/supplier/{id:[0-9]+}", supplierHandler.GetSupplierByID).Methods(http.MethodGet)
 	protectedRoutes.HandleFunc("/suppliers", supplierHandler.GetAllSuppliers).Methods(http.MethodGet)
 	protectedRoutes.HandleFunc("/supplier/{id:[0-9]+}", supplierHandler.UpdateSupplier).Methods(http.MethodPut)

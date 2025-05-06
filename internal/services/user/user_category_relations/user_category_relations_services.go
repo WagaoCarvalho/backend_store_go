@@ -15,9 +15,9 @@ var (
 )
 
 type UserCategoryRelationServices interface {
-	Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelation, error)
-	GetAll(ctx context.Context, userID int64) ([]models.UserCategoryRelation, error)
-	GetRelations(ctx context.Context, categoryID int64) ([]models.UserCategoryRelation, error)
+	Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelations, error)
+	GetAll(ctx context.Context, userID int64) ([]models.UserCategoryRelations, error)
+	GetRelations(ctx context.Context, categoryID int64) ([]models.UserCategoryRelations, error)
 	Delete(ctx context.Context, userID, categoryID int64) error
 	DeleteAll(ctx context.Context, userID int64) error
 	GetByCategoryID(ctx context.Context, userID, categoryID int64) (bool, error)
@@ -33,7 +33,7 @@ func NewUserCategoryRelationServices(repo repositories.UserCategoryRelationRepos
 	}
 }
 
-func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelation, error) {
+func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelations, error) {
 	if userID <= 0 {
 		return nil, ErrInvalidUserID
 	}
@@ -41,7 +41,7 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 		return nil, ErrInvalidCategoryID
 	}
 
-	relation := models.UserCategoryRelation{
+	relation := models.UserCategoryRelations{
 		UserID:     userID,
 		CategoryID: categoryID,
 	}
@@ -67,7 +67,7 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 	return &createdRelation, nil
 }
 
-func (s *userCategoryRelationServices) GetAll(ctx context.Context, userID int64) ([]models.UserCategoryRelation, error) {
+func (s *userCategoryRelationServices) GetAll(ctx context.Context, userID int64) ([]models.UserCategoryRelations, error) {
 	if userID <= 0 {
 		return nil, ErrInvalidUserID
 	}
@@ -80,7 +80,7 @@ func (s *userCategoryRelationServices) GetAll(ctx context.Context, userID int64)
 	return relations, nil
 }
 
-func (s *userCategoryRelationServices) GetRelations(ctx context.Context, categoryID int64) ([]models.UserCategoryRelation, error) {
+func (s *userCategoryRelationServices) GetRelations(ctx context.Context, categoryID int64) ([]models.UserCategoryRelations, error) {
 	if categoryID <= 0 {
 		return nil, ErrInvalidCategoryID
 	}

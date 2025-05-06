@@ -39,7 +39,7 @@ func TestUserService_GetUserById(t *testing.T) {
 		Status:   true,
 		Contact: &models_contact.Contact{
 			ID:          1,
-			UserID:      ptrInt64(1),
+			UserID:      nil,
 			ContactName: "Contato 1",
 			Email:       "contato@example.com",
 			Phone:       "123456789",
@@ -162,7 +162,7 @@ func TestUserService_UpdateUser(t *testing.T) {
 
 	contact := &models_contact.Contact{
 		ID:          1,
-		UserID:      ptrInt64(1),
+		UserID:      nil,
 		ContactName: "Contato Atualizado",
 		Email:       "contato@exemplo.com",
 		Phone:       "999999999",
@@ -200,7 +200,7 @@ func TestUserService_UpdateUser_Error(t *testing.T) {
 
 	contact := &models_contact.Contact{
 		ID:          1,
-		UserID:      ptrInt64(1),
+		UserID:      nil,
 		ContactName: "Contato com Erro",
 		Email:       "erro@exemplo.com",
 		Phone:       "888888888",

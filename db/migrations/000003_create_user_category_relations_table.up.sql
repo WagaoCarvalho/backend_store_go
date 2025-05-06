@@ -7,3 +7,7 @@ CREATE TABLE user_category_relations (
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES user_categories (id) ON DELETE CASCADE
 );
+
+-- Índices adicionais, se necessário
+CREATE INDEX idx_user_category_relations_user_id ON supplier_category_relations (user_id);
+CREATE INDEX idx_user_category_relations_category_id ON supplier_category_relations (category_id);

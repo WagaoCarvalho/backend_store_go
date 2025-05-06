@@ -3,10 +3,10 @@ package models
 import "time"
 
 type Address struct {
-	ID         int       `json:"id"`
-	UserID     *int      `json:"user_id,omitempty"`
-	ClientID   *int      `json:"client_id,omitempty"`
-	SupplierID *int      `json:"supplier_id,omitempty"`
+	ID         *int64    `json:"id"`
+	UserID     *int64    `json:"user_id,omitempty"`
+	ClientID   *int64    `json:"client_id,omitempty"`
+	SupplierID int64     `json:"supplier_id,omitempty"`
 	Street     string    `json:"street"`
 	City       string    `json:"city"`
 	State      string    `json:"state"`
