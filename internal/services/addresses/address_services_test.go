@@ -117,8 +117,9 @@ func TestAddressService_UpdateAddress_Success(t *testing.T) {
 	mockRepo := new(MockAddressRepository)
 	service := services.NewAddressService(mockRepo)
 
+	id := int64(1)
 	address := models.Address{
-		ID:         nil,
+		ID:         &id,
 		Street:     "Nova Rua",
 		City:       "Nova Cidade",
 		State:      "Novo Estado",
