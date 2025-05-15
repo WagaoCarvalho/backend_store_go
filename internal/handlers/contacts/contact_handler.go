@@ -26,13 +26,14 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Create(r.Context(), &contact); err != nil {
+	createdContact, err := h.service.Create(r.Context(), contact)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(contact)
+	json.NewEncoder(w).Encode(createdContact)
 }
 
 func (h *ContactHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -112,7 +113,7 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contact.ID = id
+	contact.ID = &id
 
 	if err := h.service.Update(r.Context(), &contact); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

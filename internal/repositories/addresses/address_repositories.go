@@ -33,7 +33,7 @@ func (r *addressRepository) Create(ctx context.Context, address models.Address) 
 	query := `
 		INSERT INTO addresses (user_id, client_id, supplier_id, street, city, state, country, postal_code, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-		RETURNING id, created_at, updated_at
+		RETURNING user_id, created_at, updated_at
 	`
 	err := r.db.QueryRow(ctx, query,
 		address.UserID, address.ClientID, address.SupplierID,

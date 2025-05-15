@@ -46,7 +46,7 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 		CategoryID: categoryID,
 	}
 
-	createdRelation, err := s.relationRepo.Create(ctx, relation)
+	createdRelation, err := s.relationRepo.Create(ctx, &relation)
 	if err != nil {
 		if errors.Is(err, repositories.ErrRelationExists) {
 			// Se a relação já existe, retornamos ela
@@ -64,7 +64,7 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 		return nil, fmt.Errorf("erro ao criar relação: %w", err)
 	}
 
-	return &createdRelation, nil
+	return createdRelation, nil
 }
 
 func (s *userCategoryRelationServices) GetAll(ctx context.Context, userID int64) ([]models.UserCategoryRelations, error) {

@@ -20,6 +20,43 @@ func NewUserHandler(service services.UserService) *UserHandler {
 	return &UserHandler{service: service}
 }
 
+func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	var requestData struct {
+		User        *models_user.User       `json:"user"`
+		CategoryIDs []int64                 `json:"category_id"`
+		Address     *models_address.Address `json:"address"`
+		Contact     *models_contact.Contact `json:"contact"`
+	}
+
+	if err := utils.FromJson(r.Body, &requestData); err != nil {
+		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
+		return
+	}
+
+	createdUser, err := h.service.Create(
+		r.Context(),
+		requestData.User,
+		requestData.CategoryIDs,
+		requestData.Address,
+		requestData.Contact,
+	)
+	if err != nil {
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
+		Status:  http.StatusCreated,
+		Message: "Usuário criado com sucesso",
+		Data:    createdUser,
+	})
+}
+
 func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := h.service.GetAll(r.Context())
 	if err != nil {
@@ -79,37 +116,6 @@ func (h *UserHandler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
-		return
-	}
-
-	var requestData struct {
-		User       models_user.User       `json:"user"`
-		CategoryID int64                  `json:"category_id"`
-		Address    models_address.Address `json:"address"`
-		Contact    models_contact.Contact `json:"contact"`
-	}
-
-	if err := utils.FromJson(r.Body, &requestData); err != nil {
-		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
-		return
-	}
-
-	createdUser, err := h.service.Create(r.Context(), requestData.User, requestData.CategoryID, requestData.Address, requestData.Contact)
-	if err != nil {
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
-		Status:  http.StatusCreated,
-		Message: "Usuário criado com sucesso",
-		Data:    createdUser,
-	})
-}
-
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
@@ -117,8 +123,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requestData struct {
-		User    models_user.User        `json:"user"`
-		Contact *models_contact.Contact `json:"contact,omitempty"`
+		User *models_user.User `json:"user"`
 	}
 
 	id, err := utils.GetIDParam(r, "id")
@@ -133,11 +138,8 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	requestData.User.UID = id
-	if requestData.Contact != nil {
-		requestData.Contact.UserID = &id
-	}
 
-	updatedUser, err := h.service.Update(r.Context(), requestData.User, requestData.Contact)
+	updatedUser, err := h.service.Update(r.Context(), requestData.User)
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return

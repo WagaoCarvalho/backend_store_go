@@ -2,103 +2,120 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
-	"time"
 
 	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
+	user_category_relations "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestUserService_GetUsers(t *testing.T) {
-	mockRepo := new(MockUserRepository)
+	mockUserRepo := new(MockUserRepository)
+	mockAddressRepo := new(MockAddressRepository)
+	mockContactRepo := new(MockContactRepository)
+	mockRelationRepo := new(MockUserCategoryRelationRepositories)
+
 	expectedUsers := []models_user.User{
 		{UID: 1, Username: "user1", Email: "user1@example.com", Status: true},
 		{UID: 2, Username: "user2", Email: "user2@example.com", Status: false},
 	}
-	mockRepo.On("GetAll", mock.Anything).Return(expectedUsers, nil)
+	mockUserRepo.On("GetAll", mock.Anything).Return(expectedUsers, nil)
 
-	userService := NewUserService(mockRepo)
+	userService := NewUserService(mockUserRepo, mockAddressRepo, mockContactRepo, mockRelationRepo)
 	users, err := userService.GetAll(context.Background())
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedUsers, users)
-	mockRepo.AssertExpectations(t)
+	mockUserRepo.AssertExpectations(t)
 }
 
 func TestUserService_GetUserById(t *testing.T) {
-	mockRepo := new(MockUserRepository)
+	mockUserRepo := new(MockUserRepository)
+	mockAddressRepo := new(MockAddressRepository)
+	mockContactRepo := new(MockContactRepository)
+	mockRelationRepo := new(MockUserCategoryRelationRepositories)
+
 	expectedUser := models_user.User{
 		UID:      1,
 		Username: "user1",
 		Email:    "user1@example.com",
 		Status:   true,
-		Contact: &models_contact.Contact{
-			ID:          1,
-			UserID:      nil,
-			ContactName: "Contato 1",
-			Email:       "contato@example.com",
-			Phone:       "123456789",
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-		},
 	}
 
-	mockRepo.On("GetById", mock.Anything, int64(1)).Return(expectedUser, nil)
+	mockUserRepo.On("GetById", mock.Anything, int64(1)).Return(expectedUser, nil)
 
-	userService := NewUserService(mockRepo)
+	userService := NewUserService(mockUserRepo, mockAddressRepo, mockContactRepo, mockRelationRepo)
 	user, err := userService.GetById(context.Background(), 1)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedUser, user)
-	mockRepo.AssertExpectations(t)
+	mockUserRepo.AssertExpectations(t)
 }
 
 func TestUserService_GetUserById_UserNotFound(t *testing.T) {
-	mockRepo := new(MockUserRepository)
-	mockRepo.On("GetById", mock.Anything, int64(999)).Return(models_user.User{}, fmt.Errorf("usuário não encontrado"))
+	mockUserRepo := new(MockUserRepository)
+	mockAddressRepo := new(MockAddressRepository)
+	mockContactRepo := new(MockContactRepository)
+	mockRelationRepo := new(MockUserCategoryRelationRepositories)
 
-	userService := NewUserService(mockRepo)
+	mockUserRepo.On("GetById", mock.Anything, int64(999)).Return(models_user.User{}, fmt.Errorf("usuário não encontrado"))
+
+	userService := NewUserService(mockUserRepo, mockAddressRepo, mockContactRepo, mockRelationRepo)
 	user, err := userService.GetById(context.Background(), 999)
 
 	assert.ErrorContains(t, err, "usuário não encontrado")
 	assert.Equal(t, models_user.User{}, user)
-	mockRepo.AssertExpectations(t)
+	mockUserRepo.AssertExpectations(t)
 }
 
 func TestUserService_GetUserByEmail(t *testing.T) {
-	mockRepo := new(MockUserRepository)
-	expectedUser := models_user.User{UID: 1, Username: "user1", Email: "user1@example.com", Status: true}
-	mockRepo.On("GetByEmail", mock.Anything, "user1@example.com").Return(expectedUser, nil)
+	mockUserRepo := new(MockUserRepository)
+	mockAddressRepo := new(MockAddressRepository)
+	mockContactRepo := new(MockContactRepository)
+	mockRelationRepo := new(MockUserCategoryRelationRepositories)
 
-	userService := NewUserService(mockRepo)
+	expectedUser := models_user.User{UID: 1, Username: "user1", Email: "user1@example.com", Status: true}
+	mockUserRepo.On("GetByEmail", mock.Anything, "user1@example.com").Return(expectedUser, nil)
+
+	userService := NewUserService(mockUserRepo, mockAddressRepo, mockContactRepo, mockRelationRepo)
 	user, err := userService.GetByEmail(context.Background(), "user1@example.com")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedUser, user)
-	mockRepo.AssertExpectations(t)
+	mockUserRepo.AssertExpectations(t)
 }
 
 func TestUserService_GetUserByEmail_UserNotFound(t *testing.T) {
-	mockRepo := new(MockUserRepository)
-	mockRepo.On("GetByEmail", mock.Anything, "notfound@example.com").Return(models_user.User{}, fmt.Errorf("usuário não encontrado"))
+	mockUserRepo := new(MockUserRepository)
+	mockAddressRepo := new(MockAddressRepository)
+	mockContactRepo := new(MockContactRepository)
+	mockRelationRepo := new(MockUserCategoryRelationRepositories)
 
-	userService := NewUserService(mockRepo)
+	mockUserRepo.On("GetByEmail", mock.Anything, "notfound@example.com").Return(models_user.User{}, fmt.Errorf("usuário não encontrado"))
+
+	userService := NewUserService(mockUserRepo, mockAddressRepo, mockContactRepo, mockRelationRepo)
 	user, err := userService.GetByEmail(context.Background(), "notfound@example.com")
 
 	assert.ErrorContains(t, err, "usuário não encontrado")
 	assert.Equal(t, models_user.User{}, user)
-	mockRepo.AssertExpectations(t)
+	mockUserRepo.AssertExpectations(t)
 }
 
 func TestUserService_CreateUser(t *testing.T) {
-	mockRepo := new(MockUserRepository)
+	mockUserRepo := new(MockUserRepository)
+	mockAddressRepo := new(MockAddressRepository)
+	mockContactRepo := new(MockContactRepository)
+	mockRelationRepo := new(MockUserCategoryRelationRepositories)
+
 	newUser := models_user.User{Username: "newuser", Email: "newuser@example.com", Status: true}
-	categoryID := int64(1)
+	categoryIDs := []int64{1}
+
 	newAddress := models_address.Address{
 		Street:     "Rua Teste",
 		City:       "Cidade Teste",
@@ -115,135 +132,218 @@ func TestUserService_CreateUser(t *testing.T) {
 		ContactType:     "Pessoal",
 	}
 
-	mockRepo.On("Create", mock.Anything, newUser, categoryID, newAddress, newContact).
-		Return(newUser, nil)
+	// Configuração dos mocks
+	createdUser := models_user.User{UID: 1, Username: "newuser", Email: "newuser@example.com", Status: true}
+	mockUserRepo.On("Create", mock.Anything, &newUser).Return(createdUser, nil)
+	mockAddressRepo.On("Create", mock.Anything, mock.Anything).Return(models_address.Address{}, nil)
+	mockContactRepo.On("Create", mock.Anything, mock.Anything).Return(&models_contact.Contact{}, nil)
+	mockRelationRepo.On("Create", mock.Anything, mock.Anything).Return(&models_user_categories.UserCategory{}, nil)
 
-	userService := NewUserService(mockRepo)
-	createdUser, err := userService.Create(context.Background(), newUser, categoryID, newAddress, newContact)
+	userService := NewUserService(mockUserRepo, mockAddressRepo, mockContactRepo, mockRelationRepo)
+
+	resultUser, err := userService.Create(context.Background(), &newUser, categoryIDs, &newAddress, &newContact)
 
 	assert.NoError(t, err)
-	assert.Equal(t, newUser, createdUser)
-	mockRepo.AssertExpectations(t)
+	assert.Equal(t, createdUser, resultUser)
+	mockUserRepo.AssertExpectations(t)
+	mockAddressRepo.AssertExpectations(t)
+	mockContactRepo.AssertExpectations(t)
+	mockRelationRepo.AssertExpectations(t)
 }
 
-func TestUserService_CreateUser_Error(t *testing.T) {
-	mockRepo := new(MockUserRepository)
-	newUser := models_user.User{Username: "failuser", Email: "failuser@example.com", Status: true}
-	categoryID := int64(1)
-	newAddress := models_address.Address{
-		Street:     "Rua Teste",
-		City:       "Cidade Teste",
-		State:      "Estado Teste",
-		Country:    "Brasil",
-		PostalCode: "12345-678",
-	}
-	newContact := models_contact.Contact{
-		ContactName:     "Contato Erro",
-		ContactPosition: "Diretor",
-		Email:           "erro@example.com",
-		Phone:           "1234-5678",
-		Cell:            "99999-7777",
-		ContactType:     "Profissional",
-	}
+func TestUserService_Create_ErroAoCriarContato(t *testing.T) {
+	mockUserRepo := new(MockUserRepository)
+	mockAddressRepo := new(MockAddressRepository)
+	mockContactRepo := new(MockContactRepository)
+	mockRelationRepo := new(MockUserCategoryRelationRepositories)
 
-	mockRepo.On("Create", mock.Anything, newUser, categoryID, newAddress, newContact).
-		Return(models_user.User{}, fmt.Errorf("erro ao criar usuário"))
+	newUser := models_user.User{Username: "newuser", Email: "newuser@example.com", Status: true}
+	categoryIDs := []int64{1}
+	newAddress := models_address.Address{}
+	newContact := models_contact.Contact{}
+	createdUser := models_user.User{UID: 1, Username: "newuser", Email: "newuser@example.com", Status: true}
 
-	userService := NewUserService(mockRepo)
-	createdUser, err := userService.Create(context.Background(), newUser, categoryID, newAddress, newContact)
+	mockUserRepo.
+		On("Create", mock.Anything, &newUser).
+		Return(createdUser, nil)
 
-	assert.ErrorContains(t, err, "erro ao criar usuário")
+	mockAddressRepo.
+		On("Create", mock.Anything, mock.Anything).
+		Return(models_address.Address{}, nil)
+
+	// Simula erro ao criar contato
+	mockContactRepo.
+		On("Create", mock.Anything, mock.Anything).
+		Return(nil, errors.New("falha ao criar contato"))
+
+	// Evita panic se for chamado
+	mockRelationRepo.
+		On("Create", mock.Anything, mock.Anything).
+		Maybe().
+		Return(&user_category_relations.UserCategoryRelations{}, nil)
+
+	userService := NewUserService(mockUserRepo, mockAddressRepo, mockContactRepo, mockRelationRepo)
+
+	_, err := userService.Create(context.Background(), &newUser, categoryIDs, &newAddress, &newContact)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "erro ao criar contato")
+	mockUserRepo.AssertExpectations(t)
+	mockAddressRepo.AssertExpectations(t)
+	mockContactRepo.AssertExpectations(t)
+	mockRelationRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything) // Opcional
+}
+
+func TestUserService_Create_ErroAoCriarRelacaoCategoria(t *testing.T) {
+	mockUserRepo := new(MockUserRepository)
+	mockAddressRepo := new(MockAddressRepository)
+	mockContactRepo := new(MockContactRepository)
+	mockRelationRepo := new(MockUserCategoryRelationRepositories)
+
+	newUser := models_user.User{Username: "newuser", Email: "newuser@example.com", Status: true}
+	categoryIDs := []int64{1}
+	newAddress := models_address.Address{}
+	newContact := models_contact.Contact{}
+	createdUser := models_user.User{UID: 1, Username: "newuser", Email: "newuser@example.com", Status: true}
+
+	mockUserRepo.
+		On("Create", mock.Anything, &newUser).
+		Return(createdUser, nil)
+
+	mockAddressRepo.
+		On("Create", mock.Anything, mock.Anything).
+		Return(models_address.Address{}, nil)
+
+	mockContactRepo.
+		On("Create", mock.Anything, mock.Anything).
+		Return(&models_contact.Contact{}, nil)
+
+	mockRelationRepo.
+		On("Create", mock.Anything, mock.Anything).
+		Return(nil, errors.New("falha ao criar relação"))
+
+	userService := NewUserService(mockUserRepo, mockAddressRepo, mockContactRepo, mockRelationRepo)
+
+	_, err := userService.Create(context.Background(), &newUser, categoryIDs, &newAddress, &newContact)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "erro ao criar relação com categoria ID")
+	mockUserRepo.AssertExpectations(t)
+	mockAddressRepo.AssertExpectations(t)
+	mockContactRepo.AssertExpectations(t)
+	mockRelationRepo.AssertExpectations(t)
+}
+
+func TestUserService_Create_ErroAoCriarEndereco(t *testing.T) {
+	mockUserRepo := new(MockUserRepository)
+	mockAddressRepo := new(MockAddressRepository)
+	mockContactRepo := new(MockContactRepository)
+	mockRelationRepo := new(MockUserCategoryRelationRepositories)
+
+	newUser := models_user.User{Username: "newuser", Email: "newuser@example.com", Status: true}
+	categoryIDs := []int64{1}
+	newAddress := models_address.Address{}
+	newContact := models_contact.Contact{}
+	createdUser := models_user.User{UID: 1, Username: "newuser", Email: "newuser@example.com", Status: true}
+
+	mockUserRepo.
+		On("Create", mock.Anything, &newUser).
+		Return(createdUser, nil)
+
+	mockAddressRepo.
+		On("Create", mock.Anything, mock.Anything).
+		Return(models_address.Address{}, errors.New("falha ao criar endereço"))
+
+	userService := NewUserService(mockUserRepo, mockAddressRepo, mockContactRepo, mockRelationRepo)
+
+	_, err := userService.Create(context.Background(), &newUser, categoryIDs, &newAddress, &newContact)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "erro ao criar endereço")
+	mockUserRepo.AssertExpectations(t)
+	mockAddressRepo.AssertExpectations(t)
+}
+
+func TestUserService_Create_ErroAoCriarUsuario(t *testing.T) {
+	mockUserRepo := new(MockUserRepository)
+	mockAddressRepo := new(MockAddressRepository)
+	mockContactRepo := new(MockContactRepository)
+	mockRelationRepo := new(MockUserCategoryRelationRepositories)
+
+	newUser := models_user.User{Username: "newuser", Email: "newuser@example.com", Status: true}
+	categoryIDs := []int64{1}
+	newAddress := models_address.Address{}
+	newContact := models_contact.Contact{}
+
+	mockUserRepo.
+		On("Create", mock.Anything, &newUser).
+		Return(models_user.User{}, errors.New("falha ao criar usuário"))
+
+	userService := NewUserService(mockUserRepo, mockAddressRepo, mockContactRepo, mockRelationRepo)
+
+	_, err := userService.Create(context.Background(), &newUser, categoryIDs, &newAddress, &newContact)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "erro ao criar usuário")
+	mockUserRepo.AssertExpectations(t)
+}
+
+func TestUserService_Create_InvalidEmail(t *testing.T) {
+	mockUserRepo := new(MockUserRepository)
+	mockAddressRepo := new(MockAddressRepository)
+	mockContactRepo := new(MockContactRepository)
+	mockRelationRepo := new(MockUserCategoryRelationRepositories)
+
+	userService := NewUserService(mockUserRepo, mockAddressRepo, mockContactRepo, mockRelationRepo)
+
+	user := models_user.User{Email: "invalid-email"}
+	address := models_address.Address{}
+	contact := models_contact.Contact{}
+	categoryIDs := []int64{1}
+
+	createdUser, err := userService.Create(context.Background(), &user, categoryIDs, &address, &contact)
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "email inválido")
 	assert.Equal(t, models_user.User{}, createdUser)
-	mockRepo.AssertExpectations(t)
 }
 
 func TestUserService_UpdateUser(t *testing.T) {
-	mockRepo := new(MockUserRepository)
-
-	contact := &models_contact.Contact{
-		ID:          1,
-		UserID:      nil,
-		ContactName: "Contato Atualizado",
-		Email:       "contato@exemplo.com",
-		Phone:       "999999999",
-	}
+	mockUserRepo := new(MockUserRepository)
+	mockAddressRepo := new(MockAddressRepository)
+	mockContactRepo := new(MockContactRepository)
+	mockRelationRepo := new(MockUserCategoryRelationRepositories)
 
 	updatedUser := models_user.User{
 		UID:      1,
 		Username: "updateduser",
 		Email:    "updated@example.com",
 		Status:   true,
-		Address: &models_address.Address{
-			Street:     "Rua Atualizada",
-			City:       "Cidade Nova",
-			State:      "Estado Atualizado",
-			Country:    "Brasil",
-			PostalCode: "00000-000",
-		},
-		Categories: []models_user_categories.UserCategory{
-			{ID: 2, Name: "Admin", Description: "Administração"},
-		},
 	}
 
-	mockRepo.On("Update", mock.Anything, updatedUser, contact).Return(updatedUser, nil)
+	mockUserRepo.On("Update", mock.Anything, updatedUser).Return(updatedUser, nil)
 
-	userService := NewUserService(mockRepo)
-	resultUser, err := userService.Update(context.Background(), updatedUser, contact)
+	userService := NewUserService(mockUserRepo, mockAddressRepo, mockContactRepo, mockRelationRepo)
+	resultUser, err := userService.Update(context.Background(), &updatedUser)
 
 	assert.NoError(t, err)
 	assert.Equal(t, updatedUser, resultUser)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestUserService_UpdateUser_Error(t *testing.T) {
-	mockRepo := new(MockUserRepository)
-
-	contact := &models_contact.Contact{
-		ID:          1,
-		UserID:      nil,
-		ContactName: "Contato com Erro",
-		Email:       "erro@exemplo.com",
-		Phone:       "888888888",
-	}
-
-	updatedUser := models_user.User{
-		UID:      1,
-		Username: "failuser",
-		Email:    "failuser@example.com",
-		Status:   true,
-	}
-
-	mockRepo.On("Update", mock.Anything, updatedUser, contact).
-		Return(models_user.User{}, fmt.Errorf("erro ao atualizar usuário"))
-
-	userService := NewUserService(mockRepo)
-	resultUser, err := userService.Update(context.Background(), updatedUser, contact)
-
-	assert.ErrorContains(t, err, "erro ao atualizar usuário")
-	assert.Equal(t, models_user.User{}, resultUser)
-	mockRepo.AssertExpectations(t)
+	mockUserRepo.AssertExpectations(t)
 }
 
 func TestUserService_DeleteUserById(t *testing.T) {
-	mockRepo := new(MockUserRepository)
-	mockRepo.On("Delete", mock.Anything, int64(1)).Return(nil)
+	mockUserRepo := new(MockUserRepository)
+	mockAddressRepo := new(MockAddressRepository)
+	mockContactRepo := new(MockContactRepository)
+	mockRelationRepo := new(MockUserCategoryRelationRepositories)
 
-	userService := NewUserService(mockRepo)
+	mockUserRepo.On("Delete", mock.Anything, int64(1)).Return(nil)
+
+	userService := NewUserService(mockUserRepo, mockAddressRepo, mockContactRepo, mockRelationRepo)
 	err := userService.Delete(context.Background(), 1)
 
 	assert.NoError(t, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestUserService_DeleteUserById_Error(t *testing.T) {
-	mockRepo := new(MockUserRepository)
-	mockRepo.On("Delete", mock.Anything, int64(999)).Return(fmt.Errorf("usuário não encontrado"))
-
-	userService := NewUserService(mockRepo)
-	err := userService.Delete(context.Background(), 999)
-
-	assert.ErrorContains(t, err, "usuário não encontrado")
-	mockRepo.AssertExpectations(t)
+	mockUserRepo.AssertExpectations(t)
 }
 
 func ptrInt64(i int64) *int64 {

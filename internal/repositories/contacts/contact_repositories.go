@@ -11,7 +11,7 @@ import (
 )
 
 type ContactRepository interface {
-	Create(ctx context.Context, contact *models.Contact) error
+	Create(ctx context.Context, contact models.Contact) (models.Contact, error)
 	GetByID(ctx context.Context, id int64) (*models.Contact, error)
 	GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error)
 	GetByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error)
@@ -28,7 +28,7 @@ func NewContactRepository(db *pgxpool.Pool) ContactRepository {
 	return &contactRepository{db: db}
 }
 
-func (r *contactRepository) Create(ctx context.Context, contact *models.Contact) error {
+func (r *contactRepository) Create(ctx context.Context, contact models.Contact) (models.Contact, error) {
 	query := `
 		INSERT INTO contacts (
 			user_id, client_id, supplier_id, contact_name, contact_position,
@@ -37,23 +37,26 @@ func (r *contactRepository) Create(ctx context.Context, contact *models.Contact)
 		RETURNING id, created_at, updated_at
 	`
 
+	// Criamos uma cópia para alterar e retornar por valor
+	c := contact
+
 	err := r.db.QueryRow(ctx, query,
-		contact.UserID,
-		contact.ClientID,
-		contact.SupplierID,
-		contact.ContactName,
-		contact.ContactPosition,
-		contact.Email,
-		contact.Phone,
-		contact.Cell,
-		contact.ContactType,
-	).Scan(&contact.ID, &contact.CreatedAt, &contact.UpdatedAt)
+		c.UserID,
+		c.ClientID,
+		c.SupplierID,
+		c.ContactName,
+		c.ContactPosition,
+		c.Email,
+		c.Phone,
+		c.Cell,
+		c.ContactType,
+	).Scan(&c.ID, &c.CreatedAt, &c.UpdatedAt)
 
 	if err != nil {
-		return fmt.Errorf("erro ao criar contato: %w", err)
+		return models.Contact{}, fmt.Errorf("erro ao criar contato: %w", err)
 	}
 
-	return nil
+	return c, nil
 }
 
 func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Contact, error) {

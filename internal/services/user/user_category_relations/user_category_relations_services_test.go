@@ -12,14 +12,18 @@ import (
 	repoMocks "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
 )
 
-// Mock Repository
 type MockUserCategoryRelationRepo struct {
 	mock.Mock
 }
 
-func (m *MockUserCategoryRelationRepo) Create(ctx context.Context, rel models.UserCategoryRelations) (models.UserCategoryRelations, error) {
-	args := m.Called(ctx, rel)
-	return args.Get(0).(models.UserCategoryRelations), args.Error(1)
+func (m *MockUserCategoryRelationRepo) Create(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
+	args := m.Called(ctx, *relation)
+	result := args.Get(0)
+	if result == nil {
+		return nil, args.Error(1)
+	}
+	rel := result.(models.UserCategoryRelations)
+	return &rel, args.Error(1)
 }
 
 func (m *MockUserCategoryRelationRepo) GetByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelations, error) {
@@ -41,7 +45,6 @@ func (m *MockUserCategoryRelationRepo) DeleteAll(ctx context.Context, userID int
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
-
 func TestCreate_Success(t *testing.T) {
 	mockRepo := new(MockUserCategoryRelationRepo)
 	service := NewUserCategoryRelationServices(mockRepo)

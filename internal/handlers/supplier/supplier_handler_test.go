@@ -13,7 +13,7 @@ import (
 	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_supplier "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
-	models_supplier_realiations "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
+	models_supplier_category_relations "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"github.com/gorilla/mux"
@@ -26,189 +26,192 @@ func newRequestWithVars(method, url string, body []byte, vars map[string]string)
 	return mux.SetURLVars(req, vars)
 }
 
-func TestCreate_ValidationError(t *testing.T) {
-	mockSvc := new(MockSupplierService)
-	handler := NewSupplierHandler(mockSvc)
+func TestSupplierService_Create(t *testing.T) {
+	t.Run("Handler_ValidationError", func(t *testing.T) {
+		mockSvc := new(MockSupplierService)
+		handler := NewSupplierHandler(mockSvc)
 
-	input := models_supplier.Supplier{}
-	categoryID := int64(1)
+		input := models_supplier.Supplier{}
+		categoryID := int64(1)
 
-	mockSvc.On("Create", mock.Anything, &input, categoryID, mock.Anything, mock.Anything).
-		Return(int64(0), errors.New("nome do fornecedor é obrigatório"))
+		mockSvc.On("Create", mock.Anything, &input, categoryID, mock.Anything, mock.Anything).
+			Return(int64(0), errors.New("nome do fornecedor é obrigatório"))
 
-	body, _ := json.Marshal(map[string]interface{}{
-		"supplier":    input,
-		"category_id": categoryID,
-	})
-	req := httptest.NewRequest(http.MethodPost, "/suppliers/with-category", bytes.NewBuffer(body))
-	w := httptest.NewRecorder()
+		body, _ := json.Marshal(map[string]interface{}{
+			"supplier":    input,
+			"category_id": categoryID,
+		})
+		req := httptest.NewRequest(http.MethodPost, "/suppliers/with-category", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
 
-	handler.Create(w, req)
+		handler.Create(w, req)
 
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-	mockSvc.AssertExpectations(t)
-}
-
-func TestCreate_InvalidSupplierData(t *testing.T) {
-	mockSvc := new(MockSupplierService)
-	handler := NewSupplierHandler(mockSvc)
-
-	input := models_supplier.Supplier{}
-	categoryID := int64(1)
-
-	mockSvc.On("Create", mock.Anything, &input, categoryID, (*models_address.Address)(nil), (*models_contact.Contact)(nil)).
-		Return(int64(0), errors.New("fornecedor inválido"))
-
-	requestBody := map[string]interface{}{
-		"supplier":    input,
-		"category_id": categoryID,
-	}
-	body, _ := json.Marshal(requestBody)
-	req := httptest.NewRequest(http.MethodPost, "/suppliers/with-category", bytes.NewBuffer(body))
-	w := httptest.NewRecorder()
-
-	handler.Create(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-	mockSvc.AssertExpectations(t)
-}
-
-func TestCreate_Success(t *testing.T) {
-	mockSvc := new(MockSupplierService)
-	handler := NewSupplierHandler(mockSvc)
-
-	input := models_supplier.Supplier{Name: "Fornecedor X"}
-	categoryID := int64(1)
-	expectedID := int64(42)
-	address := &models_address.Address{Street: "Rua A"}
-	contact := &models_contact.Contact{ContactName: "Fulano"}
-
-	// Atualize o corpo da requisição
-	body, _ := json.Marshal(map[string]interface{}{
-		"supplier":    input,
-		"category_id": categoryID,
-		"address":     address,
-		"contact":     contact,
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		mockSvc.AssertExpectations(t)
 	})
 
-	mockSvc.On("Create", mock.Anything, &input, categoryID, address, contact).
-		Return(expectedID, nil)
+	t.Run("Handler_InvalidSupplierData", func(t *testing.T) {
+		mockSvc := new(MockSupplierService)
+		handler := NewSupplierHandler(mockSvc)
 
-	req := httptest.NewRequest(http.MethodPost, "/suppliers/with-category", bytes.NewBuffer(body))
-	w := httptest.NewRecorder()
+		input := models_supplier.Supplier{}
+		categoryID := int64(1)
 
-	handler.Create(w, req)
+		mockSvc.On("Create", mock.Anything, &input, categoryID, (*models_address.Address)(nil), (*models_contact.Contact)(nil)).
+			Return(int64(0), errors.New("fornecedor inválido"))
 
-	assert.Equal(t, http.StatusCreated, w.Code)
+		requestBody := map[string]interface{}{
+			"supplier":    input,
+			"category_id": categoryID,
+		}
+		body, _ := json.Marshal(requestBody)
+		req := httptest.NewRequest(http.MethodPost, "/suppliers/with-category", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
 
-	var resp utils.DefaultResponse
-	err := json.NewDecoder(w.Body).Decode(&resp)
-	assert.NoError(t, err)
-	assert.Equal(t, "Fornecedor com categoria criado com sucesso", resp.Message)
-	assert.Equal(t, float64(expectedID), resp.Data.(map[string]interface{})["id"].(float64))
+		handler.Create(w, req)
 
-	mockSvc.AssertExpectations(t)
-}
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
 
-func TestCreate_InvalidJSON(t *testing.T) {
-	handler := NewSupplierHandler(new(MockSupplierService))
+	t.Run("Handler_Success", func(t *testing.T) {
+		mockSvc := new(MockSupplierService)
+		handler := NewSupplierHandler(mockSvc)
 
-	req := httptest.NewRequest(http.MethodPost, "/suppliers/with-category", bytes.NewBufferString("invalid"))
-	w := httptest.NewRecorder()
+		input := models_supplier.Supplier{Name: "Fornecedor X"}
+		categoryID := int64(1)
+		expectedID := int64(42)
+		address := &models_address.Address{Street: "Rua A"}
+		contact := &models_contact.Contact{ContactName: "Fulano"}
 
-	handler.Create(w, req)
+		body, _ := json.Marshal(map[string]interface{}{
+			"supplier":    input,
+			"category_id": categoryID,
+			"address":     address,
+			"contact":     contact,
+		})
 
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
+		mockSvc.On("Create", mock.Anything, &input, categoryID, address, contact).
+			Return(expectedID, nil)
 
-func TestCreate_CreateSupplierError(t *testing.T) {
-	mockRepo := new(MockSupplierRepo)
-	mockRelationService := new(MockSupplierCategoryRelationService)
-	mockAddressService := new(MockAddressService)
-	mockContactService := new(MockContactService)
-	service := services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService)
+		req := httptest.NewRequest(http.MethodPost, "/suppliers/with-category", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
 
-	input := &models_supplier.Supplier{Name: "Fornecedor Y"}
-	categoryID := int64(1)
+		handler.Create(w, req)
 
-	mockRepo.On("Create", mock.Anything, input).Return(int64(0), fmt.Errorf("erro ao criar fornecedor"))
+		assert.Equal(t, http.StatusCreated, w.Code)
 
-	resultID, err := service.Create(context.Background(), input, categoryID, nil, nil)
+		var resp utils.DefaultResponse
+		err := json.NewDecoder(w.Body).Decode(&resp)
+		assert.NoError(t, err)
+		assert.Equal(t, "Fornecedor com categoria criado com sucesso", resp.Message)
+		assert.Equal(t, float64(expectedID), resp.Data.(map[string]interface{})["id"].(float64))
 
-	assert.Error(t, err)
-	assert.Equal(t, int64(0), resultID)
+		mockSvc.AssertExpectations(t)
+	})
 
-	mockRepo.AssertExpectations(t)
-	mockRelationService.AssertNotCalled(t, "Create")
-}
+	t.Run("Handler_InvalidJSON", func(t *testing.T) {
+		handler := NewSupplierHandler(new(MockSupplierService))
 
-func TestCreate_RelationExistsError(t *testing.T) {
-	mockRepo := new(MockSupplierRepo)
-	mockRelationService := new(MockSupplierCategoryRelationService)
-	mockAddressService := new(MockAddressService)
-	mockContactService := new(MockContactService)
-	service := services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService)
+		req := httptest.NewRequest(http.MethodPost, "/suppliers/with-category", bytes.NewBufferString("invalid"))
+		w := httptest.NewRecorder()
 
-	input := &models_supplier.Supplier{Name: "Fornecedor Z"}
-	categoryID := int64(1)
+		handler.Create(w, req)
 
-	mockRepo.On("Create", mock.Anything, input).Return(int64(1), nil)
-	mockRelationService.On("HasRelation", mock.Anything, int64(1), categoryID).Return(true, nil)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
 
-	resultID, err := service.Create(context.Background(), input, categoryID, nil, nil)
+	t.Run("Service_CreateSupplierError", func(t *testing.T) {
+		mockRepo := new(MockSupplierRepo)
+		mockRelationService := new(MockSupplierCategoryRelationService)
+		mockSupplierCategoryService := new(MockSupplierCategoryService)
+		mockAddressService := new(MockAddressService)
+		mockContactService := new(MockContactService)
+		service := services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
 
-	assert.Error(t, err)
-	assert.Equal(t, int64(0), resultID)
+		input := &models_supplier.Supplier{Name: "Fornecedor Y"}
+		categoryID := int64(1)
 
-	mockRepo.AssertExpectations(t)
-	mockRelationService.AssertExpectations(t)
-}
+		mockRepo.On("Create", mock.Anything, *input).Return(models_supplier.Supplier{}, fmt.Errorf("erro ao criar fornecedor"))
 
-func TestCreate_CreateRelationError(t *testing.T) {
-	mockRepo := new(MockSupplierRepo)
-	mockRelationService := new(MockSupplierCategoryRelationService)
-	mockAddressService := new(MockAddressService)
-	mockContactService := new(MockContactService)
-	service := services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService)
+		resultID, err := service.Create(context.Background(), input, categoryID, nil, nil)
 
-	input := &models_supplier.Supplier{Name: "Fornecedor A"}
-	categoryID := int64(1)
+		assert.Error(t, err)
+		assert.Equal(t, int64(0), resultID)
 
-	mockRepo.On("Create", mock.Anything, input).Return(int64(1), nil)
-	mockRelationService.On("HasRelation", mock.Anything, int64(1), categoryID).Return(false, nil)
-	mockRelationService.On("Create", mock.Anything, int64(1), categoryID).Return(
-		&models_supplier_realiations.SupplierCategoryRelations{},
-		fmt.Errorf("erro ao criar relação"),
-	)
+		mockRepo.AssertExpectations(t)
+		mockRelationService.AssertNotCalled(t, "Create")
+	})
 
-	resultID, err := service.Create(context.Background(), input, categoryID, nil, nil)
+	t.Run("Service_RelationExistsError", func(t *testing.T) {
+		mockRepo := new(MockSupplierRepo)
+		mockRelationService := new(MockSupplierCategoryRelationService)
+		mockAddressService := new(MockAddressService)
+		mockContactService := new(MockContactService)
+		mockSupplierCategoryService := new(MockSupplierCategoryService)
+		service := services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
 
-	assert.Error(t, err)
-	assert.Equal(t, int64(0), resultID)
+		input := &models_supplier.Supplier{Name: "Fornecedor Z"}
+		categoryID := int64(1)
 
-	mockRepo.AssertExpectations(t)
-	mockRelationService.AssertExpectations(t)
-}
+		mockRepo.On("Create", mock.Anything, *input).Return(models_supplier.Supplier{ID: 1}, nil)
+		mockRelationService.On("HasRelation", mock.Anything, int64(1), categoryID).Return(true, nil)
 
-func TestCreate_InvalidCategoryID(t *testing.T) {
-	mockRepo := new(MockSupplierRepo)
-	mockRelationService := new(MockSupplierCategoryRelationService)
-	mockAddressService := new(MockAddressService)
-	mockContactService := new(MockContactService)
-	service := services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService)
+		resultID, err := service.Create(context.Background(), input, categoryID, nil, nil)
 
-	input := &models_supplier.Supplier{Name: "Fornecedor B"}
-	categoryID := int64(0)
+		assert.Error(t, err)
+		assert.Equal(t, int64(0), resultID)
 
-	mockRepo.On("Create", mock.Anything, input).Return(int64(0), errors.New("categoria inválida"))
+		mockRepo.AssertExpectations(t)
+		mockRelationService.AssertExpectations(t)
+	})
 
-	resultID, err := service.Create(context.Background(), input, categoryID, nil, nil)
+	t.Run("Service_CreateRelationError", func(t *testing.T) {
+		mockRepo := new(MockSupplierRepo)
+		mockRelationService := new(MockSupplierCategoryRelationService)
+		mockAddressService := new(MockAddressService)
+		mockContactService := new(MockContactService)
+		mockSupplierCategoryService := new(MockSupplierCategoryService)
+		service := services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
 
-	assert.Error(t, err)
-	assert.Equal(t, int64(0), resultID)
+		input := &models_supplier.Supplier{ID: 1, Name: "Fornecedor A"}
+		categoryID := int64(1)
 
-	mockRelationService.AssertNotCalled(t, "Create")
-	mockRelationService.AssertNotCalled(t, "HasRelation")
+		mockRepo.On("Create", mock.Anything, *input).Return(*input, nil)
+		mockRelationService.On("HasRelation", mock.Anything, int64(1), categoryID).Return(false, nil)
+		mockRelationService.On("Create", mock.Anything, int64(1), categoryID).
+			Return(&models_supplier_category_relations.SupplierCategoryRelations{}, fmt.Errorf("erro ao criar relação"))
+
+		resultID, err := service.Create(context.Background(), input, categoryID, nil, nil)
+
+		assert.Error(t, err)
+		assert.Equal(t, int64(0), resultID)
+
+		mockRepo.AssertExpectations(t)
+		mockRelationService.AssertExpectations(t)
+	})
+
+	t.Run("Service_InvalidCategoryID", func(t *testing.T) {
+		mockRepo := new(MockSupplierRepo)
+		mockRelationService := new(MockSupplierCategoryRelationService)
+		mockAddressService := new(MockAddressService)
+		mockContactService := new(MockContactService)
+		mockSupplierCategoryService := new(MockSupplierCategoryService)
+		service := services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
+
+		input := &models_supplier.Supplier{Name: "Fornecedor B"}
+		categoryID := int64(0)
+
+		mockRepo.On("Create", mock.Anything, *input).Return(models_supplier.Supplier{}, errors.New("categoria inválida"))
+
+		resultID, err := service.Create(context.Background(), input, categoryID, nil, nil)
+
+		assert.Error(t, err)
+		assert.Equal(t, int64(0), resultID)
+
+		mockRelationService.AssertNotCalled(t, "Create")
+		mockRelationService.AssertNotCalled(t, "HasRelation")
+	})
 }
 
 func TestGetSupplierByID_Success(t *testing.T) {

@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -31,8 +33,8 @@ func (m *MockUserService) GetAll(ctx context.Context) ([]models_user.User, error
 	return args.Get(0).([]models_user.User), args.Error(1)
 }
 
-func (m *MockUserService) GetById(ctx context.Context, id int64) (models_user.User, error) {
-	args := m.Called(ctx, id)
+func (m *MockUserService) GetById(ctx context.Context, uid int64) (models_user.User, error) {
+	args := m.Called(ctx, uid)
 	return args.Get(0).(models_user.User), args.Error(1)
 }
 
@@ -41,19 +43,116 @@ func (m *MockUserService) GetByEmail(ctx context.Context, email string) (models_
 	return args.Get(0).(models_user.User), args.Error(1)
 }
 
-func (m *MockUserService) Create(ctx context.Context, user models_user.User, categoryID int64, address models_address.Address, contact models_contact.Contact) (models_user.User, error) {
-	args := m.Called(ctx, user, categoryID, address, contact)
-	return args.Get(0).(models_user.User), args.Error(1)
-}
-
-func (m *MockUserService) Update(ctx context.Context, user models_user.User, contact *models_contact.Contact) (models_user.User, error) {
-	args := m.Called(ctx, user, contact)
-	return args.Get(0).(models_user.User), args.Error(1)
-}
-
-func (m *MockUserService) Delete(ctx context.Context, id int64) error {
-	args := m.Called(ctx, id)
+func (m *MockUserService) Delete(ctx context.Context, uid int64) error {
+	args := m.Called(ctx, uid)
 	return args.Error(0)
+}
+
+func (m *MockUserService) Update(ctx context.Context, user *models_user.User) (models_user.User, error) {
+	args := m.Called(ctx, user)
+	return args.Get(0).(models_user.User), args.Error(1)
+}
+
+func (m *MockUserService) Create(
+	ctx context.Context,
+	user *models_user.User,
+	categoryIDs []int64,
+	address *models_address.Address,
+	contact *models_contact.Contact,
+) (models_user.User, error) {
+	args := m.Called(ctx, user, categoryIDs, address, contact)
+	return args.Get(0).(models_user.User), args.Error(1)
+}
+
+func TestUserHandler_Create(t *testing.T) {
+	mockService := new(MockUserService)
+	handler := NewUserHandler(mockService)
+
+	t.Run("Sucesso ao criar usuário", func(t *testing.T) {
+		expectedUser := models_user.User{
+			UID:      1,
+			Username: "testuser",
+			Email:    "test@example.com",
+		}
+
+		address := &models_address.Address{Street: "Rua 1"}
+		contact := &models_contact.Contact{Phone: "12345"}
+
+		requestBody := map[string]interface{}{
+			"user": map[string]interface{}{
+				"username": "testuser",
+				"email":    "test@example.com",
+			},
+			"category_id": []int64{1, 2},
+			"address":     address,
+			"contact":     contact,
+		}
+
+		body, _ := json.Marshal(requestBody)
+
+		// Corrigido aqui com MatchedBy para o *User
+		mockService.On("Create",
+			mock.Anything,
+			mock.MatchedBy(func(u *models_user.User) bool {
+				return u.Username == "testuser" && u.Email == "test@example.com"
+			}),
+			[]int64{1, 2},
+			address,
+			contact,
+		).Return(expectedUser, nil)
+
+		req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusCreated, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro método não permitido", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/users", nil)
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, rec.Code)
+	})
+
+	t.Run("Erro ao decodificar JSON inválido", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewReader([]byte("{invalid json")))
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+	})
+
+	t.Run("Erro ao criar usuário no service", func(t *testing.T) {
+		userData := &models_user.User{Username: "failuser", Email: "fail@example.com"}
+		categoryIDs := []int64{1}
+		address := &models_address.Address{Street: "Fail St"}
+		contact := &models_contact.Contact{Phone: "99999"}
+
+		requestBody := map[string]interface{}{
+			"user":        userData,
+			"category_id": categoryIDs,
+			"address":     address,
+			"contact":     contact,
+		}
+		body, _ := json.Marshal(requestBody)
+
+		mockService.On("Create", mock.Anything, userData, categoryIDs, address, contact).
+			Return(models_user.User{}, errors.New("erro ao criar usuário"))
+
+		req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+		mockService.AssertExpectations(t)
+	})
 }
 
 func TestGetUsers_Success(t *testing.T) {

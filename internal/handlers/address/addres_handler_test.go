@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -166,6 +167,28 @@ func TestGetAddressByID_InvalidID(t *testing.T) {
 	err := json.NewDecoder(resp.Body).Decode(&response)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, response["message"])
+}
+
+func TestAddressHandler_Update_InvalidIDParam(t *testing.T) {
+	// mocks
+	mockService := new(MockAddressService)
+	handler := NewAddressHandler(mockService)
+
+	// requisição com ID inválido
+	req := httptest.NewRequest(http.MethodPut, "/addresses/abc", strings.NewReader(`{}`))
+	req = mux.SetURLVars(req, map[string]string{"id": "abc"})
+	rr := httptest.NewRecorder()
+
+	handler.Update(rr, req)
+
+	expected := `{
+		"data": null,
+		"message": "strconv.ParseInt: parsing \"abc\": invalid syntax",
+		"status": 400
+	}`
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	assert.JSONEq(t, expected, rr.Body.String())
 }
 
 func TestUpdateAddressHandler_Success(t *testing.T) {

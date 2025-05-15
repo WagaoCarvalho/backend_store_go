@@ -8,341 +8,347 @@ import (
 	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
+	supplier_category "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_categories"
 	supplier_category_relations "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
+	mock_supplier "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_service_mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-type MockSupplierService struct {
-	CreateFn  func(ctx context.Context, supplier *models.Supplier, categoryID int64, address *models_address.Address, contact *models_contact.Contact) (int64, error)
-	GetByIDFn func(ctx context.Context, id int64) (*models.Supplier, error)
-	GetAllFn  func(ctx context.Context) ([]*models.Supplier, error)
-	UpdateFn  func(ctx context.Context, supplier *models.Supplier) error
-	DeleteFn  func(ctx context.Context, id int64) error
-}
-
-func (m *MockSupplierService) Create(ctx context.Context, supplier *models.Supplier, categoryID int64, address *models_address.Address, contact *models_contact.Contact) (int64, error) {
-	return m.CreateFn(ctx, supplier, categoryID, address, contact)
-}
-
-func (m *MockSupplierService) GetByID(ctx context.Context, id int64) (*models.Supplier, error) {
-	return m.GetByIDFn(ctx, id)
-}
-
-func (m *MockSupplierService) GetAll(ctx context.Context) ([]*models.Supplier, error) {
-	return m.GetAllFn(ctx)
-}
-
-func (m *MockSupplierService) Update(ctx context.Context, supplier *models.Supplier) error {
-	return m.UpdateFn(ctx, supplier)
-}
-
-func (m *MockSupplierService) Delete(ctx context.Context, id int64) error {
-	return m.DeleteFn(ctx, id)
-}
-
-type mockRepo struct{ mock.Mock }
-
-func (m *mockRepo) Create(ctx context.Context, supplier *models.Supplier) (int64, error) {
-	args := m.Called(ctx, supplier)
-	return args.Get(0).(int64), args.Error(1)
-}
-
-func (m *mockRepo) GetByID(ctx context.Context, id int64) (*models.Supplier, error) {
-	args := m.Called(ctx, id)
-	return args.Get(0).(*models.Supplier), args.Error(1)
-}
-
-func (m *mockRepo) GetAll(ctx context.Context) ([]*models.Supplier, error) {
-	args := m.Called(ctx)
-	return args.Get(0).([]*models.Supplier), args.Error(1)
-}
-
-func (m *mockRepo) Update(ctx context.Context, supplier *models.Supplier) error {
-	args := m.Called(ctx, supplier)
-	return args.Error(0)
-}
-
-func (m *mockRepo) Delete(ctx context.Context, id int64) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
-
-type mockRelationService struct {
-	mock.Mock
-}
-
-func (m *mockRelationService) Create(ctx context.Context, supplierID, categoryID int64) (*supplier_category_relations.SupplierCategoryRelations, error) {
-	args := m.Called(ctx, supplierID, categoryID)
-	if args.Get(0) != nil {
-		return args.Get(0).(*supplier_category_relations.SupplierCategoryRelations), args.Error(1)
-	}
-	return nil, args.Error(1)
-}
-
-func (m *mockRelationService) GetBySupplier(ctx context.Context, supplierID int64) ([]*supplier_category_relations.SupplierCategoryRelations, error) {
-	args := m.Called(ctx, supplierID)
-	return args.Get(0).([]*supplier_category_relations.SupplierCategoryRelations), args.Error(1)
-}
-
-func (m *mockRelationService) GetByCategory(ctx context.Context, categoryID int64) ([]*supplier_category_relations.SupplierCategoryRelations, error) {
-	args := m.Called(ctx, categoryID)
-	return args.Get(0).([]*supplier_category_relations.SupplierCategoryRelations), args.Error(1)
-}
-
-func (m *mockRelationService) Delete(ctx context.Context, supplierID, categoryID int64) error {
-	args := m.Called(ctx, supplierID, categoryID)
-	return args.Error(0)
-}
-
-func (m *mockRelationService) DeleteAll(ctx context.Context, supplierID int64) error {
-	args := m.Called(ctx, supplierID)
-	return args.Error(0)
-}
-
-func (m *mockRelationService) HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {
-	args := m.Called(ctx, supplierID, categoryID)
-	return args.Bool(0), args.Error(1)
-}
-
-type mockAddressService struct{ mock.Mock }
-
-func (m *mockAddressService) Create(ctx context.Context, address models_address.Address) (models_address.Address, error) {
-	args := m.Called(ctx, address)
-	return args.Get(0).(models_address.Address), args.Error(1)
-}
-
-func (m *mockAddressService) GetByID(ctx context.Context, id int) (models_address.Address, error) {
-	args := m.Called(ctx, id)
-	return args.Get(0).(models_address.Address), args.Error(1)
-}
-
-func (m *mockAddressService) Update(ctx context.Context, address models_address.Address) error {
-	args := m.Called(ctx, address)
-	return args.Error(0)
-}
-
-func (m *mockAddressService) Delete(ctx context.Context, supplierID int) error {
-	args := m.Called(ctx, supplierID)
-	return args.Error(0)
-}
-
-type mockContactService struct{ mock.Mock }
-
-func (m *mockContactService) Create(ctx context.Context, contact *models_contact.Contact) error {
-	args := m.Called(ctx, contact)
-	return args.Error(0)
-}
-
-func (m *mockContactService) GetByID(ctx context.Context, id int64) (*models_contact.Contact, error) {
-	args := m.Called(ctx, id)
-	return args.Get(0).(*models_contact.Contact), args.Error(1)
-}
-
-func (m *mockContactService) GetByUser(ctx context.Context, userID int64) ([]*models_contact.Contact, error) {
-	args := m.Called(ctx, userID)
-	return args.Get(0).([]*models_contact.Contact), args.Error(1)
-}
-
-func (m *mockContactService) GetByClient(ctx context.Context, clientID int64) ([]*models_contact.Contact, error) {
-	args := m.Called(ctx, clientID)
-	return args.Get(0).([]*models_contact.Contact), args.Error(1)
-}
-
-func (m *mockContactService) GetBySupplier(ctx context.Context, supplierID int64) ([]*models_contact.Contact, error) {
-	args := m.Called(ctx, supplierID)
-	return args.Get(0).([]*models_contact.Contact), args.Error(1)
-}
-
-func (m *mockContactService) Update(ctx context.Context, contact *models_contact.Contact) error {
-	args := m.Called(ctx, contact)
-	return args.Error(0)
-}
-
-func (m *mockContactService) Delete(ctx context.Context, id int64) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
+//
+// Casos de sucesso
+//
 
 func TestCreateSupplier_Success(t *testing.T) {
 	ctx := context.TODO()
-	mockRepo := new(mockRepo)
-	mockRelation := new(mockRelationService)
-	mockAddr := new(mockAddressService)
-	mockContact := new(mockContactService)
+
+	mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
+	mockRelationService := new(mock_supplier.MockSupplierCategoryRelationService)
+	mockAddressService := new(mock_supplier.MockAddressService)
+	mockContactService := new(mock_supplier.MockContactService)
+	mockCategoryService := new(mock_supplier.MockSupplierCategoryService)
 
 	service := &supplierService{
-		repo:            mockRepo,
-		relationService: mockRelation,
-		addressService:  mockAddr,
-		contactService:  mockContact,
+		repo:            mockSupplierRepo,
+		relationService: mockRelationService,
+		addressService:  mockAddressService,
+		contactService:  mockContactService,
+		categoryService: mockCategoryService,
 	}
 
-	supplier := &models.Supplier{Name: "Fornecedor A"}
+	supplier := models.Supplier{Name: "Fornecedor A"}
+	supplierWithID := supplier
+	supplierWithID.ID = 123 // ID que será retornado pelo mock
+
 	address := &models_address.Address{Street: "Rua A", City: "Cidade", State: "Estado", PostalCode: "12345"}
 	contact := &models_contact.Contact{ContactName: "Contato A", Email: "contato@example.com"}
 	categoryID := int64(1)
-	supplierID := int64(123)
 
-	mockRepo.On("Create", ctx, supplier).Return(supplierID, nil)
-	mockRelation.On("HasRelation", ctx, supplierID, categoryID).Return(false, nil)
-	mockRelation.On("Create", ctx, supplierID, categoryID).Return(&supplier_category_relations.SupplierCategoryRelations{}, nil)
-	mockAddr.On("Create", ctx, mock.Anything).Return(*address, nil)
-	mockContact.On("Create", ctx, mock.Anything).Return(nil)
+	// Mock ajustado para retornar o supplier completo com ID
+	mockSupplierRepo.On("Create", ctx, supplier).Return(supplierWithID, nil)
 
-	id, err := service.Create(ctx, supplier, categoryID, address, contact)
+	// Os outros mocks permanecem iguais
+	mockRelationService.On("HasRelation", ctx, supplierWithID.ID, categoryID).Return(false, nil)
+	mockRelationService.On("Create", ctx, supplierWithID.ID, categoryID).Return(&supplier_category_relations.SupplierCategoryRelations{}, nil)
+	mockAddressService.On("Create", ctx, mock.Anything).Return(*address, nil)
+	mockContactService.On("Create", ctx, mock.Anything).Return(*contact, nil)
+	mockCategoryService.On("GetByID", ctx, categoryID).Return(&supplier_category.SupplierCategory{ID: categoryID, Name: "Categoria A"}, nil)
+
+	// Supondo que service.Create retorna o ID do supplier criado
+	id, err := service.Create(ctx, &supplier, categoryID, address, contact)
 
 	assert.NoError(t, err)
-	assert.Equal(t, supplierID, id)
-	mockRepo.AssertExpectations(t)
-	mockRelation.AssertExpectations(t)
-	mockAddr.AssertExpectations(t)
-	mockContact.AssertExpectations(t)
+	assert.Equal(t, supplierWithID.ID, id) // Verifica se o ID retornado é o esperado
+	mockSupplierRepo.AssertExpectations(t)
+	mockRelationService.AssertExpectations(t)
+	mockAddressService.AssertExpectations(t)
+	mockContactService.AssertExpectations(t)
 }
+
+//
+// Casos de erro de entrada
+//
 
 func TestCreateSupplier_InvalidName(t *testing.T) {
 	service := &supplierService{}
 	_, err := service.Create(context.TODO(), &models.Supplier{Name: ""}, 0, nil, nil)
+
 	assert.Error(t, err)
 	assert.Equal(t, "nome do fornecedor é obrigatório", err.Error())
 }
 
 func TestCreateSupplier_RepoError(t *testing.T) {
 	ctx := context.TODO()
-	mockRepo := new(mockRepo)
-	service := &supplierService{repo: mockRepo}
 
-	supplier := &models.Supplier{Name: "Fornecedor A"}
-	mockRepo.On("Create", ctx, supplier).Return(int64(0), fmt.Errorf("erro db"))
+	// Mocks
+	mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
+	mockRelationService := new(mock_supplier.MockSupplierCategoryRelationService)
+	mockAddressService := new(mock_supplier.MockAddressService)
+	mockContactService := new(mock_supplier.MockContactService)
+	mockCategoryService := new(mock_supplier.MockSupplierCategoryService)
 
-	_, err := service.Create(ctx, supplier, 0, nil, nil)
+	// Serviço com todos os mocks inicializados
+	service := &supplierService{
+		repo:            mockSupplierRepo,
+		relationService: mockRelationService,
+		addressService:  mockAddressService,
+		contactService:  mockContactService,
+		categoryService: mockCategoryService,
+	}
+
+	// Dados simulados - agora usando o valor (não ponteiro)
+	supplier := models.Supplier{Name: "Fornecedor A"}
+
+	// Mock ajustado para esperar models.Supplier (não *models.Supplier)
+	mockSupplierRepo.On("Create", ctx, supplier).Return(models.Supplier{}, fmt.Errorf("erro db"))
+
+	// Execução - note que passamos &supplier para o service
+	_, err := service.Create(ctx, &supplier, 0, nil, nil)
+
+	// Verificações
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "erro ao criar fornecedor")
+	mockSupplierRepo.AssertExpectations(t)
+}
+func TestCreateSupplier_HasRelationError(t *testing.T) {
+	ctx := context.TODO()
+
+	// Mocks
+	mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
+	mockRelationService := new(mock_supplier.MockSupplierCategoryRelationService)
+	mockAddressService := new(mock_supplier.MockAddressService)
+	mockContactService := new(mock_supplier.MockContactService)
+	mockCategoryService := new(mock_supplier.MockSupplierCategoryService)
+
+	// Serviço com todos os mocks
+	service := &supplierService{
+		repo:            mockSupplierRepo,
+		relationService: mockRelationService,
+		addressService:  mockAddressService,
+		contactService:  mockContactService,
+		categoryService: mockCategoryService,
+	}
+
+	// Dados simulados - agora usando o valor (não ponteiro) para o mock
+	supplier := models.Supplier{Name: "Fornecedor A"}
+	supplierWithID := supplier
+	supplierWithID.ID = 42
+
+	categoryID := int64(2)
+
+	// Configuração dos mocks - note que o mock espera models.Supplier (não ponteiro)
+	mockSupplierRepo.On("Create", ctx, supplier).Return(supplierWithID, nil)
+	mockRelationService.On("HasRelation", ctx, supplierWithID.ID, categoryID).Return(false, fmt.Errorf("erro ao verificar"))
+
+	// Execução - passamos &supplier para o service (como parece ser a assinatura esperada)
+	_, err := service.Create(ctx, &supplier, categoryID, nil, nil)
+
+	// Verificações
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "erro ao verificar existência da relação")
+	mockSupplierRepo.AssertExpectations(t)
+	mockRelationService.AssertExpectations(t)
 }
 
 func TestCreateSupplier_RelationAlreadyExists(t *testing.T) {
 	ctx := context.TODO()
-	mockRepo := new(mockRepo)
-	mockRelation := new(mockRelationService)
 
+	// Mocks
+	mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
+	mockRelationService := new(mock_supplier.MockSupplierCategoryRelationService)
+	mockAddressService := new(mock_supplier.MockAddressService)
+	mockContactService := new(mock_supplier.MockContactService)
+	mockCategoryService := new(mock_supplier.MockSupplierCategoryService)
+
+	// Serviço com todos os mocks
 	service := &supplierService{
-		repo:            mockRepo,
-		relationService: mockRelation,
+		repo:            mockSupplierRepo,
+		relationService: mockRelationService,
+		addressService:  mockAddressService,
+		contactService:  mockContactService,
+		categoryService: mockCategoryService,
 	}
 
-	supplier := &models.Supplier{Name: "Fornecedor A"}
+	// Dados simulados
+	inputSupplier := models.Supplier{Name: "Fornecedor A"} // Agora é um valor, não ponteiro
+	createdSupplier := models.Supplier{
+		ID:   10,
+		Name: "Fornecedor A",
+	}
 	categoryID := int64(1)
-	supplierID := int64(10)
 
-	mockRepo.On("Create", ctx, supplier).Return(supplierID, nil)
-	mockRelation.On("HasRelation", ctx, supplierID, categoryID).Return(true, nil)
+	// Configuração dos mocks
+	mockSupplierRepo.On("Create", ctx, inputSupplier).Return(createdSupplier, nil)
+	mockRelationService.On("HasRelation", ctx, createdSupplier.ID, categoryID).Return(true, nil)
 
-	_, err := service.Create(ctx, supplier, categoryID, nil, nil)
+	// Execução - note que agora passamos o endereço do inputSupplier
+	_, err := service.Create(ctx, &inputSupplier, categoryID, nil, nil)
+
+	// Verificações
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "relação fornecedor-categoria já existe")
-}
 
-func TestCreateSupplier_AddressError(t *testing.T) {
-	ctx := context.TODO()
-	mockRepo := new(mockRepo)
-	mockRelation := new(mockRelationService)
-	mockAddr := new(mockAddressService)
-
-	service := &supplierService{
-		repo:            mockRepo,
-		relationService: mockRelation,
-		addressService:  mockAddr,
-	}
-
-	supplier := &models.Supplier{Name: "Fornecedor A"}
-	categoryID := int64(1)
-	supplierID := int64(99)
-	address := &models_address.Address{Street: "X"}
-
-	mockRepo.On("Create", ctx, supplier).Return(supplierID, nil)
-	mockRelation.On("HasRelation", ctx, supplierID, categoryID).Return(false, nil)
-	mockRelation.On("Create", ctx, supplierID, categoryID).Return(&supplier_category_relations.SupplierCategoryRelations{}, nil)
-	mockAddr.On("Create", ctx, mock.Anything).Return(models_address.Address{}, fmt.Errorf("erro no endereço"))
-
-	_, err := service.Create(ctx, supplier, categoryID, address, nil)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "erro ao criar endereço")
-}
-
-func TestCreateSupplier_ContactError(t *testing.T) {
-	ctx := context.TODO()
-	mockRepo := new(mockRepo)
-	mockRelation := new(mockRelationService)
-	mockAddr := new(mockAddressService)
-	mockContact := new(mockContactService)
-
-	service := &supplierService{
-		repo:            mockRepo,
-		relationService: mockRelation,
-		addressService:  mockAddr,
-		contactService:  mockContact,
-	}
-
-	supplier := &models.Supplier{Name: "Fornecedor A"}
-	categoryID := int64(1)
-	supplierID := int64(99)
-	address := &models_address.Address{Street: "X"}
-	contact := &models_contact.Contact{Email: "test@a.com"}
-
-	mockRepo.On("Create", ctx, supplier).Return(supplierID, nil)
-	mockRelation.On("HasRelation", ctx, supplierID, categoryID).Return(false, nil)
-	mockRelation.On("Create", ctx, supplierID, categoryID).Return(&supplier_category_relations.SupplierCategoryRelations{}, nil)
-	mockAddr.On("Create", ctx, mock.Anything).Return(*address, nil)
-	mockContact.On("Create", ctx, contact).Return(fmt.Errorf("erro contato"))
-
-	_, err := service.Create(ctx, supplier, categoryID, address, contact)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "erro ao criar contato")
-}
-
-func TestCreateSupplier_HasRelationError(t *testing.T) {
-	ctx := context.TODO()
-	mockRepo := new(mockRepo)
-	mockRelation := new(mockRelationService)
-
-	service := &supplierService{
-		repo:            mockRepo,
-		relationService: mockRelation,
-	}
-
-	supplier := &models.Supplier{Name: "Fornecedor A"}
-	categoryID := int64(2)
-	supplierID := int64(42)
-
-	mockRepo.On("Create", ctx, supplier).Return(supplierID, nil)
-	mockRelation.On("HasRelation", ctx, supplierID, categoryID).Return(false, fmt.Errorf("erro ao verificar"))
-
-	_, err := service.Create(ctx, supplier, categoryID, nil, nil)
-
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "erro ao verificar existência da relação")
+	// Verificar se os mocks foram chamados como esperado
+	mockSupplierRepo.AssertExpectations(t)
+	mockRelationService.AssertExpectations(t)
 }
 
 func TestCreateSupplier_RelationCreateError(t *testing.T) {
 	ctx := context.TODO()
-	mockRepo := new(mockRepo)
-	mockRelation := new(mockRelationService)
 
+	// Mocks
+	mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
+	mockRelationService := new(mock_supplier.MockSupplierCategoryRelationService)
+	mockAddressService := new(mock_supplier.MockAddressService)
+	mockContactService := new(mock_supplier.MockContactService)
+	mockCategoryService := new(mock_supplier.MockSupplierCategoryService)
+
+	// Serviço com todos os mocks
 	service := &supplierService{
-		repo:            mockRepo,
-		relationService: mockRelation,
+		repo:            mockSupplierRepo,
+		relationService: mockRelationService,
+		addressService:  mockAddressService,
+		contactService:  mockContactService,
+		categoryService: mockCategoryService,
 	}
 
-	supplier := &models.Supplier{Name: "Fornecedor B"}
+	// Dados simulados
+	supplierInput := models.Supplier{Name: "Fornecedor B"} // Agora é um valor
+	supplierPtr := &supplierInput                          // Ponteiro para passar para o serviço
 	categoryID := int64(3)
-	supplierID := int64(55)
+	createdSupplier := models.Supplier{
+		ID:   55,
+		Name: "Fornecedor B",
+	}
 
-	mockRepo.On("Create", ctx, supplier).Return(supplierID, nil)
-	mockRelation.On("HasRelation", ctx, supplierID, categoryID).Return(false, nil)
-	mockRelation.On("Create", ctx, supplierID, categoryID).Return(nil, fmt.Errorf("falha ao criar"))
+	// Configuração dos mocks
+	mockSupplierRepo.On("Create", ctx, supplierInput).Return(createdSupplier, nil)
+	mockRelationService.On("HasRelation", ctx, createdSupplier.ID, categoryID).Return(false, nil)
+	mockRelationService.On("Create", ctx, createdSupplier.ID, categoryID).
+		Return(&supplier_category_relations.SupplierCategoryRelations{}, fmt.Errorf("falha ao criar"))
 
-	_, err := service.Create(ctx, supplier, categoryID, nil, nil)
+	// Execução - passamos o ponteiro para o serviço, mas o mock espera o valor
+	_, err := service.Create(ctx, supplierPtr, categoryID, nil, nil)
 
+	// Verificações
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "erro ao criar relação fornecedor-categoria")
+
+	// Verificar se os mocks foram chamados como esperado
+	mockSupplierRepo.AssertExpectations(t)
+	mockRelationService.AssertExpectations(t)
+}
+func TestCreateSupplier_AddressError(t *testing.T) {
+	ctx := context.TODO()
+
+	// 1. Criar todos os mocks necessários
+	mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
+	mockRelationService := new(mock_supplier.MockSupplierCategoryRelationService)
+	mockAddressService := new(mock_supplier.MockAddressService)
+	mockContactService := new(mock_supplier.MockContactService)
+	mockCategoryService := new(mock_supplier.MockSupplierCategoryService)
+
+	// 2. Configurar o serviço com todos os mocks
+	service := &supplierService{
+		repo:            mockSupplierRepo,
+		relationService: mockRelationService,
+		addressService:  mockAddressService,
+		contactService:  mockContactService,
+		categoryService: mockCategoryService,
+	}
+
+	// 3. Dados de teste
+	supplierInput := models.Supplier{Name: "Fornecedor A"} // Valor para o mock
+	supplierPtr := &supplierInput                          // Ponteiro para o serviço
+	categoryID := int64(1)
+	supplierID := int64(99)
+	createdSupplier := models.Supplier{
+		ID:   supplierID,
+		Name: "Fornecedor A",
+	}
+	address := &models_address.Address{Street: "X"}
+
+	// 4. Configurar os mocks
+	mockSupplierRepo.On("Create", ctx, supplierInput).Return(createdSupplier, nil)
+	mockRelationService.On("HasRelation", ctx, supplierID, categoryID).Return(false, nil)
+	mockRelationService.On("Create", ctx, supplierID, categoryID).Return(&supplier_category_relations.SupplierCategoryRelations{}, nil)
+
+	// IMPORTANTE: Configurar para NÃO retornar erro na busca da categoria
+	mockCategoryService.On("GetByID", ctx, categoryID).Return(nil, nil)
+
+	// Configurar o erro no endereço
+	mockAddressService.On("Create", ctx, mock.Anything).Return(models_address.Address{}, fmt.Errorf("erro no endereço"))
+
+	// 5. Executar o teste
+	_, err := service.Create(ctx, supplierPtr, categoryID, address, nil)
+
+	// 6. Verificações
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "erro ao criar endereço")
+
+	// 7. Verificar se os mocks foram chamados como esperado
+	mockSupplierRepo.AssertExpectations(t)
+	mockRelationService.AssertExpectations(t)
+	mockCategoryService.AssertExpectations(t)
+	mockAddressService.AssertExpectations(t)
+}
+
+func TestCreateSupplier_ContactError(t *testing.T) {
+	ctx := context.TODO()
+
+	// 1. Criar todos os mocks necessários
+	mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
+	mockRelationService := new(mock_supplier.MockSupplierCategoryRelationService)
+	mockAddressService := new(mock_supplier.MockAddressService)
+	mockContactService := new(mock_supplier.MockContactService)
+	mockCategoryService := new(mock_supplier.MockSupplierCategoryService)
+
+	// 2. Configurar o serviço com todos os mocks
+	service := &supplierService{
+		repo:            mockSupplierRepo,
+		relationService: mockRelationService,
+		addressService:  mockAddressService,
+		contactService:  mockContactService,
+		categoryService: mockCategoryService,
+	}
+
+	// 3. Dados de teste
+	supplierInput := models.Supplier{Name: "Fornecedor C"} // Valor para o mock
+	supplierPtr := &supplierInput                          // Ponteiro para o serviço
+	categoryID := int64(2)
+	supplierID := int64(110)
+	createdSupplier := models.Supplier{
+		ID:   supplierID,
+		Name: "Fornecedor C",
+	}
+	address := &models_address.Address{Street: "Rua C"}
+	contact := &models_contact.Contact{ContactName: "Contato X", Email: "x@example.com"}
+
+	// 4. Configurar os mocks
+	mockSupplierRepo.On("Create", ctx, supplierInput).Return(createdSupplier, nil)
+	mockRelationService.On("HasRelation", ctx, supplierID, categoryID).Return(false, nil)
+	mockRelationService.On("Create", ctx, supplierID, categoryID).Return(&supplier_category_relations.SupplierCategoryRelations{}, nil)
+
+	// IMPORTANTE: Configurar para NÃO retornar erro na busca da categoria
+	mockCategoryService.On("GetByID", ctx, categoryID).Return(nil, nil)
+
+	// Configurar sucesso no endereço
+	mockAddressService.On("Create", ctx, mock.Anything).Return(models_address.Address{}, nil)
+
+	// Configurar o erro no contato
+	mockContactService.On("Create", ctx, mock.Anything).Return(models_contact.Contact{}, fmt.Errorf("erro ao criar contato"))
+
+	// 5. Executar o teste
+	_, err := service.Create(ctx, supplierPtr, categoryID, address, contact)
+
+	// 6. Verificações
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "erro ao criar contato")
+
+	// 7. Verificar se os mocks foram chamados como esperado
+	mockSupplierRepo.AssertExpectations(t)
+	mockRelationService.AssertExpectations(t)
+	mockCategoryService.AssertExpectations(t)
+	mockAddressService.AssertExpectations(t)
+	mockContactService.AssertExpectations(t)
 }

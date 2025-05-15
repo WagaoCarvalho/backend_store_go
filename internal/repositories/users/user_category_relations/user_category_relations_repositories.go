@@ -17,7 +17,7 @@ var (
 )
 
 type UserCategoryRelationRepositories interface {
-	Create(ctx context.Context, relation models.UserCategoryRelations) (models.UserCategoryRelations, error)
+	Create(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error)
 	GetByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelations, error)
 	GetByCategoryID(ctx context.Context, categoryID int64) ([]models.UserCategoryRelations, error)
 	Delete(ctx context.Context, userID, categoryID int64) error
@@ -32,24 +32,24 @@ func NewUserCategoryRelationRepositories(db *pgxpool.Pool) UserCategoryRelationR
 	return &userCategoryRelationRepositories{db: db}
 }
 
-func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation models.UserCategoryRelations) (models.UserCategoryRelations, error) {
+func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
 	if relation.UserID == 0 || relation.CategoryID == 0 {
-		return models.UserCategoryRelations{}, ErrInvalidRelationData
+		return nil, ErrInvalidRelationData
 	}
 
 	query := `
 		INSERT INTO user_category_relations (user_id, category_id, created_at, updated_at) 
 		VALUES ($1, $2, NOW(), NOW()) 
-		RETURNING id, created_at, updated_at`
+		RETURNING user_id, created_at, updated_at`
 
 	err := r.db.QueryRow(ctx, query, relation.UserID, relation.CategoryID).
 		Scan(&relation.ID, &relation.CreatedAt, &relation.UpdatedAt)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key") {
-			return models.UserCategoryRelations{}, ErrRelationExists
+			return nil, ErrRelationExists
 		}
-		return models.UserCategoryRelations{}, fmt.Errorf("erro ao criar relação: %w", err)
+		return nil, fmt.Errorf("erro ao criar relação: %w", err)
 	}
 
 	return relation, nil

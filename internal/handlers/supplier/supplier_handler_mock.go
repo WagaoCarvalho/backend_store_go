@@ -6,6 +6,7 @@ import (
 	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_supplier "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
+	models_supplier_category "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_categories"
 	models_supplier_realiations "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
 	"github.com/stretchr/testify/mock"
 )
@@ -30,15 +31,46 @@ type MockContactService struct {
 	mock.Mock
 }
 
-// MockSupplierRepo
-func (m *MockSupplierRepo) Create(ctx context.Context, s *models_supplier.Supplier) (int64, error) {
-	args := m.Called(ctx, s)
+type MockSupplierCategoryService struct {
+	mock.Mock
+}
+
+// MockSupplierCategoryService
+
+func (m *MockSupplierCategoryService) Create(ctx context.Context, category *models_supplier_category.SupplierCategory) (int64, error) {
+	args := m.Called(ctx, category)
 	return args.Get(0).(int64), args.Error(1)
 }
 
-func (m *MockSupplierCategoryRelationService) HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {
-	args := m.Called(ctx, supplierID, categoryID)
-	return args.Bool(0), args.Error(1)
+func (m *MockSupplierCategoryService) GetByID(ctx context.Context, id int64) (*models_supplier_category.SupplierCategory, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models_supplier_category.SupplierCategory), args.Error(1)
+}
+
+func (m *MockSupplierCategoryService) GetAll(ctx context.Context) ([]*models_supplier_category.SupplierCategory, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models_supplier_category.SupplierCategory), args.Error(1)
+}
+
+func (m *MockSupplierCategoryService) Update(ctx context.Context, category *models_supplier_category.SupplierCategory) error {
+	args := m.Called(ctx, category)
+	return args.Error(0)
+}
+
+func (m *MockSupplierCategoryService) Delete(ctx context.Context, id int64) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
+
+func (m *MockSupplierRepo) Create(ctx context.Context, supplier models_supplier.Supplier) (models_supplier.Supplier, error) {
+	args := m.Called(ctx, supplier)
+	return args.Get(0).(models_supplier.Supplier), args.Error(1)
 }
 
 func (m *MockSupplierRepo) Delete(ctx context.Context, id int64) error {
@@ -67,6 +99,11 @@ func (m *MockSupplierCategoryRelationService) Create(ctx context.Context, suppli
 	return args.Get(0).(*models_supplier_realiations.SupplierCategoryRelations), args.Error(1)
 }
 
+func (m *MockSupplierCategoryRelationService) HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {
+	args := m.Called(ctx, supplierID, categoryID)
+	return args.Bool(0), args.Error(1)
+}
+
 func (m *MockSupplierCategoryRelationService) Delete(ctx context.Context, supplierID, categoryID int64) error {
 	args := m.Called(ctx, supplierID, categoryID)
 	return args.Error(0)
@@ -88,8 +125,15 @@ func (m *MockSupplierCategoryRelationService) GetByCategory(ctx context.Context,
 }
 
 // MockSupplierService
-func (m *MockSupplierService) Create(ctx context.Context, s *models_supplier.Supplier, categoryID int64, address *models_address.Address, contact *models_contact.Contact) (int64, error) {
-	args := m.Called(ctx, s, categoryID, address, contact)
+
+func (m *MockSupplierService) Create(
+	ctx context.Context,
+	supplier *models_supplier.Supplier,
+	categoryID int64,
+	address *models_address.Address,
+	contact *models_contact.Contact,
+) (int64, error) {
+	args := m.Called(ctx, supplier, categoryID, address, contact)
 	return args.Get(0).(int64), args.Error(1)
 }
 
@@ -103,8 +147,8 @@ func (m *MockSupplierService) GetAll(ctx context.Context) ([]*models_supplier.Su
 	return args.Get(0).([]*models_supplier.Supplier), args.Error(1)
 }
 
-func (m *MockSupplierService) Update(ctx context.Context, s *models_supplier.Supplier) error {
-	args := m.Called(ctx, s)
+func (m *MockSupplierService) Update(ctx context.Context, supplier *models_supplier.Supplier) error {
+	args := m.Called(ctx, supplier)
 	return args.Error(0)
 }
 
@@ -135,11 +179,10 @@ func (m *MockAddressService) Delete(ctx context.Context, id int) error {
 }
 
 // MockContactService
-func (m *MockContactService) Create(ctx context.Context, contact *models_contact.Contact) error {
+func (m *MockContactService) Create(ctx context.Context, contact models_contact.Contact) (models_contact.Contact, error) {
 	args := m.Called(ctx, contact)
-	return args.Error(0)
+	return args.Get(0).(models_contact.Contact), args.Error(1)
 }
-
 func (m *MockContactService) GetByID(ctx context.Context, id int64) (*models_contact.Contact, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(*models_contact.Contact), args.Error(1)

@@ -17,6 +17,6 @@ type Supplier struct {
 	CreatedAt   time.Time                              `json:"created_at"`
 	UpdatedAt   time.Time                              `json:"updated_at"`
 	Categories  []supplier_categories.SupplierCategory `json:"categories,omitempty"`
-	Address     models_address.Address                 `json:"address,omitempty"`
-	Contact     models_contact.Contact                 `json:"contact,omitempty"`
+	Address     *models_address.Address                `json:"address,omitempty"`
+	Contact     *models_contact.Contact                `json:"contact,omitempty"`
 }

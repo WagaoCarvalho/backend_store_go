@@ -10,7 +10,7 @@ import (
 )
 
 type SupplierRepository interface {
-	Create(ctx context.Context, supplier *models.Supplier) (int64, error)
+	Create(ctx context.Context, supplier models.Supplier) (models.Supplier, error)
 	GetByID(ctx context.Context, id int64) (*models.Supplier, error)
 	GetAll(ctx context.Context) ([]*models.Supplier, error)
 	Update(ctx context.Context, supplier *models.Supplier) error
@@ -25,7 +25,7 @@ func NewSupplierRepository(db *pgxpool.Pool) SupplierRepository {
 	return &supplierRepository{db: db}
 }
 
-func (r *supplierRepository) Create(ctx context.Context, supplier *models.Supplier) (int64, error) {
+func (r *supplierRepository) Create(ctx context.Context, supplier models.Supplier) (models.Supplier, error) {
 	query := `
 		INSERT INTO suppliers (name, cnpj, cpf, contact_info)
 		VALUES ($1, $2, $3, $4)
@@ -39,10 +39,10 @@ func (r *supplierRepository) Create(ctx context.Context, supplier *models.Suppli
 	).Scan(&supplier.ID, &supplier.CreatedAt, &supplier.UpdatedAt)
 
 	if err != nil {
-		return 0, fmt.Errorf("erro ao criar fornecedor: %w", err)
+		return models.Supplier{}, fmt.Errorf("erro ao criar fornecedor: %w", err)
 	}
 
-	return supplier.ID, nil
+	return supplier, nil
 }
 
 func (r *supplierRepository) GetByID(ctx context.Context, id int64) (*models.Supplier, error) {

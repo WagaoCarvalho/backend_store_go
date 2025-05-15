@@ -23,6 +23,7 @@ import (
 	supplierCategoryRelationRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_category_relations"
 	userRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	userCategoryRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
+	userCategoryRelationRepo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
 	addressServices "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
 	contactServices "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
 	loginServices "github.com/WagaoCarvalho/backend_store_go/internal/services/login"
@@ -48,16 +49,6 @@ func NewRouter() *mux.Router {
 	r.Use(middlewares.RateLimiter)
 	r.Use(middlewares.CORS)
 
-	userRepo := userRepositories.NewUserRepository(db)
-	userService := userServices.NewUserService(userRepo)
-	loginService := loginServices.NewLoginService(userRepo)
-	userHandler := userHandlers.NewUserHandler(userService)
-	loginHandler := loginHandlers.NewLoginHandler(loginService)
-
-	userCategoryRepo := userCategoryRepositories.NewUserCategoryRepository(db)
-	userCategoryService := userCategoryServices.NewUserCategoryService(userCategoryRepo)
-	userCategoryHandler := userCategoryHandlers.NewUserCategoryHandler(userCategoryService)
-
 	addressRepo := addressRepositories.NewAddressRepository(db)
 	addressService := addressServices.NewAddressService(addressRepo)
 	addressHandler := addressHandlers.NewAddressHandler(addressService)
@@ -66,6 +57,18 @@ func NewRouter() *mux.Router {
 	contactService := contactServices.NewContactService(contactRepo)
 	contactHandler := contactHandlers.NewContactHandler(contactService)
 
+	userRepo := userRepositories.NewUserRepository(db)
+	userCategoryRepo := userCategoryRepositories.NewUserCategoryRepository(db)
+	userCategoryRelationRepo := userCategoryRelationRepo.NewUserCategoryRelationRepositories(db)
+
+	userCategoryService := userCategoryServices.NewUserCategoryService(userCategoryRepo)
+	userCategoryHandler := userCategoryHandlers.NewUserCategoryHandler(userCategoryService)
+	userService := userServices.NewUserService(userRepo, addressRepo, contactRepo, userCategoryRelationRepo)
+
+	loginService := loginServices.NewLoginService(userRepo)
+	userHandler := userHandlers.NewUserHandler(userService)
+	loginHandler := loginHandlers.NewLoginHandler(loginService)
+
 	// Repositórios
 	supplierRepo := supplierRepositories.NewSupplierRepository(db)
 	supplierCategoryRepo := supplierCategoryRepositories.NewSupplierCategoryRepository(db)
@@ -73,15 +76,15 @@ func NewRouter() *mux.Router {
 
 	// Serviços
 	relationService := supplierCategoryRelations.NewSupplierCategoryRelationService(supplierCategoryRelationRepo)
-	supplierService := supplierServices.NewSupplierService(supplierRepo, relationService, addressService, contactService)
 	supplierCategoryService := supplierCategoryServices.NewSupplierCategoryService(supplierCategoryRepo)
+	supplierService := supplierServices.NewSupplierService(supplierRepo, relationService, addressService, contactService, supplierCategoryService)
 
 	// Handlers
 	supplierHandler := supplierHandler.NewSupplierHandler(supplierService)
 	supplierCategoryHandler := supplierCategoryHandler.NewSupplierCategoryHandler(supplierCategoryService)
 
 	r.HandleFunc("/", homeHandlers.GetHome).Methods(http.MethodGet)
-	r.HandleFunc("/user", userHandler.CreateUser).Methods(http.MethodPost)
+	r.HandleFunc("/user", userHandler.Create).Methods(http.MethodPost)
 	r.HandleFunc("/login", loginHandler.Login).Methods(http.MethodPost)
 
 	protectedRoutes := r.PathPrefix("/").Subrouter()
