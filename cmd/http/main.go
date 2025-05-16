@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/WagaoCarvalho/backend_store_go/cmd/http/routes"
 	"github.com/WagaoCarvalho/backend_store_go/config"
+	"github.com/WagaoCarvalho/backend_store_go/internal/routes"
 )
 
 func main() {
