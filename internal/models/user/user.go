@@ -14,6 +14,7 @@ type User struct {
 	Email      string                         `json:"email"`
 	Password   string                         `json:"-"`
 	Status     bool                           `json:"status"`
+	Version    int                            `json:"version"`
 	CreatedAt  time.Time                      `json:"created_at"`
 	UpdatedAt  time.Time                      `json:"updated_at"`
 	Categories []user_categories.UserCategory `json:"categories,omitempty"`

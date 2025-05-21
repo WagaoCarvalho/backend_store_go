@@ -37,7 +37,7 @@ func (r *contactRepository) Create(ctx context.Context, contact models.Contact) 
 		RETURNING id, created_at, updated_at
 	`
 
-	// Criamos uma cópia para alterar e retornar por valor
+	
 	c := contact
 
 	err := r.db.QueryRow(ctx, query,

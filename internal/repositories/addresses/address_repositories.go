@@ -10,7 +10,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// AddressRepository define a interface para o repositório de endereços.
 type AddressRepository interface {
 	Create(ctx context.Context, address models.Address) (models.Address, error)
 	GetByID(ctx context.Context, id int) (models.Address, error)
@@ -18,17 +17,14 @@ type AddressRepository interface {
 	Delete(ctx context.Context, id int) error
 }
 
-// addressRepository é a implementação da interface AddressRepository.
 type addressRepository struct {
 	db *pgxpool.Pool
 }
 
-// NewAddressRepository cria uma nova instância de AddressRepository.
 func NewAddressRepository(db *pgxpool.Pool) AddressRepository {
 	return &addressRepository{db: db}
 }
 
-// Create insere um novo endereço no banco de dados.
 func (r *addressRepository) Create(ctx context.Context, address models.Address) (models.Address, error) {
 	query := `
 		INSERT INTO addresses (user_id, client_id, supplier_id, street, city, state, country, postal_code, created_at, updated_at)
@@ -48,7 +44,6 @@ func (r *addressRepository) Create(ctx context.Context, address models.Address) 
 	return address, nil
 }
 
-// GetByID retorna um endereço pelo ID.
 func (r *addressRepository) GetByID(ctx context.Context, id int) (models.Address, error) {
 	query := `
 		SELECT id, user_id, client_id, supplier_id, street, city, state, country, postal_code, created_at, updated_at
@@ -72,7 +67,6 @@ func (r *addressRepository) GetByID(ctx context.Context, id int) (models.Address
 	return address, nil
 }
 
-// Update atualiza um endereço existente.
 func (r *addressRepository) Update(ctx context.Context, address models.Address) error {
 	query := `
 		UPDATE addresses
@@ -98,7 +92,6 @@ func (r *addressRepository) Update(ctx context.Context, address models.Address) 
 	return nil
 }
 
-// Delete remove um endereço pelo ID.
 func (r *addressRepository) Delete(ctx context.Context, id int) error {
 	query := `DELETE FROM addresses WHERE id = $1`
 	ct, err := r.db.Exec(ctx, query, id)

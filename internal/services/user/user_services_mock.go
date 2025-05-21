@@ -85,22 +85,6 @@ func (m *MockUserCategoryRelationRepositories) Create(ctx context.Context, relat
 	return nil, args.Error(1)
 }
 
-func (m *MockUserCategoryRelationRepositories) GetAll(ctx context.Context, userID int64) ([]user_category_relations.UserCategoryRelations, error) {
-	args := m.Called(ctx, userID)
-	if relations, ok := args.Get(0).([]user_category_relations.UserCategoryRelations); ok {
-		return relations, args.Error(1)
-	}
-	return nil, args.Error(1)
-}
-
-func (m *MockUserCategoryRelationRepositories) GetRelations(ctx context.Context, categoryID int64) ([]user_category_relations.UserCategoryRelations, error) {
-	args := m.Called(ctx, categoryID)
-	if relations, ok := args.Get(0).([]user_category_relations.UserCategoryRelations); ok {
-		return relations, args.Error(1)
-	}
-	return nil, args.Error(1)
-}
-
 func (m *MockUserCategoryRelationRepositories) Delete(ctx context.Context, userID, categoryID int64) error {
 	args := m.Called(ctx, userID, categoryID)
 	return args.Error(0)
@@ -118,10 +102,6 @@ func (m *MockUserCategoryRelationRepositories) GetByCategoryID(ctx context.Conte
 	}
 	return nil, args.Error(1)
 }
-
-// No seu arquivo de mocks (services/mocks_test.go)
-
-// GetByUserID mock para retornar relações de categorias por usuário
 func (m *MockUserCategoryRelationRepositories) GetByUserID(ctx context.Context, userID int64) ([]user_category_relations.UserCategoryRelations, error) {
 	args := m.Called(ctx, userID)
 

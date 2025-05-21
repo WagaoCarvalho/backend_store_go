@@ -24,10 +24,12 @@ func RegisterUserRoutes(r *mux.Router, db *pgxpool.Pool) {
 	userService := userServices.NewUserService(userRepo, addressRepo, contactRepo, relationRepo)
 	handler := userHandlers.NewUserHandler(userService)
 
+	r.HandleFunc("/user", handler.Create).Methods(http.MethodPost)
+
 	s := r.PathPrefix("/").Subrouter()
 	s.Use(middlewares.IsAuthByBearerToken)
 
-	s.HandleFunc("/user", handler.Create).Methods(http.MethodPost)
+	//s.HandleFunc("/user", handler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/users", handler.GetUsers).Methods(http.MethodGet)
 	s.HandleFunc("/user/id/{id}", handler.GetUserById).Methods(http.MethodGet)
 	s.HandleFunc("/user/email/{email}", handler.GetUserByEmail).Methods(http.MethodGet)

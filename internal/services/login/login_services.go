@@ -17,12 +17,25 @@ type LoginService interface {
 	Login(ctx context.Context, credentials models.LoginCredentials) (string, error)
 }
 
+type JWTGenerator func(uid int64, email string) (string, error)
+
 type loginService struct {
-	userRepo repositories.UserRepository
+	userRepo    repositories.UserRepository
+	generateJWT JWTGenerator
 }
 
-func NewLoginService(userRepo repositories.UserRepository) LoginService {
-	return &loginService{userRepo: userRepo}
+func NewLoginService(repo repositories.UserRepository) *loginService {
+	return &loginService{
+		userRepo:    repo,
+		generateJWT: utils.GenerateJWT,
+	}
+}
+
+func NewLoginServiceWithJWT(repo repositories.UserRepository, jwtGen JWTGenerator) *loginService {
+	return &loginService{
+		userRepo:    repo,
+		generateJWT: jwtGen,
+	}
 }
 
 func (s *loginService) Login(ctx context.Context, credentials models.LoginCredentials) (string, error) {
@@ -54,7 +67,8 @@ func (s *loginService) Login(ctx context.Context, credentials models.LoginCreden
 		return "", fmt.Errorf("conta desativada")
 	}
 
-	token, err := utils.GenerateJWT(user.UID, user.Email)
+	// 👇 Aqui estava o problema
+	token, err := s.generateJWT(user.UID, user.Email)
 	if err != nil {
 		return "", fmt.Errorf("erro ao gerar token de acesso")
 	}

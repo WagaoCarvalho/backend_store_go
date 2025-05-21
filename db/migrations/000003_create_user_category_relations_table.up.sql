@@ -9,5 +9,5 @@ CREATE TABLE user_category_relations (
 );
 
 -- Índices adicionais, se necessário
-CREATE INDEX idx_user_category_relations_user_id ON supplier_category_relations (user_id);
-CREATE INDEX idx_user_category_relations_category_id ON supplier_category_relations (category_id);
+CREATE INDEX idx_user_category_relations_user_id ON user_category_relations (user_id);
+CREATE INDEX idx_user_category_relations_category_id ON user_category_relations (category_id);

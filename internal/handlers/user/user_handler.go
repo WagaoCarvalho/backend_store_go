@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
 	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"github.com/gorilla/mux"
@@ -141,6 +143,10 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	updatedUser, err := h.service.Update(r.Context(), requestData.User)
 	if err != nil {
+		if errors.Is(err, repository.ErrVersionConflict) {
+			utils.ErrorResponse(w, err, http.StatusConflict)
+			return
+		}
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}

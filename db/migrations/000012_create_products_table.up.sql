@@ -6,9 +6,10 @@ CREATE TABLE products (
     cost_price DECIMAL(10, 2) NOT NULL,
     sale_price DECIMAL(10, 2) NOT NULL,
     stock_quantity INTEGER NOT NULL,
-    barcode VARCHAR(255),
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    barcode VARCHAR(255) UNIQUE,
+    version INTEGER NOT NULL DEFAULT 1,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_products_product_name ON products (product_name);

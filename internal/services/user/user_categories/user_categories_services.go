@@ -24,6 +24,14 @@ func NewUserCategoryService(repo repositories.UserCategoryRepository) UserCatego
 	return &userCategoryService{repo: repo}
 }
 
+func (s *userCategoryService) Create(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
+	createdCategory, err := s.repo.Create(ctx, category)
+	if err != nil {
+		return models.UserCategory{}, fmt.Errorf("erro ao criar categoria: %w", err)
+	}
+	return createdCategory, nil
+}
+
 func (s *userCategoryService) GetAll(ctx context.Context) ([]models.UserCategory, error) {
 	categories, err := s.repo.GetAll(ctx)
 	if err != nil {
@@ -41,14 +49,6 @@ func (s *userCategoryService) GetById(ctx context.Context, id int64) (models.Use
 		return models.UserCategory{}, fmt.Errorf("erro ao buscar categoria: %w", err) // Adiciona apenas para outros tipos de erro
 	}
 	return category, nil
-}
-
-func (s *userCategoryService) Create(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
-	createdCategory, err := s.repo.Create(ctx, category)
-	if err != nil {
-		return models.UserCategory{}, fmt.Errorf("erro ao criar categoria: %w", err)
-	}
-	return createdCategory, nil
 }
 
 func (s *userCategoryService) Update(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {

@@ -17,6 +17,8 @@ var (
 	ErrInvalidEmail      = errors.New("email inválido")
 	ErrPasswordHash      = errors.New("erro ao criptografar senha")
 	ErrUserAlreadyExists = errors.New("usuário já existe")
+	ErrVersionConflict   = errors.New("conflito de versão: os dados foram modificados por outro processo")
+	ErrRecordNotFound    = errors.New("registro não encontrado")
 )
 
 type UserRepository interface {
@@ -57,7 +59,6 @@ func (r *userRepository) Create(ctx context.Context, user *models_user.User) (mo
 	}
 	user.Password = string(hashedPassword)
 
-	// Inserir usuário no banco de dados
 	query := `
 		INSERT INTO users (username, email, password_hash, status, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, NOW(), NOW())
@@ -146,21 +147,25 @@ func (r *userRepository) Update(ctx context.Context, user models_user.User) (mod
 		return models_user.User{}, ErrInvalidEmail
 	}
 
-	query := `UPDATE users 
-			  SET username = $1, email = $2, status = $3, updated_at = NOW() 
-			  WHERE id = $4 
-			  RETURNING updated_at`
+	query := `
+		UPDATE users 
+		SET username = $1, email = $2, status = $3, updated_at = NOW(), version = version + 1
+		WHERE id = $4 AND version = $5
+		RETURNING updated_at, version
+	`
 
 	err := r.db.QueryRow(ctx, query,
 		user.Username,
 		user.Email,
 		user.Status,
 		user.UID,
-	).Scan(&user.UpdatedAt)
+		user.Version,
+	).Scan(&user.UpdatedAt, &user.Version)
 
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return models_user.User{}, ErrUserNotFound
+		// Importante: use o erro correto (sql.ErrNoRows) se estiver usando database/sql
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models_user.User{}, ErrVersionConflict
 		}
 		return models_user.User{}, fmt.Errorf("erro ao atualizar usuário: %w", err)
 	}

@@ -52,6 +52,7 @@ func (s *contactService) Create(ctx context.Context, c models.Contact) (models.C
 
 	return createdContact, nil
 }
+
 func (s *contactService) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
 	if id <= 0 {
 		return nil, fmt.Errorf("ID inválido")

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
@@ -51,26 +52,6 @@ func NewUserService(
 	}
 }
 
-func (s *userService) GetAll(ctx context.Context) ([]models_user.User, error) {
-	return s.repo.GetAll(ctx)
-}
-
-func (s *userService) GetById(ctx context.Context, uid int64) (models_user.User, error) {
-	user, err := s.repo.GetById(ctx, uid)
-	if err != nil {
-		return models_user.User{}, fmt.Errorf("erro ao buscar usuário: %w", err)
-	}
-	return user, nil
-}
-
-func (s *userService) GetByEmail(ctx context.Context, email string) (models_user.User, error) {
-	user, err := s.repo.GetByEmail(ctx, email)
-	if err != nil {
-		return models_user.User{}, fmt.Errorf("erro ao buscar usuário: %w", err)
-	}
-	return user, nil
-}
-
 func (s *userService) Create(
 	ctx context.Context,
 	user *models_user.User,
@@ -117,6 +98,26 @@ func (s *userService) Create(
 	return createdUser, nil
 }
 
+func (s *userService) GetAll(ctx context.Context) ([]models_user.User, error) {
+	return s.repo.GetAll(ctx)
+}
+
+func (s *userService) GetById(ctx context.Context, uid int64) (models_user.User, error) {
+	user, err := s.repo.GetById(ctx, uid)
+	if err != nil {
+		return models_user.User{}, fmt.Errorf("erro ao buscar usuário: %w", err)
+	}
+	return user, nil
+}
+
+func (s *userService) GetByEmail(ctx context.Context, email string) (models_user.User, error) {
+	user, err := s.repo.GetByEmail(ctx, email)
+	if err != nil {
+		return models_user.User{}, fmt.Errorf("erro ao buscar usuário: %w", err)
+	}
+	return user, nil
+}
+
 func (s *userService) Update(ctx context.Context, user *models_user.User) (models_user.User, error) {
 	if !utils.IsValidEmail(user.Email) {
 		return models_user.User{}, fmt.Errorf("email inválido")
@@ -124,6 +125,9 @@ func (s *userService) Update(ctx context.Context, user *models_user.User) (model
 
 	updatedUser, err := s.repo.Update(ctx, *user)
 	if err != nil {
+		if errors.Is(err, repositories_user.ErrVersionConflict) {
+			return models_user.User{}, repositories_user.ErrVersionConflict
+		}
 		return models_user.User{}, fmt.Errorf("erro ao atualizar usuário: %w", err)
 	}
 
@@ -131,7 +135,11 @@ func (s *userService) Update(ctx context.Context, user *models_user.User) (model
 }
 
 func (s *userService) Delete(ctx context.Context, uid int64) error {
-	if err := s.repo.Delete(ctx, uid); err != nil {
+	err := s.repo.Delete(ctx, uid)
+	if err != nil {
+		if errors.Is(err, repositories_user.ErrRecordNotFound) {
+			return fmt.Errorf("erro ao deletar usuário: %w", err)
+		}
 		return fmt.Errorf("erro ao deletar usuário: %w", err)
 	}
 	return nil

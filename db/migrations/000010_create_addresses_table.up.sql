@@ -8,8 +8,9 @@ CREATE TABLE addresses (
     state VARCHAR(50) NOT NULL,
     country VARCHAR(100) NOT NULL,
     postal_code VARCHAR(20) NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    version INTEGER NOT NULL DEFAULT 1,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_addresses_city_state ON addresses (city, state);

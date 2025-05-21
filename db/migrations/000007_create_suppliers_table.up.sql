@@ -4,8 +4,9 @@ CREATE TABLE suppliers (
     cnpj VARCHAR(18) UNIQUE,
     cpf VARCHAR(14) UNIQUE,
     contact_info TEXT,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    version INTEGER NOT NULL DEFAULT 1,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_suppliers_name ON suppliers (name);
