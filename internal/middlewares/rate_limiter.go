@@ -11,6 +11,14 @@ import (
 var (
 	visitors = make(map[string]*rate.Limiter)
 	mu       sync.Mutex
+
+	cleanupVisitor = func(ip string) {
+		time.AfterFunc(10*time.Minute, func() {
+			mu.Lock()
+			delete(visitors, ip)
+			mu.Unlock()
+		})
+	}
 )
 
 func getVisitor(ip string) *rate.Limiter {
@@ -19,13 +27,9 @@ func getVisitor(ip string) *rate.Limiter {
 
 	limiter, exists := visitors[ip]
 	if !exists {
-		limiter = rate.NewLimiter(1, 3) // 1 requisição por segundo, burst de 3
+		limiter = rate.NewLimiter(1, 3) // 1 req/segundo, burst 3
 		visitors[ip] = limiter
-		time.AfterFunc(10*time.Minute, func() {
-			mu.Lock()
-			delete(visitors, ip)
-			mu.Unlock()
-		})
+		cleanupVisitor(ip)
 	}
 	return limiter
 }

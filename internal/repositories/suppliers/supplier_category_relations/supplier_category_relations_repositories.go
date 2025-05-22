@@ -28,8 +28,8 @@ type SupplierCategoryRelationRepository interface {
 	GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error)
 	GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error)
 	Delete(ctx context.Context, supplierID, categoryID int64) error
-	DeleteAllBySupplier(ctx context.Context, supplierID int64) error
-	CheckIfExists(ctx context.Context, supplierID, categoryID int64) (bool, error)
+	DeleteAllBySupplierId(ctx context.Context, supplierID int64) error
+	HasSupplierCategoryRelation(ctx context.Context, supplierID, categoryID int64) (bool, error)
 }
 
 type supplierCategoryRelationRepo struct {
@@ -45,7 +45,7 @@ func (r *supplierCategoryRelationRepo) Create(ctx context.Context, relation *mod
 		return nil, ErrInvalidRelationData
 	}
 
-	exists, err := r.CheckIfExists(ctx, relation.SupplierID, relation.CategoryID)
+	exists, err := r.HasSupplierCategoryRelation(ctx, relation.SupplierID, relation.CategoryID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrCheckRelation, err)
 	}
@@ -68,7 +68,7 @@ func (r *supplierCategoryRelationRepo) Create(ctx context.Context, relation *mod
 	return relation, nil
 }
 
-func (r *supplierCategoryRelationRepo) CheckIfExists(ctx context.Context, supplierID, categoryID int64) (bool, error) {
+func (r *supplierCategoryRelationRepo) HasSupplierCategoryRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {
 	query := `
 		SELECT 1 FROM supplier_category_relations
 		WHERE supplier_id = $1 AND category_id = $2 LIMIT 1;
@@ -151,7 +151,7 @@ func (r *supplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, c
 	return nil
 }
 
-func (r *supplierCategoryRelationRepo) DeleteAllBySupplier(ctx context.Context, supplierID int64) error {
+func (r *supplierCategoryRelationRepo) DeleteAllBySupplierId(ctx context.Context, supplierID int64) error {
 	query := `
 		DELETE FROM supplier_category_relations
 		WHERE supplier_id = $1;

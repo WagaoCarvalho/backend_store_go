@@ -41,7 +41,7 @@ func (s *supplierCategoryRelationService) Create(ctx context.Context, supplierID
 		return nil, ErrInvalidRelationData
 	}
 
-	exists, err := s.repository.CheckIfExists(ctx, supplierID, categoryID)
+	exists, err := s.repository.HasSupplierCategoryRelation(ctx, supplierID, categoryID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrCheckRelationExists, err)
 	}
@@ -93,7 +93,7 @@ func (s *supplierCategoryRelationService) DeleteAllBySupplierId(ctx context.Cont
 	if supplierID <= 0 {
 		return ErrInvalidRelationData
 	}
-	if err := s.repository.DeleteAllBySupplier(ctx, supplierID); err != nil {
+	if err := s.repository.DeleteAllBySupplierId(ctx, supplierID); err != nil {
 		return fmt.Errorf("%w: %v", ErrDeleteAllRelations, err)
 	}
 	return nil
@@ -103,5 +103,5 @@ func (s *supplierCategoryRelationService) HasRelation(ctx context.Context, suppl
 	if supplierID <= 0 || categoryID <= 0 {
 		return false, ErrInvalidRelationData
 	}
-	return s.repository.CheckIfExists(ctx, supplierID, categoryID)
+	return s.repository.HasSupplierCategoryRelation(ctx, supplierID, categoryID)
 }

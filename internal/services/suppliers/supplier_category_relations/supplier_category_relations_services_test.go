@@ -37,12 +37,12 @@ func (m *MockSupplierCategoryRelationRepo) Delete(ctx context.Context, supplierI
 	return args.Error(0)
 }
 
-func (m *MockSupplierCategoryRelationRepo) DeleteAllBySupplier(ctx context.Context, supplierID int64) error {
+func (m *MockSupplierCategoryRelationRepo) DeleteAllBySupplierId(ctx context.Context, supplierID int64) error {
 	args := m.Called(ctx, supplierID)
 	return args.Error(0)
 }
 
-func (m *MockSupplierCategoryRelationRepo) CheckIfExists(ctx context.Context, supplierID, categoryID int64) (bool, error) {
+func (m *MockSupplierCategoryRelationRepo) HasSupplierCategoryRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {
 	args := m.Called(ctx, supplierID, categoryID)
 	return args.Bool(0), args.Error(1)
 }
@@ -62,7 +62,7 @@ func TestCreate(t *testing.T) {
 		mockRepo := new(MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-		mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).
+		mockRepo.On("HasSupplierCategoryRelation", mock.Anything, int64(1), int64(2)).
 			Return(false, errors.New("erro ao verificar"))
 
 		_, err := s.Create(context.Background(), 1, 2)
@@ -74,7 +74,7 @@ func TestCreate(t *testing.T) {
 		mockRepo := new(MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-		mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).
+		mockRepo.On("HasSupplierCategoryRelation", mock.Anything, int64(1), int64(2)).
 			Return(true, nil)
 
 		_, err := s.Create(context.Background(), 1, 2)
@@ -86,7 +86,7 @@ func TestCreate(t *testing.T) {
 		mockRepo := new(MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-		mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).
+		mockRepo.On("HasSupplierCategoryRelation", mock.Anything, int64(1), int64(2)).
 			Return(false, nil)
 
 		mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*models.SupplierCategoryRelations")).
@@ -101,7 +101,7 @@ func TestCreate(t *testing.T) {
 		mockRepo := new(MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-		mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).
+		mockRepo.On("HasSupplierCategoryRelation", mock.Anything, int64(1), int64(2)).
 			Return(false, nil)
 
 		expected := &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 2}
@@ -214,7 +214,7 @@ func TestHasRelation(t *testing.T) {
 		mockRepo := new(MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-		mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).Return(true, nil)
+		mockRepo.On("HasSupplierCategoryRelation", mock.Anything, int64(1), int64(2)).Return(true, nil)
 
 		result, err := s.HasRelation(context.Background(), 1, 2)
 
@@ -227,7 +227,7 @@ func TestHasRelation(t *testing.T) {
 		mockRepo := new(MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-		mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).Return(false, errors.New("erro no banco"))
+		mockRepo.On("HasSupplierCategoryRelation", mock.Anything, int64(1), int64(2)).Return(false, errors.New("erro no banco"))
 
 		result, err := s.HasRelation(context.Background(), 1, 2)
 
@@ -296,7 +296,7 @@ func TestDeleteAllBySupplierId(t *testing.T) {
 		mockRepo := new(MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-		mockRepo.On("DeleteAllBySupplier", mock.Anything, int64(1)).Return(nil)
+		mockRepo.On("DeleteAllBySupplierId", mock.Anything, int64(1)).Return(nil)
 
 		err := s.DeleteAllBySupplierId(context.Background(), 1)
 		assert.NoError(t, err)
@@ -307,7 +307,7 @@ func TestDeleteAllBySupplierId(t *testing.T) {
 		mockRepo := new(MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-		mockRepo.On("DeleteAllBySupplier", mock.Anything, int64(99)).Return(errors.New("falha ao deletar"))
+		mockRepo.On("DeleteAllBySupplierId", mock.Anything, int64(99)).Return(errors.New("falha ao deletar"))
 
 		err := s.DeleteAllBySupplierId(context.Background(), 99)
 		assert.ErrorContains(t, err, "falha ao deletar")
