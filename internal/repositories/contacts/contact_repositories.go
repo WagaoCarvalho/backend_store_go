@@ -10,6 +10,18 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+var (
+	ErrContactNotFound         = errors.New("contato não encontrado")
+	ErrCreateContact           = errors.New("erro ao criar contato")
+	ErrFetchContact            = errors.New("erro ao buscar contato")
+	ErrFetchContactsByUser     = errors.New("erro ao buscar contatos por user_id")
+	ErrFetchContactsByClient   = errors.New("erro ao buscar contatos por client_id")
+	ErrFetchContactsBySupplier = errors.New("erro ao buscar contatos por supplier_id")
+	ErrScanContact             = errors.New("erro ao escanear contato")
+	ErrUpdateContact           = errors.New("erro ao atualizar contato")
+	ErrDeleteContact           = errors.New("erro ao deletar contato")
+)
+
 type ContactRepository interface {
 	Create(ctx context.Context, contact models.Contact) (models.Contact, error)
 	GetByID(ctx context.Context, id int64) (*models.Contact, error)
@@ -37,7 +49,6 @@ func (r *contactRepository) Create(ctx context.Context, contact models.Contact) 
 		RETURNING id, created_at, updated_at
 	`
 
-	
 	c := contact
 
 	err := r.db.QueryRow(ctx, query,
@@ -53,7 +64,7 @@ func (r *contactRepository) Create(ctx context.Context, contact models.Contact) 
 	).Scan(&c.ID, &c.CreatedAt, &c.UpdatedAt)
 
 	if err != nil {
-		return models.Contact{}, fmt.Errorf("erro ao criar contato: %w", err)
+		return models.Contact{}, fmt.Errorf("%w: %v", ErrCreateContact, err)
 	}
 
 	return c, nil
@@ -88,7 +99,7 @@ func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Cont
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrContactNotFound
 		}
-		return nil, fmt.Errorf("erro ao buscar contato: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrFetchContact, err)
 	}
 
 	return &contact, nil
@@ -105,7 +116,7 @@ func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 
 	rows, err := r.db.Query(ctx, query, userID)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar contatos por user_id: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrFetchContactsByUser, err)
 	}
 	defer rows.Close()
 
@@ -127,7 +138,7 @@ func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 			&contact.UpdatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("erro ao escanear contato: %w", err)
+			return nil, fmt.Errorf("%w: %v", ErrScanContact, err)
 		}
 		contacts = append(contacts, &contact)
 	}
@@ -146,7 +157,7 @@ func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) (
 
 	rows, err := r.db.Query(ctx, query, clientID)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar contatos por client_id: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrFetchContactsByClient, err)
 	}
 	defer rows.Close()
 
@@ -168,7 +179,7 @@ func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) (
 			&contact.UpdatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("erro ao escanear contato: %w", err)
+			return nil, fmt.Errorf("%w: %v", ErrScanContact, err)
 		}
 		contacts = append(contacts, &contact)
 	}
@@ -187,7 +198,7 @@ func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int6
 
 	rows, err := r.db.Query(ctx, query, supplierID)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar contatos por supplier_id: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrFetchContactsBySupplier, err)
 	}
 	defer rows.Close()
 
@@ -209,7 +220,7 @@ func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int6
 			&contact.UpdatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("erro ao escanear contato: %w", err)
+			return nil, fmt.Errorf("%w: %v", ErrScanContact, err)
 		}
 		contacts = append(contacts, &contact)
 	}
@@ -247,7 +258,7 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 	)
 
 	if err != nil {
-		return fmt.Errorf("erro ao atualizar contato: %w", err)
+		return fmt.Errorf("%w: %v", ErrUpdateContact, err)
 	}
 
 	if rowsAffected := result.RowsAffected(); rowsAffected == 0 {
@@ -262,7 +273,7 @@ func (r *contactRepository) Delete(ctx context.Context, id int64) error {
 
 	result, err := r.db.Exec(ctx, query, id)
 	if err != nil {
-		return fmt.Errorf("erro ao deletar contato: %w", err)
+		return fmt.Errorf("%w: %v", ErrDeleteContact, err)
 	}
 
 	if rowsAffected := result.RowsAffected(); rowsAffected == 0 {
@@ -271,5 +282,3 @@ func (r *contactRepository) Delete(ctx context.Context, id int64) error {
 
 	return nil
 }
-
-var ErrContactNotFound = errors.New("contato não encontrado")

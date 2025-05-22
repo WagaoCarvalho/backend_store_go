@@ -11,9 +11,16 @@ import (
 )
 
 var (
-	ErrRelationNotFound    = errors.New("relação supplier-categoria não encontrada")
-	ErrRelationExists      = errors.New("relação já existe")
-	ErrInvalidRelationData = errors.New("dados inválidos para relação")
+	ErrRelationNotFound             = errors.New("relação supplier-categoria não encontrada")
+	ErrRelationExists               = errors.New("relação já existe")
+	ErrInvalidRelationData          = errors.New("dados inválidos para relação")
+	ErrCreateRelation               = errors.New("erro ao criar relação")
+	ErrCheckRelation                = errors.New("erro ao verificar existência da relação")
+	ErrGetRelationsBySupplier       = errors.New("erro ao buscar relações do fornecedor")
+	ErrGetRelationsByCategory       = errors.New("erro ao buscar relações da categoria")
+	ErrScanRelationRow              = errors.New("erro ao ler relação")
+	ErrDeleteRelation               = errors.New("erro ao deletar relação")
+	ErrDeleteAllRelationsBySupplier = errors.New("erro ao deletar todas as relações do fornecedor")
 )
 
 type SupplierCategoryRelationRepository interface {
@@ -33,7 +40,6 @@ func NewSupplierCategoryRelationRepo(db *pgxpool.Pool) SupplierCategoryRelationR
 	return &supplierCategoryRelationRepo{db: db}
 }
 
-// Cria uma nova relação entre supplier e category
 func (r *supplierCategoryRelationRepo) Create(ctx context.Context, relation *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error) {
 	if relation.SupplierID <= 0 || relation.CategoryID <= 0 {
 		return nil, ErrInvalidRelationData
@@ -41,7 +47,7 @@ func (r *supplierCategoryRelationRepo) Create(ctx context.Context, relation *mod
 
 	exists, err := r.CheckIfExists(ctx, relation.SupplierID, relation.CategoryID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", ErrCheckRelation, err)
 	}
 	if exists {
 		return nil, ErrRelationExists
@@ -56,13 +62,12 @@ func (r *supplierCategoryRelationRepo) Create(ctx context.Context, relation *mod
 	err = r.db.QueryRow(ctx, query, relation.SupplierID, relation.CategoryID).
 		Scan(&relation.CreatedAt, &relation.UpdatedAt)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao criar relação: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrCreateRelation, err)
 	}
 
 	return relation, nil
 }
 
-// Verifica se já existe a relação
 func (r *supplierCategoryRelationRepo) CheckIfExists(ctx context.Context, supplierID, categoryID int64) (bool, error) {
 	query := `
 		SELECT 1 FROM supplier_category_relations
@@ -72,13 +77,12 @@ func (r *supplierCategoryRelationRepo) CheckIfExists(ctx context.Context, suppli
 	var exists int
 	err := r.db.QueryRow(ctx, query, supplierID, categoryID).Scan(&exists)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return false, fmt.Errorf("erro ao verificar existência: %w", err)
+		return false, fmt.Errorf("%w: %v", ErrCheckRelation, err)
 	}
 
 	return exists == 1, nil
 }
 
-// Retorna todas as relações para um supplier
 func (r *supplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {
 	query := `
 		SELECT id, supplier_id, category_id, created_at, updated_at
@@ -88,7 +92,7 @@ func (r *supplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supp
 
 	rows, err := r.db.Query(ctx, query, supplierID)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar relações do fornecedor: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrGetRelationsBySupplier, err)
 	}
 	defer rows.Close()
 
@@ -96,7 +100,7 @@ func (r *supplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supp
 	for rows.Next() {
 		var rData models.SupplierCategoryRelations
 		if err := rows.Scan(&rData.ID, &rData.SupplierID, &rData.CategoryID, &rData.CreatedAt, &rData.UpdatedAt); err != nil {
-			return nil, fmt.Errorf("erro ao ler relação: %w", err)
+			return nil, fmt.Errorf("%w: %v", ErrScanRelationRow, err)
 		}
 		relations = append(relations, &rData)
 	}
@@ -104,7 +108,6 @@ func (r *supplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supp
 	return relations, nil
 }
 
-// Retorna todas as relações para uma category
 func (r *supplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error) {
 	query := `
 		SELECT id, supplier_id, category_id, created_at, updated_at
@@ -114,7 +117,7 @@ func (r *supplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, cate
 
 	rows, err := r.db.Query(ctx, query, categoryID)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar relações da categoria: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrGetRelationsByCategory, err)
 	}
 	defer rows.Close()
 
@@ -122,7 +125,7 @@ func (r *supplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, cate
 	for rows.Next() {
 		var rData models.SupplierCategoryRelations
 		if err := rows.Scan(&rData.ID, &rData.SupplierID, &rData.CategoryID, &rData.CreatedAt, &rData.UpdatedAt); err != nil {
-			return nil, fmt.Errorf("erro ao ler relação: %w", err)
+			return nil, fmt.Errorf("%w: %v", ErrScanRelationRow, err)
 		}
 		relations = append(relations, &rData)
 	}
@@ -130,7 +133,6 @@ func (r *supplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, cate
 	return relations, nil
 }
 
-// Deleta uma única relação específica
 func (r *supplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, categoryID int64) error {
 	query := `
 		DELETE FROM supplier_category_relations
@@ -139,7 +141,7 @@ func (r *supplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, c
 
 	cmd, err := r.db.Exec(ctx, query, supplierID, categoryID)
 	if err != nil {
-		return fmt.Errorf("erro ao deletar relação: %w", err)
+		return fmt.Errorf("%w: %v", ErrDeleteRelation, err)
 	}
 
 	if cmd.RowsAffected() == 0 {
@@ -149,7 +151,6 @@ func (r *supplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, c
 	return nil
 }
 
-// Deleta todas as relações de um fornecedor
 func (r *supplierCategoryRelationRepo) DeleteAllBySupplier(ctx context.Context, supplierID int64) error {
 	query := `
 		DELETE FROM supplier_category_relations
@@ -158,7 +159,7 @@ func (r *supplierCategoryRelationRepo) DeleteAllBySupplier(ctx context.Context, 
 
 	_, err := r.db.Exec(ctx, query, supplierID)
 	if err != nil {
-		return fmt.Errorf("erro ao deletar todas as relações do fornecedor: %w", err)
+		return fmt.Errorf("%w: %v", ErrDeleteAllRelationsBySupplier, err)
 	}
 
 	return nil

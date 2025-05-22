@@ -19,6 +19,15 @@ var (
 	ErrUserAlreadyExists = errors.New("usuário já existe")
 	ErrVersionConflict   = errors.New("conflito de versão: os dados foram modificados por outro processo")
 	ErrRecordNotFound    = errors.New("registro não encontrado")
+
+	ErrCheckExistingUser = errors.New("erro ao verificar usuário existente")
+	ErrCreateUser        = errors.New("erro ao criar usuário")
+	ErrGetUsers          = errors.New("erro ao buscar usuários")
+	ErrScanUserRow       = errors.New("erro ao ler os dados do usuário")
+	ErrIterateUserRows   = errors.New("erro ao iterar sobre os resultados")
+	ErrFetchUser         = errors.New("erro ao buscar usuário")
+	ErrUpdateUser        = errors.New("erro ao atualizar usuário")
+	ErrDeleteUser        = errors.New("erro ao deletar usuário")
 )
 
 type UserRepository interface {
@@ -43,16 +52,14 @@ func (r *userRepository) Create(ctx context.Context, user *models_user.User) (mo
 		return models_user.User{}, ErrInvalidEmail
 	}
 
-	// Verifica se o usuário já existe
 	_, err := r.GetByEmail(ctx, user.Email)
 	if err == nil {
 		return models_user.User{}, ErrUserAlreadyExists
 	}
 	if !errors.Is(err, ErrUserNotFound) {
-		return models_user.User{}, fmt.Errorf("erro ao verificar usuário existente: %w", err)
+		return models_user.User{}, fmt.Errorf("%w: %v", ErrCheckExistingUser, err)
 	}
 
-	// Criptografar senha
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return models_user.User{}, ErrPasswordHash
@@ -67,7 +74,7 @@ func (r *userRepository) Create(ctx context.Context, user *models_user.User) (mo
 	err = r.db.QueryRow(ctx, query, user.Username, user.Email, user.Password, user.Status).
 		Scan(&user.UID, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
-		return models_user.User{}, fmt.Errorf("erro ao criar usuário: %w", err)
+		return models_user.User{}, fmt.Errorf("%w: %v", ErrCreateUser, err)
 	}
 
 	return *user, nil
@@ -78,7 +85,7 @@ func (r *userRepository) GetAll(ctx context.Context) ([]models_user.User, error)
 
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar usuários: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrGetUsers, err)
 	}
 	defer rows.Close()
 
@@ -86,13 +93,13 @@ func (r *userRepository) GetAll(ctx context.Context) ([]models_user.User, error)
 	for rows.Next() {
 		var user models_user.User
 		if err := rows.Scan(&user.UID, &user.Username, &user.Email, &user.Password, &user.Status, &user.CreatedAt, &user.UpdatedAt); err != nil {
-			return nil, fmt.Errorf("erro ao ler os dados do usuário: %w", err)
+			return nil, fmt.Errorf("%w: %v", ErrScanUserRow, err)
 		}
 		users = append(users, user)
 	}
 
 	if rows.Err() != nil {
-		return nil, fmt.Errorf("erro ao iterar sobre os resultados: %w", rows.Err())
+		return nil, fmt.Errorf("%w: %v", ErrIterateUserRows, rows.Err())
 	}
 
 	return users, nil
@@ -101,9 +108,7 @@ func (r *userRepository) GetAll(ctx context.Context) ([]models_user.User, error)
 func (r *userRepository) GetById(ctx context.Context, uid int64) (models_user.User, error) {
 	var user models_user.User
 
-	query := `
-		SELECT id, username, email, password_hash, status, created_at, updated_at 
-		FROM users WHERE id = $1`
+	query := `SELECT id, username, email, password_hash, status, created_at, updated_at FROM users WHERE id = $1`
 	err := r.db.QueryRow(ctx, query, uid).Scan(
 		&user.UID, &user.Username, &user.Email, &user.Password,
 		&user.Status, &user.CreatedAt, &user.UpdatedAt,
@@ -112,7 +117,7 @@ func (r *userRepository) GetById(ctx context.Context, uid int64) (models_user.Us
 		if err == pgx.ErrNoRows {
 			return user, ErrUserNotFound
 		}
-		return user, fmt.Errorf("erro ao buscar usuário: %w", err)
+		return user, fmt.Errorf("%w: %v", ErrFetchUser, err)
 	}
 
 	return user, nil
@@ -136,7 +141,7 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (models_u
 		if err == pgx.ErrNoRows {
 			return user, ErrUserNotFound
 		}
-		return user, fmt.Errorf("erro ao buscar usuário: %w", err)
+		return user, fmt.Errorf("%w: %v", ErrFetchUser, err)
 	}
 
 	return user, nil
@@ -163,11 +168,10 @@ func (r *userRepository) Update(ctx context.Context, user models_user.User) (mod
 	).Scan(&user.UpdatedAt, &user.Version)
 
 	if err != nil {
-		// Importante: use o erro correto (sql.ErrNoRows) se estiver usando database/sql
 		if errors.Is(err, pgx.ErrNoRows) {
 			return models_user.User{}, ErrVersionConflict
 		}
-		return models_user.User{}, fmt.Errorf("erro ao atualizar usuário: %w", err)
+		return models_user.User{}, fmt.Errorf("%w: %v", ErrUpdateUser, err)
 	}
 
 	return user, nil
@@ -178,7 +182,7 @@ func (r *userRepository) Delete(ctx context.Context, uid int64) error {
 
 	result, err := r.db.Exec(ctx, query, uid)
 	if err != nil {
-		return fmt.Errorf("erro ao deletar usuário: %w", err)
+		return fmt.Errorf("%w: %v", ErrDeleteUser, err)
 	}
 
 	if result.RowsAffected() == 0 {

@@ -14,6 +14,14 @@ var (
 	ErrCategoryNotFound      = errors.New("categoria não encontrada")
 	ErrCategoryAlreadyExists = errors.New("categoria já existe")
 	ErrInvalidCategoryData   = errors.New("dados inválidos para categoria")
+	ErrGetCategories         = errors.New("erro ao buscar categorias")
+	ErrScanCategory          = errors.New("erro ao ler os dados da categoria")
+	ErrIterateCategories     = errors.New("erro ao iterar sobre os resultados")
+	ErrGetCategoryByID       = errors.New("erro ao buscar categoria por ID")
+	ErrCheckExistingCategory = errors.New("erro ao verificar categoria existente")
+	ErrCreateCategory        = errors.New("erro ao criar categoria")
+	ErrUpdateCategory        = errors.New("erro ao atualizar categoria")
+	ErrDeleteCategory        = errors.New("erro ao deletar categoria")
 )
 
 type UserCategoryRepository interface {
@@ -37,7 +45,7 @@ func (r *userCategoryRepository) GetAll(ctx context.Context) ([]models.UserCateg
 
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar categorias: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrGetCategories, err)
 	}
 	defer rows.Close()
 
@@ -46,13 +54,13 @@ func (r *userCategoryRepository) GetAll(ctx context.Context) ([]models.UserCateg
 		var category models.UserCategory
 		if err := rows.Scan(&category.ID, &category.Name, &category.Description,
 			&category.CreatedAt, &category.UpdatedAt); err != nil {
-			return nil, fmt.Errorf("erro ao ler os dados da categoria: %w", err)
+			return nil, fmt.Errorf("%w: %v", ErrScanCategory, err)
 		}
 		categories = append(categories, category)
 	}
 
 	if rows.Err() != nil {
-		return nil, fmt.Errorf("erro ao iterar sobre os resultados: %w", rows.Err())
+		return nil, fmt.Errorf("%w: %v", ErrIterateCategories, rows.Err())
 	}
 
 	return categories, nil
@@ -74,24 +82,22 @@ func (r *userCategoryRepository) GetById(ctx context.Context, id int64) (models.
 		if err == pgx.ErrNoRows {
 			return category, ErrCategoryNotFound
 		}
-		return category, fmt.Errorf("erro ao buscar categoria: %w", err)
+		return category, fmt.Errorf("%w: %v", ErrGetCategoryByID, err)
 	}
 
 	return category, nil
 }
 
 func (r *userCategoryRepository) Create(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
-	// Validação básica
 	if category.Name == "" {
 		return models.UserCategory{}, ErrInvalidCategoryData
 	}
 
-	// Verifica se categoria já existe
 	_, err := r.GetById(ctx, int64(category.ID))
 	if err == nil {
 		return models.UserCategory{}, ErrCategoryAlreadyExists
 	} else if !errors.Is(err, ErrCategoryNotFound) {
-		return models.UserCategory{}, fmt.Errorf("erro ao verificar categoria existente: %w", err)
+		return models.UserCategory{}, fmt.Errorf("%w: %v", ErrCheckExistingCategory, err)
 	}
 
 	query := `INSERT INTO user_categories (name, description, created_at, updated_at) 
@@ -100,14 +106,13 @@ func (r *userCategoryRepository) Create(ctx context.Context, category models.Use
 	err = r.db.QueryRow(ctx, query, category.Name, category.Description).
 		Scan(&category.ID, &category.CreatedAt, &category.UpdatedAt)
 	if err != nil {
-		return models.UserCategory{}, fmt.Errorf("erro ao criar categoria: %w", err)
+		return models.UserCategory{}, fmt.Errorf("%w: %v", ErrCreateCategory, err)
 	}
 
 	return category, nil
 }
 
 func (r *userCategoryRepository) Update(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
-	// Validação básica
 	if category.Name == "" {
 		return models.UserCategory{}, ErrInvalidCategoryData
 	}
@@ -126,7 +131,7 @@ func (r *userCategoryRepository) Update(ctx context.Context, category models.Use
 		if err == pgx.ErrNoRows {
 			return models.UserCategory{}, ErrCategoryNotFound
 		}
-		return models.UserCategory{}, fmt.Errorf("erro ao atualizar categoria: %w", err)
+		return models.UserCategory{}, fmt.Errorf("%w: %v", ErrUpdateCategory, err)
 	}
 
 	return category, nil
@@ -137,7 +142,7 @@ func (r *userCategoryRepository) Delete(ctx context.Context, id int64) error {
 
 	result, err := r.db.Exec(ctx, query, id)
 	if err != nil {
-		return fmt.Errorf("erro ao deletar categoria: %w", err)
+		return fmt.Errorf("%w: %v", ErrDeleteCategory, err)
 	}
 
 	if result.RowsAffected() == 0 {

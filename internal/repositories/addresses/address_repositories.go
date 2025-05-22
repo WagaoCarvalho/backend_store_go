@@ -10,6 +10,14 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+var (
+	ErrCreateAddress   = errors.New("erro ao criar endereço")
+	ErrFetchAddress    = errors.New("erro ao buscar endereço")
+	ErrAddressNotFound = errors.New("endereço não encontrado")
+	ErrUpdateAddress   = errors.New("erro ao atualizar endereço")
+	ErrDeleteAddress   = errors.New("erro ao excluir endereço")
+)
+
 type AddressRepository interface {
 	Create(ctx context.Context, address models.Address) (models.Address, error)
 	GetByID(ctx context.Context, id int) (models.Address, error)
@@ -29,7 +37,7 @@ func (r *addressRepository) Create(ctx context.Context, address models.Address) 
 	query := `
 		INSERT INTO addresses (user_id, client_id, supplier_id, street, city, state, country, postal_code, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-		RETURNING user_id, created_at, updated_at
+		RETURNING id, created_at, updated_at
 	`
 	err := r.db.QueryRow(ctx, query,
 		address.UserID, address.ClientID, address.SupplierID,
@@ -38,7 +46,7 @@ func (r *addressRepository) Create(ctx context.Context, address models.Address) 
 	).Scan(&address.ID, &address.CreatedAt, &address.UpdatedAt)
 
 	if err != nil {
-		return models.Address{}, fmt.Errorf("erro ao criar endereço: %w", err)
+		return models.Address{}, fmt.Errorf("%w: %v", ErrCreateAddress, err)
 	}
 
 	return address, nil
@@ -59,9 +67,9 @@ func (r *addressRepository) GetByID(ctx context.Context, id int) (models.Address
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return models.Address{}, fmt.Errorf("endereço não encontrado")
+			return models.Address{}, ErrAddressNotFound
 		}
-		return models.Address{}, fmt.Errorf("erro ao buscar endereço: %w", err)
+		return models.Address{}, fmt.Errorf("%w: %v", ErrFetchAddress, err)
 	}
 
 	return address, nil
@@ -82,11 +90,11 @@ func (r *addressRepository) Update(ctx context.Context, address models.Address) 
 	)
 
 	if err != nil {
-		return fmt.Errorf("erro ao atualizar endereço: %w", err)
+		return fmt.Errorf("%w: %v", ErrUpdateAddress, err)
 	}
 
 	if ct.RowsAffected() == 0 {
-		return fmt.Errorf("endereço não encontrado")
+		return ErrAddressNotFound
 	}
 
 	return nil
@@ -96,11 +104,11 @@ func (r *addressRepository) Delete(ctx context.Context, id int) error {
 	query := `DELETE FROM addresses WHERE id = $1`
 	ct, err := r.db.Exec(ctx, query, id)
 	if err != nil {
-		return fmt.Errorf("erro ao excluir endereço: %w", err)
+		return fmt.Errorf("%w: %v", ErrDeleteAddress, err)
 	}
 
 	if ct.RowsAffected() == 0 {
-		return fmt.Errorf("endereço não encontrado")
+		return ErrAddressNotFound
 	}
 
 	return nil

@@ -2,12 +2,14 @@ package services_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_categories"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_categories"
 )
 
@@ -41,57 +43,106 @@ func (m *MockSupplierCategoryRepo) Delete(ctx context.Context, id int64) error {
 	return args.Error(0)
 }
 
-func TestCreateSupplierCategory_Success(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRepo)
-	service := services.NewSupplierCategoryService(mockRepo)
+func TestSupplierCategoryService_Create(t *testing.T) {
+	ctx := context.Background()
 
-	category := &models.SupplierCategory{Name: "Alimentos"}
+	t.Run("success", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRepo)
+		service := services.NewSupplierCategoryService(mockRepo)
 
-	mockRepo.On("Create", mock.Anything, category).Return(int64(1), nil)
+		category := &models.SupplierCategory{Name: "Alimentos"}
 
-	id, err := service.Create(context.Background(), category)
+		mockRepo.On("Create", mock.Anything, category).Return(int64(1), nil)
 
-	assert.NoError(t, err)
-	assert.Equal(t, int64(1), id)
-	mockRepo.AssertExpectations(t)
+		id, err := service.Create(ctx, category)
+
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1), id)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("invalid name", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRepo)
+		service := services.NewSupplierCategoryService(mockRepo)
+
+		category := &models.SupplierCategory{Name: " "}
+
+		id, err := service.Create(ctx, category)
+
+		assert.Error(t, err)
+		assert.Equal(t, int64(0), id)
+		mockRepo.AssertNotCalled(t, "Create")
+	})
+
+	t.Run("repository error", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRepo)
+		service := services.NewSupplierCategoryService(mockRepo)
+
+		category := &models.SupplierCategory{Name: "Tecnologia"}
+
+		mockRepo.On("Create", mock.Anything, category).Return(int64(0), errors.New("erro no banco"))
+
+		id, err := service.Create(ctx, category)
+
+		assert.Error(t, err)
+		assert.Equal(t, int64(0), id)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
-func TestCreateSupplierCategory_InvalidName(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRepo)
-	service := services.NewSupplierCategoryService(mockRepo)
+func TestSupplierCategoryService_GetByID(t *testing.T) {
+	ctx := context.Background()
 
-	category := &models.SupplierCategory{Name: " "}
+	t.Run("success", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRepo)
+		service := services.NewSupplierCategoryService(mockRepo)
 
-	id, err := service.Create(context.Background(), category)
+		expected := &models.SupplierCategory{ID: 1, Name: "Eletrônicos"}
+		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(expected, nil)
 
-	assert.Error(t, err)
-	assert.Equal(t, int64(0), id)
-	mockRepo.AssertNotCalled(t, "Create")
-}
+		result, err := service.GetByID(ctx, 1)
 
-func TestGetSupplierCategoryByID_Success(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRepo)
-	service := services.NewSupplierCategoryService(mockRepo)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+		mockRepo.AssertExpectations(t)
+	})
 
-	expected := &models.SupplierCategory{ID: 1, Name: "Eletrônicos"}
-	mockRepo.On("GetByID", mock.Anything, int64(1)).Return(expected, nil)
+	t.Run("invalid ID", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRepo)
+		service := services.NewSupplierCategoryService(mockRepo)
 
-	result, err := service.GetByID(context.Background(), 1)
+		result, err := service.GetByID(ctx, -1)
 
-	assert.NoError(t, err)
-	assert.Equal(t, expected, result)
-	mockRepo.AssertExpectations(t)
-}
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		mockRepo.AssertNotCalled(t, "GetByID")
+	})
 
-func TestGetSupplierCategoryByID_InvalidID(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRepo)
-	service := services.NewSupplierCategoryService(mockRepo)
+	t.Run("not found", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRepo)
+		service := services.NewSupplierCategoryService(mockRepo)
 
-	result, err := service.GetByID(context.Background(), -1)
+		mockRepo.On("GetByID", mock.Anything, int64(999)).Return((*models.SupplierCategory)(nil), repo.ErrSupplierCategoryNotFound)
 
-	assert.Error(t, err)
-	assert.Nil(t, result)
-	mockRepo.AssertNotCalled(t, "GetByID")
+		result, err := service.GetByID(ctx, 999)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("repository error", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRepo)
+		service := services.NewSupplierCategoryService(mockRepo)
+
+		mockRepo.On("GetByID", mock.Anything, int64(2)).Return((*models.SupplierCategory)(nil), errors.New("erro no banco"))
+
+		result, err := service.GetByID(ctx, 2)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
 func TestUpdateSupplierCategory_Success(t *testing.T) {
@@ -151,4 +202,40 @@ func TestDeleteSupplierCategory_InvalidID(t *testing.T) {
 
 	assert.Error(t, err)
 	mockRepo.AssertNotCalled(t, "Delete")
+}
+
+func TestSupplierCategoryService_GetAll(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("success", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRepo)
+		service := services.NewSupplierCategoryService(mockRepo)
+
+		expectedCategories := []*models.SupplierCategory{
+			{ID: 1, Name: "Categoria A"},
+			{ID: 2, Name: "Categoria B"},
+		}
+
+		mockRepo.On("GetAll", ctx).Return(expectedCategories, nil)
+
+		categories, err := service.GetAll(ctx)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expectedCategories, categories)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("repository error", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRepo)
+		service := services.NewSupplierCategoryService(mockRepo)
+
+		mockRepo.On("GetAll", ctx).Return(([]*models.SupplierCategory)(nil), errors.New("erro ao buscar categorias"))
+
+		categories, err := service.GetAll(ctx)
+
+		assert.Error(t, err)
+		assert.Nil(t, categories)
+		assert.Contains(t, err.Error(), "erro ao buscar categorias")
+		mockRepo.AssertExpectations(t)
+	})
 }

@@ -11,9 +11,16 @@ import (
 )
 
 var (
-	ErrRelationNotFound    = errors.New("relação usuário-categoria não encontrada")
-	ErrRelationExists      = errors.New("relação já existe")
-	ErrInvalidRelationData = errors.New("dados inválidos para relação")
+	ErrRelationNotFound       = errors.New("relação usuário-categoria não encontrada")
+	ErrRelationExists         = errors.New("relação já existe")
+	ErrInvalidRelationData    = errors.New("dados inválidos para relação")
+	ErrCreateRelation         = errors.New("erro ao criar relação")
+	ErrGetRelationsByUser     = errors.New("erro ao buscar relações por usuário")
+	ErrGetRelationsByCategory = errors.New("erro ao buscar relações por categoria")
+	ErrScanRelation           = errors.New("erro ao ler relação")
+	ErrIterateRelations       = errors.New("erro após ler relações")
+	ErrDeleteRelation         = errors.New("erro ao deletar relação")
+	ErrDeleteAllUserRelations = errors.New("erro ao deletar todas as relações do usuário")
 )
 
 type UserCategoryRelationRepositories interface {
@@ -49,7 +56,7 @@ func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation 
 		if strings.Contains(err.Error(), "duplicate key") {
 			return nil, ErrRelationExists
 		}
-		return nil, fmt.Errorf("erro ao criar relação: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrCreateRelation, err)
 	}
 
 	return relation, nil
@@ -63,7 +70,7 @@ func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, user
 
 	rows, err := r.db.Query(ctx, query, userID)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar relações: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrGetRelationsByUser, err)
 	}
 	defer rows.Close()
 
@@ -71,13 +78,13 @@ func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, user
 	for rows.Next() {
 		var rel models.UserCategoryRelations
 		if err := rows.Scan(&rel.ID, &rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
-			return nil, fmt.Errorf("erro ao ler relação: %w", err)
+			return nil, fmt.Errorf("%w: %v", ErrScanRelation, err)
 		}
 		relations = append(relations, rel)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("erro após ler relações: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrIterateRelations, err)
 	}
 
 	return relations, nil
@@ -91,7 +98,7 @@ func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, 
 
 	rows, err := r.db.Query(ctx, query, categoryID)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar relações: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrGetRelationsByCategory, err)
 	}
 	defer rows.Close()
 
@@ -99,13 +106,13 @@ func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, 
 	for rows.Next() {
 		var rel models.UserCategoryRelations
 		if err := rows.Scan(&rel.ID, &rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
-			return nil, fmt.Errorf("erro ao ler relação: %w", err)
+			return nil, fmt.Errorf("%w: %v", ErrScanRelation, err)
 		}
 		relations = append(relations, rel)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("erro após ler relações: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrIterateRelations, err)
 	}
 
 	return relations, nil
@@ -118,7 +125,7 @@ func (r *userCategoryRelationRepositories) Delete(ctx context.Context, userID, c
 
 	result, err := r.db.Exec(ctx, query, userID, categoryID)
 	if err != nil {
-		return fmt.Errorf("erro ao deletar relação: %w", err)
+		return fmt.Errorf("%w: %v", ErrDeleteRelation, err)
 	}
 
 	if result.RowsAffected() == 0 {
@@ -133,7 +140,7 @@ func (r *userCategoryRelationRepositories) DeleteAll(ctx context.Context, userID
 
 	_, err := r.db.Exec(ctx, query, userID)
 	if err != nil {
-		return fmt.Errorf("erro ao deletar todas as relações do usuário: %w", err)
+		return fmt.Errorf("%w: %v", ErrDeleteAllUserRelations, err)
 	}
 
 	return nil
