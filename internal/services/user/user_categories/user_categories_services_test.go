@@ -103,6 +103,19 @@ func TestUserCategoryService_GetCategoryById(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("ReturnCategoryNotFound", func(t *testing.T) {
+		mockRepo := new(services.MockUserCategoryRepository)
+		service := services.NewUserCategoryService(mockRepo)
+
+		mockRepo.On("GetById", mock.Anything, int64(4)).Return(models.UserCategory{}, services.ErrCategoryNotFound).Once()
+
+		category, err := service.GetById(context.Background(), 4)
+
+		assert.ErrorIs(t, err, services.ErrCategoryNotFound)
+		assert.Equal(t, models.UserCategory{}, category)
+		mockRepo.AssertExpectations(t)
+	})
+
 	t.Run("GenericError", func(t *testing.T) {
 		genericErr := errors.New("db error")
 		mockRepo.On("GetById", mock.Anything, int64(3)).Return(models.UserCategory{}, genericErr).Once()

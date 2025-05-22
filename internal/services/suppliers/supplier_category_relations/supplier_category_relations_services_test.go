@@ -47,161 +47,270 @@ func (m *MockSupplierCategoryRelationRepo) CheckIfExists(ctx context.Context, su
 	return args.Bool(0), args.Error(1)
 }
 
-func TestCreate_Success(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRelationRepo)
-	s := service.NewSupplierCategoryRelationService(mockRepo)
+func TestCreate(t *testing.T) {
+	t.Run("IDs inválidos", func(t *testing.T) {
+		s := service.NewSupplierCategoryRelationService(nil)
 
-	mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).Return(false, nil)
-	expected := &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 2}
-	mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*models.SupplierCategoryRelations")).Return(expected, nil)
+		_, err := s.Create(context.Background(), 0, 1)
+		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
 
-	result, err := s.Create(context.Background(), 1, 2)
+		_, err = s.Create(context.Background(), 1, 0)
+		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+	})
 
-	assert.NoError(t, err)
-	assert.Equal(t, int64(1), result.ID)
-	mockRepo.AssertExpectations(t)
+	t.Run("falha ao verificar se relação existe", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).
+			Return(false, errors.New("erro ao verificar"))
+
+		_, err := s.Create(context.Background(), 1, 2)
+		assert.ErrorIs(t, err, service.ErrCheckRelationExists)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("relação já existe", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).
+			Return(true, nil)
+
+		_, err := s.Create(context.Background(), 1, 2)
+		assert.ErrorIs(t, err, service.ErrRelationExists)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha ao criar a relação", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).
+			Return(false, nil)
+
+		mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*models.SupplierCategoryRelations")).
+			Return((*models.SupplierCategoryRelations)(nil), errors.New("erro ao criar"))
+
+		_, err := s.Create(context.Background(), 1, 2)
+		assert.ErrorIs(t, err, service.ErrCreateRelation)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("criação bem-sucedida", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).
+			Return(false, nil)
+
+		expected := &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 2}
+		mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*models.SupplierCategoryRelations")).
+			Return(expected, nil)
+
+		result, err := s.Create(context.Background(), 1, 2)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
-func TestCreate_InvalidIDs(t *testing.T) {
-	s := service.NewSupplierCategoryRelationService(nil)
+func TestGetBySupplierId(t *testing.T) {
+	t.Run("ID inválido", func(t *testing.T) {
+		s := service.NewSupplierCategoryRelationService(nil)
 
-	_, err := s.Create(context.Background(), 0, 1)
-	assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+		result, err := s.GetBySupplierId(context.Background(), 0)
 
-	_, err = s.Create(context.Background(), 1, 0)
-	assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+		assert.Nil(t, result)
+	})
+
+	t.Run("busca com sucesso", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		expected := []*models.SupplierCategoryRelations{
+			{ID: 1, SupplierID: 1, CategoryID: 2},
+		}
+
+		mockRepo.On("GetBySupplierID", mock.Anything, int64(1)).Return(expected, nil)
+
+		result, err := s.GetBySupplierId(context.Background(), 1)
+
+		assert.NoError(t, err)
+		assert.Len(t, result, 1)
+		assert.Equal(t, expected, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha ao buscar no repositório", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		mockRepo.On("GetBySupplierID", mock.Anything, int64(1)).Return(([]*models.SupplierCategoryRelations)(nil), errors.New("erro de banco"))
+
+		result, err := s.GetBySupplierId(context.Background(), 1)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
-func TestCreate_AlreadyExists(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRelationRepo)
-	s := service.NewSupplierCategoryRelationService(mockRepo)
+func TestGetByCategoryId(t *testing.T) {
+	t.Run("ID inválido", func(t *testing.T) {
+		s := service.NewSupplierCategoryRelationService(nil)
 
-	mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).Return(true, nil)
+		result, err := s.GetByCategoryId(context.Background(), -1)
 
-	_, err := s.Create(context.Background(), 1, 2)
-	assert.ErrorIs(t, err, service.ErrRelationExists)
+		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+		assert.Nil(t, result)
+	})
+
+	t.Run("busca com sucesso", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		expected := []*models.SupplierCategoryRelations{
+			{ID: 1, SupplierID: 1, CategoryID: 2},
+		}
+
+		mockRepo.On("GetByCategoryID", mock.Anything, int64(2)).Return(expected, nil)
+
+		result, err := s.GetByCategoryId(context.Background(), 2)
+
+		assert.NoError(t, err)
+		assert.Len(t, result, 1)
+		assert.Equal(t, expected, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha ao buscar no repositório", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		mockRepo.On("GetByCategoryID", mock.Anything, int64(2)).Return(([]*models.SupplierCategoryRelations)(nil), errors.New("erro no banco"))
+
+		result, err := s.GetByCategoryId(context.Background(), 2)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
-func TestGetBySupplier_Success(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRelationRepo)
-	s := service.NewSupplierCategoryRelationService(mockRepo)
+func TestHasRelation(t *testing.T) {
+	t.Run("IDs inválidos", func(t *testing.T) {
+		s := service.NewSupplierCategoryRelationService(nil)
 
-	expected := []*models.SupplierCategoryRelations{{ID: 1, SupplierID: 1, CategoryID: 2}}
-	mockRepo.On("GetBySupplierID", mock.Anything, int64(1)).Return(expected, nil)
+		result, err := s.HasRelation(context.Background(), 0, 2)
 
-	result, err := s.GetBySupplier(context.Background(), 1)
+		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+		assert.False(t, result)
+	})
 
-	assert.NoError(t, err)
-	assert.Len(t, result, 1)
-	mockRepo.AssertExpectations(t)
+	t.Run("relação existe", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).Return(true, nil)
+
+		result, err := s.HasRelation(context.Background(), 1, 2)
+
+		assert.NoError(t, err)
+		assert.True(t, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro ao verificar existência", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).Return(false, errors.New("erro no banco"))
+
+		result, err := s.HasRelation(context.Background(), 1, 2)
+
+		assert.Error(t, err)
+		assert.False(t, result)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
-func TestGetBySupplier_InvalidID(t *testing.T) {
-	s := service.NewSupplierCategoryRelationService(nil)
-	result, err := s.GetBySupplier(context.Background(), 0)
-	assert.ErrorIs(t, err, service.ErrInvalidRelationData)
-	assert.Nil(t, result)
+func TestDeleteById(t *testing.T) {
+	t.Run("IDs inválidos", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		err := s.DeleteById(context.Background(), 0, 2)
+		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+
+		err = s.DeleteById(context.Background(), 1, -5)
+		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+	})
+
+	t.Run("remoção com sucesso", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(nil)
+
+		err := s.DeleteById(context.Background(), 1, 2)
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("relação não encontrada", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(repository.ErrRelationNotFound)
+
+		err := s.DeleteById(context.Background(), 1, 2)
+		assert.ErrorIs(t, err, service.ErrRelationNotFound)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro inesperado ao deletar", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(errors.New("erro de banco"))
+
+		err := s.DeleteById(context.Background(), 1, 2)
+		assert.ErrorIs(t, err, service.ErrDeleteRelation)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
-func TestGetByCategory_Success(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRelationRepo)
-	s := service.NewSupplierCategoryRelationService(mockRepo)
+func TestDeleteAllBySupplierId(t *testing.T) {
+	t.Run("ID inválido", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-	expected := []*models.SupplierCategoryRelations{{ID: 1, SupplierID: 1, CategoryID: 2}}
-	mockRepo.On("GetByCategoryID", mock.Anything, int64(2)).Return(expected, nil)
+		err := s.DeleteAllBySupplierId(context.Background(), 0)
+		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+	})
 
-	result, err := s.GetByCategory(context.Background(), 2)
+	t.Run("remoção com sucesso", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-	assert.NoError(t, err)
-	assert.Len(t, result, 1)
-	mockRepo.AssertExpectations(t)
-}
+		mockRepo.On("DeleteAllBySupplier", mock.Anything, int64(1)).Return(nil)
 
-func TestGetByCategory_InvalidID(t *testing.T) {
-	s := service.NewSupplierCategoryRelationService(nil)
-	result, err := s.GetByCategory(context.Background(), -1)
-	assert.ErrorIs(t, err, service.ErrInvalidRelationData)
-	assert.Nil(t, result)
-}
+		err := s.DeleteAllBySupplierId(context.Background(), 1)
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
 
-func TestHasRelation_Exists(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRelationRepo)
-	s := service.NewSupplierCategoryRelationService(mockRepo)
+	t.Run("erro do repositório", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-	mockRepo.On("CheckIfExists", mock.Anything, int64(1), int64(2)).Return(true, nil)
+		mockRepo.On("DeleteAllBySupplier", mock.Anything, int64(99)).Return(errors.New("falha ao deletar"))
 
-	result, err := s.HasRelation(context.Background(), 1, 2)
-	assert.NoError(t, err)
-	assert.True(t, result)
-}
-
-func TestHasRelation_InvalidIDs(t *testing.T) {
-	s := service.NewSupplierCategoryRelationService(nil)
-
-	result, err := s.HasRelation(context.Background(), 0, 2)
-	assert.ErrorIs(t, err, service.ErrInvalidRelationData)
-	assert.False(t, result)
-}
-
-func TestDelete_Success(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRelationRepo)
-	service := service.NewSupplierCategoryRelationService(mockRepo)
-
-	mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(nil)
-
-	err := service.Delete(context.Background(), 1, 2)
-
-	assert.NoError(t, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestDelete_InvalidIDs(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRelationRepo)
-	s := service.NewSupplierCategoryRelationService(mockRepo)
-
-	err := s.Delete(context.Background(), 0, 2)
-	assert.ErrorIs(t, err, service.ErrInvalidRelationData)
-
-	err = s.Delete(context.Background(), 1, -5)
-	assert.ErrorIs(t, err, service.ErrInvalidRelationData)
-}
-
-func TestDelete_RelationNotFound(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRelationRepo)
-	s := service.NewSupplierCategoryRelationService(mockRepo)
-
-	mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(repository.ErrRelationNotFound)
-
-	err := s.Delete(context.Background(), 1, 2)
-	assert.ErrorIs(t, err, service.ErrRelationNotFound)
-}
-
-func TestDeleteAll_Success(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRelationRepo)
-	s := service.NewSupplierCategoryRelationService(mockRepo)
-
-	mockRepo.On("DeleteAllBySupplier", mock.Anything, int64(1)).Return(nil)
-
-	err := s.DeleteAll(context.Background(), 1)
-
-	assert.NoError(t, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestDeleteAll_InvalidSupplierID(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRelationRepo)
-	s := service.NewSupplierCategoryRelationService(mockRepo)
-
-	err := s.DeleteAll(context.Background(), 0)
-	assert.ErrorIs(t, err, service.ErrInvalidRelationData)
-}
-
-func TestDeleteAll_RepoError(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRelationRepo)
-	service := service.NewSupplierCategoryRelationService(mockRepo)
-
-	mockRepo.On("DeleteAllBySupplier", mock.Anything, int64(99)).Return(errors.New("falha ao deletar"))
-
-	err := service.DeleteAll(context.Background(), 99)
-	assert.ErrorContains(t, err, "falha ao deletar")
+		err := s.DeleteAllBySupplierId(context.Background(), 99)
+		assert.ErrorContains(t, err, "falha ao deletar")
+		mockRepo.AssertExpectations(t)
+	})
 }

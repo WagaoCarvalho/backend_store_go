@@ -16,22 +16,22 @@ func (m *MockSupplierCategoryRelationService) Create(ctx context.Context, suppli
 	return args.Get(0).(*supplier_category_relations.SupplierCategoryRelations), args.Error(1)
 }
 
-func (m *MockSupplierCategoryRelationService) GetBySupplier(ctx context.Context, supplierID int64) ([]*supplier_category_relations.SupplierCategoryRelations, error) {
+func (m *MockSupplierCategoryRelationService) GetBySupplierId(ctx context.Context, supplierID int64) ([]*supplier_category_relations.SupplierCategoryRelations, error) {
 	args := m.Called(ctx, supplierID)
 	return args.Get(0).([]*supplier_category_relations.SupplierCategoryRelations), args.Error(1)
 }
 
-func (m *MockSupplierCategoryRelationService) GetByCategory(ctx context.Context, categoryID int64) ([]*supplier_category_relations.SupplierCategoryRelations, error) {
+func (m *MockSupplierCategoryRelationService) GetByCategoryId(ctx context.Context, categoryID int64) ([]*supplier_category_relations.SupplierCategoryRelations, error) {
 	args := m.Called(ctx, categoryID)
 	return args.Get(0).([]*supplier_category_relations.SupplierCategoryRelations), args.Error(1)
 }
 
-func (m *MockSupplierCategoryRelationService) Delete(ctx context.Context, supplierID, categoryID int64) error {
+func (m *MockSupplierCategoryRelationService) DeleteById(ctx context.Context, supplierID, categoryID int64) error {
 	args := m.Called(ctx, supplierID, categoryID)
 	return args.Error(0)
 }
 
-func (m *MockSupplierCategoryRelationService) DeleteAll(ctx context.Context, supplierID int64) error {
+func (m *MockSupplierCategoryRelationService) DeleteAllBySupplierId(ctx context.Context, supplierID int64) error {
 	args := m.Called(ctx, supplierID)
 	return args.Error(0)
 }

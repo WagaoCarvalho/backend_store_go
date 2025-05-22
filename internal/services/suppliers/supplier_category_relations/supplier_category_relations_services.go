@@ -21,10 +21,10 @@ var (
 
 type SupplierCategoryRelationService interface {
 	Create(ctx context.Context, supplierID, categoryID int64) (*models.SupplierCategoryRelations, error)
-	GetBySupplier(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error)
-	GetByCategory(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error)
-	Delete(ctx context.Context, supplierID, categoryID int64) error
-	DeleteAll(ctx context.Context, supplierID int64) error
+	GetBySupplierId(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error)
+	GetByCategoryId(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error)
+	DeleteById(ctx context.Context, supplierID, categoryID int64) error
+	DeleteAllBySupplierId(ctx context.Context, supplierID int64) error
 	HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error)
 }
 
@@ -62,21 +62,21 @@ func (s *supplierCategoryRelationService) Create(ctx context.Context, supplierID
 	return created, nil
 }
 
-func (s *supplierCategoryRelationService) GetBySupplier(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {
+func (s *supplierCategoryRelationService) GetBySupplierId(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {
 	if supplierID <= 0 {
 		return nil, ErrInvalidRelationData
 	}
 	return s.repository.GetBySupplierID(ctx, supplierID)
 }
 
-func (s *supplierCategoryRelationService) GetByCategory(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error) {
+func (s *supplierCategoryRelationService) GetByCategoryId(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error) {
 	if categoryID <= 0 {
 		return nil, ErrInvalidRelationData
 	}
 	return s.repository.GetByCategoryID(ctx, categoryID)
 }
 
-func (s *supplierCategoryRelationService) Delete(ctx context.Context, supplierID, categoryID int64) error {
+func (s *supplierCategoryRelationService) DeleteById(ctx context.Context, supplierID, categoryID int64) error {
 	if supplierID <= 0 || categoryID <= 0 {
 		return ErrInvalidRelationData
 	}
@@ -89,7 +89,7 @@ func (s *supplierCategoryRelationService) Delete(ctx context.Context, supplierID
 	return nil
 }
 
-func (s *supplierCategoryRelationService) DeleteAll(ctx context.Context, supplierID int64) error {
+func (s *supplierCategoryRelationService) DeleteAllBySupplierId(ctx context.Context, supplierID int64) error {
 	if supplierID <= 0 {
 		return ErrInvalidRelationData
 	}
