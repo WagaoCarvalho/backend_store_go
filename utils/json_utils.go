@@ -70,7 +70,3 @@ func ParseErrorResponse(body []byte) (DefaultResponse, error) {
 	}
 	return resp, nil
 }
-
-func IntPtr(i int) *int {
-	return &i
-}

@@ -10,7 +10,8 @@ func IsStringEmpty(param string) bool {
 }
 
 func IsValidEmail(email string) bool {
-	regex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	regex := `^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$`
+
 	re := regexp.MustCompile(regex)
 	return re.MatchString(email)
 }
