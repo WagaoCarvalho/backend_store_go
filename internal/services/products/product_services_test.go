@@ -108,7 +108,7 @@ func TestGetProductsByName_Error(t *testing.T) {
 
 	assert.Error(t, err)
 	// Atualizado para "erro ao obter" para corresponder à implementação
-	assert.Equal(t, "erro ao obter produtos por nome: erro no banco de dados", err.Error())
+	assert.Equal(t, "erro ao obter produtos por nome", err.Error())
 	mockRepo.AssertExpectations(t)
 }
 
@@ -163,7 +163,7 @@ func TestUpdateProduct_Error(t *testing.T) {
 	_, err := svc.Update(ctx, updatedProduct)
 
 	assert.Error(t, err)
-	assert.Equal(t, "erro ao atualizar produto: erro ao atualizar", err.Error())
+	assert.Equal(t, "erro ao atualizar produto", err.Error())
 	mockRepo.AssertExpectations(t)
 }
 
@@ -177,7 +177,7 @@ func TestDeleteProductById_Error(t *testing.T) {
 	err := svc.Delete(ctx, 1)
 
 	assert.Error(t, err)
-	assert.Equal(t, "erro ao deletar produto: erro ao deletar", err.Error())
+	assert.Equal(t, "erro ao deletar produto", err.Error())
 	mockRepo.AssertExpectations(t)
 }
 
@@ -209,7 +209,7 @@ func TestGetProductsByCostPriceRange_Error(t *testing.T) {
 	_, err := svc.GetByCostPriceRange(ctx, 40.0, 100.0)
 
 	assert.Error(t, err)
-	assert.Equal(t, "erro ao obter produtos por faixa de preço de custo: erro no banco", err.Error())
+	assert.Equal(t, "erro ao obter produtos por faixa de preço de custo", err.Error())
 	mockRepo.AssertExpectations(t)
 }
 
@@ -241,7 +241,7 @@ func TestGetProductsBySalePriceRange_Error(t *testing.T) {
 	_, err := svc.GetBySalePriceRange(ctx, 250.0, 450.0)
 
 	assert.Error(t, err)
-	assert.Equal(t, "erro ao obter produtos por faixa de preço de venda: erro no banco", err.Error())
+	assert.Equal(t, "erro ao obter produtos por faixa de preço de venda", err.Error())
 	mockRepo.AssertExpectations(t)
 }
 func TestGetProductsLowInStock_Success(t *testing.T) {
@@ -272,7 +272,7 @@ func TestGetProductsLowInStock_Error(t *testing.T) {
 	_, err := svc.GetLowInStock(ctx, 10)
 
 	assert.Error(t, err)
-	assert.Equal(t, "erro ao buscar produtos com estoque baixo: erro no banco", err.Error())
+	assert.Equal(t, "erro ao buscar produtos com estoque baixo", err.Error())
 	mockRepo.AssertExpectations(t)
 }
 

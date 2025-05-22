@@ -138,6 +138,9 @@ func (s *userService) Update(ctx context.Context, user *models_user.User) (model
 		if errors.Is(err, repositories_user.ErrVersionConflict) {
 			return models_user.User{}, repositories_user.ErrVersionConflict
 		}
+		if errors.Is(err, repositories_user.ErrRecordNotFound) {
+			return models_user.User{}, repositories_user.ErrRecordNotFound
+		}
 		return models_user.User{}, fmt.Errorf("%w: %v", ErrUpdateUser, err)
 	}
 
@@ -147,7 +150,7 @@ func (s *userService) Update(ctx context.Context, user *models_user.User) (model
 func (s *userService) Delete(ctx context.Context, uid int64) error {
 	err := s.repo.Delete(ctx, uid)
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrDeleteUser, err)
+		return fmt.Errorf("%w: %w", ErrDeleteUser, err)
 	}
 	return nil
 }

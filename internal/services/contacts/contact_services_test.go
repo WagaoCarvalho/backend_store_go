@@ -211,7 +211,7 @@ func TestGetContactByID(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, contact)
-		assert.Contains(t, err.Error(), "erro ao buscar contato")
+		assert.Contains(t, err.Error(), "erro ao verificar contato")
 		mockRepo.AssertExpectations(t)
 	})
 

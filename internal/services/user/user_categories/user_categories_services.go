@@ -53,10 +53,10 @@ func (s *userCategoryService) GetAll(ctx context.Context) ([]models.UserCategory
 func (s *userCategoryService) GetById(ctx context.Context, id int64) (models.UserCategory, error) {
 	category, err := s.repo.GetById(ctx, id)
 	if err != nil {
-		if err.Error() == ErrCategoryNotFound.Error() {
+		if errors.Is(err, ErrCategoryNotFound) {
 			return models.UserCategory{}, ErrCategoryNotFound
 		}
-		return models.UserCategory{}, fmt.Errorf("%w: %v", ErrFetchCategory, err)
+		return models.UserCategory{}, fmt.Errorf("%w: %w", ErrFetchCategory, err)
 	}
 	return category, nil
 }
