@@ -3,11 +3,17 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_categories"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_categories"
+)
+
+var (
+	ErrCategoryNameRequired    = errors.New("nome da categoria é obrigatório")
+	ErrCategoryIDInvalid       = errors.New("ID inválido")
+	ErrCategoryIDRequired      = errors.New("ID da categoria é obrigatório")
+	ErrCategoryDeleteInvalidID = errors.New("ID inválido para exclusão")
 )
 
 type SupplierCategoryService interface {
@@ -28,14 +34,14 @@ func NewSupplierCategoryService(repo repository.SupplierCategoryRepository) Supp
 
 func (s *supplierCategoryServiceImpl) Create(ctx context.Context, category *models.SupplierCategory) (int64, error) {
 	if strings.TrimSpace(category.Name) == "" {
-		return 0, errors.New("nome da categoria é obrigatório")
+		return 0, ErrCategoryNameRequired
 	}
 	return s.repo.Create(ctx, category)
 }
 
 func (s *supplierCategoryServiceImpl) GetByID(ctx context.Context, id int64) (*models.SupplierCategory, error) {
 	if id <= 0 {
-		return nil, fmt.Errorf("ID inválido")
+		return nil, ErrCategoryIDInvalid
 	}
 	return s.repo.GetByID(ctx, id)
 }
@@ -46,17 +52,17 @@ func (s *supplierCategoryServiceImpl) GetAll(ctx context.Context) ([]*models.Sup
 
 func (s *supplierCategoryServiceImpl) Update(ctx context.Context, category *models.SupplierCategory) error {
 	if category.ID == 0 {
-		return fmt.Errorf("ID da categoria é obrigatório")
+		return ErrCategoryIDRequired
 	}
 	if strings.TrimSpace(category.Name) == "" {
-		return errors.New("nome da categoria é obrigatório")
+		return ErrCategoryNameRequired
 	}
 	return s.repo.Update(ctx, category)
 }
 
 func (s *supplierCategoryServiceImpl) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return fmt.Errorf("ID inválido para exclusão")
+		return ErrCategoryDeleteInvalidID
 	}
 	return s.repo.Delete(ctx, id)
 }

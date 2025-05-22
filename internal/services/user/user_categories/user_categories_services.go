@@ -2,10 +2,20 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
+)
+
+var (
+	ErrCreateCategory   = errors.New("erro ao criar categoria")
+	ErrFetchCategories  = errors.New("erro ao buscar categorias")
+	ErrFetchCategory    = errors.New("erro ao buscar categoria")
+	ErrUpdateCategory   = errors.New("erro ao atualizar categoria")
+	ErrDeleteCategory   = errors.New("erro ao deletar categoria")
+	ErrCategoryNotFound = errors.New("categoria não encontrada")
 )
 
 type UserCategoryService interface {
@@ -27,7 +37,7 @@ func NewUserCategoryService(repo repositories.UserCategoryRepository) UserCatego
 func (s *userCategoryService) Create(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
 	createdCategory, err := s.repo.Create(ctx, category)
 	if err != nil {
-		return models.UserCategory{}, fmt.Errorf("erro ao criar categoria: %w", err)
+		return models.UserCategory{}, fmt.Errorf("%w: %v", ErrCreateCategory, err)
 	}
 	return createdCategory, nil
 }
@@ -35,7 +45,7 @@ func (s *userCategoryService) Create(ctx context.Context, category models.UserCa
 func (s *userCategoryService) GetAll(ctx context.Context) ([]models.UserCategory, error) {
 	categories, err := s.repo.GetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar categorias: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrFetchCategories, err)
 	}
 	return categories, nil
 }
@@ -43,10 +53,10 @@ func (s *userCategoryService) GetAll(ctx context.Context) ([]models.UserCategory
 func (s *userCategoryService) GetById(ctx context.Context, id int64) (models.UserCategory, error) {
 	category, err := s.repo.GetById(ctx, id)
 	if err != nil {
-		if err.Error() == "categoria não encontrada" {
-			return models.UserCategory{}, err // Mantém a mensagem original do erro
+		if err.Error() == ErrCategoryNotFound.Error() {
+			return models.UserCategory{}, ErrCategoryNotFound
 		}
-		return models.UserCategory{}, fmt.Errorf("erro ao buscar categoria: %w", err) // Adiciona apenas para outros tipos de erro
+		return models.UserCategory{}, fmt.Errorf("%w: %v", ErrFetchCategory, err)
 	}
 	return category, nil
 }
@@ -54,14 +64,14 @@ func (s *userCategoryService) GetById(ctx context.Context, id int64) (models.Use
 func (s *userCategoryService) Update(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
 	updatedCategory, err := s.repo.Update(ctx, category)
 	if err != nil {
-		return models.UserCategory{}, fmt.Errorf("erro ao atualizar categoria: %w", err)
+		return models.UserCategory{}, fmt.Errorf("%w: %v", ErrUpdateCategory, err)
 	}
 	return updatedCategory, nil
 }
 
 func (s *userCategoryService) Delete(ctx context.Context, id int64) error {
 	if err := s.repo.Delete(ctx, id); err != nil {
-		return fmt.Errorf("erro ao deletar categoria: %w", err)
+		return fmt.Errorf("%w: %v", ErrDeleteCategory, err)
 	}
 	return nil
 }

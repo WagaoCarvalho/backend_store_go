@@ -3,10 +3,25 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/product"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
+)
+
+var (
+	ErrProductFetch               = errors.New("erro ao obter produtos")
+	ErrProductFetchByID           = errors.New("erro ao obter produto")
+	ErrProductFetchByName         = errors.New("erro ao obter produtos por nome")
+	ErrProductFetchByManufacturer = errors.New("erro ao obter produtos por fabricante")
+	ErrProductCreateNameRequired  = errors.New("validação falhou: nome do produto é obrigatório")
+	ErrProductCreateCostPrice     = errors.New("validação falhou: preço de custo deve ser positivo")
+	ErrProductCreateManufacturer  = errors.New("validação falhou: fabricante é obrigatório")
+	ErrProductCreatePriceLogic    = errors.New("validação falhou: preço de venda deve ser maior que o preço de custo")
+	ErrProductUpdate              = errors.New("erro ao atualizar produto")
+	ErrProductDelete              = errors.New("erro ao deletar produto")
+	ErrProductFetchByCostPrice    = errors.New("erro ao obter produtos por faixa de preço de custo")
+	ErrProductFetchBySalePrice    = errors.New("erro ao obter produtos por faixa de preço de venda")
+	ErrProductLowStock            = errors.New("erro ao buscar produtos com estoque baixo")
 )
 
 type ProductService interface {
@@ -33,7 +48,7 @@ func NewProductService(productRepo repositories.ProductRepository) ProductServic
 func (s *productService) GetAll(ctx context.Context) ([]models.Product, error) {
 	products, err := s.productRepo.GetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao obter produtos: %w", err)
+		return nil, ErrProductFetch
 	}
 	return products, nil
 }
@@ -41,7 +56,7 @@ func (s *productService) GetAll(ctx context.Context) ([]models.Product, error) {
 func (s *productService) GetById(ctx context.Context, id int64) (models.Product, error) {
 	product, err := s.productRepo.GetById(ctx, id)
 	if err != nil {
-		return models.Product{}, fmt.Errorf("erro ao obter produto: %w", err)
+		return models.Product{}, ErrProductFetchByID
 	}
 	return product, nil
 }
@@ -49,7 +64,7 @@ func (s *productService) GetById(ctx context.Context, id int64) (models.Product,
 func (s *productService) GetByName(ctx context.Context, name string) ([]models.Product, error) {
 	products, err := s.productRepo.GetByName(ctx, name)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao obter produtos por nome: %w", err)
+		return nil, ErrProductFetchByName
 	}
 	return products, nil
 }
@@ -57,51 +72,38 @@ func (s *productService) GetByName(ctx context.Context, name string) ([]models.P
 func (s *productService) GetByManufacturer(ctx context.Context, manufacturer string) ([]models.Product, error) {
 	products, err := s.productRepo.GetByManufacturer(ctx, manufacturer)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao obter produtos por fabricante: %w", err)
+		return nil, ErrProductFetchByManufacturer
 	}
 	return products, nil
 }
 
-// product_service.go
-
 func (s *productService) Create(ctx context.Context, product models.Product) (models.Product, error) {
-	// Validação do nome do produto
 	if product.ProductName == "" {
-		return models.Product{}, errors.New("validação falhou: nome do produto é obrigatório")
+		return models.Product{}, ErrProductCreateNameRequired
 	}
-
-	// Validação do preço de custo
 	if product.CostPrice <= 0 {
-		return models.Product{}, errors.New("validação falhou: preço de custo deve ser positivo")
+		return models.Product{}, ErrProductCreateCostPrice
 	}
-
-	// Validação do fabricante
 	if product.Manufacturer == "" {
-		return models.Product{}, errors.New("validação falhou: fabricante é obrigatório")
+		return models.Product{}, ErrProductCreateManufacturer
 	}
-
-	// Validação do preço de venda
 	if product.SalePrice <= product.CostPrice {
-		return models.Product{}, errors.New("validação falhou: preço de venda deve ser maior que o preço de custo")
+		return models.Product{}, ErrProductCreatePriceLogic
 	}
-
-	// Só chama o repositório se todas as validações passarem
 	return s.productRepo.Create(ctx, product)
 }
 
 func (s *productService) Update(ctx context.Context, product models.Product) (models.Product, error) {
-	// Aqui você pode adicionar validações ou lógicas adicionais antes de atualizar o produto
 	updatedProduct, err := s.productRepo.Update(ctx, product)
 	if err != nil {
-		return models.Product{}, fmt.Errorf("erro ao atualizar produto: %w", err)
+		return models.Product{}, ErrProductUpdate
 	}
 	return updatedProduct, nil
 }
 
 func (s *productService) Delete(ctx context.Context, id int64) error {
-	err := s.productRepo.DeleteById(ctx, id)
-	if err != nil {
-		return fmt.Errorf("erro ao deletar produto: %w", err)
+	if err := s.productRepo.DeleteById(ctx, id); err != nil {
+		return ErrProductDelete
 	}
 	return nil
 }
@@ -109,7 +111,7 @@ func (s *productService) Delete(ctx context.Context, id int64) error {
 func (s *productService) GetByCostPriceRange(ctx context.Context, min, max float64) ([]models.Product, error) {
 	products, err := s.productRepo.GetByCostPriceRange(ctx, min, max)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao obter produtos por faixa de preço de custo: %w", err)
+		return nil, ErrProductFetchByCostPrice
 	}
 	return products, nil
 }
@@ -117,7 +119,7 @@ func (s *productService) GetByCostPriceRange(ctx context.Context, min, max float
 func (s *productService) GetBySalePriceRange(ctx context.Context, min, max float64) ([]models.Product, error) {
 	products, err := s.productRepo.GetBySalePriceRange(ctx, min, max)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao obter produtos por faixa de preço de venda: %w", err)
+		return nil, ErrProductFetchBySalePrice
 	}
 	return products, nil
 }
@@ -125,7 +127,7 @@ func (s *productService) GetBySalePriceRange(ctx context.Context, min, max float
 func (s *productService) GetLowInStock(ctx context.Context, threshold int) ([]models.Product, error) {
 	products, err := s.productRepo.GetLowInStock(ctx, threshold)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar produtos com estoque baixo: %w", err)
+		return nil, ErrProductLowStock
 	}
 	return products, nil
 }

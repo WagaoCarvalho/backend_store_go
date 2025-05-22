@@ -8,6 +8,11 @@ import (
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 )
 
+var (
+	ErrInvalidAddressData = errors.New("dados do endereço inválidos")
+	ErrAddressIDRequired  = errors.New("ID do endereço é obrigatório")
+)
+
 type AddressService interface {
 	Create(ctx context.Context, address models.Address) (models.Address, error)
 	GetByID(ctx context.Context, id int) (models.Address, error)
@@ -25,9 +30,8 @@ func NewAddressService(repo repositories.AddressRepository) AddressService {
 
 func (s *addressService) Create(ctx context.Context, address models.Address) (models.Address, error) {
 	if address.Street == "" || address.City == "" || address.State == "" || address.PostalCode == "" {
-		return models.Address{}, errors.New("dados do endereço inválidos")
+		return models.Address{}, ErrInvalidAddressData
 	}
-
 	return s.repo.Create(ctx, address)
 }
 
@@ -37,16 +41,14 @@ func (s *addressService) GetByID(ctx context.Context, id int) (models.Address, e
 
 func (s *addressService) Update(ctx context.Context, address models.Address) error {
 	if address.ID == nil {
-		return errors.New("ID do endereço é obrigatório")
+		return ErrAddressIDRequired
 	}
-
 	return s.repo.Update(ctx, address)
 }
 
 func (s *addressService) Delete(ctx context.Context, id int) error {
 	if id == 0 {
-		return errors.New("ID do endereço é obrigatório")
+		return ErrAddressIDRequired
 	}
-
 	return s.repo.Delete(ctx, id)
 }

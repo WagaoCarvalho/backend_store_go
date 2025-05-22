@@ -10,6 +10,25 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 )
 
+// Erros personalizados
+var (
+	ErrContactNameRequired        = errors.New("nome do contato é obrigatório")
+	ErrContactAssociationRequired = errors.New("o contato deve estar associado a um usuário, cliente ou fornecedor")
+	ErrInvalidEmail               = errors.New("email inválido")
+	ErrInvalidID                  = errors.New("ID inválido")
+	ErrUserIDInvalid              = errors.New("ID de usuário inválido")
+	ErrClientIDInvalid            = errors.New("ID de cliente inválido")
+	ErrSupplierIDInvalid          = errors.New("ID de fornecedor inválido")
+	ErrContactNotFound            = errors.New("contato não encontrado")
+	ErrCreateContact              = errors.New("erro ao criar contato")
+	ErrListUserContacts           = errors.New("erro ao listar contatos do usuário")
+	ErrListClientContacts         = errors.New("erro ao listar contatos do cliente")
+	ErrListSupplierContacts       = errors.New("erro ao listar contatos do fornecedor")
+	ErrUpdateContact              = errors.New("erro ao atualizar contato")
+	ErrDeleteContact              = errors.New("erro ao deletar contato")
+	ErrCheckContact               = errors.New("erro ao verificar contato")
+)
+
 type ContactService interface {
 	Create(ctx context.Context, contact models.Contact) (models.Contact, error)
 	GetByID(ctx context.Context, id int64) (*models.Contact, error)
@@ -31,23 +50,21 @@ func NewContactService(contactRepo repositories.ContactRepository) ContactServic
 }
 
 func (s *contactService) Create(ctx context.Context, c models.Contact) (models.Contact, error) {
-	// Validações básicas
 	if c.ContactName == "" {
-		return models.Contact{}, fmt.Errorf("nome do contato é obrigatório")
+		return models.Contact{}, ErrContactNameRequired
 	}
 
 	if c.UserID == nil && c.ClientID == nil && c.SupplierID == nil {
-		return models.Contact{}, fmt.Errorf("o contato deve estar associado a um usuário, cliente ou fornecedor")
+		return models.Contact{}, ErrContactAssociationRequired
 	}
 
 	if c.Email != "" && !utils.IsValidEmail(c.Email) {
-		return models.Contact{}, fmt.Errorf("email inválido")
+		return models.Contact{}, ErrInvalidEmail
 	}
 
-	// Chama o repositório — adaptando para trabalhar com struct por valor
 	createdContact, err := s.contactRepo.Create(ctx, c)
 	if err != nil {
-		return models.Contact{}, fmt.Errorf("erro ao criar contato: %w", err)
+		return models.Contact{}, fmt.Errorf("%w: %v", ErrCreateContact, err)
 	}
 
 	return createdContact, nil
@@ -55,15 +72,15 @@ func (s *contactService) Create(ctx context.Context, c models.Contact) (models.C
 
 func (s *contactService) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
 	if id <= 0 {
-		return nil, fmt.Errorf("ID inválido")
+		return nil, ErrInvalidID
 	}
 
 	contact, err := s.contactRepo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repositories.ErrContactNotFound) {
-			return nil, fmt.Errorf("contato não encontrado")
+			return nil, ErrContactNotFound
 		}
-		return nil, fmt.Errorf("erro ao buscar contato: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrCheckContact, err)
 	}
 
 	return contact, nil
@@ -71,12 +88,12 @@ func (s *contactService) GetByID(ctx context.Context, id int64) (*models.Contact
 
 func (s *contactService) GetByUser(ctx context.Context, userID int64) ([]*models.Contact, error) {
 	if userID <= 0 {
-		return nil, fmt.Errorf("ID de usuário inválido")
+		return nil, ErrUserIDInvalid
 	}
 
 	contacts, err := s.contactRepo.GetByUserID(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao listar contatos do usuário: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrListUserContacts, err)
 	}
 
 	return contacts, nil
@@ -84,12 +101,12 @@ func (s *contactService) GetByUser(ctx context.Context, userID int64) ([]*models
 
 func (s *contactService) GetByClient(ctx context.Context, clientID int64) ([]*models.Contact, error) {
 	if clientID <= 0 {
-		return nil, fmt.Errorf("ID de cliente inválido")
+		return nil, ErrClientIDInvalid
 	}
 
 	contacts, err := s.contactRepo.GetByClientID(ctx, clientID)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao listar contatos do cliente: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrListClientContacts, err)
 	}
 
 	return contacts, nil
@@ -97,39 +114,37 @@ func (s *contactService) GetByClient(ctx context.Context, clientID int64) ([]*mo
 
 func (s *contactService) GetBySupplier(ctx context.Context, supplierID int64) ([]*models.Contact, error) {
 	if supplierID <= 0 {
-		return nil, fmt.Errorf("ID de fornecedor inválido")
+		return nil, ErrSupplierIDInvalid
 	}
 
 	contacts, err := s.contactRepo.GetBySupplierID(ctx, supplierID)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao listar contatos do fornecedor: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrListSupplierContacts, err)
 	}
 
 	return contacts, nil
 }
 
 func (s *contactService) Update(ctx context.Context, c *models.Contact) error {
-	// Validações básicas
 	if c.ID == nil || *c.ID <= 0 {
-		return fmt.Errorf("ID inválido")
+		return ErrInvalidID
 	}
 
 	if c.ContactName == "" {
-		return fmt.Errorf("nome do contato é obrigatório")
+		return ErrContactNameRequired
 	}
 
-	// Verifica se o contato existe antes de atualizar
 	_, err := s.contactRepo.GetByID(ctx, *c.ID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrContactNotFound) {
-			return fmt.Errorf("contato não encontrado")
+			return ErrContactNotFound
 		}
-		return fmt.Errorf("erro ao verificar contato: %w", err)
+		return fmt.Errorf("%w: %v", ErrCheckContact, err)
 	}
 
 	err = s.contactRepo.Update(ctx, c)
 	if err != nil {
-		return fmt.Errorf("erro ao atualizar contato: %w", err)
+		return fmt.Errorf("%w: %v", ErrUpdateContact, err)
 	}
 
 	return nil
@@ -137,21 +152,20 @@ func (s *contactService) Update(ctx context.Context, c *models.Contact) error {
 
 func (s *contactService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return fmt.Errorf("ID inválido")
+		return ErrInvalidID
 	}
 
-	// Verifica se o contato existe antes de deletar
 	_, err := s.contactRepo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repositories.ErrContactNotFound) {
-			return fmt.Errorf("contato não encontrado")
+			return ErrContactNotFound
 		}
-		return fmt.Errorf("erro ao verificar contato: %w", err)
+		return fmt.Errorf("%w: %v", ErrCheckContact, err)
 	}
 
 	err = s.contactRepo.Delete(ctx, id)
 	if err != nil {
-		return fmt.Errorf("erro ao deletar contato: %w", err)
+		return fmt.Errorf("%w: %v", ErrDeleteContact, err)
 	}
 
 	return nil

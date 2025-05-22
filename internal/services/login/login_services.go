@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"time"
 
@@ -11,6 +10,15 @@ import (
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"golang.org/x/crypto/bcrypt"
+)
+
+// Erros personalizados
+var (
+	ErrInvalidEmailFormat = errors.New("formato de email inválido")
+	ErrInvalidCredentials = errors.New("credenciais inválidas")
+	ErrUserFetchFailed    = errors.New("erro ao buscar usuário")
+	ErrTokenGeneration    = errors.New("erro ao gerar token de acesso")
+	ErrAccountDisabled    = errors.New("conta desativada")
 )
 
 type LoginService interface {
@@ -39,38 +47,35 @@ func NewLoginServiceWithJWT(repo repositories.UserRepository, jwtGen JWTGenerato
 }
 
 func (s *loginService) Login(ctx context.Context, credentials models.LoginCredentials) (string, error) {
-	// Validação básica
 	if !utils.IsValidEmail(credentials.Email) {
-		return "", fmt.Errorf("formato de email inválido")
+		return "", ErrInvalidEmailFormat
 	}
+	// Validação de senha desativada, mas deixada como sugestão:
 	// if len(credentials.Password) < 8 {
-	// 	return "", fmt.Errorf("a senha deve ter pelo menos 8 caracteres")
+	// 	return "", ErrWeakPassword
 	// }
 
 	user, err := s.userRepo.GetByEmail(ctx, credentials.Email)
 	if err != nil {
 		log.Printf("Erro ao buscar usuário: %v", err)
 		if errors.Is(err, repositories.ErrUserNotFound) {
-			// Delay para prevenir timing attacks
-			time.Sleep(time.Second)
-			return "", fmt.Errorf("credenciais inválidas")
+			time.Sleep(time.Second) // Mitigação de timing attack
+			return "", ErrInvalidCredentials
 		}
-		return "", fmt.Errorf("erro ao buscar usuário")
+		return "", ErrUserFetchFailed
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password))
-	if err != nil {
-		return "", fmt.Errorf("credenciais inválidas")
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password)); err != nil {
+		return "", ErrInvalidCredentials
 	}
 
 	if !user.Status {
-		return "", fmt.Errorf("conta desativada")
+		return "", ErrAccountDisabled
 	}
 
-	// 👇 Aqui estava o problema
 	token, err := s.generateJWT(user.UID, user.Email)
 	if err != nil {
-		return "", fmt.Errorf("erro ao gerar token de acesso")
+		return "", ErrTokenGeneration
 	}
 
 	return token, nil

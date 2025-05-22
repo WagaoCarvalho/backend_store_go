@@ -13,7 +13,7 @@ type MockAddressService struct {
 
 func (m *MockAddressService) Create(ctx context.Context, address models_address.Address) (models_address.Address, error) {
 	args := m.Called(ctx, address)
-	return args.Get(0).(models_address.Address), args.Error(1) // Retorna o valor, não o ponteiro
+	return args.Get(0).(models_address.Address), args.Error(1)
 }
 
 func (m *MockAddressService) GetByID(ctx context.Context, id int) (models_address.Address, error) {

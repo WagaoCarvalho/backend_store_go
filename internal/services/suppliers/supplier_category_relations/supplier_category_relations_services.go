@@ -13,9 +13,12 @@ var (
 	ErrRelationNotFound    = errors.New("relação supplier-categoria não encontrada")
 	ErrRelationExists      = errors.New("relação já existe")
 	ErrInvalidRelationData = errors.New("dados inválidos para relação")
+	ErrCheckRelationExists = errors.New("erro ao verificar existência da relação")
+	ErrCreateRelation      = errors.New("erro ao criar relação")
+	ErrDeleteRelation      = errors.New("erro ao deletar relação")
+	ErrDeleteAllRelations  = errors.New("erro ao deletar todas as relações do fornecedor")
 )
 
-// Interface pública
 type SupplierCategoryRelationService interface {
 	Create(ctx context.Context, supplierID, categoryID int64) (*models.SupplierCategoryRelations, error)
 	GetBySupplier(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error)
@@ -25,17 +28,14 @@ type SupplierCategoryRelationService interface {
 	HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error)
 }
 
-// Implementação
 type supplierCategoryRelationService struct {
 	repository repo.SupplierCategoryRelationRepository
 }
 
-// Construtor
 func NewSupplierCategoryRelationService(repository repo.SupplierCategoryRelationRepository) SupplierCategoryRelationService {
 	return &supplierCategoryRelationService{repository: repository}
 }
 
-// Criação da relação
 func (s *supplierCategoryRelationService) Create(ctx context.Context, supplierID, categoryID int64) (*models.SupplierCategoryRelations, error) {
 	if supplierID <= 0 || categoryID <= 0 {
 		return nil, ErrInvalidRelationData
@@ -43,7 +43,7 @@ func (s *supplierCategoryRelationService) Create(ctx context.Context, supplierID
 
 	exists, err := s.repository.CheckIfExists(ctx, supplierID, categoryID)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao verificar existência: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrCheckRelationExists, err)
 	}
 	if exists {
 		return nil, ErrRelationExists
@@ -56,13 +56,12 @@ func (s *supplierCategoryRelationService) Create(ctx context.Context, supplierID
 
 	created, err := s.repository.Create(ctx, relation)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao criar relação: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrCreateRelation, err)
 	}
 
 	return created, nil
 }
 
-// Busca por fornecedor
 func (s *supplierCategoryRelationService) GetBySupplier(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {
 	if supplierID <= 0 {
 		return nil, ErrInvalidRelationData
@@ -70,7 +69,6 @@ func (s *supplierCategoryRelationService) GetBySupplier(ctx context.Context, sup
 	return s.repository.GetBySupplierID(ctx, supplierID)
 }
 
-// Busca por categoria
 func (s *supplierCategoryRelationService) GetByCategory(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error) {
 	if categoryID <= 0 {
 		return nil, ErrInvalidRelationData
@@ -78,7 +76,6 @@ func (s *supplierCategoryRelationService) GetByCategory(ctx context.Context, cat
 	return s.repository.GetByCategoryID(ctx, categoryID)
 }
 
-// Remove relação específica
 func (s *supplierCategoryRelationService) Delete(ctx context.Context, supplierID, categoryID int64) error {
 	if supplierID <= 0 || categoryID <= 0 {
 		return ErrInvalidRelationData
@@ -87,20 +84,21 @@ func (s *supplierCategoryRelationService) Delete(ctx context.Context, supplierID
 		if errors.Is(err, repo.ErrRelationNotFound) {
 			return ErrRelationNotFound
 		}
-		return fmt.Errorf("erro ao deletar relação: %w", err)
+		return fmt.Errorf("%w: %v", ErrDeleteRelation, err)
 	}
 	return nil
 }
 
-// Remove todas as relações de um fornecedor
 func (s *supplierCategoryRelationService) DeleteAll(ctx context.Context, supplierID int64) error {
 	if supplierID <= 0 {
 		return ErrInvalidRelationData
 	}
-	return s.repository.DeleteAllBySupplier(ctx, supplierID)
+	if err := s.repository.DeleteAllBySupplier(ctx, supplierID); err != nil {
+		return fmt.Errorf("%w: %v", ErrDeleteAllRelations, err)
+	}
+	return nil
 }
 
-// Verifica se existe uma relação entre supplier e category
 func (s *supplierCategoryRelationService) HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {
 	if supplierID <= 0 || categoryID <= 0 {
 		return false, ErrInvalidRelationData
