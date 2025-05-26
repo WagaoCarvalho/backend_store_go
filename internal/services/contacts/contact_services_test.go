@@ -367,16 +367,17 @@ func TestUpdateContact(t *testing.T) {
 			ID:          ptrInt64(1),
 			ContactName: "Old Name",
 			Email:       "old@example.com",
+			Version:     1,
 		}
 
 		updatedContact := &models.Contact{
 			ID:          ptrInt64(1),
 			ContactName: "New Name",
 			Email:       "new@example.com",
+			Version:     1,
 		}
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(existingContact, nil)
-
 		mockRepo.On("Update", mock.Anything, updatedContact).Return(nil)
 
 		err := service.Update(context.Background(), updatedContact)
@@ -392,6 +393,7 @@ func TestUpdateContact(t *testing.T) {
 		updatedContact := &models.Contact{
 			ID:          ptrInt64(1),
 			ContactName: "New Name",
+			Version:     1,
 		}
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).Return((*models.Contact)(nil), repositories.ErrContactNotFound)
@@ -443,6 +445,7 @@ func TestUpdateContact(t *testing.T) {
 		contact := &models.Contact{
 			ID:          ptrInt64(1),
 			ContactName: "Valid Name",
+			Version:     1,
 		}
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).
@@ -451,7 +454,8 @@ func TestUpdateContact(t *testing.T) {
 		err := service.Update(context.Background(), contact)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "erro ao verificar contato")
+		assert.Contains(t, err.Error(), "erro ao verificar existência do contato antes da atualização")
+
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
@@ -462,6 +466,7 @@ func TestUpdateContact(t *testing.T) {
 		contact := &models.Contact{
 			ID:          ptrInt64(1),
 			ContactName: "Valid Name",
+			Version:     1,
 		}
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(contact, nil)
@@ -471,6 +476,44 @@ func TestUpdateContact(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao atualizar contato")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("validation error - missing version", func(t *testing.T) {
+		mockRepo := new(MockContactRepository)
+		service := NewContactService(mockRepo)
+
+		contact := &models.Contact{
+			ID:          ptrInt64(1),
+			ContactName: "Nome válido",
+			Version:     0, // versão ausente
+		}
+
+		err := service.Update(context.Background(), contact)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "versão do contato é obrigatória")
+		mockRepo.AssertNotCalled(t, "GetByID")
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("version conflict error", func(t *testing.T) {
+		mockRepo := new(MockContactRepository)
+		service := NewContactService(mockRepo)
+
+		contact := &models.Contact{
+			ID:          ptrInt64(1),
+			ContactName: "Nome válido",
+			Version:     1,
+		}
+
+		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(contact, nil)
+		mockRepo.On("Update", mock.Anything, contact).Return(repositories.ErrVersionConflict)
+
+		err := service.Update(context.Background(), contact)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "conflito de versão")
 		mockRepo.AssertExpectations(t)
 	})
 

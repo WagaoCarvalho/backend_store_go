@@ -20,6 +20,7 @@ var (
 	ErrScanContact             = errors.New("erro ao escanear contato")
 	ErrUpdateContact           = errors.New("erro ao atualizar contato")
 	ErrDeleteContact           = errors.New("erro ao deletar contato")
+	ErrVersionConflict         = errors.New("conflito de versão: o endereço foi modificado por outra operação")
 )
 
 type ContactRepository interface {
@@ -240,8 +241,9 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 			phone = $7,
 			cell = $8,
 			contact_type = $9,
+			version = version + 1,
 			updated_at = NOW()
-		WHERE id = $10
+		WHERE id = $10 AND version = $11
 	`
 
 	result, err := r.db.Exec(ctx, query,
@@ -255,6 +257,7 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 		contact.Cell,
 		contact.ContactType,
 		contact.ID,
+		contact.Version,
 	)
 
 	if err != nil {
@@ -262,7 +265,7 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 	}
 
 	if rowsAffected := result.RowsAffected(); rowsAffected == 0 {
-		return ErrContactNotFound
+		return ErrVersionConflict
 	}
 
 	return nil

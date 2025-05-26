@@ -12,6 +12,7 @@ type Address struct {
 	State      string    `json:"state"`
 	Country    string    `json:"country"`
 	PostalCode string    `json:"postal_code"`
+	Version    int       `json:"version"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
 }

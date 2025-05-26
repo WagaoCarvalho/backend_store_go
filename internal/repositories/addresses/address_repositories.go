@@ -16,6 +16,7 @@ var (
 	ErrAddressNotFound = errors.New("endereço não encontrado")
 	ErrUpdateAddress   = errors.New("erro ao atualizar endereço")
 	ErrDeleteAddress   = errors.New("erro ao excluir endereço")
+	ErrVersionConflict = errors.New("conflito de versão: o endereço foi modificado por outra operação")
 )
 
 type AddressRepository interface {
@@ -78,23 +79,25 @@ func (r *addressRepository) GetByID(ctx context.Context, id int) (models.Address
 func (r *addressRepository) Update(ctx context.Context, address models.Address) error {
 	query := `
 		UPDATE addresses
-		SET user_id = $1, client_id = $2, supplier_id = $3, street = $4, city = $5, state = $6, 
-			country = $7, postal_code = $8, updated_at = NOW()
-		WHERE id = $9
+		SET user_id = $1, client_id = $2, supplier_id = $3,
+			street = $4, city = $5, state = $6, country = $7,
+			postal_code = $8, updated_at = NOW(), version = version + 1
+		WHERE id = $9 AND version = $10
+		RETURNING version, updated_at
 	`
-	ct, err := r.db.Exec(ctx, query,
+
+	err := r.db.QueryRow(ctx, query,
 		address.UserID, address.ClientID, address.SupplierID,
-		address.Street, address.City, address.State,
-		address.Country, address.PostalCode,
-		address.ID,
-	)
+		address.Street, address.City, address.State, address.Country,
+		address.PostalCode,
+		address.ID, address.Version,
+	).Scan(&address.Version, &address.UpdatedAt)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrVersionConflict
+		}
 		return fmt.Errorf("%w: %v", ErrUpdateAddress, err)
-	}
-
-	if ct.RowsAffected() == 0 {
-		return ErrAddressNotFound
 	}
 
 	return nil

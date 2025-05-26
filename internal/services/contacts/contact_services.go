@@ -27,6 +27,10 @@ var (
 	ErrUpdateContact              = errors.New("erro ao atualizar contato")
 	ErrDeleteContact              = errors.New("erro ao deletar contato")
 	ErrCheckContact               = errors.New("erro ao verificar contato")
+	ErrVersionRequired            = errors.New("versão do contato é obrigatória")
+	ErrVersionMismatch            = errors.New("conflito de versão ao atualizar contato")
+	ErrUpdateFailed               = errors.New("erro ao atualizar contato")
+	ErrCheckBeforeUpdate          = errors.New("erro ao verificar existência do contato antes da atualização")
 )
 
 type ContactService interface {
@@ -134,17 +138,24 @@ func (s *contactService) Update(ctx context.Context, c *models.Contact) error {
 		return ErrContactNameRequired
 	}
 
+	if c.Version <= 0 {
+		return ErrVersionRequired
+	}
+
 	_, err := s.contactRepo.GetByID(ctx, *c.ID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrContactNotFound) {
 			return ErrContactNotFound
 		}
-		return fmt.Errorf("%w: %v", ErrCheckContact, err)
+		return fmt.Errorf("%w: %v", ErrCheckBeforeUpdate, err)
 	}
 
 	err = s.contactRepo.Update(ctx, c)
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrUpdateContact, err)
+		if errors.Is(err, repositories.ErrVersionConflict) {
+			return ErrVersionMismatch
+		}
+		return fmt.Errorf("%w: %v", ErrUpdateFailed, err)
 	}
 
 	return nil
