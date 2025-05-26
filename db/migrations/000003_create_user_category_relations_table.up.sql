@@ -1,6 +1,7 @@
 CREATE TABLE user_category_relations (
     user_id INTEGER NOT NULL,
     category_id INTEGER NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     PRIMARY KEY (user_id, category_id),

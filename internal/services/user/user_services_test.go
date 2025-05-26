@@ -16,7 +16,7 @@ import (
 )
 
 func TestUserService_Create(t *testing.T) {
-	// Setup comum para todos os testes
+
 	setup := func() (*MockUserRepository, *MockAddressRepository, *MockContactRepository, *MockUserCategoryRelationRepositories, UserService) {
 		mockUserRepo := new(MockUserRepository)
 		mockAddressRepo := new(MockAddressRepository)
@@ -36,7 +36,6 @@ func TestUserService_Create(t *testing.T) {
 	t.Run("sucesso ao criar usuário com todos os dados", func(t *testing.T) {
 		mockUserRepo, mockAddressRepo, mockContactRepo, mockRelationRepo, userService := setup()
 
-		// Dados de entrada
 		newUser := models_user.User{
 			Username: "testuser",
 			Email:    "test@example.com",
@@ -54,7 +53,6 @@ func TestUserService_Create(t *testing.T) {
 			Phone:       "123456789",
 		}
 
-		// Configuração dos mocks
 		createdUser := models_user.User{
 			UID:      1,
 			Username: "testuser",
@@ -66,10 +64,8 @@ func TestUserService_Create(t *testing.T) {
 		mockContactRepo.On("Create", mock.Anything, mock.Anything).Return(&models_contact.Contact{ID: ptrInt64(1)}, nil)
 		mockRelationRepo.On("Create", mock.Anything, mock.Anything).Return(&models_user_categories.UserCategory{}, nil).Times(len(categoryIDs))
 
-		// Execução
 		result, err := userService.Create(context.Background(), &newUser, categoryIDs, &newAddress, &newContact)
 
-		// Verificações
 		assert.NoError(t, err)
 		assert.Equal(t, createdUser, result)
 		mockUserRepo.AssertExpectations(t)
@@ -178,7 +174,7 @@ func TestUserService_GetUsers(t *testing.T) {
 }
 
 func TestUserService_GetUserById(t *testing.T) {
-	// Configuração comum dos mocks (opcional, pode manter a duplicação se preferir)
+
 	setupMocks := func() (*MockUserRepository, *MockAddressRepository, *MockContactRepository, *MockUserCategoryRelationRepositories) {
 		return new(MockUserRepository),
 			new(MockAddressRepository),
@@ -224,10 +220,10 @@ func TestUserService_GetUserById(t *testing.T) {
 }
 
 func TestUserService_GetUserByEmail(t *testing.T) {
-	// Setup corrigido para trabalhar com a interface
+
 	setup := func() (*MockUserRepository, UserService) {
 		mockUserRepo := new(MockUserRepository)
-		// Outros mocks...
+
 		service := NewUserService(
 			mockUserRepo,
 			new(MockAddressRepository),
@@ -273,7 +269,7 @@ func TestUserService_GetUserByEmail(t *testing.T) {
 }
 
 func TestUserService_Update(t *testing.T) {
-	// Setup comum
+
 	setup := func() (*MockUserRepository, UserService) {
 		mockRepo := new(MockUserRepository)
 		service := NewUserService(
@@ -381,7 +377,7 @@ func TestUserService_Update(t *testing.T) {
 }
 
 func TestUserService_Delete(t *testing.T) {
-	// Setup comum para os testes
+
 	setup := func() (*MockUserRepository, UserService) {
 		mockUserRepo := new(MockUserRepository)
 		userService := NewUserService(
@@ -396,13 +392,10 @@ func TestUserService_Delete(t *testing.T) {
 	t.Run("deve deletar usuário com sucesso", func(t *testing.T) {
 		mockUserRepo, service := setup()
 
-		// Configura o mock
 		mockUserRepo.On("Delete", mock.Anything, int64(1)).Return(nil)
 
-		// Executa o método
 		err := service.Delete(context.Background(), 1)
 
-		// Verificações
 		assert.NoError(t, err)
 		mockUserRepo.AssertExpectations(t)
 	})
@@ -410,32 +403,26 @@ func TestUserService_Delete(t *testing.T) {
 	t.Run("deve retornar erro quando usuário não existe", func(t *testing.T) {
 		mockUserRepo, service := setup()
 
-		// Configura o mock para retornar erro
 		mockUserRepo.On("Delete", mock.Anything, int64(999)).
 			Return(repositories_user.ErrRecordNotFound)
 
-		// Executa o método
 		err := service.Delete(context.Background(), 999)
 
-		// Verificações
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "erro ao deletar usuário") // Agora vai passar
-		assert.Contains(t, err.Error(), "registro não encontrado") // Verifica também a mensagem original
+		assert.Contains(t, err.Error(), "erro ao deletar usuário")
+		assert.Contains(t, err.Error(), "registro não encontrado")
 		assert.True(t, errors.Is(err, repositories_user.ErrRecordNotFound), "deve envolver o erro original")
 		mockUserRepo.AssertExpectations(t)
 	})
 	t.Run("deve retornar erro genérico do repositório", func(t *testing.T) {
 		mockUserRepo, service := setup()
 
-		// Configura o mock para retornar erro genérico
 		expectedErr := fmt.Errorf("erro no banco de dados")
 		mockUserRepo.On("Delete", mock.Anything, int64(1)).
 			Return(expectedErr)
 
-		// Executa o método
 		err := service.Delete(context.Background(), 1)
 
-		// Verificações
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao deletar usuário")
 		assert.True(t, errors.Is(err, expectedErr), "deve envolver o erro original")

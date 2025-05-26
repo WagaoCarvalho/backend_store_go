@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -134,7 +135,7 @@ func TestUserCategoryService_UpdateCategory(t *testing.T) {
 	service := services.NewUserCategoryService(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {
-		updatedCategory := models.UserCategory{ID: 1, Name: "UpdatedCategory", Description: "UpdatedDesc"}
+		updatedCategory := models.UserCategory{ID: 1, Name: "UpdatedCategory", Description: "UpdatedDesc", Version: 1}
 		mockRepo.On("Update", mock.Anything, updatedCategory).Return(updatedCategory, nil).Once()
 
 		category, err := service.Update(context.Background(), updatedCategory)
@@ -145,7 +146,7 @@ func TestUserCategoryService_UpdateCategory(t *testing.T) {
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
-		updatedCategory := models.UserCategory{ID: 2, Name: "FailCategory", Description: "FailDesc"}
+		updatedCategory := models.UserCategory{ID: 2, Name: "FailCategory", Description: "FailDesc", Version: 1}
 		repoErr := errors.New("db update error")
 		mockRepo.On("Update", mock.Anything, updatedCategory).Return(models.UserCategory{}, repoErr).Once()
 
@@ -153,6 +154,28 @@ func TestUserCategoryService_UpdateCategory(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "erro ao atualizar categoria")
+		assert.Equal(t, models.UserCategory{}, category)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("VersionConflict", func(t *testing.T) {
+		conflictCategory := models.UserCategory{ID: 3, Name: "Conflict", Description: "ConflictDesc", Version: 2}
+		mockRepo.On("Update", mock.Anything, conflictCategory).Return(models.UserCategory{}, repositories.ErrVersionConflict).Once()
+
+		category, err := service.Update(context.Background(), conflictCategory)
+
+		assert.ErrorIs(t, err, repositories.ErrVersionConflict)
+		assert.Equal(t, models.UserCategory{}, category)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("CategoryNotFound", func(t *testing.T) {
+		missingCategory := models.UserCategory{ID: 4, Name: "NotFound", Description: "NoDesc", Version: 1}
+		mockRepo.On("Update", mock.Anything, missingCategory).Return(models.UserCategory{}, repositories.ErrCategoryNotFound).Once()
+
+		category, err := service.Update(context.Background(), missingCategory)
+
+		assert.ErrorIs(t, err, repositories.ErrCategoryNotFound)
 		assert.Equal(t, models.UserCategory{}, category)
 		mockRepo.AssertExpectations(t)
 	})

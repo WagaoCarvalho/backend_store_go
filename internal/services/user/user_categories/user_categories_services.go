@@ -64,6 +64,12 @@ func (s *userCategoryService) GetById(ctx context.Context, id int64) (models.Use
 func (s *userCategoryService) Update(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
 	updatedCategory, err := s.repo.Update(ctx, category)
 	if err != nil {
+		if errors.Is(err, repositories.ErrVersionConflict) {
+			return models.UserCategory{}, repositories.ErrVersionConflict
+		}
+		if errors.Is(err, repositories.ErrCategoryNotFound) {
+			return models.UserCategory{}, repositories.ErrCategoryNotFound
+		}
 		return models.UserCategory{}, fmt.Errorf("%w: %v", ErrUpdateCategory, err)
 	}
 	return updatedCategory, nil

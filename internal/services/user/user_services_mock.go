@@ -85,6 +85,14 @@ func (m *MockUserCategoryRelationRepositories) Create(ctx context.Context, relat
 	return nil, args.Error(1)
 }
 
+func (m *MockUserCategoryRelationRepositories) Update(ctx context.Context, relation *user_category_relations.UserCategoryRelations) (*user_category_relations.UserCategoryRelations, error) {
+	args := m.Called(ctx, relation)
+	if updatedRelation, ok := args.Get(0).(*user_category_relations.UserCategoryRelations); ok {
+		return updatedRelation, args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
 func (m *MockUserCategoryRelationRepositories) Delete(ctx context.Context, userID, categoryID int64) error {
 	args := m.Called(ctx, userID, categoryID)
 	return args.Error(0)

@@ -21,6 +21,14 @@ func (m *MockUserCategoryRelationRepo) Create(ctx context.Context, relation *mod
 	return &rel, args.Error(1)
 }
 
+func (m *MockUserCategoryRelationRepo) Update(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
+	args := m.Called(ctx, relation)
+	if result, ok := args.Get(0).(*models.UserCategoryRelations); ok {
+		return result, args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
 func (m *MockUserCategoryRelationRepo) GetByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelations, error) {
 	args := m.Called(ctx, userID)
 	return args.Get(0).([]models.UserCategoryRelations), args.Error(1)

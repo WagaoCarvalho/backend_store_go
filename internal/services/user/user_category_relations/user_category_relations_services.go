@@ -25,6 +25,7 @@ type UserCategoryRelationServices interface {
 	Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelations, error)
 	GetAll(ctx context.Context, userID int64) ([]models.UserCategoryRelations, error)
 	GetRelations(ctx context.Context, categoryID int64) ([]models.UserCategoryRelations, error)
+	Update(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error)
 	Delete(ctx context.Context, userID, categoryID int64) error
 	DeleteAll(ctx context.Context, userID int64) error
 	GetByCategoryID(ctx context.Context, userID, categoryID int64) (bool, error)
@@ -97,6 +98,19 @@ func (s *userCategoryRelationServices) GetRelations(ctx context.Context, categor
 	}
 
 	return relations, nil
+}
+
+func (s *userCategoryRelationServices) Update(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
+	if relation.UserID == 0 || relation.CategoryID == 0 {
+		return nil, fmt.Errorf("userID e categoryID são obrigatórios")
+	}
+
+	updatedRelation, err := s.relationRepo.Update(ctx, relation)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao atualizar relação: %w", err)
+	}
+
+	return updatedRelation, nil
 }
 
 func (s *userCategoryRelationServices) Delete(ctx context.Context, userID, categoryID int64) error {

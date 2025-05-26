@@ -96,6 +96,59 @@ func TestUserCategoryRelationServices_Create(t *testing.T) {
 	})
 }
 
+func TestUserCategoryRelationServices_Update(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		mockRepo := new(MockUserCategoryRelationRepo)
+		service := NewUserCategoryRelationServices(mockRepo)
+
+		input := &models.UserCategoryRelations{ID: 1, UserID: 1, CategoryID: 2, Version: 1}
+		expected := &models.UserCategoryRelations{ID: 1, UserID: 1, CategoryID: 2, Version: 2}
+
+		mockRepo.On("Update", mock.Anything, input).Return(expected, nil)
+
+		result, err := service.Update(context.Background(), input)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("InvalidIDs", func(t *testing.T) {
+		mockRepo := new(MockUserCategoryRelationRepo)
+		service := NewUserCategoryRelationServices(mockRepo)
+
+		invalidRelation := &models.UserCategoryRelations{UserID: 0, CategoryID: 2}
+
+		result, err := service.Update(context.Background(), invalidRelation)
+
+		assert.Nil(t, result)
+		assert.ErrorContains(t, err, "userID e categoryID são obrigatórios")
+
+		invalidRelation2 := &models.UserCategoryRelations{UserID: 1, CategoryID: 0}
+
+		result, err = service.Update(context.Background(), invalidRelation2)
+
+		assert.Nil(t, result)
+		assert.ErrorContains(t, err, "userID e categoryID são obrigatórios")
+	})
+
+	t.Run("RepositoryError", func(t *testing.T) {
+		mockRepo := new(MockUserCategoryRelationRepo)
+		service := NewUserCategoryRelationServices(mockRepo)
+
+		input := &models.UserCategoryRelations{ID: 1, UserID: 1, CategoryID: 2, Version: 1}
+		repoErr := errors.New("db error")
+
+		mockRepo.On("Update", mock.Anything, input).Return(nil, repoErr)
+
+		result, err := service.Update(context.Background(), input)
+
+		assert.Nil(t, result)
+		assert.ErrorContains(t, err, "erro ao atualizar relação")
+		mockRepo.AssertExpectations(t)
+	})
+}
+
 func TestGetAll_Success(t *testing.T) {
 	mockRepo := new(MockUserCategoryRelationRepo)
 	service := NewUserCategoryRelationServices(mockRepo)
