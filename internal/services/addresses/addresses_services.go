@@ -41,7 +41,7 @@ func (s *addressService) GetByID(ctx context.Context, id int) (models.Address, e
 }
 
 func (s *addressService) Update(ctx context.Context, address models.Address) error {
-	if address.ID == nil {
+	if address.ID == 0 {
 		return ErrAddressIDRequired
 	}
 	if address.Version == 0 {

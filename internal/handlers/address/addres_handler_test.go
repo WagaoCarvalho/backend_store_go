@@ -49,7 +49,7 @@ func TestCreateAddressHandler_Success(t *testing.T) {
 		Street: "Rua Exemplo", City: "Cidade", State: "Estado", PostalCode: "12345",
 	}
 	expected := input
-	expected.ID = nil
+	expected.ID = int64(0)
 
 	mockService.On("Create", mock.Anything, input).Return(expected, nil)
 
@@ -108,7 +108,7 @@ func TestGetAddressByID_Success(t *testing.T) {
 	mockService := new(MockAddressService)
 	handler := NewAddressHandler(mockService)
 
-	expected := models.Address{ID: nil, Street: "Rua", City: "Cidade"}
+	expected := models.Address{ID: int64(0), Street: "Rua", City: "Cidade"}
 
 	mockService.On("GetByID", mock.Anything, 1).Return(expected, nil)
 
@@ -198,7 +198,7 @@ func TestUpdateAddressHandler_Success(t *testing.T) {
 	input := models.Address{Street: "Nova Rua"}
 	id := int64(2)
 	inputWithID := input
-	inputWithID.ID = &id
+	inputWithID.ID = id
 
 	mockService.On("Update", mock.Anything, inputWithID).Return(nil)
 
@@ -222,7 +222,7 @@ func TestUpdateAddressHandler_ServiceError(t *testing.T) {
 	input := models.Address{Street: "Nova Rua"}
 	id := int64(2)
 	inputWithID := input
-	inputWithID.ID = &id
+	inputWithID.ID = id
 
 	mockService.On("Update", mock.Anything, inputWithID).Return(assert.AnError)
 

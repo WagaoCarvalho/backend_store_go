@@ -60,8 +60,8 @@ func TestUserService_Create(t *testing.T) {
 			Status:   true,
 		}
 		mockUserRepo.On("Create", mock.Anything, &newUser).Return(createdUser, nil)
-		mockAddressRepo.On("Create", mock.Anything, mock.Anything).Return(models_address.Address{ID: ptrInt64(1)}, nil)
-		mockContactRepo.On("Create", mock.Anything, mock.Anything).Return(&models_contact.Contact{ID: ptrInt64(1)}, nil)
+		mockAddressRepo.On("Create", mock.Anything, mock.Anything).Return(models_address.Address{ID: 1}, nil)
+		mockContactRepo.On("Create", mock.Anything, mock.Anything).Return(&models_contact.Contact{ID: 1}, nil)
 		mockRelationRepo.On("Create", mock.Anything, mock.Anything).Return(&models_user_categories.UserCategory{}, nil).Times(len(categoryIDs))
 
 		result, err := userService.Create(context.Background(), &newUser, categoryIDs, &newAddress, &newContact)

@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Contact struct {
-	ID              *int64    `json:"id"`
+	ID              int64     `json:"id"`
 	UserID          *int64    `json:"user_id,omitempty"`
 	ClientID        *int64    `json:"client_id,omitempty"`
 	SupplierID      *int64    `json:"supplier_id,omitempty"`

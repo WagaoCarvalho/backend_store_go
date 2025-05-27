@@ -65,7 +65,7 @@ func TestCreateContact(t *testing.T) {
 		}
 
 		expectedContact := inputContact
-		expectedContact.ID = ptrInt64(1)
+		expectedContact.ID = 1
 
 		mockRepo.On("Create", mock.Anything, mock.AnythingOfType("models.Contact")).
 			Return(expectedContact, nil)
@@ -158,7 +158,7 @@ func TestGetContactByID(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		expectedContact := &models.Contact{
-			ID:          ptrInt64(1),
+			ID:          1,
 			ContactName: "Test User",
 			Email:       "test@example.com",
 			CreatedAt:   time.Now(),
@@ -224,12 +224,12 @@ func TestGetContactsBySupplier(t *testing.T) {
 
 		expectedContacts := []*models.Contact{
 			{
-				ID:          ptrInt64(1),
+				ID:          1,
 				SupplierID:  ptrInt64(1),
 				ContactName: "Fornecedor 1",
 			},
 			{
-				ID:          ptrInt64(2),
+				ID:          2,
 				SupplierID:  ptrInt64(1),
 				ContactName: "Fornecedor 2",
 			},
@@ -295,12 +295,12 @@ func TestGetContactsByClient(t *testing.T) {
 
 		expectedContacts := []*models.Contact{
 			{
-				ID:          ptrInt64(1),
+				ID:          1,
 				ClientID:    ptrInt64(1),
 				ContactName: "Cliente 1",
 			},
 			{
-				ID:          ptrInt64(2),
+				ID:          2,
 				ClientID:    ptrInt64(1),
 				ContactName: "Cliente 2",
 			},
@@ -364,14 +364,14 @@ func TestUpdateContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		existingContact := &models.Contact{
-			ID:          ptrInt64(1),
+			ID:          1,
 			ContactName: "Old Name",
 			Email:       "old@example.com",
 			Version:     1,
 		}
 
 		updatedContact := &models.Contact{
-			ID:          ptrInt64(1),
+			ID:          1,
 			ContactName: "New Name",
 			Email:       "new@example.com",
 			Version:     1,
@@ -391,7 +391,7 @@ func TestUpdateContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		updatedContact := &models.Contact{
-			ID:          ptrInt64(1),
+			ID:          1,
 			ContactName: "New Name",
 			Version:     1,
 		}
@@ -410,7 +410,7 @@ func TestUpdateContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		invalidContact := &models.Contact{
-			ID: ptrInt64(1),
+			ID: 1,
 		}
 
 		err := service.Update(context.Background(), invalidContact)
@@ -426,7 +426,7 @@ func TestUpdateContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		invalidContact := &models.Contact{
-			ID:          nil,
+			ID:          0,
 			ContactName: "Nome válido",
 		}
 
@@ -443,7 +443,7 @@ func TestUpdateContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		contact := &models.Contact{
-			ID:          ptrInt64(1),
+			ID:          1,
 			ContactName: "Valid Name",
 			Version:     1,
 		}
@@ -464,7 +464,7 @@ func TestUpdateContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		contact := &models.Contact{
-			ID:          ptrInt64(1),
+			ID:          1,
 			ContactName: "Valid Name",
 			Version:     1,
 		}
@@ -484,7 +484,7 @@ func TestUpdateContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		contact := &models.Contact{
-			ID:          ptrInt64(1),
+			ID:          1,
 			ContactName: "Nome válido",
 			Version:     0, // versão ausente
 		}
@@ -502,7 +502,7 @@ func TestUpdateContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		contact := &models.Contact{
-			ID:          ptrInt64(1),
+			ID:          1,
 			ContactName: "Nome válido",
 			Version:     1,
 		}
@@ -525,7 +525,7 @@ func TestDeleteContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		existingContact := &models.Contact{
-			ID:          ptrInt64(1),
+			ID:          1,
 			ContactName: "Test User",
 		}
 
@@ -582,7 +582,7 @@ func TestDeleteContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		existingContact := &models.Contact{
-			ID:          ptrInt64(1),
+			ID:          1,
 			ContactName: "Test User",
 		}
 
@@ -605,12 +605,12 @@ func TestGetContactsByUser(t *testing.T) {
 
 		expectedContacts := []*models.Contact{
 			{
-				ID:          ptrInt64(1),
+				ID:          1,
 				UserID:      ptrInt64(1),
 				ContactName: "User 1",
 			},
 			{
-				ID:          ptrInt64(2),
+				ID:          2,
 				UserID:      ptrInt64(1),
 				ContactName: "User 2",
 			},

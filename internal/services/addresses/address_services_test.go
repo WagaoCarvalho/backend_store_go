@@ -43,7 +43,7 @@ func TestAddressService_Create(t *testing.T) {
 
 	t.Run("sucesso na criação do endereço", func(t *testing.T) {
 		address := models.Address{
-			ID:         nil,
+			ID:         0,
 			UserID:     nil,
 			Street:     "Rua Teste",
 			City:       "Cidade Teste",
@@ -84,7 +84,7 @@ func TestAddressService_GetByID(t *testing.T) {
 
 	t.Run("sucesso ao buscar endereço por ID", func(t *testing.T) {
 		address := models.Address{
-			ID:         nil,
+			ID:         0,
 			UserID:     nil,
 			Street:     "Rua Teste",
 			City:       "Cidade Teste",
@@ -118,9 +118,8 @@ func TestAddressService_GetByID(t *testing.T) {
 
 func TestAddressService_UpdateAddress(t *testing.T) {
 	makeAddress := func() models.Address {
-		id := int64(1)
 		return models.Address{
-			ID:         &id,
+			ID:         1,
 			Street:     "Nova Rua",
 			City:       "Nova Cidade",
 			State:      "Novo Estado",
@@ -138,7 +137,7 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 
 		mockRepo.On("Update", mock.Anything, mock.MatchedBy(func(a models.Address) bool {
 			// Compara o ID e alguns campos importantes para garantir correspondência
-			return a.ID != nil && *a.ID == *address.ID && a.Street == address.Street && a.Version == address.Version
+			return a.ID != 0 && a.ID == address.ID && a.Street == address.Street && a.Version == address.Version
 		})).Return(nil)
 
 		err := service.Update(context.Background(), address)
@@ -165,9 +164,8 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 		mockRepo := new(MockAddressRepository)
 		service := services.NewAddressService(mockRepo)
 
-		id := int64(1)
 		address := models.Address{
-			ID:      &id,
+			ID:      1,
 			Street:  "Rua Teste",
 			Version: 0,
 		}
@@ -181,15 +179,14 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 		mockRepo := new(MockAddressRepository)
 		service := services.NewAddressService(mockRepo)
 
-		id := int64(1)
 		address := models.Address{
-			ID:      &id,
+			ID:      1,
 			Street:  "Rua Conflito",
 			Version: 2,
 		}
 
 		mockRepo.On("Update", mock.Anything, mock.MatchedBy(func(a models.Address) bool {
-			return a.ID != nil && *a.ID == *address.ID && a.Version == address.Version
+			return a.ID != 0 && a.ID == address.ID && a.Version == address.Version
 		})).Return(repositories.ErrVersionConflict)
 
 		err := service.Update(context.Background(), address)
@@ -202,16 +199,15 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 		mockRepo := new(MockAddressRepository)
 		service := services.NewAddressService(mockRepo)
 
-		id := int64(1)
 		address := models.Address{
-			ID:      &id,
+			ID:      1,
 			Street:  "Rua Erro Genérico",
 			Version: 1,
 		}
 
 		// Simula um erro genérico retornado pelo repositório
 		mockRepo.On("Update", mock.Anything, mock.MatchedBy(func(a models.Address) bool {
-			return a.ID != nil && *a.ID == *address.ID
+			return a.ID != 0 && a.ID == address.ID
 		})).Return(fmt.Errorf("erro inesperado no banco"))
 
 		err := service.Update(context.Background(), address)

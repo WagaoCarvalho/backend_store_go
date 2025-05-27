@@ -130,7 +130,7 @@ func (s *contactService) GetBySupplier(ctx context.Context, supplierID int64) ([
 }
 
 func (s *contactService) Update(ctx context.Context, c *models.Contact) error {
-	if c.ID == nil || *c.ID <= 0 {
+	if c.ID == 0 || c.ID <= 0 {
 		return ErrInvalidID
 	}
 
@@ -142,7 +142,7 @@ func (s *contactService) Update(ctx context.Context, c *models.Contact) error {
 		return ErrVersionRequired
 	}
 
-	_, err := s.contactRepo.GetByID(ctx, *c.ID)
+	_, err := s.contactRepo.GetByID(ctx, c.ID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrContactNotFound) {
 			return ErrContactNotFound

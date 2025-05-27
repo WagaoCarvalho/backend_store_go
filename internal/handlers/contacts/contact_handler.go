@@ -113,7 +113,7 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contact.ID = &id
+	contact.ID = id
 
 	if err := h.service.Update(r.Context(), &contact); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

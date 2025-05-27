@@ -136,7 +136,7 @@ func TestGetByID_Success(t *testing.T) {
 	mockSvc := new(MockContactService)
 	handler := NewContactHandler(mockSvc)
 
-	mockSvc.On("GetByID", mock.Anything, int64(1)).Return(&model_contact.Contact{ID: ptrInt64(1), ContactName: "Contato"}, nil)
+	mockSvc.On("GetByID", mock.Anything, int64(1)).Return(&model_contact.Contact{ID: 1, ContactName: "Contato"}, nil)
 
 	req := newRequestWithVars("GET", "/contacts/1", nil, map[string]string{"id": "1"})
 	w := httptest.NewRecorder()
@@ -299,7 +299,7 @@ func TestUpdate_Success(t *testing.T) {
 	mockSvc := new(MockContactService)
 	handler := NewContactHandler(mockSvc)
 
-	cont := model_contact.Contact{ID: ptrInt64(1), ContactName: "Atualizado"}
+	cont := model_contact.Contact{ID: 1, ContactName: "Atualizado"}
 	mockSvc.On("Update", mock.Anything, &cont).Return(nil)
 
 	body, _ := json.Marshal(cont)
@@ -323,7 +323,7 @@ func TestUpdate_ServiceError(t *testing.T) {
 	mockSvc := new(MockContactService)
 	handler := NewContactHandler(mockSvc)
 
-	cont := model_contact.Contact{ID: ptrInt64(1), ContactName: "Falha"}
+	cont := model_contact.Contact{ID: 1, ContactName: "Falha"}
 	mockSvc.On("Update", mock.Anything, &cont).Return(errors.New("erro ao atualizar"))
 
 	body, _ := json.Marshal(cont)
