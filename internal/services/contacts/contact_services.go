@@ -34,7 +34,7 @@ var (
 )
 
 type ContactService interface {
-	Create(ctx context.Context, contact models.Contact) (models.Contact, error)
+	Create(ctx context.Context, contact *models.Contact) (*models.Contact, error)
 	GetByID(ctx context.Context, id int64) (*models.Contact, error)
 	GetByUser(ctx context.Context, userID int64) ([]*models.Contact, error)
 	GetByClient(ctx context.Context, clientID int64) ([]*models.Contact, error)
@@ -53,22 +53,22 @@ func NewContactService(contactRepo repositories.ContactRepository) ContactServic
 	}
 }
 
-func (s *contactService) Create(ctx context.Context, c models.Contact) (models.Contact, error) {
-	if c.ContactName == "" {
-		return models.Contact{}, ErrContactNameRequired
+func (s *contactService) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
+	if contact.ContactName == "" {
+		return &models.Contact{}, ErrContactNameRequired
 	}
 
-	if c.UserID == nil && c.ClientID == nil && c.SupplierID == nil {
-		return models.Contact{}, ErrContactAssociationRequired
+	if contact.UserID == nil && contact.ClientID == nil && contact.SupplierID == nil {
+		return &models.Contact{}, ErrContactAssociationRequired
 	}
 
-	if c.Email != "" && !utils.IsValidEmail(c.Email) {
-		return models.Contact{}, ErrInvalidEmail
+	if contact.Email != "" && !utils.IsValidEmail(contact.Email) {
+		return &models.Contact{}, ErrInvalidEmail
 	}
 
-	createdContact, err := s.contactRepo.Create(ctx, c)
+	createdContact, err := s.contactRepo.Create(ctx, contact)
 	if err != nil {
-		return models.Contact{}, fmt.Errorf("%w: %v", ErrCreateContact, err)
+		return &models.Contact{}, fmt.Errorf("%w: %v", ErrCreateContact, err)
 	}
 
 	return createdContact, nil

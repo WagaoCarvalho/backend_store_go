@@ -26,7 +26,7 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdContact, err := h.service.Create(r.Context(), contact)
+	createdContact, err := h.service.Create(r.Context(), &contact)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

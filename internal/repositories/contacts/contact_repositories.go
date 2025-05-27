@@ -24,7 +24,7 @@ var (
 )
 
 type ContactRepository interface {
-	Create(ctx context.Context, contact models.Contact) (models.Contact, error)
+	Create(ctx context.Context, contact *models.Contact) (*models.Contact, error)
 	GetByID(ctx context.Context, id int64) (*models.Contact, error)
 	GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error)
 	GetByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error)
@@ -41,7 +41,7 @@ func NewContactRepository(db *pgxpool.Pool) ContactRepository {
 	return &contactRepository{db: db}
 }
 
-func (r *contactRepository) Create(ctx context.Context, contact models.Contact) (models.Contact, error) {
+func (r *contactRepository) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
 	query := `
 		INSERT INTO contacts (
 			user_id, client_id, supplier_id, contact_name, contact_position,
@@ -65,7 +65,7 @@ func (r *contactRepository) Create(ctx context.Context, contact models.Contact) 
 	).Scan(&c.ID, &c.CreatedAt, &c.UpdatedAt)
 
 	if err != nil {
-		return models.Contact{}, fmt.Errorf("%w: %v", ErrCreateContact, err)
+		return &models.Contact{}, fmt.Errorf("%w: %v", ErrCreateContact, err)
 	}
 
 	return c, nil

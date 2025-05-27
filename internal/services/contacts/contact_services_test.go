@@ -16,9 +16,9 @@ type MockContactRepository struct {
 	mock.Mock
 }
 
-func (m *MockContactRepository) Create(ctx context.Context, c models.Contact) (models.Contact, error) {
+func (m *MockContactRepository) Create(ctx context.Context, c *models.Contact) (*models.Contact, error) {
 	args := m.Called(ctx, c)
-	return args.Get(0).(models.Contact), args.Error(1)
+	return args.Get(0).(*models.Contact), args.Error(1)
 }
 
 func (m *MockContactRepository) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
@@ -57,7 +57,7 @@ func TestCreateContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		userID := int64(1)
-		inputContact := models.Contact{
+		inputContact := &models.Contact{
 			UserID:          &userID,
 			ContactName:     "Test User",
 			ContactPosition: "Developer",
@@ -67,7 +67,7 @@ func TestCreateContact(t *testing.T) {
 		expectedContact := inputContact
 		expectedContact.ID = 1
 
-		mockRepo.On("Create", mock.Anything, mock.AnythingOfType("models.Contact")).
+		mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*models.Contact")).
 			Return(expectedContact, nil)
 
 		created, err := service.Create(context.Background(), inputContact)
@@ -82,7 +82,7 @@ func TestCreateContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		userID := int64(1)
-		invalidContact := models.Contact{
+		invalidContact := &models.Contact{
 			UserID: &userID,
 			Email:  "test@example.com",
 		}
@@ -99,14 +99,14 @@ func TestCreateContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		userID := int64(1)
-		inputContact := models.Contact{
+		inputContact := &models.Contact{
 			UserID:          &userID,
 			ContactName:     "Test User",
 			ContactPosition: "Developer",
 		}
 
-		mockRepo.On("Create", mock.Anything, mock.AnythingOfType("models.Contact")).
-			Return(models.Contact{}, errors.New("repository error"))
+		mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*models.Contact")).
+			Return(&models.Contact{}, errors.New("repository error"))
 
 		_, err := service.Create(context.Background(), inputContact)
 
@@ -119,7 +119,7 @@ func TestCreateContact(t *testing.T) {
 		mockRepo := new(MockContactRepository)
 		service := NewContactService(mockRepo)
 
-		invalidContact := models.Contact{
+		invalidContact := &models.Contact{
 			ContactName: "No Relation",
 			Email:       "valid@example.com",
 		}
@@ -136,7 +136,7 @@ func TestCreateContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		clientID := int64(2)
-		invalidContact := models.Contact{
+		invalidContact := &models.Contact{
 			ClientID:        &clientID,
 			ContactName:     "Invalid Email",
 			Email:           "invalid-email",

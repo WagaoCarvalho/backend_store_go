@@ -125,11 +125,11 @@ func (s *supplierService) Create(
 
 	if contact != nil {
 		contact.SupplierID = &createdSupplier.ID
-		createdContact, err := s.contactService.Create(ctx, *contact)
+		createdContact, err := s.contactService.Create(ctx, contact)
 		if err != nil {
 			return 0, fmt.Errorf("%w (fornecedor %d): %v", ErrContactCreateFailed, createdSupplier.ID, err)
 		}
-		supplier.Contact = &createdContact
+		supplier.Contact = createdContact
 	}
 
 	return createdSupplier.ID, nil

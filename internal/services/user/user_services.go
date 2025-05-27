@@ -87,7 +87,7 @@ func (s *userService) Create(
 	}
 
 	contact.UserID = &id
-	createdContact, err := s.contactRepo.Create(ctx, *contact)
+	createdContact, err := s.contactRepo.Create(ctx, contact)
 	if err != nil {
 		return models_user.User{}, fmt.Errorf("%w: %v", ErrCreateContact, err)
 	}

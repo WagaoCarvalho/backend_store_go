@@ -20,10 +20,10 @@ type MockContactService struct {
 	mock.Mock
 }
 
-func (m *MockContactService) Create(ctx context.Context, c model_contact.Contact) (model_contact.Contact, error) {
+func (m *MockContactService) Create(ctx context.Context, c *model_contact.Contact) (*model_contact.Contact, error) {
 	args := m.Called(ctx, c) // captura os argumentos retornados do mock
 	contact, _ := args.Get(0).(*model_contact.Contact)
-	return *contact, args.Error(1)
+	return contact, args.Error(1)
 }
 
 func (m *MockContactService) GetByID(ctx context.Context, id int64) (*model_contact.Contact, error) {
@@ -73,8 +73,8 @@ func TestContactHandler_Create(t *testing.T) {
 		mockSvc := new(MockContactService)
 		handler := NewContactHandler(mockSvc)
 
-		cont := model_contact.Contact{ContactName: "Fulano"}
-		mockSvc.On("Create", mock.Anything, cont).Return(&cont, nil)
+		cont := &model_contact.Contact{ContactName: "Fulano"}
+		mockSvc.On("Create", mock.Anything, cont).Return(cont, nil)
 
 		body, _ := json.Marshal(cont)
 		req := httptest.NewRequest("POST", "/contacts", bytes.NewBuffer(body))
@@ -101,8 +101,8 @@ func TestContactHandler_Create(t *testing.T) {
 		mockSvc := new(MockContactService)
 		handler := NewContactHandler(mockSvc)
 
-		cont := model_contact.Contact{ContactName: "Erro"}
-		mockSvc.On("Create", mock.Anything, cont).Return(&model_contact.Contact{}, errors.New("erro interno"))
+		cont := &model_contact.Contact{ContactName: "Erro"}
+		mockSvc.On("Create", mock.Anything, cont).Return(model_contact.Contact{}, errors.New("erro interno"))
 
 		body, _ := json.Marshal(cont)
 		req := httptest.NewRequest("POST", "/contacts", bytes.NewBuffer(body))
@@ -118,8 +118,8 @@ func TestContactHandler_Create(t *testing.T) {
 		mockSvc := new(MockContactService)
 		handler := NewContactHandler(mockSvc)
 
-		cont := model_contact.Contact{ContactName: ""}
-		mockSvc.On("Create", mock.Anything, cont).Return(&model_contact.Contact{}, errors.New("nome obrigatório"))
+		cont := &model_contact.Contact{ContactName: ""}
+		mockSvc.On("Create", mock.Anything, cont).Return(model_contact.Contact{}, errors.New("nome obrigatório"))
 
 		body, _ := json.Marshal(cont)
 		req := httptest.NewRequest("POST", "/contacts", bytes.NewBuffer(body))

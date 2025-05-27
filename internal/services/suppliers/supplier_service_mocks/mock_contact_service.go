@@ -11,9 +11,9 @@ type MockContactService struct {
 	mock.Mock
 }
 
-func (m *MockContactService) Create(ctx context.Context, c models_contact.Contact) (models_contact.Contact, error) {
+func (m *MockContactService) Create(ctx context.Context, c *models_contact.Contact) (*models_contact.Contact, error) {
 	args := m.Called(ctx, c)
-	return args.Get(0).(models_contact.Contact), args.Error(1)
+	return args.Get(0).(*models_contact.Contact), args.Error(1)
 }
 
 func (m *MockContactService) GetByID(ctx context.Context, id int64) (*models_contact.Contact, error) {
