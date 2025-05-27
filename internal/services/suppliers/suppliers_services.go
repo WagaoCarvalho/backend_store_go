@@ -116,11 +116,11 @@ func (s *supplierService) Create(
 
 	if address != nil {
 		address.SupplierID = &createdSupplier.ID
-		createdAddress, err := s.addressService.Create(ctx, *address)
+		createdAddress, err := s.addressService.Create(ctx, address)
 		if err != nil {
 			return 0, fmt.Errorf("%w: %v", ErrAddressCreateFailed, err)
 		}
-		supplier.Address = &createdAddress
+		supplier.Address = createdAddress
 	}
 
 	if contact != nil {

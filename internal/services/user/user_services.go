@@ -81,7 +81,7 @@ func (s *userService) Create(
 
 	id := int64(createdUser.UID)
 	address.UserID = &id
-	_, err = s.addressRepo.Create(ctx, *address)
+	_, err = s.addressRepo.Create(ctx, address)
 	if err != nil {
 		return models_user.User{}, fmt.Errorf("%w: %v", ErrCreateAddress, err)
 	}

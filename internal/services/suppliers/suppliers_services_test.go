@@ -62,7 +62,7 @@ func TestCreateSupplierById(t *testing.T) {
 		mockSupplierRepo.On("Create", ctx, supplier).Return(supplierWithID, nil)
 		mockRelationService.On("HasRelation", ctx, supplierWithID.ID, categoryID).Return(false, nil)
 		mockRelationService.On("Create", ctx, supplierWithID.ID, categoryID).Return(&supplier_category_relations.SupplierCategoryRelations{}, nil)
-		mockAddressService.On("Create", ctx, mock.Anything).Return(*address, nil)
+		mockAddressService.On("Create", ctx, mock.Anything).Return(address, nil)
 		mockContactService.On("Create", ctx, mock.Anything).Return(*contact, nil)
 		mockCategoryService.On("GetByID", ctx, categoryID).Return(&supplier_category.SupplierCategory{ID: categoryID, Name: "Categoria A"}, nil)
 
@@ -193,7 +193,7 @@ func TestCreateSupplierById(t *testing.T) {
 		mockRelationService.On("HasRelation", ctx, supplierWithID.ID, categoryID).Return(false, nil)
 		mockRelationService.On("Create", ctx, supplierWithID.ID, categoryID).Return(&supplier_category_relations.SupplierCategoryRelations{}, nil)
 		mockCategoryService.On("GetByID", ctx, categoryID).Return(nil, nil)
-		mockAddressService.On("Create", ctx, mock.Anything).Return(models_address.Address{}, fmt.Errorf("erro ao criar endereço"))
+		mockAddressService.On("Create", ctx, mock.Anything).Return(&models_address.Address{}, fmt.Errorf("erro ao criar endereço"))
 
 		_, err := service.Create(ctx, &supplier, categoryID, address, nil)
 
@@ -261,7 +261,7 @@ func TestCreateSupplierById(t *testing.T) {
 		mockRelationService.On("HasRelation", ctx, supplierWithID.ID, categoryID).Return(false, nil)
 		mockRelationService.On("Create", ctx, supplierWithID.ID, categoryID).Return(&supplier_category_relations.SupplierCategoryRelations{}, nil)
 		mockCategoryService.On("GetByID", ctx, categoryID).Return(nil, nil)
-		mockAddressService.On("Create", ctx, mock.Anything).Return(models_address.Address{}, nil)
+		mockAddressService.On("Create", ctx, mock.Anything).Return(&models_address.Address{}, nil)
 		mockContactService.On("Create", ctx, mock.Anything).Return(models_contact.Contact{}, fmt.Errorf("erro ao criar contato"))
 
 		_, err := service.Create(ctx, &supplier, categoryID, address, contact)

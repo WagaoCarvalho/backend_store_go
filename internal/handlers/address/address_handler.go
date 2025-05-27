@@ -17,7 +17,7 @@ func NewAddressHandler(service services.AddressService) *AddressHandler {
 }
 
 func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var address models.Address
+	var address *models.Address
 	if err := utils.FromJson(r.Body, &address); err != nil {
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
@@ -43,7 +43,7 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	address, err := h.service.GetByID(r.Context(), int(id))
+	address, err := h.service.GetByID(r.Context(), int64(id))
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
@@ -63,7 +63,7 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var address models.Address
+	var address *models.Address
 	if err := utils.FromJson(r.Body, &address); err != nil {
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
@@ -89,7 +89,7 @@ func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Delete(r.Context(), int(id)); err != nil {
+	if err := h.service.Delete(r.Context(), int64(id)); err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}

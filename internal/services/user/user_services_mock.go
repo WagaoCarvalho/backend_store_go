@@ -121,28 +121,28 @@ func (m *MockUserCategoryRelationRepositories) GetByUserID(ctx context.Context, 
 }
 
 // MockAddressRepository
-func (m *MockAddressRepository) Create(ctx context.Context, address models_address.Address) (models_address.Address, error) {
+func (m *MockAddressRepository) Create(ctx context.Context, address *models_address.Address) (*models_address.Address, error) {
 	args := m.Called(ctx, address)
-	if addr, ok := args.Get(0).(models_address.Address); ok {
+	if addr, ok := args.Get(0).(*models_address.Address); ok {
 		return addr, args.Error(1)
 	}
-	return models_address.Address{}, args.Error(1)
+	return &models_address.Address{}, args.Error(1)
 }
 
-func (m *MockAddressRepository) GetByID(ctx context.Context, id int) (models_address.Address, error) {
+func (m *MockAddressRepository) GetByID(ctx context.Context, id int64) (*models_address.Address, error) {
 	args := m.Called(ctx, id)
-	if addr, ok := args.Get(0).(models_address.Address); ok {
+	if addr, ok := args.Get(0).(*models_address.Address); ok {
 		return addr, args.Error(1)
 	}
-	return models_address.Address{}, args.Error(1)
+	return &models_address.Address{}, args.Error(1)
 }
 
-func (m *MockAddressRepository) Update(ctx context.Context, address models_address.Address) error {
+func (m *MockAddressRepository) Update(ctx context.Context, address *models_address.Address) error {
 	args := m.Called(ctx, address)
 	return args.Error(0)
 }
 
-func (m *MockAddressRepository) Delete(ctx context.Context, id int) error {
+func (m *MockAddressRepository) Delete(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }

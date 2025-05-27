@@ -20,10 +20,10 @@ var (
 )
 
 type AddressRepository interface {
-	Create(ctx context.Context, address models.Address) (models.Address, error)
-	GetByID(ctx context.Context, id int) (models.Address, error)
-	Update(ctx context.Context, address models.Address) error
-	Delete(ctx context.Context, id int) error
+	Create(ctx context.Context, address *models.Address) (*models.Address, error)
+	GetByID(ctx context.Context, id int64) (*models.Address, error)
+	Update(ctx context.Context, address *models.Address) error
+	Delete(ctx context.Context, id int64) error
 }
 
 type addressRepository struct {
@@ -34,7 +34,7 @@ func NewAddressRepository(db *pgxpool.Pool) AddressRepository {
 	return &addressRepository{db: db}
 }
 
-func (r *addressRepository) Create(ctx context.Context, address models.Address) (models.Address, error) {
+func (r *addressRepository) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
 	query := `
 		INSERT INTO addresses (user_id, client_id, supplier_id, street, city, state, country, postal_code, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
@@ -47,13 +47,13 @@ func (r *addressRepository) Create(ctx context.Context, address models.Address) 
 	).Scan(&address.ID, &address.CreatedAt, &address.UpdatedAt)
 
 	if err != nil {
-		return models.Address{}, fmt.Errorf("%w: %v", ErrCreateAddress, err)
+		return &models.Address{}, fmt.Errorf("%w: %v", ErrCreateAddress, err)
 	}
 
 	return address, nil
 }
 
-func (r *addressRepository) GetByID(ctx context.Context, id int) (models.Address, error) {
+func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Address, error) {
 	query := `
 		SELECT id, user_id, client_id, supplier_id, street, city, state, country, postal_code, created_at, updated_at
 		FROM addresses WHERE id = $1
@@ -68,15 +68,15 @@ func (r *addressRepository) GetByID(ctx context.Context, id int) (models.Address
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return models.Address{}, ErrAddressNotFound
+			return &models.Address{}, ErrAddressNotFound
 		}
-		return models.Address{}, fmt.Errorf("%w: %v", ErrFetchAddress, err)
+		return &models.Address{}, fmt.Errorf("%w: %v", ErrFetchAddress, err)
 	}
 
-	return address, nil
+	return &address, nil
 }
 
-func (r *addressRepository) Update(ctx context.Context, address models.Address) error {
+func (r *addressRepository) Update(ctx context.Context, address *models.Address) error {
 	query := `
 		UPDATE addresses
 		SET user_id = $1, client_id = $2, supplier_id = $3,
@@ -103,7 +103,7 @@ func (r *addressRepository) Update(ctx context.Context, address models.Address) 
 	return nil
 }
 
-func (r *addressRepository) Delete(ctx context.Context, id int) error {
+func (r *addressRepository) Delete(ctx context.Context, id int64) error {
 	query := `DELETE FROM addresses WHERE id = $1`
 	ct, err := r.db.Exec(ctx, query, id)
 	if err != nil {
