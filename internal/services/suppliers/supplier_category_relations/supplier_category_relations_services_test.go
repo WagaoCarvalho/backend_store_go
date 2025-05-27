@@ -32,6 +32,15 @@ func (m *MockSupplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, 
 	return args.Get(0).([]*models.SupplierCategoryRelations), args.Error(1)
 }
 
+func (m *MockSupplierCategoryRelationRepo) Update(ctx context.Context, rel *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error) {
+	args := m.Called(ctx, rel)
+	result := args.Get(0)
+	if result == nil {
+		return nil, args.Error(1)
+	}
+	return result.(*models.SupplierCategoryRelations), args.Error(1)
+}
+
 func (m *MockSupplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, categoryID int64) error {
 	args := m.Called(ctx, supplierID, categoryID)
 	return args.Error(0)
@@ -198,6 +207,97 @@ func TestGetByCategoryId(t *testing.T) {
 		assert.Nil(t, result)
 		mockRepo.AssertExpectations(t)
 	})
+}
+
+func TestUpdate(t *testing.T) {
+	t.Run("IDs inválidos", func(t *testing.T) {
+		s := service.NewSupplierCategoryRelationService(nil)
+
+		invalid := &models.SupplierCategoryRelations{ID: 0, SupplierID: 1, CategoryID: 2, Version: 1}
+		_, err := s.Update(context.Background(), invalid)
+		assert.ErrorIs(t, err, service.ErrInvalidSupplierCategoryRelationID)
+
+		invalid = &models.SupplierCategoryRelations{ID: 1, SupplierID: 0, CategoryID: 2, Version: 1}
+		_, err = s.Update(context.Background(), invalid)
+		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+
+		invalid = &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 0, Version: 1}
+		_, err = s.Update(context.Background(), invalid)
+		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+	})
+
+	t.Run("versão ausente", func(t *testing.T) {
+		s := service.NewSupplierCategoryRelationService(nil)
+
+		invalid := &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 2, Version: 0}
+		_, err := s.Update(context.Background(), invalid)
+		assert.ErrorIs(t, err, service.ErrSupplierCategoryRelationVersionRequired)
+	})
+
+	t.Run("relação não encontrada", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		relation := &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 2, Version: 1}
+
+		mockRepo.On("Update", mock.Anything, relation).
+			Return(nil, repository.ErrSupplierCategoryRelationNotFound)
+
+		_, err := s.Update(context.Background(), relation)
+		assert.ErrorIs(t, err, service.ErrSupplierCategoryRelationUpdate)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro no repositório", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		relation := &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 2, Version: 1}
+
+		mockRepo.On("Update", mock.Anything, relation).
+			Return(nil, errors.New("falha inesperada"))
+
+		_, err := s.Update(context.Background(), relation)
+		assert.ErrorIs(t, err, service.ErrSupplierCategoryRelationUpdate)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("atualização bem-sucedida", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		relation := &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 2, Version: 1}
+
+		mockRepo.On("Update", mock.Anything, relation).
+			Return(relation, nil)
+
+		result, err := s.Update(context.Background(), relation)
+		assert.NoError(t, err)
+		assert.Equal(t, relation, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("relação não encontrada (erro propagado)", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
+
+		relation := &models.SupplierCategoryRelations{
+			ID:         1,
+			SupplierID: 1,
+			CategoryID: 2,
+			Version:    1,
+		}
+
+		mockRepo.
+			On("Update", mock.Anything, relation).
+			Return(nil, service.ErrSupplierCategoryRelationNotFound)
+
+		_, err := s.Update(context.Background(), relation)
+
+		assert.ErrorIs(t, err, service.ErrSupplierCategoryRelationNotFound)
+		mockRepo.AssertExpectations(t)
+	})
+
 }
 
 func TestHasRelation(t *testing.T) {

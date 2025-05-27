@@ -26,6 +26,15 @@ var (
 	ErrAddressCreateFailed          = errors.New("erro ao criar endereço")
 	ErrContactCreateFailed          = errors.New("erro ao criar contato")
 	ErrInvalidSupplierIDForDeletion = errors.New("ID inválido para deletar fornecedor")
+	ErrInvalidSupplierID            = errors.New("ID do fornecedor é inválido")
+	ErrSupplierVersionRequired      = errors.New("versão do fornecedor é obrigatória")
+
+	// Regras de negócio
+	ErrSupplierNotFound        = errors.New("fornecedor não encontrado")
+	ErrSupplierVersionConflict = errors.New("conflito de versão ao atualizar o fornecedor")
+
+	// Operações
+	ErrSupplierUpdate = errors.New("erro ao atualizar fornecedor")
 )
 
 type SupplierService interface {
@@ -135,10 +144,30 @@ func (s *supplierService) GetAll(ctx context.Context) ([]*models.Supplier, error
 }
 
 func (s *supplierService) Update(ctx context.Context, supplier *models.Supplier) error {
+	if supplier.ID <= 0 {
+		return ErrInvalidSupplierID
+	}
+
 	if supplier.Name == "" {
 		return ErrSupplierNameRequired
 	}
-	return s.repo.Update(ctx, supplier)
+
+	if supplier.Version == 0 {
+		return ErrSupplierVersionRequired
+	}
+
+	err := s.repo.Update(ctx, supplier)
+	if err != nil {
+		if errors.Is(err, repository.ErrVersionConflict) {
+			return ErrSupplierVersionConflict
+		}
+		if errors.Is(err, repository.ErrSupplierNotFound) {
+			return ErrSupplierNotFound
+		}
+		return fmt.Errorf("%w: %v", ErrSupplierUpdate, err)
+	}
+
+	return nil
 }
 
 func (s *supplierService) Delete(ctx context.Context, id int64) error {

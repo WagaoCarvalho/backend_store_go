@@ -19,6 +19,7 @@ var (
 	ErrSupplierList        = errors.New("erro ao listar fornecedores")
 	ErrSupplierRetrieve    = errors.New("erro ao buscar fornecedor por ID")
 	ErrInvalidSupplierData = errors.New("dados inválidos para fornecedor")
+	ErrVersionConflict     = errors.New("conflito de versão: o endereço foi modificado por outra operação")
 )
 
 type SupplierRepository interface {
@@ -110,14 +111,19 @@ func (r *supplierRepository) GetAll(ctx context.Context) ([]*models.Supplier, er
 }
 
 func (r *supplierRepository) Update(ctx context.Context, supplier *models.Supplier) error {
-	if supplier.ID <= 0 || supplier.Name == "" {
+	if supplier.ID <= 0 || supplier.Name == "" || supplier.Version == 0 {
 		return ErrInvalidSupplierData
 	}
 
 	query := `
 		UPDATE suppliers
-		SET name = $1, cnpj = $2, cpf = $3, contact_info = $4, updated_at = $5
-		WHERE id = $6
+		SET name = $1,
+			cnpj = $2,
+			cpf = $3,
+			contact_info = $4,
+			updated_at = $5,
+			version = version + 1
+		WHERE id = $6 AND version = $7
 	`
 
 	now := time.Now()
@@ -129,6 +135,7 @@ func (r *supplierRepository) Update(ctx context.Context, supplier *models.Suppli
 		supplier.ContactInfo,
 		now,
 		supplier.ID,
+		supplier.Version,
 	)
 
 	if err != nil {
@@ -136,7 +143,7 @@ func (r *supplierRepository) Update(ctx context.Context, supplier *models.Suppli
 	}
 
 	if cmd.RowsAffected() == 0 {
-		return ErrSupplierNotFound
+		return ErrVersionConflict
 	}
 
 	return nil

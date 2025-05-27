@@ -1,6 +1,7 @@
 CREATE TABLE supplier_category_relations (
     supplier_id INTEGER REFERENCES suppliers(id) ON DELETE CASCADE,
     category_id INTEGER REFERENCES supplier_categories(id) ON DELETE CASCADE,
+    version INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     PRIMARY KEY (supplier_id, category_id),

@@ -11,16 +11,20 @@ import (
 )
 
 var (
-	ErrRelationNotFound             = errors.New("relação supplier-categoria não encontrada")
-	ErrRelationExists               = errors.New("relação já existe")
-	ErrInvalidRelationData          = errors.New("dados inválidos para relação")
-	ErrCreateRelation               = errors.New("erro ao criar relação")
-	ErrCheckRelation                = errors.New("erro ao verificar existência da relação")
-	ErrGetRelationsBySupplier       = errors.New("erro ao buscar relações do fornecedor")
-	ErrGetRelationsByCategory       = errors.New("erro ao buscar relações da categoria")
-	ErrScanRelationRow              = errors.New("erro ao ler relação")
-	ErrDeleteRelation               = errors.New("erro ao deletar relação")
-	ErrDeleteAllRelationsBySupplier = errors.New("erro ao deletar todas as relações do fornecedor")
+	ErrRelationNotFound                        = errors.New("relação supplier-categoria não encontrada")
+	ErrRelationExists                          = errors.New("relação já existe")
+	ErrInvalidRelationData                     = errors.New("dados inválidos para relação")
+	ErrCreateRelation                          = errors.New("erro ao criar relação")
+	ErrCheckRelation                           = errors.New("erro ao verificar existência da relação")
+	ErrGetRelationsBySupplier                  = errors.New("erro ao buscar relações do fornecedor")
+	ErrGetRelationsByCategory                  = errors.New("erro ao buscar relações da categoria")
+	ErrScanRelationRow                         = errors.New("erro ao ler relação")
+	ErrDeleteRelation                          = errors.New("erro ao deletar relação")
+	ErrDeleteAllRelationsBySupplier            = errors.New("erro ao deletar todas as relações do fornecedor")
+	ErrInvalidSupplierCategoryRelationID       = errors.New("ID da relação de categoria do fornecedor é inválido")
+	ErrSupplierCategoryRelationVersionRequired = errors.New("versão da relação de categoria do fornecedor é obrigatória")
+	ErrSupplierCategoryRelationNotFound        = errors.New("relação de categoria do fornecedor não encontrada")
+	ErrSupplierCategoryRelationUpdate          = errors.New("erro ao atualizar a relação de categoria do fornecedor")
 )
 
 type SupplierCategoryRelationRepository interface {
@@ -30,6 +34,7 @@ type SupplierCategoryRelationRepository interface {
 	Delete(ctx context.Context, supplierID, categoryID int64) error
 	DeleteAllBySupplierId(ctx context.Context, supplierID int64) error
 	HasSupplierCategoryRelation(ctx context.Context, supplierID, categoryID int64) (bool, error)
+	Update(ctx context.Context, relation *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error)
 }
 
 type supplierCategoryRelationRepo struct {
@@ -131,6 +136,51 @@ func (r *supplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, cate
 	}
 
 	return relations, nil
+}
+
+func (r *supplierCategoryRelationRepo) Update(ctx context.Context, relation *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error) {
+	if relation.ID <= 0 {
+		return nil, ErrInvalidSupplierCategoryRelationID
+	}
+
+	if relation.Version <= 0 {
+		return nil, ErrSupplierCategoryRelationVersionRequired
+	}
+
+	query := `
+		UPDATE supplier_category_relations
+		SET supplier_id = $1,
+		    category_id = $2,
+		    updated_at = NOW(),
+		    version = version + 1
+		WHERE id = $3 AND version = $4
+		RETURNING id, supplier_id, category_id, created_at, updated_at, version
+	`
+
+	row := r.db.QueryRow(ctx, query,
+		relation.SupplierID,
+		relation.CategoryID,
+		relation.ID,
+		relation.Version,
+	)
+
+	updated := &models.SupplierCategoryRelations{}
+	err := row.Scan(
+		&updated.ID,
+		&updated.SupplierID,
+		&updated.CategoryID,
+		&updated.CreatedAt,
+		&updated.UpdatedAt,
+		&updated.Version,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrSupplierCategoryRelationNotFound
+		}
+		return nil, fmt.Errorf("%w: %v", ErrSupplierCategoryRelationUpdate, err)
+	}
+
+	return updated, nil
 }
 
 func (r *supplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, categoryID int64) error {

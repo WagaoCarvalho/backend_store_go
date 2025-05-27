@@ -99,6 +99,15 @@ func (m *MockSupplierCategoryRelationService) Create(ctx context.Context, suppli
 	return args.Get(0).(*models_supplier_realiations.SupplierCategoryRelations), args.Error(1)
 }
 
+func (m *MockSupplierCategoryRelationService) Update(ctx context.Context, rel *models_supplier_realiations.SupplierCategoryRelations) (*models_supplier_realiations.SupplierCategoryRelations, error) {
+	args := m.Called(ctx, rel)
+	result := args.Get(0)
+	if result == nil {
+		return nil, args.Error(1)
+	}
+	return result.(*models_supplier_realiations.SupplierCategoryRelations), args.Error(1)
+}
+
 func (m *MockSupplierCategoryRelationService) HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {
 	args := m.Called(ctx, supplierID, categoryID)
 	return args.Bool(0), args.Error(1)

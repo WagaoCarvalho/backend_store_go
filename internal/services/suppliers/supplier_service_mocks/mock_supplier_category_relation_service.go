@@ -31,6 +31,17 @@ func (m *MockSupplierCategoryRelationService) DeleteById(ctx context.Context, su
 	return args.Error(0)
 }
 
+func (m *MockSupplierCategoryRelationService) Update(ctx context.Context, rel *supplier_category_relations.SupplierCategoryRelations) (*supplier_category_relations.SupplierCategoryRelations, error) {
+	args := m.Called(ctx, rel)
+	result := args.Get(0)
+
+	if result == nil {
+		return nil, args.Error(1)
+	}
+
+	return result.(*supplier_category_relations.SupplierCategoryRelations), args.Error(1)
+}
+
 func (m *MockSupplierCategoryRelationService) DeleteAllBySupplierId(ctx context.Context, supplierID int64) error {
 	args := m.Called(ctx, supplierID)
 	return args.Error(0)

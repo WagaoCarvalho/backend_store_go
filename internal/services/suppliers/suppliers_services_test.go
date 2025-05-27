@@ -10,6 +10,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
 	supplier_category "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_categories"
 	supplier_category_relations "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
+	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers"
 	mock_supplier "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_service_mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -396,14 +397,12 @@ func TestUpdateSupplier(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(mock_supplier.MockSupplierRepository)
-
-		service := &supplierService{
-			repo: mockRepo,
-		}
+		service := &supplierService{repo: mockRepo}
 
 		supplier := &models.Supplier{
-			ID:   1,
-			Name: "Fornecedor Atualizado",
+			ID:      1,
+			Name:    "Fornecedor Atualizado",
+			Version: 1,
 		}
 
 		mockRepo.On("Update", ctx, supplier).Return(nil)
@@ -416,32 +415,78 @@ func TestUpdateSupplier(t *testing.T) {
 
 	t.Run("MissingName", func(t *testing.T) {
 		mockRepo := new(mock_supplier.MockSupplierRepository)
-
-		service := &supplierService{
-			repo: mockRepo,
-		}
+		service := &supplierService{repo: mockRepo}
 
 		supplier := &models.Supplier{
-			ID:   2,
-			Name: "",
+			ID:      2,
+			Name:    "",
+			Version: 1,
 		}
 
 		err := service.Update(ctx, supplier)
 
 		assert.ErrorIs(t, err, ErrSupplierNameRequired)
-		mockRepo.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("MissingVersion", func(t *testing.T) {
+		mockRepo := new(mock_supplier.MockSupplierRepository)
+		service := &supplierService{repo: mockRepo}
+
+		supplier := &models.Supplier{
+			ID:   3,
+			Name: "Fornecedor Sem Versão",
+			// Version ausente ou zero
+		}
+
+		err := service.Update(ctx, supplier)
+
+		assert.ErrorIs(t, err, ErrSupplierVersionRequired)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("InvalidID", func(t *testing.T) {
+		mockRepo := new(mock_supplier.MockSupplierRepository)
+		service := &supplierService{repo: mockRepo}
+
+		supplier := &models.Supplier{
+			ID:      0,
+			Name:    "Fornecedor Inválido",
+			Version: 1,
+		}
+
+		err := service.Update(ctx, supplier)
+
+		assert.ErrorIs(t, err, ErrInvalidSupplierID)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("VersionConflict", func(t *testing.T) {
+		mockRepo := new(mock_supplier.MockSupplierRepository)
+		service := &supplierService{repo: mockRepo}
+
+		supplier := &models.Supplier{
+			ID:      4,
+			Name:    "Fornecedor Conflito",
+			Version: 2,
+		}
+
+		mockRepo.On("Update", ctx, supplier).Return(repository.ErrVersionConflict)
+
+		err := service.Update(ctx, supplier)
+
+		assert.ErrorIs(t, err, ErrSupplierVersionConflict)
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
 		mockRepo := new(mock_supplier.MockSupplierRepository)
-
-		service := &supplierService{
-			repo: mockRepo,
-		}
+		service := &supplierService{repo: mockRepo}
 
 		supplier := &models.Supplier{
-			ID:   3,
-			Name: "Fornecedor com Erro",
+			ID:      3,
+			Name:    "Fornecedor com Erro",
+			Version: 1,
 		}
 
 		mockRepo.On("Update", ctx, supplier).Return(fmt.Errorf("erro ao atualizar"))
@@ -449,9 +494,28 @@ func TestUpdateSupplier(t *testing.T) {
 		err := service.Update(ctx, supplier)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "erro ao atualizar")
+		assert.Contains(t, err.Error(), "erro ao atualizar fornecedor")
 		mockRepo.AssertExpectations(t)
 	})
+
+	t.Run("SupplierNotFound", func(t *testing.T) {
+		mockRepo := new(mock_supplier.MockSupplierRepository)
+		service := &supplierService{repo: mockRepo}
+
+		supplier := &models.Supplier{
+			ID:      10,
+			Name:    "Fornecedor Inexistente",
+			Version: 1,
+		}
+
+		mockRepo.On("Update", ctx, supplier).Return(repository.ErrSupplierNotFound)
+
+		err := service.Update(ctx, supplier)
+
+		assert.ErrorIs(t, err, ErrSupplierNotFound)
+		mockRepo.AssertExpectations(t)
+	})
+
 }
 
 func TestDeleteSupplier(t *testing.T) {

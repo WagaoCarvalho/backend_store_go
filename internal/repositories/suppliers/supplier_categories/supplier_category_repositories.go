@@ -10,12 +10,13 @@ import (
 )
 
 var (
-	ErrSupplierCategoryNotFound = errors.New("categoria de fornecedor não encontrada")
-	ErrSupplierCategoryCreate   = errors.New("erro ao criar categoria")
-	ErrSupplierCategoryGetAll   = errors.New("erro ao buscar categorias")
-	ErrSupplierCategoryScanRow  = errors.New("erro ao ler dados da categoria")
-	ErrSupplierCategoryUpdate   = errors.New("erro ao atualizar categoria")
-	ErrSupplierCategoryDelete   = errors.New("erro ao deletar categoria")
+	ErrSupplierCategoryNotFound        = errors.New("categoria de fornecedor não encontrada")
+	ErrSupplierCategoryCreate          = errors.New("erro ao criar categoria")
+	ErrSupplierCategoryGetAll          = errors.New("erro ao buscar categorias")
+	ErrSupplierCategoryScanRow         = errors.New("erro ao ler dados da categoria")
+	ErrSupplierCategoryUpdate          = errors.New("erro ao atualizar categoria")
+	ErrSupplierCategoryDelete          = errors.New("erro ao deletar categoria")
+	ErrSupplierCategoryVersionRequired = errors.New("versão da categoria do fornecedor é obrigatória")
 )
 
 type SupplierCategoryRepository interface {
@@ -97,13 +98,17 @@ func (r *supplierCategoryRepository) GetAll(ctx context.Context) ([]*models.Supp
 }
 
 func (r *supplierCategoryRepository) Update(ctx context.Context, category *models.SupplierCategory) error {
+	if category.Version <= 0 {
+		return ErrSupplierCategoryVersionRequired
+	}
+
 	query := `
 		UPDATE supplier_categories
-		SET name = $1, description = $2, updated_at = NOW()
-		WHERE id = $3
+		SET name = $1, description = $2, updated_at = NOW(), version = version + 1
+		WHERE id = $3 AND version = $4
 	`
 
-	cmdTag, err := r.db.Exec(ctx, query, category.Name, category.Description, category.ID)
+	cmdTag, err := r.db.Exec(ctx, query, category.Name, category.Description, category.ID, category.Version)
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrSupplierCategoryUpdate, err)
 	}

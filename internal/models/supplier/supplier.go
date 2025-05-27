@@ -14,6 +14,7 @@ type Supplier struct {
 	CNPJ        *string                                `json:"cnpj,omitempty"`
 	CPF         *string                                `json:"cpf,omitempty"`
 	ContactInfo string                                 `json:"contact_info"`
+	Version     int                                    `json:"version"`
 	CreatedAt   time.Time                              `json:"created_at"`
 	UpdatedAt   time.Time                              `json:"updated_at"`
 	Categories  []supplier_categories.SupplierCategory `json:"categories,omitempty"`
