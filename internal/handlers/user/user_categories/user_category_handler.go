@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
+	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"github.com/gorilla/mux"
@@ -19,8 +19,8 @@ func NewUserCategoryHandler(service services.UserCategoryService) *UserCategoryH
 	return &UserCategoryHandler{service: service}
 }
 
-// GetCategories - Handler para buscar todas as categorias
-func (h *UserCategoryHandler) GetCategories(w http.ResponseWriter, r *http.Request) {
+// GetAll - Handler para buscar todas as categorias
+func (h *UserCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	categories, err := h.service.GetAll(ctx)
@@ -36,8 +36,8 @@ func (h *UserCategoryHandler) GetCategories(w http.ResponseWriter, r *http.Reque
 	})
 }
 
-// GetCategoryById - Handler para buscar uma categoria por ID
-func (h *UserCategoryHandler) GetCategoryById(w http.ResponseWriter, r *http.Request) {
+// GetById - Handler para buscar uma categoria por ID
+func (h *UserCategoryHandler) GetById(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
@@ -46,7 +46,7 @@ func (h *UserCategoryHandler) GetCategoryById(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	category, err := h.service.GetById(ctx, id)
+	category, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if err.Error() == "categoria não encontrada" {
@@ -63,11 +63,11 @@ func (h *UserCategoryHandler) GetCategoryById(w http.ResponseWriter, r *http.Req
 	})
 }
 
-// CreateCategory - Handler para criar uma nova categoria
-func (h *UserCategoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
+// Create - Handler para criar uma nova categoria
+func (h *UserCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var category models.UserCategory
+	var category *models_user_categories.UserCategory
 	if err := utils.FromJson(r.Body, &category); err != nil {
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
@@ -86,8 +86,8 @@ func (h *UserCategoryHandler) CreateCategory(w http.ResponseWriter, r *http.Requ
 	})
 }
 
-// UpdateCategory - Handler para atualizar uma categoria
-func (h *UserCategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.Request) {
+// Update - Handler para atualizar uma categoria
+func (h *UserCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
@@ -96,7 +96,7 @@ func (h *UserCategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var category models.UserCategory
+	var category *models_user_categories.UserCategory
 	if err := utils.FromJson(r.Body, &category); err != nil {
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
@@ -116,8 +116,8 @@ func (h *UserCategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.Requ
 	})
 }
 
-// DeleteCategoryById - Handler para deletar uma categoria
-func (h *UserCategoryHandler) DeleteCategoryById(w http.ResponseWriter, r *http.Request) {
+// Delete - Handler para deletar uma categoria
+func (h *UserCategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)

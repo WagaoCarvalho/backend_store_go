@@ -68,9 +68,14 @@ func (m *MockSupplierCategoryService) Delete(ctx context.Context, id int64) erro
 	return args.Error(0)
 }
 
-func (m *MockSupplierRepo) Create(ctx context.Context, supplier models_supplier.Supplier) (models_supplier.Supplier, error) {
+func (m *MockSupplierRepo) Create(ctx context.Context, supplier *models_supplier.Supplier) (*models_supplier.Supplier, error) {
 	args := m.Called(ctx, supplier)
-	return args.Get(0).(models_supplier.Supplier), args.Error(1)
+
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+
+	return args.Get(0).(*models_supplier.Supplier), args.Error(1)
 }
 
 func (m *MockSupplierRepo) Delete(ctx context.Context, id int64) error {

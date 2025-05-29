@@ -6,17 +6,17 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_categories"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var (
-	ErrSupplierCategoryNotFound        = errors.New("categoria de fornecedor não encontrada")
-	ErrSupplierCategoryCreate          = errors.New("erro ao criar categoria")
-	ErrSupplierCategoryGetAll          = errors.New("erro ao buscar categorias")
-	ErrSupplierCategoryScanRow         = errors.New("erro ao ler dados da categoria")
-	ErrSupplierCategoryUpdate          = errors.New("erro ao atualizar categoria")
-	ErrSupplierCategoryDelete          = errors.New("erro ao deletar categoria")
-	ErrSupplierCategoryVersionRequired = errors.New("versão da categoria do fornecedor é obrigatória")
+	ErrSupplierCategoryNotFound = errors.New("categoria de fornecedor não encontrada")
+	ErrSupplierCategoryCreate   = errors.New("erro ao criar categoria")
+	ErrSupplierCategoryGetAll   = errors.New("erro ao buscar categorias")
+	ErrSupplierCategoryScanRow  = errors.New("erro ao ler dados da categoria")
+	ErrSupplierCategoryUpdate   = errors.New("erro ao atualizar categoria")
+	ErrSupplierCategoryDelete   = errors.New("erro ao deletar categoria")
 )
 
 type SupplierCategoryRepository interface {
@@ -98,23 +98,44 @@ func (r *supplierCategoryRepository) GetAll(ctx context.Context) ([]*models.Supp
 }
 
 func (r *supplierCategoryRepository) Update(ctx context.Context, category *models.SupplierCategory) error {
-	if category.Version <= 0 {
-		return ErrSupplierCategoryVersionRequired
-	}
-
-	query := `
+	const query = `
 		UPDATE supplier_categories
-		SET name = $1, description = $2, updated_at = NOW(), version = version + 1
-		WHERE id = $3 AND version = $4
+		SET
+			name        = $1,
+			description = $2,
+			updated_at  = NOW(),
+			version     = version + 1
+		WHERE
+			id      	= $3 AND
+			version 	= $4
+		RETURNING
+			id,
+			name,
+			description,
+			created_at,
+			updated_at,
+			version;
 	`
 
-	cmdTag, err := r.db.Exec(ctx, query, category.Name, category.Description, category.ID, category.Version)
-	if err != nil {
-		return fmt.Errorf("%w: %v", ErrSupplierCategoryUpdate, err)
-	}
+	err := r.db.QueryRow(ctx, query,
+		category.Name,
+		category.Description,
+		category.ID,
+		category.Version,
+	).Scan(
+		&category.ID,
+		&category.Name,
+		&category.Description,
+		&category.CreatedAt,
+		&category.UpdatedAt,
+		&category.Version,
+	)
 
-	if cmdTag.RowsAffected() == 0 {
-		return ErrSupplierCategoryNotFound
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrSupplierCategoryNotFound
+		}
+		return fmt.Errorf("%w: %v", ErrSupplierCategoryUpdate, err)
 	}
 
 	return nil

@@ -2,7 +2,9 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/product"
 	"github.com/jackc/pgx/v5"
@@ -207,17 +209,44 @@ func (r *productRepository) Create(ctx context.Context, product models.Product) 
 }
 
 func (r *productRepository) Update(ctx context.Context, product models.Product) (models.Product, error) {
-	query := `UPDATE products SET
-		product_name = $1,
-		manufacturer = $2,
-		product_description = $3,
-		cost_price = $4,
-		sale_price = $5,
-		stock_quantity = $6,
-		barcode = $7,
-		updated_at = NOW()
-	WHERE id = $8
-	RETURNING updated_at`
+	const query = `
+		UPDATE products
+		SET
+			product_name        = $1,
+			manufacturer        = $2,
+			product_description = $3,
+			cost_price          = $4,
+			sale_price          = $5,
+			stock_quantity      = $6,
+			barcode             = $7,
+			updated_at          = NOW()
+		WHERE 
+			id = $8
+		RETURNING
+			id,
+			product_name,
+			manufacturer,
+			product_description,
+			cost_price,
+			sale_price,
+			stock_quantity,
+			barcode,
+			created_at,
+			updated_at;
+	`
+
+	var (
+		id            int64
+		productName   string
+		manufacturer  string
+		description   string
+		costPrice     float64
+		salePrice     float64
+		stockQuantity int
+		barcode       string
+		createdAt     time.Time
+		updatedAt     time.Time
+	)
 
 	err := r.db.QueryRow(ctx, query,
 		product.ProductName,
@@ -228,14 +257,36 @@ func (r *productRepository) Update(ctx context.Context, product models.Product) 
 		product.StockQuantity,
 		product.Barcode,
 		product.ID,
-	).Scan(&product.UpdatedAt)
+	).Scan(
+		&id,
+		&productName,
+		&manufacturer,
+		&description,
+		&costPrice,
+		&salePrice,
+		&stockQuantity,
+		&barcode,
+		&createdAt,
+		&updatedAt,
+	)
 
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return models.Product{}, fmt.Errorf("produto não encontrado")
 		}
 		return models.Product{}, fmt.Errorf("erro ao atualizar produto: %w", err)
 	}
+
+	product.ID = id
+	product.ProductName = productName
+	product.Manufacturer = manufacturer
+	product.Description = description
+	product.CostPrice = costPrice
+	product.SalePrice = salePrice
+	product.StockQuantity = stockQuantity
+	product.Barcode = barcode
+	product.CreatedAt = createdAt
+	product.UpdatedAt = updatedAt
 
 	return product, nil
 }

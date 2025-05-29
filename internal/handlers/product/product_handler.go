@@ -119,7 +119,7 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product.ID = int(id)
+	product.ID = int64(id)
 
 	updatedProduct, err := h.service.Update(r.Context(), product)
 	if err != nil {

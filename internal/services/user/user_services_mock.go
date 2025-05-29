@@ -30,21 +30,17 @@ type MockContactRepository struct {
 func (m *MockUserRepository) Create(
 	ctx context.Context,
 	user *models_user.User,
-) (models_user.User, error) {
-
+) (*models_user.User, error) {
 	args := m.Called(ctx, user)
-	if createdUser, ok := args.Get(0).(models_user.User); ok {
+	if createdUser, ok := args.Get(0).(*models_user.User); ok { // Mudar para ponteiro
 		return createdUser, args.Error(1)
 	}
-	return models_user.User{}, args.Error(1)
+	return nil, args.Error(1) // Retornar nil em caso de erro
 }
 
-func (m *MockUserRepository) Update(ctx context.Context, user models_user.User) (models_user.User, error) {
+func (m *MockUserRepository) Update(ctx context.Context, user *models_user.User) (*models_user.User, error) {
 	args := m.Called(ctx, user)
-	if updatedUser, ok := args.Get(0).(models_user.User); ok {
-		return updatedUser, args.Error(1)
-	}
-	return models_user.User{}, args.Error(1)
+	return args.Get(0).(*models_user.User), args.Error(1)
 }
 
 func (m *MockUserRepository) Delete(ctx context.Context, uid int64) error {
@@ -52,28 +48,28 @@ func (m *MockUserRepository) Delete(ctx context.Context, uid int64) error {
 	return args.Error(0)
 }
 
-func (m *MockUserRepository) GetAll(ctx context.Context) ([]models_user.User, error) {
+func (m *MockUserRepository) GetAll(ctx context.Context) ([]*models_user.User, error) {
 	args := m.Called(ctx)
-	if users, ok := args.Get(0).([]models_user.User); ok {
+	if users, ok := args.Get(0).([]*models_user.User); ok {
 		return users, args.Error(1)
 	}
 	return nil, args.Error(1)
 }
 
-func (m *MockUserRepository) GetById(ctx context.Context, uid int64) (models_user.User, error) {
+func (m *MockUserRepository) GetByID(ctx context.Context, uid int64) (*models_user.User, error) {
 	args := m.Called(ctx, uid)
-	if user, ok := args.Get(0).(models_user.User); ok {
+	if user, ok := args.Get(0).(*models_user.User); ok {
 		return user, args.Error(1)
 	}
-	return models_user.User{}, args.Error(1)
+	return &models_user.User{}, args.Error(1)
 }
 
-func (m *MockUserRepository) GetByEmail(ctx context.Context, email string) (models_user.User, error) {
+func (m *MockUserRepository) GetByEmail(ctx context.Context, email string) (*models_user.User, error) {
 	args := m.Called(ctx, email)
-	if user, ok := args.Get(0).(models_user.User); ok {
+	if user, ok := args.Get(0).(*models_user.User); ok {
 		return user, args.Error(1)
 	}
-	return models_user.User{}, args.Error(1)
+	return &models_user.User{}, args.Error(1)
 }
 
 // MockUserCategoryRelationRepositories
@@ -103,18 +99,22 @@ func (m *MockUserCategoryRelationRepositories) DeleteAll(ctx context.Context, us
 	return args.Error(0)
 }
 
-func (m *MockUserCategoryRelationRepositories) GetByCategoryID(ctx context.Context, categoryID int64) ([]user_category_relations.UserCategoryRelations, error) {
+func (m *MockUserCategoryRelationRepositories) GetByCategoryID(ctx context.Context, categoryID int64) ([]*user_category_relations.UserCategoryRelations, error) {
 	args := m.Called(ctx, categoryID)
-	if relations, ok := args.Get(0).([]user_category_relations.UserCategoryRelations); ok {
+	if relations, ok := args.Get(0).([]*user_category_relations.UserCategoryRelations); ok {
 		return relations, args.Error(1)
 	}
 	return nil, args.Error(1)
 }
-func (m *MockUserCategoryRelationRepositories) GetByUserID(ctx context.Context, userID int64) ([]user_category_relations.UserCategoryRelations, error) {
-	args := m.Called(ctx, userID)
 
-	// Retorna as relações mockadas ou erro conforme configurado nos testes
-	if relations, ok := args.Get(0).([]user_category_relations.UserCategoryRelations); ok {
+func (m *MockUserCategoryRelationRepositories) GetAll(ctx context.Context, userID int64) ([]*user_category_relations.UserCategoryRelations, error) {
+	args := m.Called(ctx, userID)
+	return args.Get(0).([]*user_category_relations.UserCategoryRelations), args.Error(1)
+}
+
+func (m *MockUserCategoryRelationRepositories) GetByUserID(ctx context.Context, userID int64) ([]*user_category_relations.UserCategoryRelations, error) {
+	args := m.Called(ctx, userID)
+	if relations, ok := args.Get(0).([]*user_category_relations.UserCategoryRelations); ok {
 		return relations, args.Error(1)
 	}
 	return nil, args.Error(1)
@@ -151,12 +151,10 @@ func (m *MockAddressRepository) Delete(ctx context.Context, id int64) error {
 
 func (m *MockContactRepository) Create(ctx context.Context, c *models_contact.Contact) (*models_contact.Contact, error) {
 	args := m.Called(ctx, c)
-
-	if contact, ok := args.Get(0).(models_contact.Contact); ok {
-		return &contact, args.Error(1)
+	if contact, ok := args.Get(0).(*models_contact.Contact); ok { // Mudar para ponteiro
+		return contact, args.Error(1)
 	}
-
-	return &models_contact.Contact{}, args.Error(1)
+	return nil, args.Error(1)
 }
 
 func (m *MockContactRepository) GetByID(ctx context.Context, id int64) (*models_contact.Contact, error) {

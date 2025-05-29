@@ -86,7 +86,7 @@ func (s *supplierService) Create(
 		return 0, ErrSupplierNameRequired
 	}
 
-	createdSupplier, err := s.repo.Create(ctx, *supplier)
+	createdSupplier, err := s.repo.Create(ctx, supplier)
 	if err != nil {
 		return 0, fmt.Errorf("%w: %v", ErrSupplierCreateFailed, err)
 	}

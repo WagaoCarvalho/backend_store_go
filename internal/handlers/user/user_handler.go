@@ -59,7 +59,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	users, err := h.service.GetAll(r.Context())
 	if err != nil {
 		utils.ErrorResponse(w, fmt.Errorf("erro ao buscar usuários: %w", err), http.StatusInternalServerError)
@@ -73,7 +73,7 @@ func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) GetById(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
@@ -97,7 +97,7 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) GetByEmail(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	email := vars["email"]
 
@@ -118,7 +118,7 @@ func (h *UserHandler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
 		return
@@ -158,7 +158,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) DeleteUserById(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
 		return

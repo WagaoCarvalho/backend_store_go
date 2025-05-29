@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	models_login "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
+	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
+	service_user "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/bcrypt"
@@ -26,12 +26,12 @@ func (m *MockLoginService) Login(ctx context.Context, email string, password str
 
 func TestLoginService_Login(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		mockRepo := new(services.MockUserRepository)
+		mockRepo := new(service_user.MockUserRepository)
 		service := NewLoginService(mockRepo)
 
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("senha123"), bcrypt.DefaultCost)
 
-		user := models.User{
+		user := &models_user.User{
 			UID:      1,
 			Email:    "teste@email.com",
 			Password: string(hashedPassword),
@@ -51,7 +51,7 @@ func TestLoginService_Login(t *testing.T) {
 	})
 
 	t.Run("invalid email format", func(t *testing.T) {
-		mockRepo := new(services.MockUserRepository)
+		mockRepo := new(service_user.MockUserRepository)
 		service := NewLoginService(mockRepo)
 
 		token, err := service.Login(context.Background(), models_login.LoginCredentials{
@@ -66,12 +66,12 @@ func TestLoginService_Login(t *testing.T) {
 	})
 
 	t.Run("wrong password", func(t *testing.T) {
-		mockRepo := new(services.MockUserRepository)
+		mockRepo := new(service_user.MockUserRepository)
 		service := NewLoginService(mockRepo)
 
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("outrasenha"), bcrypt.DefaultCost)
 
-		user := models.User{
+		user := models_user.User{
 			UID:      1,
 			Email:    "teste@email.com",
 			Password: string(hashedPassword),
@@ -91,11 +91,11 @@ func TestLoginService_Login(t *testing.T) {
 	})
 
 	t.Run("user not found", func(t *testing.T) {
-		mockRepo := new(services.MockUserRepository)
+		mockRepo := new(service_user.MockUserRepository)
 		service := NewLoginService(mockRepo)
 
 		mockRepo.On("GetByEmail", mock.Anything, "naoexiste@email.com").
-			Return(models.User{}, repositories.ErrUserNotFound)
+			Return(models_user.User{}, repo_user.ErrUserNotFound)
 
 		token, err := service.Login(context.Background(), models_login.LoginCredentials{
 			Email:    "naoexiste@email.com",
@@ -109,12 +109,12 @@ func TestLoginService_Login(t *testing.T) {
 	})
 
 	t.Run("user disabled", func(t *testing.T) {
-		mockRepo := new(services.MockUserRepository)
+		mockRepo := new(service_user.MockUserRepository)
 		service := NewLoginService(mockRepo)
 
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("senha123"), bcrypt.DefaultCost)
 
-		user := models.User{
+		user := &models_user.User{
 			UID:      1,
 			Email:    "teste@email.com",
 			Password: string(hashedPassword),
@@ -135,11 +135,11 @@ func TestLoginService_Login(t *testing.T) {
 	})
 
 	t.Run("unexpected error on GetByEmail", func(t *testing.T) {
-		mockRepo := new(services.MockUserRepository)
+		mockRepo := new(service_user.MockUserRepository)
 		service := NewLoginService(mockRepo)
 
 		mockRepo.On("GetByEmail", mock.Anything, "teste@email.com").
-			Return(models.User{}, errors.New("falha no banco"))
+			Return(models_user.User{}, errors.New("falha no banco"))
 
 		token, err := service.Login(context.Background(), models_login.LoginCredentials{
 			Email:    "teste@email.com",
@@ -153,7 +153,7 @@ func TestLoginService_Login(t *testing.T) {
 	})
 
 	t.Run("error generating token", func(t *testing.T) {
-		mockRepo := new(services.MockUserRepository)
+		mockRepo := new(service_user.MockUserRepository)
 
 		// Função mockada de geração de token
 		fakeJWTGenerator := func(uid int64, email string) (string, error) {
@@ -164,7 +164,7 @@ func TestLoginService_Login(t *testing.T) {
 
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("senha123"), bcrypt.DefaultCost)
 
-		user := models.User{
+		user := &models_user.User{
 			UID:      1,
 			Email:    "teste@email.com",
 			Password: string(hashedPassword),

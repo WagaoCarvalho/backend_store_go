@@ -10,8 +10,11 @@ import (
 )
 
 var (
-	ErrInvalidAddressData = errors.New("dados do endereço inválidos")
-	ErrAddressIDRequired  = errors.New("ID do endereço é obrigatório")
+	ErrInvalidAddressData   = errors.New("address: dados do endereço inválidos")
+	ErrAddressIDRequired    = errors.New("address: ID do endereço é obrigatório")
+	ErrAddressVersionNeeded = errors.New("address: versão obrigatória para atualização")
+	ErrUpdateAddress        = errors.New("address: erro ao atualizar")
+	ErrVersionConflict      = errors.New("address: conflito de versão")
 )
 
 type AddressService interface {
@@ -30,13 +33,16 @@ func NewAddressService(repo repositories.AddressRepository) AddressService {
 }
 
 func (s *addressService) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
-	if address.Street == "" || address.City == "" || address.State == "" || address.PostalCode == "" {
-		return &models.Address{}, ErrInvalidAddressData
+	if err := validateAddress(address); err != nil {
+		return nil, err
 	}
 	return s.repo.Create(ctx, address)
 }
 
 func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address, error) {
+	if id == 0 {
+		return nil, ErrAddressIDRequired
+	}
 	return s.repo.GetByID(ctx, id)
 }
 
@@ -45,15 +51,18 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 		return ErrAddressIDRequired
 	}
 	if address.Version == 0 {
-		return errors.New("versão obrigatória para atualização")
+		return ErrAddressVersionNeeded
+	}
+	if err := validateAddress(address); err != nil {
+		return err
 	}
 
 	err := s.repo.Update(ctx, address)
 	if err != nil {
 		if errors.Is(err, repositories.ErrVersionConflict) {
-			return fmt.Errorf("conflito de versão: %w", err)
+			return fmt.Errorf("%w: %v", ErrVersionConflict, err)
 		}
-		return fmt.Errorf("erro ao atualizar endereço: %w", err)
+		return fmt.Errorf("%w: %v", ErrUpdateAddress, err)
 	}
 
 	return nil
@@ -64,4 +73,11 @@ func (s *addressService) Delete(ctx context.Context, id int64) error {
 		return ErrAddressIDRequired
 	}
 	return s.repo.Delete(ctx, id)
+}
+
+func validateAddress(a *models.Address) error {
+	if a.Street == "" || a.City == "" || a.State == "" || a.PostalCode == "" {
+		return ErrInvalidAddressData
+	}
+	return nil
 }

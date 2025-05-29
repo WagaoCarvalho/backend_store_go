@@ -42,37 +42,35 @@ func NewContactRepository(db *pgxpool.Pool) ContactRepository {
 }
 
 func (r *contactRepository) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
-	query := `
+	const query = `
 		INSERT INTO contacts (
 			user_id, client_id, supplier_id, contact_name, contact_position,
-			email, phone, cell, contact_type
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+			email, phone, cell, contact_type, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
 		RETURNING id, created_at, updated_at
 	`
 
-	c := contact
-
 	err := r.db.QueryRow(ctx, query,
-		c.UserID,
-		c.ClientID,
-		c.SupplierID,
-		c.ContactName,
-		c.ContactPosition,
-		c.Email,
-		c.Phone,
-		c.Cell,
-		c.ContactType,
-	).Scan(&c.ID, &c.CreatedAt, &c.UpdatedAt)
+		contact.UserID,
+		contact.ClientID,
+		contact.SupplierID,
+		contact.ContactName,
+		contact.ContactPosition,
+		contact.Email,
+		contact.Phone,
+		contact.Cell,
+		contact.ContactType,
+	).Scan(&contact.ID, &contact.CreatedAt, &contact.UpdatedAt)
 
 	if err != nil {
-		return &models.Contact{}, fmt.Errorf("%w: %v", ErrCreateContact, err)
+		return nil, fmt.Errorf("%w: %v", ErrCreateContact, err)
 	}
 
-	return c, nil
+	return contact, nil
 }
 
 func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
-	query := `
+	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
 			email, phone, cell, contact_type, created_at, updated_at
@@ -107,7 +105,7 @@ func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Cont
 }
 
 func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error) {
-	query := `
+	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
 			email, phone, cell, contact_type, created_at, updated_at
@@ -124,7 +122,7 @@ func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 	var contacts []*models.Contact
 	for rows.Next() {
 		var contact models.Contact
-		err := rows.Scan(
+		if err := rows.Scan(
 			&contact.ID,
 			&contact.UserID,
 			&contact.ClientID,
@@ -137,18 +135,21 @@ func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 			&contact.ContactType,
 			&contact.CreatedAt,
 			&contact.UpdatedAt,
-		)
-		if err != nil {
+		); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrScanContact, err)
 		}
 		contacts = append(contacts, &contact)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFetchContactsByUser, err)
 	}
 
 	return contacts, nil
 }
 
 func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error) {
-	query := `
+	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
 			email, phone, cell, contact_type, created_at, updated_at
@@ -165,7 +166,7 @@ func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) (
 	var contacts []*models.Contact
 	for rows.Next() {
 		var contact models.Contact
-		err := rows.Scan(
+		if err := rows.Scan(
 			&contact.ID,
 			&contact.UserID,
 			&contact.ClientID,
@@ -178,18 +179,21 @@ func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) (
 			&contact.ContactType,
 			&contact.CreatedAt,
 			&contact.UpdatedAt,
-		)
-		if err != nil {
+		); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrScanContact, err)
 		}
 		contacts = append(contacts, &contact)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFetchContactsByClient, err)
 	}
 
 	return contacts, nil
 }
 
 func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Contact, error) {
-	query := `
+	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
 			email, phone, cell, contact_type, created_at, updated_at
@@ -206,7 +210,7 @@ func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int6
 	var contacts []*models.Contact
 	for rows.Next() {
 		var contact models.Contact
-		err := rows.Scan(
+		if err := rows.Scan(
 			&contact.ID,
 			&contact.UserID,
 			&contact.ClientID,
@@ -219,34 +223,43 @@ func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int6
 			&contact.ContactType,
 			&contact.CreatedAt,
 			&contact.UpdatedAt,
-		)
-		if err != nil {
+		); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrScanContact, err)
 		}
 		contacts = append(contacts, &contact)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrFetchContactsBySupplier, err)
 	}
 
 	return contacts, nil
 }
 
 func (r *contactRepository) Update(ctx context.Context, contact *models.Contact) error {
-	query := `
-		UPDATE contacts SET
-			user_id = $1,
-			client_id = $2,
-			supplier_id = $3,
-			contact_name = $4,
+	const query = `
+		UPDATE contacts
+		SET
+			user_id          = $1,
+			client_id        = $2,
+			supplier_id      = $3,
+			contact_name     = $4,
 			contact_position = $5,
-			email = $6,
-			phone = $7,
-			cell = $8,
-			contact_type = $9,
-			version = version + 1,
-			updated_at = NOW()
-		WHERE id = $10 AND version = $11
+			email            = $6,
+			phone            = $7,
+			cell             = $8,
+			contact_type     = $9,
+			version          = version + 1,
+			updated_at       = NOW()
+		WHERE
+			id      = $10
+			AND version = $11
+		RETURNING
+			version,
+			updated_at;
 	`
 
-	result, err := r.db.Exec(ctx, query,
+	err := r.db.QueryRow(ctx, query,
 		contact.UserID,
 		contact.ClientID,
 		contact.SupplierID,
@@ -258,21 +271,21 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 		contact.ContactType,
 		contact.ID,
 		contact.Version,
-	)
+	).Scan(&contact.Version, &contact.UpdatedAt)
 
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrUpdateContact, err)
-	}
+		if errors.Is(err, pgx.ErrNoRows) {
 
-	if rowsAffected := result.RowsAffected(); rowsAffected == 0 {
-		return ErrVersionConflict
+			return ErrVersionConflict
+		}
+		return fmt.Errorf("%w: %v", ErrUpdateContact, err)
 	}
 
 	return nil
 }
 
 func (r *contactRepository) Delete(ctx context.Context, id int64) error {
-	query := `DELETE FROM contacts WHERE id = $1`
+	const query = `DELETE FROM contacts WHERE id = $1`
 
 	result, err := r.db.Exec(ctx, query, id)
 	if err != nil {

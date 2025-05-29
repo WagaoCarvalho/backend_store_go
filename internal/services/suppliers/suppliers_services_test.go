@@ -34,7 +34,7 @@ func TestNewSupplierService(t *testing.T) {
 	assert.NotNil(t, service)
 }
 
-func TestCreateSupplierById(t *testing.T) {
+func TestCreateSupplier(t *testing.T) {
 	ctx := context.TODO()
 
 	t.Run("Success", func(t *testing.T) {
@@ -52,7 +52,7 @@ func TestCreateSupplierById(t *testing.T) {
 			categoryService: mockCategoryService,
 		}
 
-		supplier := models.Supplier{Name: "Fornecedor A"}
+		supplier := &models.Supplier{Name: "Fornecedor A"}
 		supplierWithID := supplier
 		supplierWithID.ID = 123
 		address := &models_address.Address{Street: "Rua A", City: "Cidade", State: "Estado", PostalCode: "12345"}
@@ -66,7 +66,7 @@ func TestCreateSupplierById(t *testing.T) {
 		mockContactService.On("Create", ctx, mock.Anything).Return(contact, nil)
 		mockCategoryService.On("GetByID", ctx, categoryID).Return(&supplier_category.SupplierCategory{ID: categoryID, Name: "Categoria A"}, nil)
 
-		id, err := service.Create(ctx, &supplier, categoryID, address, contact)
+		id, err := service.Create(ctx, supplier, categoryID, address, contact)
 
 		assert.NoError(t, err)
 		assert.Equal(t, supplierWithID.ID, id)
@@ -87,10 +87,10 @@ func TestCreateSupplierById(t *testing.T) {
 	t.Run("RepoError", func(t *testing.T) {
 		mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
 		service := &supplierService{repo: mockSupplierRepo}
-		supplier := models.Supplier{Name: "Fornecedor A"}
-		mockSupplierRepo.On("Create", ctx, supplier).Return(models.Supplier{}, fmt.Errorf("erro db"))
+		supplier := &models.Supplier{Name: "Fornecedor A"}
+		mockSupplierRepo.On("Create", ctx, supplier).Return(nil, fmt.Errorf("erro db"))
 
-		_, err := service.Create(ctx, &supplier, 0, nil, nil)
+		_, err := service.Create(ctx, supplier, 0, nil, nil)
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao criar fornecedor")
@@ -105,7 +105,7 @@ func TestCreateSupplierById(t *testing.T) {
 			relationService: mockRelationService,
 		}
 
-		supplier := models.Supplier{Name: "Fornecedor A"}
+		supplier := &models.Supplier{Name: "Fornecedor A"}
 		supplierWithID := supplier
 		supplierWithID.ID = 42
 		categoryID := int64(2)
@@ -113,7 +113,7 @@ func TestCreateSupplierById(t *testing.T) {
 		mockSupplierRepo.On("Create", ctx, supplier).Return(supplierWithID, nil)
 		mockRelationService.On("HasRelation", ctx, supplierWithID.ID, categoryID).Return(false, fmt.Errorf("erro ao verificar"))
 
-		_, err := service.Create(ctx, &supplier, categoryID, nil, nil)
+		_, err := service.Create(ctx, supplier, categoryID, nil, nil)
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao verificar existência da relação")
@@ -129,7 +129,7 @@ func TestCreateSupplierById(t *testing.T) {
 			relationService: mockRelationService,
 		}
 
-		supplier := models.Supplier{Name: "Fornecedor A"}
+		supplier := &models.Supplier{Name: "Fornecedor A"}
 		supplierWithID := supplier
 		supplierWithID.ID = 10
 		categoryID := int64(1)
@@ -137,7 +137,7 @@ func TestCreateSupplierById(t *testing.T) {
 		mockSupplierRepo.On("Create", ctx, supplier).Return(supplierWithID, nil)
 		mockRelationService.On("HasRelation", ctx, supplierWithID.ID, categoryID).Return(true, nil)
 
-		_, err := service.Create(ctx, &supplier, categoryID, nil, nil)
+		_, err := service.Create(ctx, supplier, categoryID, nil, nil)
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "relação fornecedor-categoria já existe")
@@ -153,7 +153,7 @@ func TestCreateSupplierById(t *testing.T) {
 			relationService: mockRelationService,
 		}
 
-		supplier := models.Supplier{Name: "Fornecedor B"}
+		supplier := &models.Supplier{Name: "Fornecedor B"}
 		supplierWithID := supplier
 		supplierWithID.ID = 55
 		categoryID := int64(3)
@@ -162,7 +162,7 @@ func TestCreateSupplierById(t *testing.T) {
 		mockRelationService.On("HasRelation", ctx, supplierWithID.ID, categoryID).Return(false, nil)
 		mockRelationService.On("Create", ctx, supplierWithID.ID, categoryID).Return(&supplier_category_relations.SupplierCategoryRelations{}, fmt.Errorf("falha ao criar"))
 
-		_, err := service.Create(ctx, &supplier, categoryID, nil, nil)
+		_, err := service.Create(ctx, supplier, categoryID, nil, nil)
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao criar relação fornecedor-categoria")
@@ -183,7 +183,7 @@ func TestCreateSupplierById(t *testing.T) {
 			categoryService: mockCategoryService,
 		}
 
-		supplier := models.Supplier{Name: "Fornecedor A"}
+		supplier := &models.Supplier{Name: "Fornecedor A"}
 		supplierWithID := supplier
 		supplierWithID.ID = 99
 		categoryID := int64(1)
@@ -195,7 +195,7 @@ func TestCreateSupplierById(t *testing.T) {
 		mockCategoryService.On("GetByID", ctx, categoryID).Return(nil, nil)
 		mockAddressService.On("Create", ctx, mock.Anything).Return(&models_address.Address{}, fmt.Errorf("erro ao criar endereço"))
 
-		_, err := service.Create(ctx, &supplier, categoryID, address, nil)
+		_, err := service.Create(ctx, supplier, categoryID, address, nil)
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao criar endereço")
@@ -216,7 +216,7 @@ func TestCreateSupplierById(t *testing.T) {
 			categoryService: mockCategoryService,
 		}
 
-		supplier := models.Supplier{Name: "Fornecedor Y"}
+		supplier := &models.Supplier{Name: "Fornecedor Y"}
 		supplierWithID := supplier
 		supplierWithID.ID = 200
 		categoryID := int64(5)
@@ -226,7 +226,7 @@ func TestCreateSupplierById(t *testing.T) {
 		mockRelationService.On("Create", ctx, supplierWithID.ID, categoryID).Return(&supplier_category_relations.SupplierCategoryRelations{}, nil)
 		mockCategoryService.On("GetByID", ctx, categoryID).Return(nil, fmt.Errorf("erro ao buscar categoria"))
 
-		_, err := service.Create(ctx, &supplier, categoryID, nil, nil)
+		_, err := service.Create(ctx, supplier, categoryID, nil, nil)
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao buscar categoria")
@@ -250,7 +250,7 @@ func TestCreateSupplierById(t *testing.T) {
 			categoryService: mockCategoryService,
 		}
 
-		supplier := models.Supplier{Name: "Fornecedor C"}
+		supplier := &models.Supplier{Name: "Fornecedor C"}
 		supplierWithID := supplier
 		supplierWithID.ID = 110
 		categoryID := int64(2)
@@ -264,7 +264,7 @@ func TestCreateSupplierById(t *testing.T) {
 		mockAddressService.On("Create", ctx, mock.Anything).Return(&models_address.Address{}, nil)
 		mockContactService.On("Create", ctx, mock.Anything).Return(&models_contact.Contact{}, fmt.Errorf("erro ao criar contato"))
 
-		_, err := service.Create(ctx, &supplier, categoryID, address, contact)
+		_, err := service.Create(ctx, supplier, categoryID, address, contact)
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao criar contato")

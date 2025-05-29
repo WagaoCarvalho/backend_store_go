@@ -23,7 +23,7 @@ var (
 
 type UserCategoryRelationServices interface {
 	Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelations, error)
-	GetAll(ctx context.Context, userID int64) ([]models.UserCategoryRelations, error)
+	GetAll(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
 	GetRelations(ctx context.Context, categoryID int64) ([]models.UserCategoryRelations, error)
 	Update(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error)
 	Delete(ctx context.Context, userID, categoryID int64) error
@@ -32,10 +32,10 @@ type UserCategoryRelationServices interface {
 }
 
 type userCategoryRelationServices struct {
-	relationRepo repositories.UserCategoryRelationRepositories
+	relationRepo repositories.UserCategoryRelationRepository
 }
 
-func NewUserCategoryRelationServices(repo repositories.UserCategoryRelationRepositories) UserCategoryRelationServices {
+func NewUserCategoryRelationServices(repo repositories.UserCategoryRelationRepository) UserCategoryRelationServices {
 	return &userCategoryRelationServices{
 		relationRepo: repo,
 	}
@@ -63,7 +63,7 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 			}
 			for _, rel := range relations {
 				if rel.CategoryID == categoryID {
-					return &rel, nil
+					return rel, nil
 				}
 			}
 			return nil, repositories.ErrRelationExists
@@ -74,17 +74,17 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 	return createdRelation, nil
 }
 
-func (s *userCategoryRelationServices) GetAll(ctx context.Context, userID int64) ([]models.UserCategoryRelations, error) {
+func (s *userCategoryRelationServices) GetAll(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
 	if userID <= 0 {
 		return nil, ErrInvalidUserID
 	}
 
-	relations, err := s.relationRepo.GetByUserID(ctx, userID)
+	relationsPtr, err := s.relationRepo.GetByUserID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFetchUserRelations, err)
 	}
 
-	return relations, nil
+	return relationsPtr, nil
 }
 
 func (s *userCategoryRelationServices) GetRelations(ctx context.Context, categoryID int64) ([]models.UserCategoryRelations, error) {
@@ -92,9 +92,17 @@ func (s *userCategoryRelationServices) GetRelations(ctx context.Context, categor
 		return nil, ErrInvalidCategoryID
 	}
 
-	relations, err := s.relationRepo.GetByCategoryID(ctx, categoryID)
+	relationsPtr, err := s.relationRepo.GetByCategoryID(ctx, categoryID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFetchCategoryRelations, err)
+	}
+
+	// Converte []*models.UserCategoryRelations para []models.UserCategoryRelations
+	relations := make([]models.UserCategoryRelations, len(relationsPtr))
+	for i, r := range relationsPtr {
+		if r != nil {
+			relations[i] = *r
+		}
 	}
 
 	return relations, nil

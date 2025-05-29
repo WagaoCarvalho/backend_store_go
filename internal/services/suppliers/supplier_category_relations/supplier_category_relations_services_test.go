@@ -241,7 +241,7 @@ func TestUpdate(t *testing.T) {
 		relation := &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 2, Version: 1}
 
 		mockRepo.On("Update", mock.Anything, relation).
-			Return(nil, repository.ErrSupplierCategoryRelationNotFound)
+			Return(nil, repository.ErrRelationNotFound)
 
 		_, err := s.Update(context.Background(), relation)
 		assert.ErrorIs(t, err, service.ErrSupplierCategoryRelationUpdate)

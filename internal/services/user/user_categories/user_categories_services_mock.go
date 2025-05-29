@@ -11,24 +11,34 @@ type MockUserCategoryRepository struct {
 	mock.Mock
 }
 
-func (m *MockUserCategoryRepository) GetAll(ctx context.Context) ([]models.UserCategory, error) {
+func (m *MockUserCategoryRepository) GetAll(ctx context.Context) ([]*models.UserCategory, error) {
 	args := m.Called(ctx)
-	return args.Get(0).([]models.UserCategory), args.Error(1)
+	return args.Get(0).([]*models.UserCategory), args.Error(1)
 }
 
-func (m *MockUserCategoryRepository) GetById(ctx context.Context, id int64) (models.UserCategory, error) {
+func (m *MockUserCategoryRepository) GetByID(ctx context.Context, id int64) (*models.UserCategory, error) {
 	args := m.Called(ctx, id)
-	return args.Get(0).(models.UserCategory), args.Error(1)
+
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+
+	return args.Get(0).(*models.UserCategory), args.Error(1)
 }
 
-func (m *MockUserCategoryRepository) Create(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
+func (m *MockUserCategoryRepository) Create(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error) {
 	args := m.Called(ctx, category)
-	return args.Get(0).(models.UserCategory), args.Error(1)
+
+	var result *models.UserCategory
+	if args.Get(0) != nil {
+		result = args.Get(0).(*models.UserCategory)
+	}
+	return result, args.Error(1)
 }
 
-func (m *MockUserCategoryRepository) Update(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
+func (m *MockUserCategoryRepository) Update(ctx context.Context, category *models.UserCategory) error {
 	args := m.Called(ctx, category)
-	return args.Get(0).(models.UserCategory), args.Error(1)
+	return args.Error(0)
 }
 
 func (m *MockUserCategoryRepository) Delete(ctx context.Context, id int64) error {

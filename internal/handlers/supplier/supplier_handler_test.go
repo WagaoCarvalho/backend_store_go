@@ -132,7 +132,7 @@ func TestSupplierService_Create(t *testing.T) {
 		input := &models_supplier.Supplier{Name: "Fornecedor Y"}
 		categoryID := int64(1)
 
-		mockRepo.On("Create", mock.Anything, *input).Return(models_supplier.Supplier{}, fmt.Errorf("erro ao criar fornecedor"))
+		mockRepo.On("Create", mock.Anything, input).Return(nil, fmt.Errorf("erro ao criar fornecedor"))
 
 		resultID, err := service.Create(context.Background(), input, categoryID, nil, nil)
 
@@ -154,7 +154,8 @@ func TestSupplierService_Create(t *testing.T) {
 		input := &models_supplier.Supplier{Name: "Fornecedor Z"}
 		categoryID := int64(1)
 
-		mockRepo.On("Create", mock.Anything, *input).Return(models_supplier.Supplier{ID: 1}, nil)
+		// Passe o ponteiro input, e retorne ponteiro também
+		mockRepo.On("Create", mock.Anything, input).Return(&models_supplier.Supplier{ID: 1}, nil)
 		mockRelationService.On("HasRelation", mock.Anything, int64(1), categoryID).Return(true, nil)
 
 		resultID, err := service.Create(context.Background(), input, categoryID, nil, nil)
@@ -177,7 +178,8 @@ func TestSupplierService_Create(t *testing.T) {
 		input := &models_supplier.Supplier{ID: 1, Name: "Fornecedor A"}
 		categoryID := int64(1)
 
-		mockRepo.On("Create", mock.Anything, *input).Return(*input, nil)
+		// Passa ponteiro e retorna ponteiro
+		mockRepo.On("Create", mock.Anything, input).Return(input, nil)
 		mockRelationService.On("HasRelation", mock.Anything, int64(1), categoryID).Return(false, nil)
 		mockRelationService.On("Create", mock.Anything, int64(1), categoryID).
 			Return(&models_supplier_category_relations.SupplierCategoryRelations{}, fmt.Errorf("erro ao criar relação"))
@@ -202,7 +204,8 @@ func TestSupplierService_Create(t *testing.T) {
 		input := &models_supplier.Supplier{Name: "Fornecedor B"}
 		categoryID := int64(0)
 
-		mockRepo.On("Create", mock.Anything, *input).Return(models_supplier.Supplier{}, errors.New("categoria inválida"))
+		// Passe o ponteiro input e retorne nil + erro
+		mockRepo.On("Create", mock.Anything, input).Return(nil, errors.New("categoria inválida"))
 
 		resultID, err := service.Create(context.Background(), input, categoryID, nil, nil)
 
@@ -212,165 +215,177 @@ func TestSupplierService_Create(t *testing.T) {
 		mockRelationService.AssertNotCalled(t, "Create")
 		mockRelationService.AssertNotCalled(t, "HasRelation")
 	})
+
 }
 
-func TestGetSupplierByID_Success(t *testing.T) {
+func TestSupplierHandler_GetSupplierByID(t *testing.T) {
 	mockSvc := new(MockSupplierService)
 	handler := NewSupplierHandler(mockSvc)
 
-	expected := &models_supplier.Supplier{ID: 1, Name: "Fornecedor"}
-	mockSvc.On("GetByID", mock.Anything, int64(1)).Return(expected, nil)
+	t.Run("Success", func(t *testing.T) {
+		expected := &models_supplier.Supplier{ID: 1, Name: "Fornecedor"}
+		mockSvc.On("GetByID", mock.Anything, int64(1)).Return(expected, nil).Once()
 
-	req := newRequestWithVars("GET", "/suppliers/1", nil, map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
+		req := newRequestWithVars("GET", "/suppliers/1", nil, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
 
-	handler.GetSupplierByID(w, req)
+		handler.GetSupplierByID(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusOK, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("InvalidID", func(t *testing.T) {
+		// Aqui você pode usar um novo handler com mock vazio, ou o mesmo, já que não chama o service
+		handler := NewSupplierHandler(new(MockSupplierService))
+
+		req := newRequestWithVars("GET", "/suppliers/abc", nil, map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
+
+		handler.GetSupplierByID(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		mockSvc.On("GetByID", mock.Anything, int64(999)).Return((*models_supplier.Supplier)(nil), errors.New("não encontrado")).Once()
+
+		req := newRequestWithVars("GET", "/suppliers/999", nil, map[string]string{"id": "999"})
+		w := httptest.NewRecorder()
+
+		handler.GetSupplierByID(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
 }
 
-func TestGetSupplierByID_InvalidID(t *testing.T) {
-	handler := NewSupplierHandler(new(MockSupplierService))
-
-	req := newRequestWithVars("GET", "/suppliers/abc", nil, map[string]string{"id": "abc"})
-	w := httptest.NewRecorder()
-
-	handler.GetSupplierByID(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestGetSupplierByID_NotFound(t *testing.T) {
+func TestSupplierHandler_GetAllSuppliers(t *testing.T) {
 	mockSvc := new(MockSupplierService)
 	handler := NewSupplierHandler(mockSvc)
 
-	mockSvc.On("GetByID", mock.Anything, int64(999)).Return((*models_supplier.Supplier)(nil), errors.New("não encontrado"))
+	t.Run("Success", func(t *testing.T) {
+		mockSvc.On("GetAll", mock.Anything).Return([]*models_supplier.Supplier{{ID: 1}}, nil).Once()
 
-	req := newRequestWithVars("GET", "/suppliers/999", nil, map[string]string{"id": "999"})
-	w := httptest.NewRecorder()
+		req := httptest.NewRequest("GET", "/suppliers", nil)
+		w := httptest.NewRecorder()
 
-	handler.GetSupplierByID(w, req)
+		handler.GetAllSuppliers(w, req)
 
-	assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Equal(t, http.StatusOK, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		mockSvc.On("GetAll", mock.Anything).Return([]*models_supplier.Supplier{}, errors.New("erro de banco")).Once()
+
+		req := httptest.NewRequest("GET", "/suppliers", nil)
+		w := httptest.NewRecorder()
+
+		handler.GetAllSuppliers(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
 }
 
-func TestGetAllSuppliers_Success(t *testing.T) {
-	mockSvc := new(MockSupplierService)
-	handler := NewSupplierHandler(mockSvc)
+func TestUpdateSupplier(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		mockSvc := new(MockSupplierService)
+		handler := NewSupplierHandler(mockSvc)
 
-	mockSvc.On("GetAll", mock.Anything).Return([]*models_supplier.Supplier{{ID: 1}}, nil)
+		input := &models_supplier.Supplier{ID: 1, Name: "Atualizado"}
+		mockSvc.On("Update", mock.Anything, input).Return(nil)
 
-	req := httptest.NewRequest("GET", "/suppliers", nil)
-	w := httptest.NewRecorder()
+		body, _ := json.Marshal(input)
+		req := newRequestWithVars("PUT", "/suppliers/1", body, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
 
-	handler.GetAllSuppliers(w, req)
+		handler.UpdateSupplier(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusOK, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("InvalidID", func(t *testing.T) {
+		handler := NewSupplierHandler(new(MockSupplierService))
+
+		req := newRequestWithVars("PUT", "/suppliers/abc", nil, map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
+
+		handler.UpdateSupplier(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("InvalidJSON", func(t *testing.T) {
+		handler := NewSupplierHandler(new(MockSupplierService))
+
+		req := newRequestWithVars("PUT", "/suppliers/1", []byte("{invalid"), map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.UpdateSupplier(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		mockSvc := new(MockSupplierService)
+		handler := NewSupplierHandler(mockSvc)
+
+		input := &models_supplier.Supplier{ID: 1, Name: "Erro"}
+		mockSvc.On("Update", mock.Anything, input).Return(errors.New("erro"))
+
+		body, _ := json.Marshal(input)
+		req := newRequestWithVars("PUT", "/suppliers/1", body, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.UpdateSupplier(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
 }
 
-func TestGetAllSuppliers_Error(t *testing.T) {
-	mockSvc := new(MockSupplierService)
-	handler := NewSupplierHandler(mockSvc)
+func TestDeleteSupplier(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		mockSvc := new(MockSupplierService)
+		handler := NewSupplierHandler(mockSvc)
 
-	mockSvc.On("GetAll", mock.Anything).Return([]*models_supplier.Supplier(nil), errors.New("erro de banco"))
+		mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil)
 
-	req := httptest.NewRequest("GET", "/suppliers", nil)
-	w := httptest.NewRecorder()
+		req := newRequestWithVars("DELETE", "/suppliers/1", nil, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
 
-	handler.GetAllSuppliers(w, req)
+		handler.DeleteSupplier(w, req)
 
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
-}
+		assert.Equal(t, http.StatusOK, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
 
-func TestUpdateSupplier_Success(t *testing.T) {
-	mockSvc := new(MockSupplierService)
-	handler := NewSupplierHandler(mockSvc)
+	t.Run("InvalidID", func(t *testing.T) {
+		handler := NewSupplierHandler(new(MockSupplierService))
 
-	input := &models_supplier.Supplier{ID: 1, Name: "Atualizado"}
-	mockSvc.On("Update", mock.Anything, input).Return(nil)
+		req := newRequestWithVars("DELETE", "/suppliers/abc", nil, map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
 
-	body, _ := json.Marshal(input)
-	req := newRequestWithVars("PUT", "/suppliers/1", body, map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
+		handler.DeleteSupplier(w, req)
 
-	handler.UpdateSupplier(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
 
-	assert.Equal(t, http.StatusOK, w.Code)
-}
+	t.Run("Error", func(t *testing.T) {
+		mockSvc := new(MockSupplierService)
+		handler := NewSupplierHandler(mockSvc)
 
-func TestUpdateSupplier_InvalidID(t *testing.T) {
-	handler := NewSupplierHandler(new(MockSupplierService))
+		mockSvc.On("Delete", mock.Anything, int64(999)).Return(errors.New("não encontrado"))
 
-	req := newRequestWithVars("PUT", "/suppliers/abc", nil, map[string]string{"id": "abc"})
-	w := httptest.NewRecorder()
+		req := newRequestWithVars("DELETE", "/suppliers/999", nil, map[string]string{"id": "999"})
+		w := httptest.NewRecorder()
 
-	handler.UpdateSupplier(w, req)
+		handler.DeleteSupplier(w, req)
 
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestUpdateSupplier_InvalidJSON(t *testing.T) {
-	handler := NewSupplierHandler(new(MockSupplierService))
-
-	req := newRequestWithVars("PUT", "/suppliers/1", []byte("{invalid"), map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
-
-	handler.UpdateSupplier(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestUpdateSupplier_Error(t *testing.T) {
-	mockSvc := new(MockSupplierService)
-	handler := NewSupplierHandler(mockSvc)
-
-	input := &models_supplier.Supplier{ID: 1, Name: "Erro"}
-	mockSvc.On("Update", mock.Anything, input).Return(errors.New("erro"))
-
-	body, _ := json.Marshal(input)
-	req := newRequestWithVars("PUT", "/suppliers/1", body, map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
-
-	handler.UpdateSupplier(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestDeleteSupplier_Success(t *testing.T) {
-	mockSvc := new(MockSupplierService)
-	handler := NewSupplierHandler(mockSvc)
-
-	mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil)
-
-	req := newRequestWithVars("DELETE", "/suppliers/1", nil, map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
-
-	handler.DeleteSupplier(w, req)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-}
-
-func TestDeleteSupplier_InvalidID(t *testing.T) {
-	handler := NewSupplierHandler(new(MockSupplierService))
-
-	req := newRequestWithVars("DELETE", "/suppliers/abc", nil, map[string]string{"id": "abc"})
-	w := httptest.NewRecorder()
-
-	handler.DeleteSupplier(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestDeleteSupplier_Error(t *testing.T) {
-	mockSvc := new(MockSupplierService)
-	handler := NewSupplierHandler(mockSvc)
-
-	mockSvc.On("Delete", mock.Anything, int64(999)).Return(errors.New("não encontrado"))
-
-	req := newRequestWithVars("DELETE", "/suppliers/999", nil, map[string]string{"id": "999"})
-	w := httptest.NewRecorder()
-
-	handler.DeleteSupplier(w, req)
-
-	assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
 }

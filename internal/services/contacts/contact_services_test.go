@@ -67,8 +67,7 @@ func TestCreateContact(t *testing.T) {
 		expectedContact := inputContact
 		expectedContact.ID = 1
 
-		mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*models.Contact")).
-			Return(expectedContact, nil)
+		mockRepo.On("Create", mock.Anything, inputContact).Return(expectedContact, nil)
 
 		created, err := service.Create(context.Background(), inputContact)
 
@@ -105,8 +104,7 @@ func TestCreateContact(t *testing.T) {
 			ContactPosition: "Developer",
 		}
 
-		mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*models.Contact")).
-			Return(&models.Contact{}, errors.New("repository error"))
+		mockRepo.On("Create", mock.Anything, inputContact).Return(&models.Contact{}, errors.New("repository error"))
 
 		_, err := service.Create(context.Background(), inputContact)
 

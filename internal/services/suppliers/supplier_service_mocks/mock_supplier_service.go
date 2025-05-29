@@ -14,11 +14,19 @@ type MockSupplierRepository struct {
 
 func (m *MockSupplierRepository) Create(
 	ctx context.Context,
-	supplier models.Supplier,
-) (models.Supplier, error) {
+	supplier *models.Supplier, // <- agora recebe ponteiro
+) (*models.Supplier, error) { // <- agora retorna ponteiro
 	args := m.Called(ctx, supplier)
-	return args.Get(0).(models.Supplier), args.Error(1)
+
+	// Protege contra retorno nil
+	var result *models.Supplier
+	if args.Get(0) != nil {
+		result = args.Get(0).(*models.Supplier)
+	}
+
+	return result, args.Error(1)
 }
+
 func (m *MockSupplierRepository) GetByID(ctx context.Context, id int64) (*models.Supplier, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(*models.Supplier), args.Error(1)

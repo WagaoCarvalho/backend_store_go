@@ -11,25 +11,22 @@ import (
 )
 
 var (
-	ErrCategoryNotFound      = errors.New("categoria não encontrada")
-	ErrCategoryAlreadyExists = errors.New("categoria já existe")
-	ErrInvalidCategoryData   = errors.New("dados inválidos para categoria")
-	ErrGetCategories         = errors.New("erro ao buscar categorias")
-	ErrScanCategory          = errors.New("erro ao ler os dados da categoria")
-	ErrIterateCategories     = errors.New("erro ao iterar sobre os resultados")
-	ErrGetCategoryByID       = errors.New("erro ao buscar categoria por ID")
-	ErrCheckExistingCategory = errors.New("erro ao verificar categoria existente")
-	ErrCreateCategory        = errors.New("erro ao criar categoria")
-	ErrUpdateCategory        = errors.New("erro ao atualizar categoria")
-	ErrDeleteCategory        = errors.New("erro ao deletar categoria")
-	ErrVersionConflict       = errors.New("conflito de versão: os dados foram modificados por outro processo")
+	ErrCategoryNotFound  = errors.New("categoria não encontrada")
+	ErrGetCategories     = errors.New("erro ao buscar categorias")
+	ErrScanCategory      = errors.New("erro ao ler os dados da categoria")
+	ErrIterateCategories = errors.New("erro ao iterar sobre os resultados")
+	ErrGetCategoryByID   = errors.New("erro ao buscar categoria por ID")
+	ErrCreateCategory    = errors.New("erro ao criar categoria")
+	ErrUpdateCategory    = errors.New("erro ao atualizar categoria")
+	ErrDeleteCategory    = errors.New("erro ao deletar categoria")
+	ErrVersionConflict   = errors.New("conflito de versão: os dados foram modificados por outro processo")
 )
 
 type UserCategoryRepository interface {
-	GetAll(ctx context.Context) ([]models.UserCategory, error)
-	GetById(ctx context.Context, id int64) (models.UserCategory, error)
-	Create(ctx context.Context, category models.UserCategory) (models.UserCategory, error)
-	Update(ctx context.Context, category models.UserCategory) (models.UserCategory, error)
+	GetAll(ctx context.Context) ([]*models.UserCategory, error)
+	GetByID(ctx context.Context, id int64) (*models.UserCategory, error)
+	Create(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error)
+	Update(ctx context.Context, category *models.UserCategory) error
 	Delete(ctx context.Context, id int64) error
 }
 
@@ -41,7 +38,24 @@ func NewUserCategoryRepository(db *pgxpool.Pool) UserCategoryRepository {
 	return &userCategoryRepository{db: db}
 }
 
-func (r *userCategoryRepository) GetAll(ctx context.Context) ([]models.UserCategory, error) {
+func (r *userCategoryRepository) Create(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error) {
+	const query = `
+		INSERT INTO user_categories (name, description, created_at, updated_at)
+		VALUES ($1, $2, NOW(), NOW())
+		RETURNING id, created_at, updated_at;
+	`
+
+	err := r.db.QueryRow(ctx, query, category.Name, category.Description).
+		Scan(&category.ID, &category.CreatedAt, &category.UpdatedAt)
+
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrCreateCategory, err)
+	}
+
+	return category, nil
+}
+
+func (r *userCategoryRepository) GetAll(ctx context.Context) ([]*models.UserCategory, error) {
 	query := `SELECT id, name, description, created_at, updated_at FROM user_categories`
 
 	rows, err := r.db.Query(ctx, query)
@@ -50,9 +64,9 @@ func (r *userCategoryRepository) GetAll(ctx context.Context) ([]models.UserCateg
 	}
 	defer rows.Close()
 
-	var categories []models.UserCategory
+	var categories []*models.UserCategory
 	for rows.Next() {
-		var category models.UserCategory
+		category := new(models.UserCategory)
 		if err := rows.Scan(&category.ID, &category.Name, &category.Description,
 			&category.CreatedAt, &category.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrScanCategory, err)
@@ -60,16 +74,21 @@ func (r *userCategoryRepository) GetAll(ctx context.Context) ([]models.UserCateg
 		categories = append(categories, category)
 	}
 
-	if rows.Err() != nil {
-		return nil, fmt.Errorf("%w: %v", ErrIterateCategories, rows.Err())
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrIterateCategories, err)
 	}
 
 	return categories, nil
 }
 
-func (r *userCategoryRepository) GetById(ctx context.Context, id int64) (models.UserCategory, error) {
+func (r *userCategoryRepository) GetByID(ctx context.Context, id int64) (*models.UserCategory, error) {
+	const query = `
+		SELECT id, name, description, created_at, updated_at
+		FROM user_categories
+		WHERE id = $1;
+	`
+
 	var category models.UserCategory
-	query := `SELECT id, name, description, created_at, updated_at FROM user_categories WHERE id = $1`
 
 	err := r.db.QueryRow(ctx, query, id).Scan(
 		&category.ID,
@@ -80,66 +99,47 @@ func (r *userCategoryRepository) GetById(ctx context.Context, id int64) (models.
 	)
 
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return category, ErrCategoryNotFound
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrCategoryNotFound
 		}
-		return category, fmt.Errorf("%w: %v", ErrGetCategoryByID, err)
+		return nil, fmt.Errorf("%w: %v", ErrGetCategoryByID, err)
 	}
 
-	return category, nil
+	return &category, nil
 }
 
-func (r *userCategoryRepository) Create(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
-	if category.Name == "" {
-		return models.UserCategory{}, ErrInvalidCategoryData
-	}
-
-	_, err := r.GetById(ctx, int64(category.ID))
-	if err == nil {
-		return models.UserCategory{}, ErrCategoryAlreadyExists
-	} else if !errors.Is(err, ErrCategoryNotFound) {
-		return models.UserCategory{}, fmt.Errorf("%w: %v", ErrCheckExistingCategory, err)
-	}
-
-	query := `INSERT INTO user_categories (name, description, created_at, updated_at) 
-	          VALUES ($1, $2, NOW(), NOW()) RETURNING id, created_at, updated_at`
-
-	err = r.db.QueryRow(ctx, query, category.Name, category.Description).
-		Scan(&category.ID, &category.CreatedAt, &category.UpdatedAt)
-	if err != nil {
-		return models.UserCategory{}, fmt.Errorf("%w: %v", ErrCreateCategory, err)
-	}
-
-	return category, nil
-}
-
-func (r *userCategoryRepository) Update(ctx context.Context, category models.UserCategory) (models.UserCategory, error) {
-	if category.Name == "" {
-		return models.UserCategory{}, ErrInvalidCategoryData
-	}
-
-	query := `
+func (r *userCategoryRepository) Update(ctx context.Context, category *models.UserCategory) error {
+	const query = `
 		UPDATE user_categories
-		SET name = $1, description = $2, updated_at = NOW(), version = version + 1
-		WHERE id = $3 AND version = $4
-		RETURNING updated_at, version
+		SET 
+			name        = $1,
+			description = $2,
+			updated_at  = NOW(),
+			version     = version + 1
+		WHERE 
+			id      = $3
+		AND 
+			version = $4
+		RETURNING 
+			updated_at,
+			version;
 	`
 
-	err := r.db.QueryRow(ctx, query,
+	row := r.db.QueryRow(ctx, query,
 		category.Name,
 		category.Description,
 		category.ID,
 		category.Version,
-	).Scan(&category.UpdatedAt, &category.Version)
+	)
 
-	if err != nil {
-		if err == pgx.ErrNoRows {
-			return models.UserCategory{}, ErrVersionConflict
+	if err := row.Scan(&category.UpdatedAt, &category.Version); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrVersionConflict
 		}
-		return models.UserCategory{}, fmt.Errorf("%w: %v", ErrUpdateCategory, err)
+		return fmt.Errorf("%w: %v", ErrUpdateCategory, err)
 	}
 
-	return category, nil
+	return nil
 }
 
 func (r *userCategoryRepository) Delete(ctx context.Context, id int64) error {

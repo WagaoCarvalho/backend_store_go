@@ -3,6 +3,7 @@ package services_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -145,17 +146,95 @@ func TestSupplierCategoryService_GetByID(t *testing.T) {
 	})
 }
 
-func TestUpdateSupplierCategory_Success(t *testing.T) {
-	mockRepo := new(MockSupplierCategoryRepo)
-	service := services.NewSupplierCategoryService(mockRepo)
+func TestSupplierCategoryService_Update(t *testing.T) {
+	t.Run("deve atualizar com sucesso", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRepo)
+		service := services.NewSupplierCategoryService(mockRepo)
 
-	category := &models.SupplierCategory{ID: 1, Name: "Atualizada"}
-	mockRepo.On("Update", mock.Anything, category).Return(nil)
+		category := &models.SupplierCategory{
+			ID:      1,
+			Name:    "Atualizada",
+			Version: 1,
+		}
 
-	err := service.Update(context.Background(), category)
+		mockRepo.On("Update", mock.Anything, category).Return(nil)
 
-	assert.NoError(t, err)
-	mockRepo.AssertExpectations(t)
+		err := service.Update(context.Background(), category)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("deve retornar erro se ID for zero", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRepo)
+		service := services.NewSupplierCategoryService(mockRepo)
+
+		category := &models.SupplierCategory{
+			ID:      0,
+			Name:    "Nome válido",
+			Version: 1,
+		}
+
+		err := service.Update(context.Background(), category)
+
+		assert.Error(t, err)
+		assert.Equal(t, services.ErrCategoryIDRequired, err)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("deve retornar erro se nome for vazio", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRepo)
+		service := services.NewSupplierCategoryService(mockRepo)
+
+		category := &models.SupplierCategory{
+			ID:      1,
+			Name:    "   ", // vazio após trim
+			Version: 1,
+		}
+
+		err := service.Update(context.Background(), category)
+
+		assert.Error(t, err)
+		assert.Equal(t, services.ErrCategoryNameRequired, err)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("deve retornar erro se versão for zero", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRepo)
+		service := services.NewSupplierCategoryService(mockRepo)
+
+		category := &models.SupplierCategory{
+			ID:      1,
+			Name:    "Nome válido",
+			Version: 0,
+		}
+
+		err := service.Update(context.Background(), category)
+
+		assert.Error(t, err)
+		assert.Equal(t, services.ErrSupplierCategoryVersionRequired, err)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("deve propagar erro do repositório", func(t *testing.T) {
+		mockRepo := new(MockSupplierCategoryRepo)
+		service := services.NewSupplierCategoryService(mockRepo)
+
+		category := &models.SupplierCategory{
+			ID:      1,
+			Name:    "Nome válido",
+			Version: 1,
+		}
+
+		mockRepo.On("Update", mock.Anything, category).
+			Return(fmt.Errorf("erro ao atualizar no repositório"))
+
+		err := service.Update(context.Background(), category)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "erro ao atualizar no repositório")
+		mockRepo.AssertExpectations(t)
+	})
 }
 
 func TestUpdateSupplierCategory_MissingID(t *testing.T) {

@@ -14,7 +14,6 @@ import (
 var (
 	ErrRelationNotFound       = errors.New("relação usuário-categoria não encontrada")
 	ErrRelationExists         = errors.New("relação já existe")
-	ErrInvalidRelationData    = errors.New("dados inválidos para relação")
 	ErrCreateRelation         = errors.New("erro ao criar relação")
 	ErrGetRelationsByUser     = errors.New("erro ao buscar relações por usuário")
 	ErrGetRelationsByCategory = errors.New("erro ao buscar relações por categoria")
@@ -26,10 +25,11 @@ var (
 	ErrVersionConflict        = errors.New("conflito de versão: os dados foram modificados por outro processo")
 )
 
-type UserCategoryRelationRepositories interface {
+type UserCategoryRelationRepository interface {
 	Create(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error)
-	GetByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelations, error)
-	GetByCategoryID(ctx context.Context, categoryID int64) ([]models.UserCategoryRelations, error)
+	GetAll(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
+	GetByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
+	GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.UserCategoryRelations, error)
 	Update(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error)
 	Delete(ctx context.Context, userID, categoryID int64) error
 	DeleteAll(ctx context.Context, userID int64) error
@@ -39,23 +39,19 @@ type userCategoryRelationRepositories struct {
 	db *pgxpool.Pool
 }
 
-func NewUserCategoryRelationRepositories(db *pgxpool.Pool) UserCategoryRelationRepositories {
+func NewUserCategoryRelationRepositories(db *pgxpool.Pool) UserCategoryRelationRepository {
 	return &userCategoryRelationRepositories{db: db}
 }
 
 func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
-	if relation.UserID == 0 || relation.CategoryID == 0 {
-		return nil, ErrInvalidRelationData
-	}
-
-	query := `
-		INSERT INTO user_category_relations (user_id, category_id, created_at, updated_at) 
-		VALUES ($1, $2, NOW(), NOW()) 
-		RETURNING user_id, created_at, updated_at`
+	const query = `
+		INSERT INTO user_category_relations (user_id, category_id, created_at, updated_at)
+		VALUES ($1, $2, NOW(), NOW())
+		RETURNING id, created_at, updated_at;
+	`
 
 	err := r.db.QueryRow(ctx, query, relation.UserID, relation.CategoryID).
 		Scan(&relation.ID, &relation.CreatedAt, &relation.UpdatedAt)
-
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key") {
 			return nil, ErrRelationExists
@@ -66,11 +62,12 @@ func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation 
 	return relation, nil
 }
 
-func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, userID int64) ([]models.UserCategoryRelations, error) {
-	query := `
-		SELECT id, user_id, category_id, created_at, updated_at 
-		FROM user_category_relations 
-		WHERE user_id = $1`
+func (r *userCategoryRelationRepositories) GetAll(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
+	const query = `
+		SELECT id, user_id, category_id, created_at, updated_at
+		FROM user_category_relations
+		WHERE user_id = $1;
+	`
 
 	rows, err := r.db.Query(ctx, query, userID)
 	if err != nil {
@@ -78,13 +75,13 @@ func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, user
 	}
 	defer rows.Close()
 
-	var relations []models.UserCategoryRelations
+	var relations []*models.UserCategoryRelations
 	for rows.Next() {
 		var rel models.UserCategoryRelations
 		if err := rows.Scan(&rel.ID, &rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrScanRelation, err)
 		}
-		relations = append(relations, rel)
+		relations = append(relations, &rel)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -94,11 +91,41 @@ func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, user
 	return relations, nil
 }
 
-func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, categoryID int64) ([]models.UserCategoryRelations, error) {
-	query := `
-		SELECT id, user_id, category_id, created_at, updated_at 
-		FROM user_category_relations 
-		WHERE category_id = $1`
+func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
+	const query = `
+		SELECT id, user_id, category_id, created_at, updated_at
+		FROM user_category_relations
+		WHERE user_id = $1;
+	`
+
+	rows, err := r.db.Query(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrGetRelationsByUser, err)
+	}
+	defer rows.Close()
+
+	var relations []*models.UserCategoryRelations
+	for rows.Next() {
+		var rel models.UserCategoryRelations
+		if err := rows.Scan(&rel.ID, &rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrScanRelation, err)
+		}
+		relations = append(relations, &rel)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrIterateRelations, err)
+	}
+
+	return relations, nil
+}
+
+func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.UserCategoryRelations, error) {
+	const query = `
+		SELECT id, user_id, category_id, created_at, updated_at
+		FROM user_category_relations
+		WHERE category_id = $1;
+	`
 
 	rows, err := r.db.Query(ctx, query, categoryID)
 	if err != nil {
@@ -106,13 +133,13 @@ func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, 
 	}
 	defer rows.Close()
 
-	var relations []models.UserCategoryRelations
+	var relations []*models.UserCategoryRelations
 	for rows.Next() {
 		var rel models.UserCategoryRelations
 		if err := rows.Scan(&rel.ID, &rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrScanRelation, err)
 		}
-		relations = append(relations, rel)
+		relations = append(relations, &rel)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -123,11 +150,11 @@ func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, 
 }
 
 func (r *userCategoryRelationRepositories) Update(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
-	query := `
+	const query = `
 		UPDATE user_category_relations
 		SET user_id = $1, category_id = $2, updated_at = NOW(), version = version + 1
 		WHERE id = $3 AND version = $4
-		RETURNING updated_at, version
+		RETURNING updated_at, version;
 	`
 
 	err := r.db.QueryRow(ctx, query,
@@ -148,9 +175,10 @@ func (r *userCategoryRelationRepositories) Update(ctx context.Context, relation 
 }
 
 func (r *userCategoryRelationRepositories) Delete(ctx context.Context, userID, categoryID int64) error {
-	query := `
+	const query = `
 		DELETE FROM user_category_relations 
-		WHERE user_id = $1 AND category_id = $2`
+		WHERE user_id = $1 AND category_id = $2;
+	`
 
 	result, err := r.db.Exec(ctx, query, userID, categoryID)
 	if err != nil {
@@ -165,7 +193,10 @@ func (r *userCategoryRelationRepositories) Delete(ctx context.Context, userID, c
 }
 
 func (r *userCategoryRelationRepositories) DeleteAll(ctx context.Context, userID int64) error {
-	query := `DELETE FROM user_category_relations WHERE user_id = $1`
+	const query = `
+		DELETE FROM user_category_relations
+		WHERE user_id = $1;
+	`
 
 	_, err := r.db.Exec(ctx, query, userID)
 	if err != nil {
