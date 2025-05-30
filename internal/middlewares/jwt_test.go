@@ -24,7 +24,7 @@ func TestIsAuthByBearerToken_SignatureInvalidAndContext(t *testing.T) {
 
 	t.Run("Token ausente retorna 401", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		// Sem header Authorization
+
 		rr := httptest.NewRecorder()
 
 		handler.ServeHTTP(rr, req)
@@ -45,7 +45,7 @@ func TestIsAuthByBearerToken_SignatureInvalidAndContext(t *testing.T) {
 	})
 
 	t.Run("Método assinatura inválido retorna erro 401", func(t *testing.T) {
-		tokenString := "invalid.token.parts" // token inválido para forçar erro de parse/assinatura
+		tokenString := "invalid.token.parts"
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Authorization", "Bearer "+tokenString)
@@ -75,7 +75,7 @@ func TestIsAuthByBearerToken_SignatureInvalidAndContext(t *testing.T) {
 	})
 
 	t.Run("Callback retorna jwt.ErrSignatureInvalid para método não HMAC", func(t *testing.T) {
-		// JWT com alg RS256 no header, mas assinatura inválida (qualquer string qualquer)
+
 		tokenString := "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.e30.invalidsignature"
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)

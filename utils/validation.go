@@ -1,6 +1,8 @@
 package utils
 
-import "regexp"
+import (
+	"regexp"
+)
 
 func IsStringEmpty(param string) bool {
 	if param == "" {
