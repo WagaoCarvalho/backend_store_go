@@ -102,8 +102,8 @@ func TestUserCategoryRelationServices_Update(t *testing.T) {
 		mockRepo := new(MockUserCategoryRelationRepo)
 		service := NewUserCategoryRelationServices(mockRepo)
 
-		input := &models.UserCategoryRelations{ID: 1, UserID: 1, CategoryID: 2, Version: 1}
-		expected := &models.UserCategoryRelations{ID: 1, UserID: 1, CategoryID: 2, Version: 2}
+		input := &models.UserCategoryRelations{UserID: 1, CategoryID: 2, Version: 1}
+		expected := &models.UserCategoryRelations{UserID: 1, CategoryID: 2, Version: 2}
 
 		mockRepo.On("Update", mock.Anything, input).Return(expected, nil)
 
@@ -137,7 +137,7 @@ func TestUserCategoryRelationServices_Update(t *testing.T) {
 		mockRepo := new(MockUserCategoryRelationRepo)
 		service := NewUserCategoryRelationServices(mockRepo)
 
-		input := &models.UserCategoryRelations{ID: 1, UserID: 1, CategoryID: 2, Version: 1}
+		input := &models.UserCategoryRelations{UserID: 1, CategoryID: 2, Version: 1}
 		repoErr := errors.New("db error")
 
 		mockRepo.On("Update", mock.Anything, input).Return(nil, repoErr)

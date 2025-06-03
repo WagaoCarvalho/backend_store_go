@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/WagaoCarvalho/backend_store_go/internal/auth"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/login"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 )
 
 type LoginHandler struct {
-	service services.LoginService
+	service auth.LoginService
 }
 
-func NewLoginHandler(service services.LoginService) *LoginHandler {
+func NewLoginHandler(service auth.LoginService) *LoginHandler {
 	return &LoginHandler{service: service}
 }
 

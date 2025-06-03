@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,6 +13,7 @@ import (
 	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
+	user_services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -24,64 +24,8 @@ func muxSetVars(req *http.Request, vars map[string]string) *http.Request {
 	return mux.SetURLVars(req, vars)
 }
 
-// Mock do serviço de usuário
-type MockUserService struct {
-	mock.Mock
-}
-
-func (m *MockUserService) GetAll(ctx context.Context) ([]*models_user.User, error) {
-	args := m.Called(ctx)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*models_user.User), args.Error(1)
-}
-
-func (m *MockUserService) GetById(ctx context.Context, uid int64) (*models_user.User, error) {
-	args := m.Called(ctx, uid)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models_user.User), args.Error(1)
-}
-
-func (m *MockUserService) GetByEmail(ctx context.Context, email string) (*models_user.User, error) {
-	args := m.Called(ctx, email)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models_user.User), args.Error(1)
-}
-
-func (m *MockUserService) Delete(ctx context.Context, uid int64) error {
-	args := m.Called(ctx, uid)
-	return args.Error(0)
-}
-
-func (m *MockUserService) Update(ctx context.Context, user *models_user.User) (*models_user.User, error) {
-	args := m.Called(ctx, user)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models_user.User), args.Error(1)
-}
-
-func (m *MockUserService) Create(
-	ctx context.Context,
-	user *models_user.User,
-	categoryIDs []int64,
-	address *models_address.Address,
-	contact *models_contact.Contact,
-) (*models_user.User, error) {
-	args := m.Called(ctx, user, categoryIDs, address, contact)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models_user.User), args.Error(1)
-}
-
 func TestUserHandler_Create(t *testing.T) {
-	mockService := new(MockUserService)
+	mockService := new(user_services.MockUserService)
 	handler := NewUserHandler(mockService)
 
 	t.Run("Sucesso ao criar usuário", func(t *testing.T) {
@@ -172,7 +116,7 @@ func TestUserHandler_Create(t *testing.T) {
 
 func TestUserHandler_GetAll(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		users := []*models_user.User{{UID: 1, Username: "João"}}
@@ -201,7 +145,7 @@ func TestUserHandler_GetAll(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		mockService.On("GetAll", mock.Anything).Return(nil, errors.New("erro de banco"))
@@ -227,7 +171,7 @@ func TestUserHandler_GetAll(t *testing.T) {
 
 func TestUserHandler_GetById(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		expectedUser := models_user.User{UID: 10, Username: "Carlos"}
@@ -258,7 +202,7 @@ func TestUserHandler_GetById(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		req := httptest.NewRequest(http.MethodGet, "/users/abc", nil)
@@ -276,7 +220,7 @@ func TestUserHandler_GetById(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		mockService.On("GetById", mock.Anything, int64(99)).Return((*models_user.User)(nil), fmt.Errorf("usuário não encontrado"))
@@ -300,7 +244,7 @@ func TestUserHandler_GetById(t *testing.T) {
 
 func TestUserHandler_GetByEmail(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		expectedUser := &models_user.User{UID: 20, Email: "carlos@email.com"}
@@ -324,7 +268,7 @@ func TestUserHandler_GetByEmail(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		mockService.On("GetByEmail", mock.Anything, "naoexiste@email.com").
@@ -347,7 +291,7 @@ func TestUserHandler_GetByEmail(t *testing.T) {
 	})
 
 	t.Run("InternalError", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		mockService.On("GetByEmail", mock.Anything, "erro@email.com").
@@ -372,17 +316,27 @@ func TestUserHandler_GetByEmail(t *testing.T) {
 
 func TestUserHandler_Update(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		inputUser := &models_user.User{Username: "Atualizado"}
+		inputAddress := &models_address.Address{Street: "Rua Nova"}
 		updatedUser := &models_user.User{UID: 1, Username: "Atualizado"}
 
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *models_user.User) bool {
-			return u.UID == 1 && u.Username == "Atualizado"
-		})).Return(updatedUser, nil)
+		mockService.On("Update",
+			mock.Anything,
+			mock.MatchedBy(func(u *models_user.User) bool {
+				return u.UID == 1 && u.Username == "Atualizado"
+			}),
+			mock.MatchedBy(func(a *models_address.Address) bool {
+				return a.Street == "Rua Nova"
+			}),
+		).Return(updatedUser, nil)
 
-		body := map[string]interface{}{"user": inputUser}
+		body := map[string]interface{}{
+			"user":    inputUser,
+			"address": inputAddress,
+		}
 		jsonBody, _ := json.Marshal(body)
 
 		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(jsonBody))
@@ -403,7 +357,7 @@ func TestUserHandler_Update(t *testing.T) {
 	})
 
 	t.Run("InvalidMethod", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		req := httptest.NewRequest(http.MethodGet, "/users/1", nil) // GET ao invés de PUT
@@ -421,7 +375,7 @@ func TestUserHandler_Update(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		body := map[string]interface{}{"user": map[string]interface{}{"username": "teste"}}
@@ -441,7 +395,7 @@ func TestUserHandler_Update(t *testing.T) {
 	})
 
 	t.Run("InvalidBody", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader([]byte(`invalid-json`)))
@@ -458,15 +412,22 @@ func TestUserHandler_Update(t *testing.T) {
 	})
 
 	t.Run("VersionConflict", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		user := &models_user.User{Username: "Carlos"}
 
-		mockService.On("Update", mock.Anything, mock.Anything).
-			Return(nil, repository.ErrVersionConflict)
+		mockService.On("Update",
+			mock.Anything,
+			mock.MatchedBy(func(u *models_user.User) bool {
+				return u.UID == 2 && u.Username == "Carlos"
+			}),
+			(*models_address.Address)(nil), // Address como nil
+		).Return(nil, repository.ErrVersionConflict)
 
-		body := map[string]interface{}{"user": user}
+		body := map[string]interface{}{
+			"user": user,
+		}
 		jsonBody, _ := json.Marshal(body)
 
 		req := httptest.NewRequest(http.MethodPut, "/users/2", bytes.NewReader(jsonBody))
@@ -481,18 +442,27 @@ func TestUserHandler_Update(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusConflict, resp.Status)
 		assert.Contains(t, resp.Message, "versão")
+
+		mockService.AssertExpectations(t)
 	})
 
 	t.Run("InternalError", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
-		user := &models_user.User{Username: "Carlos"}
+		user := &models_user.User{UID: 3, Username: "Carlos"}
 
-		mockService.On("Update", mock.Anything, mock.Anything).
-			Return(nil, errors.New("erro inesperado"))
+		mockService.On("Update",
+			mock.Anything,
+			mock.MatchedBy(func(u *models_user.User) bool {
+				return u.UID == 3 && u.Username == "Carlos"
+			}),
+			(*models_address.Address)(nil),
+		).Return(nil, errors.New("erro inesperado"))
 
-		body := map[string]interface{}{"user": user}
+		body := map[string]interface{}{
+			"user": user,
+		}
 		jsonBody, _ := json.Marshal(body)
 
 		req := httptest.NewRequest(http.MethodPut, "/users/3", bytes.NewReader(jsonBody))
@@ -507,12 +477,15 @@ func TestUserHandler_Update(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusInternalServerError, resp.Status)
 		assert.Contains(t, resp.Message, "erro inesperado")
+
+		mockService.AssertExpectations(t)
 	})
+
 }
 
 func TestUserHandler_Delete(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		mockService.On("Delete", mock.Anything, int64(1)).Return(nil)
@@ -536,7 +509,7 @@ func TestUserHandler_Delete(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		req := httptest.NewRequest(http.MethodDelete, "/users/abc", nil)
@@ -554,7 +527,7 @@ func TestUserHandler_Delete(t *testing.T) {
 	})
 
 	t.Run("UserNotFound", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		mockService.On("Delete", mock.Anything, int64(99)).
@@ -577,7 +550,7 @@ func TestUserHandler_Delete(t *testing.T) {
 	})
 
 	t.Run("InternalError", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		mockService.On("Delete", mock.Anything, int64(2)).
@@ -600,7 +573,7 @@ func TestUserHandler_Delete(t *testing.T) {
 	})
 
 	t.Run("InvalidMethod", func(t *testing.T) {
-		mockService := new(MockUserService)
+		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		req := httptest.NewRequest(http.MethodGet, "/users/1", nil) // GET em vez de DELETE

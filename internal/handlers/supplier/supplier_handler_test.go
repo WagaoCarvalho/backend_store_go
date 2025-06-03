@@ -14,7 +14,8 @@ import (
 	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_supplier "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
 	models_supplier_category_relations "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers"
+	address_services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
+	suppliers_services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -125,9 +126,9 @@ func TestSupplierService_Create(t *testing.T) {
 		mockRepo := new(MockSupplierRepo)
 		mockRelationService := new(MockSupplierCategoryRelationService)
 		mockSupplierCategoryService := new(MockSupplierCategoryService)
-		mockAddressService := new(MockAddressService)
+		mockAddressService := new(address_services.MockAddressService)
 		mockContactService := new(MockContactService)
-		service := services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
+		service := suppliers_services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
 
 		input := &models_supplier.Supplier{Name: "Fornecedor Y"}
 		categoryID := int64(1)
@@ -146,10 +147,10 @@ func TestSupplierService_Create(t *testing.T) {
 	t.Run("Service_RelationExistsError", func(t *testing.T) {
 		mockRepo := new(MockSupplierRepo)
 		mockRelationService := new(MockSupplierCategoryRelationService)
-		mockAddressService := new(MockAddressService)
+		mockAddressService := new(address_services.MockAddressService)
 		mockContactService := new(MockContactService)
 		mockSupplierCategoryService := new(MockSupplierCategoryService)
-		service := services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
+		service := suppliers_services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
 
 		input := &models_supplier.Supplier{Name: "Fornecedor Z"}
 		categoryID := int64(1)
@@ -170,10 +171,10 @@ func TestSupplierService_Create(t *testing.T) {
 	t.Run("Service_CreateRelationError", func(t *testing.T) {
 		mockRepo := new(MockSupplierRepo)
 		mockRelationService := new(MockSupplierCategoryRelationService)
-		mockAddressService := new(MockAddressService)
+		mockAddressService := new(address_services.MockAddressService)
 		mockContactService := new(MockContactService)
 		mockSupplierCategoryService := new(MockSupplierCategoryService)
-		service := services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
+		service := suppliers_services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
 
 		input := &models_supplier.Supplier{ID: 1, Name: "Fornecedor A"}
 		categoryID := int64(1)
@@ -196,10 +197,10 @@ func TestSupplierService_Create(t *testing.T) {
 	t.Run("Service_InvalidCategoryID", func(t *testing.T) {
 		mockRepo := new(MockSupplierRepo)
 		mockRelationService := new(MockSupplierCategoryRelationService)
-		mockAddressService := new(MockAddressService)
+		mockAddressService := new(address_services.MockAddressService)
 		mockContactService := new(MockContactService)
 		mockSupplierCategoryService := new(MockSupplierCategoryService)
-		service := services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
+		service := suppliers_services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
 
 		input := &models_supplier.Supplier{Name: "Fornecedor B"}
 		categoryID := int64(0)

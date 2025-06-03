@@ -23,7 +23,7 @@ type AddressRepository interface {
 	Create(ctx context.Context, address *models.Address) (*models.Address, error)
 	GetByID(ctx context.Context, id int64) (*models.Address, error)
 	Update(ctx context.Context, address *models.Address) error
-	Delete(ctx context.Context, id int64) error
+	Delete(ctx context.Context, id int64, version int) error
 }
 
 type addressRepository struct {
@@ -42,7 +42,7 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 			created_at, updated_at
 		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-		RETURNING id, created_at, updated_at;
+		RETURNING id, version, created_at, updated_at;
 	`
 
 	err := r.db.QueryRow(ctx, query,
@@ -54,7 +54,7 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 		address.State,
 		address.Country,
 		address.PostalCode,
-	).Scan(&address.ID, &address.CreatedAt, &address.UpdatedAt)
+	).Scan(&address.ID, &address.Version, &address.CreatedAt, &address.UpdatedAt)
 
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrCreateAddress, err)
@@ -68,7 +68,7 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 		SELECT 
 			id, user_id, client_id, supplier_id,
 			street, city, state, country, postal_code,
-			created_at, updated_at
+			version, created_at, updated_at
 		FROM addresses
 		WHERE id = $1;
 	`
@@ -84,6 +84,7 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 		&address.State,
 		&address.Country,
 		&address.PostalCode,
+		&address.Version,
 		&address.CreatedAt,
 		&address.UpdatedAt,
 	)
@@ -143,16 +144,19 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 	return nil
 }
 
-func (r *addressRepository) Delete(ctx context.Context, id int64) error {
-	const query = `DELETE FROM addresses WHERE id = $1`
+func (r *addressRepository) Delete(ctx context.Context, id int64, version int) error {
+	const query = `
+		DELETE FROM addresses 
+		WHERE id = $1 AND version = $2
+	`
 
-	cmdTag, err := r.db.Exec(ctx, query, id)
+	cmdTag, err := r.db.Exec(ctx, query, id, version)
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrDeleteAddress, err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		return ErrAddressNotFound
+		return ErrVersionConflict
 	}
 
 	return nil

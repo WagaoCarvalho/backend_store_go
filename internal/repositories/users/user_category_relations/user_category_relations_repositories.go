@@ -46,12 +46,10 @@ func NewUserCategoryRelationRepositories(db *pgxpool.Pool) UserCategoryRelationR
 func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
 	const query = `
 		INSERT INTO user_category_relations (user_id, category_id, created_at, updated_at)
-		VALUES ($1, $2, NOW(), NOW())
-		RETURNING id, created_at, updated_at;
+		VALUES ($1, $2, NOW(), NOW());
 	`
 
-	err := r.db.QueryRow(ctx, query, relation.UserID, relation.CategoryID).
-		Scan(&relation.ID, &relation.CreatedAt, &relation.UpdatedAt)
+	_, err := r.db.Exec(ctx, query, relation.UserID, relation.CategoryID)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key") {
 			return nil, ErrRelationExists
@@ -78,7 +76,7 @@ func (r *userCategoryRelationRepositories) GetAll(ctx context.Context, userID in
 	var relations []*models.UserCategoryRelations
 	for rows.Next() {
 		var rel models.UserCategoryRelations
-		if err := rows.Scan(&rel.ID, &rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
+		if err := rows.Scan(&rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrScanRelation, err)
 		}
 		relations = append(relations, &rel)
@@ -107,7 +105,7 @@ func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, user
 	var relations []*models.UserCategoryRelations
 	for rows.Next() {
 		var rel models.UserCategoryRelations
-		if err := rows.Scan(&rel.ID, &rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
+		if err := rows.Scan(&rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrScanRelation, err)
 		}
 		relations = append(relations, &rel)
@@ -136,7 +134,7 @@ func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, 
 	var relations []*models.UserCategoryRelations
 	for rows.Next() {
 		var rel models.UserCategoryRelations
-		if err := rows.Scan(&rel.ID, &rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
+		if err := rows.Scan(&rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrScanRelation, err)
 		}
 		relations = append(relations, &rel)
@@ -160,7 +158,6 @@ func (r *userCategoryRelationRepositories) Update(ctx context.Context, relation 
 	err := r.db.QueryRow(ctx, query,
 		relation.UserID,
 		relation.CategoryID,
-		relation.ID,
 		relation.Version,
 	).Scan(&relation.UpdatedAt, &relation.Version)
 

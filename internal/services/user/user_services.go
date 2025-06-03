@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/WagaoCarvalho/backend_store_go/internal/auth"
 	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
@@ -25,6 +26,8 @@ var (
 	ErrGetUser                = errors.New("erro ao buscar usuário")
 	ErrUpdateUser             = errors.New("erro ao atualizar usuário")
 	ErrDeleteUser             = errors.New("erro ao deletar usuário")
+	ErrFetchAddress           = errors.New("erro ao buscar o endereço")
+	ErrUpdateAddress          = errors.New("erro ao atualizar o endereço")
 )
 
 type UserService interface {
@@ -32,7 +35,11 @@ type UserService interface {
 	GetById(ctx context.Context, uid int64) (*models_user.User, error)
 	GetByEmail(ctx context.Context, email string) (*models_user.User, error)
 	Delete(ctx context.Context, uid int64) error
-	Update(ctx context.Context, user *models_user.User) (*models_user.User, error)
+	Update(
+		ctx context.Context,
+		user *models_user.User,
+		address *models_address.Address,
+	) (*models_user.User, error)
 	Create(
 		ctx context.Context,
 		user *models_user.User,
@@ -74,6 +81,15 @@ func (s *userService) Create(
 		return nil, ErrInvalidEmail
 	}
 
+	// Gerar hash da senha ANTES de salvar
+	if user.Password != "" {
+		hashed, err := auth.HashPassword(user.Password)
+		if err != nil {
+			return nil, fmt.Errorf("erro ao hashear senha: %w", err)
+		}
+		user.Password = hashed
+	}
+
 	createdUser, err := s.repo.Create(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrCreateUser, err)
@@ -86,13 +102,16 @@ func (s *userService) Create(
 		return nil, fmt.Errorf("%w: %v", ErrCreateAddress, err)
 	}
 
-	contact.UserID = &id
-	createdContact, err := s.contactRepo.Create(ctx, contact)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrCreateContact, err)
+	if contact != nil {
+		contact.UserID = &id
+		createdContact, err := s.contactRepo.Create(ctx, contact)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrCreateContact, err)
+		}
+		if createdContact != nil {
+			fmt.Println("Contato criado com ID:", createdContact.ID)
+		}
 	}
-
-	fmt.Println("Contato criado com ID:", createdContact.ID)
 
 	for _, categoryID := range categoryIDs {
 		relation := &models_user_category_relations.UserCategoryRelations{
@@ -109,7 +128,7 @@ func (s *userService) Create(
 }
 
 func (s *userService) GetAll(ctx context.Context) ([]*models_user.User, error) {
-	return s.repo.GetAll(ctx) // repassa direto, ok
+	return s.repo.GetAll(ctx)
 }
 
 func (s *userService) GetById(ctx context.Context, uid int64) (*models_user.User, error) {
@@ -128,7 +147,11 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*models_use
 	return user, nil
 }
 
-func (s *userService) Update(ctx context.Context, user *models_user.User) (*models_user.User, error) {
+func (s *userService) Update(
+	ctx context.Context,
+	user *models_user.User,
+	address *models_address.Address,
+) (*models_user.User, error) {
 	if !utils.IsValidEmail(user.Email) {
 		return nil, ErrInvalidEmail
 	}
@@ -142,6 +165,25 @@ func (s *userService) Update(ctx context.Context, user *models_user.User) (*mode
 			return nil, repositories_user.ErrUserNotFound
 		}
 		return nil, fmt.Errorf("%w: %v", ErrUpdateUser, err)
+	}
+
+	if address != nil {
+		existing, err := s.addressRepo.GetByID(ctx, address.ID)
+		if err != nil {
+			if errors.Is(err, repositories_address.ErrAddressNotFound) {
+				return nil, repositories_address.ErrAddressNotFound
+			}
+			return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
+		}
+
+		if existing.Version != address.Version {
+			return nil, repositories_address.ErrVersionConflict
+		}
+
+		err = s.addressRepo.Update(ctx, address)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrUpdateAddress, err)
+		}
 	}
 
 	return updatedUser, nil

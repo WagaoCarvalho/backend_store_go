@@ -10,18 +10,18 @@ import (
 )
 
 var (
-	ErrInvalidAddressData   = errors.New("address: dados do endereço inválidos")
-	ErrAddressIDRequired    = errors.New("address: ID do endereço é obrigatório")
-	ErrAddressVersionNeeded = errors.New("address: versão obrigatória para atualização")
-	ErrUpdateAddress        = errors.New("address: erro ao atualizar")
-	ErrVersionConflict      = errors.New("address: conflito de versão")
+	ErrInvalidAddressData = errors.New("address: dados do endereço inválidos")
+	ErrAddressIDRequired  = errors.New("address: ID do endereço é obrigatório")
+	ErrVersionRequired    = errors.New("address: versão obrigatória para atualização")
+	ErrUpdateAddress      = errors.New("address: erro ao atualizar")
+	ErrVersionConflict    = errors.New("address: conflito de versão")
 )
 
 type AddressService interface {
 	Create(ctx context.Context, address *models.Address) (*models.Address, error)
 	GetByID(ctx context.Context, id int64) (*models.Address, error)
 	Update(ctx context.Context, address *models.Address) error
-	Delete(ctx context.Context, id int64) error
+	Delete(ctx context.Context, id int64, version int) error
 }
 
 type addressService struct {
@@ -33,9 +33,6 @@ func NewAddressService(repo repositories.AddressRepository) AddressService {
 }
 
 func (s *addressService) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
-	if err := validateAddress(address); err != nil {
-		return nil, err
-	}
 	return s.repo.Create(ctx, address)
 }
 
@@ -51,10 +48,7 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 		return ErrAddressIDRequired
 	}
 	if address.Version == 0 {
-		return ErrAddressVersionNeeded
-	}
-	if err := validateAddress(address); err != nil {
-		return err
+		return ErrVersionRequired
 	}
 
 	err := s.repo.Update(ctx, address)
@@ -68,16 +62,12 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 	return nil
 }
 
-func (s *addressService) Delete(ctx context.Context, id int64) error {
+func (s *addressService) Delete(ctx context.Context, id int64, version int) error {
 	if id == 0 {
 		return ErrAddressIDRequired
 	}
-	return s.repo.Delete(ctx, id)
-}
-
-func validateAddress(a *models.Address) error {
-	if a.Street == "" || a.City == "" || a.State == "" || a.PostalCode == "" {
-		return ErrInvalidAddressData
+	if version == 0 {
+		return ErrVersionRequired
 	}
-	return nil
+	return s.repo.Delete(ctx, id, version)
 }

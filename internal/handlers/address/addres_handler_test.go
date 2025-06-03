@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -15,36 +15,14 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
+	addresses_services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
 	"github.com/WagaoCarvalho/backend_store_go/utils"
 )
 
-type MockAddressService struct {
-	mock.Mock
-}
-
-func (m *MockAddressService) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
-	args := m.Called(ctx, address)
-	return args.Get(0).(*models.Address), args.Error(1)
-}
-
-func (m *MockAddressService) GetByID(ctx context.Context, id int64) (*models.Address, error) {
-	args := m.Called(ctx, id)
-	return args.Get(0).(*models.Address), args.Error(1)
-}
-
-func (m *MockAddressService) Update(ctx context.Context, address *models.Address) error {
-	args := m.Called(ctx, address)
-	return args.Error(0)
-}
-
-func (m *MockAddressService) Delete(ctx context.Context, id int64) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
-
 func TestAddressHandler_Create(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
 		uid := int64(1)
@@ -79,7 +57,7 @@ func TestAddressHandler_Create(t *testing.T) {
 	})
 
 	t.Run("CreateValidationError", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
 		userID := int64(1)
@@ -114,7 +92,7 @@ func TestAddressHandler_Create(t *testing.T) {
 	})
 
 	t.Run("InvalidJSON", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer([]byte(`{invalid`)))
 		req.Header.Set("Content-Type", "application/json")
@@ -124,7 +102,7 @@ func TestAddressHandler_Create(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
 		uid := int64(42)
@@ -154,7 +132,7 @@ func TestAddressHandler_Create(t *testing.T) {
 
 func TestAddressHandler_GetByID(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 		expected := &models.Address{ID: int64(0), Street: "Rua", City: "Cidade"}
 		mockService.On("GetByID", mock.Anything, int64(1)).Return(expected, nil)
@@ -172,7 +150,7 @@ func TestAddressHandler_GetByID(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 		req := httptest.NewRequest(http.MethodGet, "/addresses/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -182,7 +160,7 @@ func TestAddressHandler_GetByID(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 		mockService.On("GetByID", mock.Anything, int64(1)).Return(&models.Address{}, assert.AnError)
 		req := httptest.NewRequest(http.MethodGet, "/addresses/1", nil)
@@ -195,7 +173,7 @@ func TestAddressHandler_GetByID(t *testing.T) {
 
 func TestAddressHandler_Update(t *testing.T) {
 	t.Run("InvalidIDParam", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
 		req := httptest.NewRequest(http.MethodPut, "/addresses/abc", strings.NewReader(`{}`))
@@ -215,7 +193,7 @@ func TestAddressHandler_Update(t *testing.T) {
 	})
 
 	t.Run("ValidateReturnsGenericError", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
 		userID := int64(1)
@@ -250,7 +228,7 @@ func TestAddressHandler_Update(t *testing.T) {
 	})
 
 	t.Run("InvalidJSON", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
 		req := httptest.NewRequest(http.MethodPut, "/addresses/2", bytes.NewBuffer([]byte(`{invalid-json}`)))
@@ -271,7 +249,7 @@ func TestAddressHandler_Update(t *testing.T) {
 	})
 
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
 		var userID int64 = 1
@@ -313,7 +291,7 @@ func TestAddressHandler_Update(t *testing.T) {
 	})
 
 	t.Run("ValidationErrorFromValidateMethod", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
 		userID := int64(1)
@@ -349,7 +327,7 @@ func TestAddressHandler_Update(t *testing.T) {
 	})
 
 	t.Run("ValidationErrorFromService", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
 		userID := int64(1)
@@ -397,7 +375,7 @@ func TestAddressHandler_Update(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
 		userID := int64(1)
@@ -442,61 +420,182 @@ func TestAddressHandler_Update(t *testing.T) {
 
 func TestAddressHandler_Delete(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
-		mockService.On("Delete", mock.Anything, int64(1)).Return(nil)
-		req := httptest.NewRequest(http.MethodDelete, "/addresses/1", nil)
+
+		mockService.On("Delete", mock.Anything, int64(1), 2).Return(nil)
+
+		req := httptest.NewRequest(http.MethodDelete, "/addresses/1?version=2", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+
 		w := httptest.NewRecorder()
 		handler.Delete(w, req)
-		assert.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+		expected := `{
+			"status": 200,
+			"message": "Endereço deletado com sucesso",
+			"data": null
+		}`
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.JSONEq(t, expected, w.Body.String())
 		mockService.AssertExpectations(t)
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
-		req := httptest.NewRequest(http.MethodDelete, "/addresses/abc", nil)
+
+		req := httptest.NewRequest(http.MethodDelete, "/addresses/abc?version=1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
+
 		handler.Delete(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+
+		expected := `{
+			"status": 400,
+			"message": "ID inválido (esperado número inteiro)",
+			"data": null
+		}`
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.JSONEq(t, expected, w.Body.String())
+	})
+
+	t.Run("InvalidVersion", func(t *testing.T) {
+		mockService := new(addresses_services.MockAddressService)
+		handler := NewAddressHandler(mockService)
+
+		req := httptest.NewRequest(http.MethodDelete, "/addresses/1?version=abc", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.Delete(w, req)
+
+		expected := `{
+			"status": 400,
+			"message": "versão inválida (esperado número inteiro)",
+			"data": null
+		}`
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.JSONEq(t, expected, w.Body.String())
+	})
+
+	t.Run("MissingIDError", func(t *testing.T) {
+		mockService := new(addresses_services.MockAddressService)
+		handler := NewAddressHandler(mockService)
+
+		mockService.On("Delete", mock.Anything, int64(0), 1).Return(services.ErrAddressIDRequired)
+
+		req := httptest.NewRequest(http.MethodDelete, "/addresses/0?version=1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "0"})
+		w := httptest.NewRecorder()
+
+		handler.Delete(w, req)
+
+		expected := `{
+			"status": 400,
+			"message": "endereço ID é obrigatório",
+			"data": null
+		}`
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.JSONEq(t, expected, w.Body.String())
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("MissingVersionError", func(t *testing.T) {
+		mockService := new(addresses_services.MockAddressService)
+		handler := NewAddressHandler(mockService)
+
+		mockService.On("Delete", mock.Anything, int64(1), 0).Return(services.ErrVersionRequired)
+
+		req := httptest.NewRequest(http.MethodDelete, "/addresses/1?version=0", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.Delete(w, req)
+
+		expected := `{
+			"status": 400,
+			"message": "versão é obrigatória",
+			"data": null
+		}`
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.JSONEq(t, expected, w.Body.String())
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("VersionConflict", func(t *testing.T) {
+		mockService := new(addresses_services.MockAddressService)
+		handler := NewAddressHandler(mockService)
+
+		mockService.On("Delete", mock.Anything, int64(1), 2).Return(services.ErrVersionConflict)
+
+		req := httptest.NewRequest(http.MethodDelete, "/addresses/1?version=2", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.Delete(w, req)
+
+		expected := `{
+			"status": 409,
+			"message": "conflito de versão",
+			"data": null
+		}`
+
+		assert.Equal(t, http.StatusConflict, w.Code)
+		assert.JSONEq(t, expected, w.Body.String())
+		mockService.AssertExpectations(t)
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
-		mockService.On("Delete", mock.Anything, int64(1)).Return(assert.AnError)
-		req := httptest.NewRequest(http.MethodDelete, "/addresses/1", nil)
+
+		mockService.On("Delete", mock.Anything, int64(1), 1).Return(errors.New("erro inesperado"))
+
+		req := httptest.NewRequest(http.MethodDelete, "/addresses/1?version=1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+
 		w := httptest.NewRecorder()
 		handler.Delete(w, req)
-		assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+
+		expected := `{
+			"status": 500,
+			"message": "erro inesperado",
+			"data": null
+		}`
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.JSONEq(t, expected, w.Body.String())
 		mockService.AssertExpectations(t)
 	})
 
 	t.Run("DeleteNotFoundError", func(t *testing.T) {
-		mockService := new(MockAddressService)
+		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
 		id := int64(99)
 
-		mockService.On("Delete", mock.Anything, id).Return(utils.ErrNotFound)
+		mockService.On("Delete", mock.Anything, id, 1).Return(utils.ErrNotFound)
 
-		req := httptest.NewRequest(http.MethodDelete, "/addresses/99", nil)
+		req := httptest.NewRequest(http.MethodDelete, "/addresses/99?version=1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "99"})
 		w := httptest.NewRecorder()
 
 		handler.Delete(w, req)
 
 		expected := fmt.Sprintf(`{
-		"status": 404,
-		"message": "%s",
-		"data": null
-	}`, utils.ErrNotFound.Error())
+			"status": 404,
+			"message": "%s",
+			"data": null
+		}`, utils.ErrNotFound.Error())
 
 		assert.Equal(t, http.StatusNotFound, w.Code)
 		assert.JSONEq(t, expected, w.Body.String())
+		mockService.AssertExpectations(t)
 	})
-
 }

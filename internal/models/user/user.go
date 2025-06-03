@@ -12,7 +12,7 @@ type User struct {
 	UID        int64                                 `json:"uid"`
 	Username   string                                `json:"username"`
 	Email      string                                `json:"email"`
-	Password   string                                `json:"-"`
+	Password   string                                `json:"password"`
 	Status     bool                                  `json:"status"`
 	Version    int                                   `json:"version"`
 	CreatedAt  time.Time                             `json:"created_at"`

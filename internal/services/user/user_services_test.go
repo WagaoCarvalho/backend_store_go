@@ -6,20 +6,23 @@ import (
 	"fmt"
 	"testing"
 
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
-	repositories_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
+	addresses_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
+	repositories_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
+	user_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestUserService_Create(t *testing.T) {
 
-	setup := func() (*MockUserRepository, *MockAddressRepository, *MockContactRepository, *MockUserCategoryRelationRepositories, UserService) {
-		mockUserRepo := new(MockUserRepository)
-		mockAddressRepo := new(MockAddressRepository)
+	setup := func() (*user_repositories.MockUserRepository, *addresses_repositories.MockAddressRepository, *MockContactRepository, *MockUserCategoryRelationRepositories, UserService) {
+		mockUserRepo := new(user_repositories.MockUserRepository)
+		mockAddressRepo := new(addresses_repositories.MockAddressRepository)
 		mockContactRepo := new(MockContactRepository)
 		mockRelationRepo := new(MockUserCategoryRelationRepositories)
 
@@ -71,7 +74,7 @@ func TestUserService_Create(t *testing.T) {
 				Status:   true,
 			}, nil)
 
-		mockAddressRepo.On("Create", mock.Anything, mock.Anything).Return(models_address.Address{ID: 1}, nil)
+		mockAddressRepo.On("Create", mock.Anything, mock.Anything).Return(&models_address.Address{ID: 1}, nil)
 		mockContactRepo.On("Create", mock.Anything, mock.Anything).Return(&models_contact.Contact{ID: 1}, nil)
 		mockRelationRepo.On("Create", mock.Anything, mock.Anything).Return(&models_user_categories.UserCategory{}, nil).Times(len(categoryIDs))
 
@@ -114,8 +117,7 @@ func TestUserService_Create(t *testing.T) {
 				Status:   true,
 			}, nil)
 
-		mockAddressRepo.On("Create", mock.Anything, mock.Anything).Return(models_address.Address{}, errors.New("erro no endereço"))
-
+		mockAddressRepo.On("Create", mock.Anything, mock.Anything).Return(&models_address.Address{}, errors.New("erro no endereço"))
 		_, err := userService.Create(context.Background(), &newUser, nil, &models_address.Address{}, nil)
 
 		assert.Error(t, err)
@@ -139,7 +141,7 @@ func TestUserService_Create(t *testing.T) {
 				Email:    "test@example.com",
 				Status:   true,
 			}, nil)
-		mockAddressRepo.On("Create", mock.Anything, mock.Anything).Return(models_address.Address{}, nil)
+		mockAddressRepo.On("Create", mock.Anything, mock.Anything).Return(&models_address.Address{}, nil)
 		mockContactRepo.On("Create", mock.Anything, mock.Anything).Return(nil, errors.New("erro no contato"))
 
 		_, err := userService.Create(context.Background(), &newUser, nil, &models_address.Address{}, &models_contact.Contact{})
@@ -168,7 +170,7 @@ func TestUserService_Create(t *testing.T) {
 				Email:    "test@example.com",
 				Status:   true,
 			}, nil)
-		mockAddressRepo.On("Create", mock.Anything, mock.Anything).Return(models_address.Address{}, nil)
+		mockAddressRepo.On("Create", mock.Anything, mock.Anything).Return(&models_address.Address{}, nil)
 		mockContactRepo.On("Create", mock.Anything, mock.Anything).Return(&models_contact.Contact{}, nil)
 		mockRelationRepo.On("Create", mock.Anything, mock.Anything).Return(nil, errors.New("erro na relação"))
 
@@ -193,8 +195,8 @@ func TestUserService_Create(t *testing.T) {
 }
 
 func TestUserService_GetUsers(t *testing.T) {
-	mockUserRepo := new(MockUserRepository)
-	mockAddressRepo := new(MockAddressRepository)
+	mockUserRepo := new(user_repositories.MockUserRepository)
+	mockAddressRepo := new(addresses_repositories.MockAddressRepository)
 	mockContactRepo := new(MockContactRepository)
 	mockRelationRepo := new(MockUserCategoryRelationRepositories)
 
@@ -214,9 +216,9 @@ func TestUserService_GetUsers(t *testing.T) {
 
 func TestUserService_GetUserById(t *testing.T) {
 
-	setupMocks := func() (*MockUserRepository, *MockAddressRepository, *MockContactRepository, *MockUserCategoryRelationRepositories) {
-		return new(MockUserRepository),
-			new(MockAddressRepository),
+	setupMocks := func() (*user_repositories.MockUserRepository, *addresses_repositories.MockAddressRepository, *MockContactRepository, *MockUserCategoryRelationRepositories) {
+		return new(user_repositories.MockUserRepository),
+			new(addresses_repositories.MockAddressRepository),
 			new(MockContactRepository),
 			new(MockUserCategoryRelationRepositories)
 	}
@@ -261,12 +263,12 @@ func TestUserService_GetUserById(t *testing.T) {
 
 func TestUserService_GetUserByEmail(t *testing.T) {
 
-	setup := func() (*MockUserRepository, UserService) {
-		mockUserRepo := new(MockUserRepository)
+	setup := func() (*user_repositories.MockUserRepository, UserService) {
+		mockUserRepo := new(user_repositories.MockUserRepository)
 
 		service := NewUserService(
 			mockUserRepo,
-			new(MockAddressRepository),
+			new(addresses_repositories.MockAddressRepository),
 			new(MockContactRepository),
 			new(MockUserCategoryRelationRepositories),
 		)
@@ -309,20 +311,22 @@ func TestUserService_GetUserByEmail(t *testing.T) {
 }
 
 func TestUserService_Update(t *testing.T) {
+	setup := func() (*user_repositories.MockUserRepository, *addresses_repositories.MockAddressRepository, UserService) {
+		mockUserRepo := new(user_repositories.MockUserRepository)
+		mockAddressRepo := new(addresses_repositories.MockAddressRepository)
 
-	setup := func() (*MockUserRepository, UserService) {
-		mockRepo := new(MockUserRepository)
-		service := NewUserService(
-			mockRepo,
-			new(MockAddressRepository),
+		UserService := NewUserService(
+			mockUserRepo,
+			mockAddressRepo,
 			new(MockContactRepository),
 			new(MockUserCategoryRelationRepositories),
 		)
-		return mockRepo, service
+
+		return mockUserRepo, mockAddressRepo, UserService
 	}
 
 	t.Run("deve atualizar usuário com sucesso", func(t *testing.T) {
-		mockRepo, service := setup()
+		mockRepoUser, _, service := setup()
 
 		inputUser := &models_user.User{
 			UID:      1,
@@ -334,28 +338,27 @@ func TestUserService_Update(t *testing.T) {
 
 		expectedUser := *inputUser
 		expectedUser.Username = "user1-updated"
-		// como o método Update retorna ponteiro, crie também ponteiro esperado
 		expectedUserPtr := &expectedUser
 
-		mockRepo.On("Update", mock.Anything, mock.MatchedBy(func(u *models_user.User) bool {
+		mockRepoUser.On("Update", mock.Anything, mock.MatchedBy(func(u *models_user.User) bool {
 			return u.UID == inputUser.UID
 		})).Return(expectedUserPtr, nil)
 
-		result, err := service.Update(context.Background(), inputUser)
+		result, err := service.Update(context.Background(), inputUser, nil)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedUserPtr, result)
-		mockRepo.AssertExpectations(t)
+		mockRepoUser.AssertExpectations(t)
 	})
 
 	t.Run("deve retornar erro para email inválido", func(t *testing.T) {
-		_, service := setup()
+		_, _, service := setup()
 
 		invalidUser := &models_user.User{
 			Email: "invalid-email",
 		}
 
-		result, err := service.Update(context.Background(), invalidUser)
+		result, err := service.Update(context.Background(), invalidUser, nil)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -363,7 +366,7 @@ func TestUserService_Update(t *testing.T) {
 	})
 
 	t.Run("deve lidar com conflito de versão", func(t *testing.T) {
-		mockRepo, service := setup()
+		mockRepoUser, _, service := setup()
 
 		user := &models_user.User{
 			UID:     1,
@@ -371,20 +374,20 @@ func TestUserService_Update(t *testing.T) {
 			Version: 1,
 		}
 
-		mockRepo.On("Update", mock.Anything, mock.AnythingOfType("*models.User")).
-			Return((*models_user.User)(nil), repositories_user.ErrVersionConflict)
+		mockRepoUser.On("Update", mock.Anything, mock.Anything).
+			Return((*models_user.User)(nil), user_repositories.ErrVersionConflict)
 
-		result, err := service.Update(context.Background(), user)
+		result, err := service.Update(context.Background(), user, nil)
 
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, repositories_user.ErrVersionConflict))
+		assert.True(t, errors.Is(err, user_repositories.ErrVersionConflict))
 		assert.Nil(t, result)
 
-		mockRepo.AssertExpectations(t)
+		mockRepoUser.AssertExpectations(t)
 	})
 
 	t.Run("deve lidar com usuário não encontrado", func(t *testing.T) {
-		mockRepo, service := setup()
+		mockRepoUser, _, service := setup()
 
 		user := &models_user.User{
 			UID:     999,
@@ -392,36 +395,186 @@ func TestUserService_Update(t *testing.T) {
 			Version: 1,
 		}
 
-		mockRepo.On("Update", mock.Anything, mock.AnythingOfType("*models.User")).
-			Return((*models_user.User)(nil), repositories_user.ErrUserNotFound)
+		mockRepoUser.On("Update", mock.Anything, mock.Anything).
+			Return((*models_user.User)(nil), user_repositories.ErrUserNotFound)
 
-		result, err := service.Update(context.Background(), user)
+		result, err := service.Update(context.Background(), user, nil)
 
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, repositories_user.ErrUserNotFound))
+		assert.True(t, errors.Is(err, user_repositories.ErrUserNotFound))
 		assert.Nil(t, result)
 
-		mockRepo.AssertExpectations(t)
+		mockRepoUser.AssertExpectations(t)
 	})
 
 	t.Run("deve lidar com outros erros do repositório", func(t *testing.T) {
-		mockRepo, service := setup()
+		mockRepoUser, _, service := setup()
 
-		user := &models_user.User{ // <- use o tipo do pacote correto
+		user := &models_user.User{
 			UID:     1,
 			Email:   "valid@example.com",
 			Version: 1,
 		}
 
-		mockRepo.On("Update", mock.Anything, mock.AnythingOfType("*models.User")). // <- ajuste aqui
-												Return((*models_user.User)(nil), fmt.Errorf("erro no banco de dados"))
+		mockRepoUser.On("Update", mock.Anything, mock.Anything).
+			Return((*models_user.User)(nil), fmt.Errorf("erro no banco de dados"))
 
-		result, err := service.Update(context.Background(), user)
+		result, err := service.Update(context.Background(), user, nil)
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao atualizar usuário")
 		assert.Nil(t, result)
 
+		mockRepoUser.AssertExpectations(t)
+	})
+
+	t.Run("endereço nil não tenta atualizar", func(t *testing.T) {
+		mockAddressRepo, addressRepo, service := setup()
+
+		user := &models_user.User{
+			UID:     1,
+			Email:   "valid@example.com",
+			Version: 1,
+		}
+
+		mockAddressRepo.On("Update", mock.Anything, user).
+			Return(user, nil).Once()
+
+		result, err := service.Update(context.Background(), user, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, user, result)
+
+		addressRepo.AssertNotCalled(t, "GetByID", mock.Anything, mock.Anything)
+		addressRepo.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
+		mockAddressRepo.AssertExpectations(t)
+	})
+
+	t.Run("GetByID retorna ErrAddressNotFound", func(t *testing.T) {
+		userRepo, addressRepo, service := setup()
+
+		user := &models_user.User{
+			UID:   1,
+			Email: "teste@email.com",
+		}
+
+		address := &models.Address{ID: 1, Version: 1}
+
+		addressRepo.On("GetByID", mock.Anything, int64(1)).Return((*models.Address)(nil), repositories_address.ErrAddressNotFound).Once()
+		userRepo.On("Update", mock.Anything, user).Return(nil, nil).Once()
+
+		result, err := service.Update(context.Background(), user, address)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.True(t, errors.Is(err, repositories_address.ErrAddressNotFound))
+
+		addressRepo.AssertExpectations(t)
+		userRepo.AssertExpectations(t)
+	})
+
+	t.Run("GetByID retorna erro genérico", func(t *testing.T) {
+		userRepo, addressRepo, service := setup()
+
+		user := &models_user.User{
+			UID:   1,
+			Email: "teste@email.com",
+		}
+		address := &models.Address{ID: 1, Version: 1}
+		erroGen := errors.New("erro qualquer")
+
+		// Mock do GetByID no addressRepo
+		addressRepo.On("GetByID", mock.Anything, address.ID).
+			Return((*models.Address)(nil), erroGen).Once()
+
+		// Mock do Update no userRepo para não gerar pânico
+		userRepo.On("Update", mock.Anything, user).
+			Return(nil, nil).Once()
+
+		result, err := service.Update(context.Background(), user, address)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.ErrorContains(t, err, "erro ao buscar o endereço")
+
+		addressRepo.AssertExpectations(t)
+		userRepo.AssertExpectations(t)
+	})
+
+	t.Run("Versão conflitante do endereço", func(t *testing.T) {
+		userRepo, addressRepo, service := setup()
+
+		user := &models_user.User{UID: 1, Email: "test@example.com"}
+		address := &models.Address{ID: 1, Version: 1}
+		existingAddr := &models.Address{ID: 1, Version: 2}
+
+		addressRepo.On("GetByID", mock.Anything, address.ID).
+			Return(existingAddr, nil).Once()
+
+		// Mock para Update do userRepo, caso seja chamado
+		userRepo.On("Update", mock.Anything, mock.Anything).
+			Return(nil, nil).Once()
+
+		result, err := service.Update(context.Background(), user, address)
+
+		t.Logf("Erro retornado: %v", err)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.True(t, errors.Is(err, repositories_address.ErrVersionConflict))
+
+		addressRepo.AssertExpectations(t)
+		userRepo.AssertExpectations(t)
+	})
+
+	t.Run("Erro na atualização do endereço", func(t *testing.T) {
+		mockRepo, addressRepo, service := setup()
+
+		user := &models_user.User{UID: 1, Email: "test@example.com"}
+		address := &models.Address{ID: 1, Version: 1}
+		existingAddr := &models.Address{ID: 1, Version: 1}
+
+		addressRepo.On("GetByID", mock.Anything, address.ID).
+			Return(existingAddr, nil).Once()
+
+		addressRepo.On("Update", mock.Anything, address).
+			Return(errors.New("falha update")).Once()
+
+		// Mock necessário para evitar o pânico
+		mockRepo.On("Update", mock.Anything, mock.Anything).
+			Return(user, nil).Once()
+
+		result, err := service.Update(context.Background(), user, address)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.ErrorContains(t, err, "erro ao atualizar")
+
+		addressRepo.AssertExpectations(t)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Atualização do endereço com sucesso", func(t *testing.T) {
+		mockRepo, addressRepo, service := setup()
+
+		user := &models_user.User{UID: 1, Email: "test@example.com"}
+		address := &models.Address{ID: 1, Version: 1}
+		existingAddr := &models.Address{ID: 1, Version: 1}
+
+		addressRepo.On("GetByID", mock.Anything, address.ID).
+			Return(existingAddr, nil).Once()
+		addressRepo.On("Update", mock.Anything, address).
+			Return(nil).Once()
+
+		// Correção aqui ↓
+		mockRepo.On("Update", mock.Anything, mock.Anything).
+			Return(user, nil).Once()
+
+		result, err := service.Update(context.Background(), user, address)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+
+		addressRepo.AssertExpectations(t)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -429,11 +582,11 @@ func TestUserService_Update(t *testing.T) {
 
 func TestUserService_Delete(t *testing.T) {
 
-	setup := func() (*MockUserRepository, UserService) {
-		mockUserRepo := new(MockUserRepository)
+	setup := func() (*user_repositories.MockUserRepository, UserService) {
+		mockUserRepo := new(user_repositories.MockUserRepository)
 		userService := NewUserService(
 			mockUserRepo,
-			new(MockAddressRepository),
+			new(addresses_repositories.MockAddressRepository),
 			new(MockContactRepository),
 			new(MockUserCategoryRelationRepositories),
 		)
@@ -455,13 +608,13 @@ func TestUserService_Delete(t *testing.T) {
 		mockUserRepo, service := setup()
 
 		mockUserRepo.On("Delete", mock.Anything, int64(999)).
-			Return(repositories_user.ErrUserNotFound)
+			Return(user_repositories.ErrUserNotFound)
 
 		err := service.Delete(context.Background(), 999)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), repositories_user.ErrUserNotFound.Error())
-		assert.True(t, errors.Is(err, repositories_user.ErrUserNotFound), "deve envolver o erro original")
+		assert.Contains(t, err.Error(), user_repositories.ErrUserNotFound.Error())
+		assert.True(t, errors.Is(err, user_repositories.ErrUserNotFound), "deve envolver o erro original")
 		mockUserRepo.AssertExpectations(t)
 	})
 

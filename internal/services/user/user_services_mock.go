@@ -10,15 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockUserRepository struct {
-	mock.Mock
-}
-
 type MockUserCategoryRelationRepositories struct {
-	mock.Mock
-}
-
-type MockAddressRepository struct {
 	mock.Mock
 }
 
@@ -26,50 +18,64 @@ type MockContactRepository struct {
 	mock.Mock
 }
 
-// MockUserRepository
-func (m *MockUserRepository) Create(
-	ctx context.Context,
-	user *models_user.User,
-) (*models_user.User, error) {
-	args := m.Called(ctx, user)
-	if createdUser, ok := args.Get(0).(*models_user.User); ok { // Mudar para ponteiro
-		return createdUser, args.Error(1)
-	}
-	return nil, args.Error(1) // Retornar nil em caso de erro
+// Mock do serviço de usuário
+type MockUserService struct {
+	mock.Mock
 }
 
-func (m *MockUserRepository) Update(ctx context.Context, user *models_user.User) (*models_user.User, error) {
-	args := m.Called(ctx, user)
+func (m *MockUserService) Create(
+	ctx context.Context,
+	user *models_user.User,
+	categoryIDs []int64,
+	address *models_address.Address,
+	contact *models_contact.Contact,
+) (*models_user.User, error) {
+	args := m.Called(ctx, user, categoryIDs, address, contact)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*models_user.User), args.Error(1)
 }
 
-func (m *MockUserRepository) Delete(ctx context.Context, uid int64) error {
+func (m *MockUserService) GetAll(ctx context.Context) ([]*models_user.User, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models_user.User), args.Error(1)
+}
+
+func (m *MockUserService) GetById(ctx context.Context, uid int64) (*models_user.User, error) {
+	args := m.Called(ctx, uid)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models_user.User), args.Error(1)
+}
+
+func (m *MockUserService) GetByEmail(ctx context.Context, email string) (*models_user.User, error) {
+	args := m.Called(ctx, email)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models_user.User), args.Error(1)
+}
+
+func (m *MockUserService) Delete(ctx context.Context, uid int64) error {
 	args := m.Called(ctx, uid)
 	return args.Error(0)
 }
 
-func (m *MockUserRepository) GetAll(ctx context.Context) ([]*models_user.User, error) {
-	args := m.Called(ctx)
-	if users, ok := args.Get(0).([]*models_user.User); ok {
-		return users, args.Error(1)
+func (m *MockUserService) Update(
+	ctx context.Context,
+	user *models_user.User,
+	address *models_address.Address,
+) (*models_user.User, error) {
+	args := m.Called(ctx, user, address)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
 	}
-	return nil, args.Error(1)
-}
-
-func (m *MockUserRepository) GetByID(ctx context.Context, uid int64) (*models_user.User, error) {
-	args := m.Called(ctx, uid)
-	if user, ok := args.Get(0).(*models_user.User); ok {
-		return user, args.Error(1)
-	}
-	return &models_user.User{}, args.Error(1)
-}
-
-func (m *MockUserRepository) GetByEmail(ctx context.Context, email string) (*models_user.User, error) {
-	args := m.Called(ctx, email)
-	if user, ok := args.Get(0).(*models_user.User); ok {
-		return user, args.Error(1)
-	}
-	return &models_user.User{}, args.Error(1)
+	return args.Get(0).(*models_user.User), args.Error(1)
 }
 
 // MockUserCategoryRelationRepositories
@@ -118,33 +124,6 @@ func (m *MockUserCategoryRelationRepositories) GetByUserID(ctx context.Context, 
 		return relations, args.Error(1)
 	}
 	return nil, args.Error(1)
-}
-
-// MockAddressRepository
-func (m *MockAddressRepository) Create(ctx context.Context, address *models_address.Address) (*models_address.Address, error) {
-	args := m.Called(ctx, address)
-	if addr, ok := args.Get(0).(*models_address.Address); ok {
-		return addr, args.Error(1)
-	}
-	return &models_address.Address{}, args.Error(1)
-}
-
-func (m *MockAddressRepository) GetByID(ctx context.Context, id int64) (*models_address.Address, error) {
-	args := m.Called(ctx, id)
-	if addr, ok := args.Get(0).(*models_address.Address); ok {
-		return addr, args.Error(1)
-	}
-	return &models_address.Address{}, args.Error(1)
-}
-
-func (m *MockAddressRepository) Update(ctx context.Context, address *models_address.Address) error {
-	args := m.Called(ctx, address)
-	return args.Error(0)
-}
-
-func (m *MockAddressRepository) Delete(ctx context.Context, id int64) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
 }
 
 // MockContactRepository

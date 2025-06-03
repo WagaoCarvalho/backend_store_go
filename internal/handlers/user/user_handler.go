@@ -125,7 +125,8 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requestData struct {
-		User *models_user.User `json:"user"`
+		User    *models_user.User       `json:"user"`
+		Address *models_address.Address `json:"address"`
 	}
 
 	id, err := utils.GetIDParam(r, "id")
@@ -141,7 +142,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	requestData.User.UID = id
 
-	updatedUser, err := h.service.Update(r.Context(), requestData.User)
+	updatedUser, err := h.service.Update(r.Context(), requestData.User, requestData.Address)
 	if err != nil {
 		if errors.Is(err, repository.ErrVersionConflict) {
 			utils.ErrorResponse(w, err, http.StatusConflict)
