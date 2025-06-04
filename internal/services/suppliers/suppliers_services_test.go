@@ -12,17 +12,19 @@ import (
 	supplier_category_relations "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
 	addresses_repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	suppliers_repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers"
-	mock_supplier "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_service_mocks"
+	contact_services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
+	supplier_categories_services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_categories"
+	supplier_category_relations_service "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_category_relations"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestNewSupplierService(t *testing.T) {
-	mockRepo := new(mock_supplier.MockSupplierRepository)
-	mockRelation := new(mock_supplier.MockSupplierCategoryRelationService)
+	mockRepo := new(suppliers_repository.MockSupplierRepository)
+	mockRelation := new(supplier_category_relations_service.MockSupplierCategoryRelationService)
 	mockAddress := new(addresses_repository.MockAddressRepository)
-	mockContact := new(mock_supplier.MockContactService)
-	mockCategory := new(mock_supplier.MockSupplierCategoryService)
+	mockContact := new(contact_services_mock.MockContactService)
+	mockCategory := new(supplier_categories_services_mock.MockSupplierCategoryService)
 
 	service := NewSupplierService(
 		mockRepo,
@@ -39,11 +41,11 @@ func TestCreateSupplier(t *testing.T) {
 	ctx := context.TODO()
 
 	t.Run("Success", func(t *testing.T) {
-		mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
-		mockRelationService := new(mock_supplier.MockSupplierCategoryRelationService)
+		mockSupplierRepo := new(suppliers_repository.MockSupplierRepository)
+		mockRelationService := new(supplier_category_relations_service.MockSupplierCategoryRelationService)
 		mockAddressService := new(addresses_repository.MockAddressRepository)
-		mockContactService := new(mock_supplier.MockContactService)
-		mockCategoryService := new(mock_supplier.MockSupplierCategoryService)
+		mockContactService := new(contact_services_mock.MockContactService)
+		mockCategoryService := new(supplier_categories_services_mock.MockSupplierCategoryService)
 
 		service := &supplierService{
 			repo:            mockSupplierRepo,
@@ -86,7 +88,7 @@ func TestCreateSupplier(t *testing.T) {
 	})
 
 	t.Run("RepoError", func(t *testing.T) {
-		mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
+		mockSupplierRepo := new(suppliers_repository.MockSupplierRepository)
 		service := &supplierService{repo: mockSupplierRepo}
 		supplier := &models.Supplier{Name: "Fornecedor A"}
 		mockSupplierRepo.On("Create", ctx, supplier).Return(nil, fmt.Errorf("erro db"))
@@ -99,8 +101,8 @@ func TestCreateSupplier(t *testing.T) {
 	})
 
 	t.Run("HasRelationError", func(t *testing.T) {
-		mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
-		mockRelationService := new(mock_supplier.MockSupplierCategoryRelationService)
+		mockSupplierRepo := new(suppliers_repository.MockSupplierRepository)
+		mockRelationService := new(supplier_category_relations_service.MockSupplierCategoryRelationService)
 		service := &supplierService{
 			repo:            mockSupplierRepo,
 			relationService: mockRelationService,
@@ -123,8 +125,8 @@ func TestCreateSupplier(t *testing.T) {
 	})
 
 	t.Run("RelationAlreadyExists", func(t *testing.T) {
-		mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
-		mockRelationService := new(mock_supplier.MockSupplierCategoryRelationService)
+		mockSupplierRepo := new(suppliers_repository.MockSupplierRepository)
+		mockRelationService := new(supplier_category_relations_service.MockSupplierCategoryRelationService)
 		service := &supplierService{
 			repo:            mockSupplierRepo,
 			relationService: mockRelationService,
@@ -147,8 +149,8 @@ func TestCreateSupplier(t *testing.T) {
 	})
 
 	t.Run("RelationCreateError", func(t *testing.T) {
-		mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
-		mockRelationService := new(mock_supplier.MockSupplierCategoryRelationService)
+		mockSupplierRepo := new(suppliers_repository.MockSupplierRepository)
+		mockRelationService := new(supplier_category_relations_service.MockSupplierCategoryRelationService)
 		service := &supplierService{
 			repo:            mockSupplierRepo,
 			relationService: mockRelationService,
@@ -172,10 +174,10 @@ func TestCreateSupplier(t *testing.T) {
 	})
 
 	t.Run("AddressError", func(t *testing.T) {
-		mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
-		mockRelationService := new(mock_supplier.MockSupplierCategoryRelationService)
+		mockSupplierRepo := new(suppliers_repository.MockSupplierRepository)
+		mockRelationService := new(supplier_category_relations_service.MockSupplierCategoryRelationService)
 		mockAddressService := new(addresses_repository.MockAddressRepository)
-		mockCategoryService := new(mock_supplier.MockSupplierCategoryService)
+		mockCategoryService := new(supplier_categories_services_mock.MockSupplierCategoryService)
 
 		service := &supplierService{
 			repo:            mockSupplierRepo,
@@ -207,9 +209,9 @@ func TestCreateSupplier(t *testing.T) {
 	})
 
 	t.Run("CategoryFetchError", func(t *testing.T) {
-		mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
-		mockRelationService := new(mock_supplier.MockSupplierCategoryRelationService)
-		mockCategoryService := new(mock_supplier.MockSupplierCategoryService)
+		mockSupplierRepo := new(suppliers_repository.MockSupplierRepository)
+		mockRelationService := new(supplier_category_relations_service.MockSupplierCategoryRelationService)
+		mockCategoryService := new(supplier_categories_services_mock.MockSupplierCategoryService)
 
 		service := &supplierService{
 			repo:            mockSupplierRepo,
@@ -237,11 +239,11 @@ func TestCreateSupplier(t *testing.T) {
 	})
 
 	t.Run("ContactError", func(t *testing.T) {
-		mockSupplierRepo := new(mock_supplier.MockSupplierRepository)
-		mockRelationService := new(mock_supplier.MockSupplierCategoryRelationService)
+		mockSupplierRepo := new(suppliers_repository.MockSupplierRepository)
+		mockRelationService := new(supplier_category_relations_service.MockSupplierCategoryRelationService)
 		mockAddressService := new(addresses_repository.MockAddressRepository)
-		mockContactService := new(mock_supplier.MockContactService)
-		mockCategoryService := new(mock_supplier.MockSupplierCategoryService)
+		mockContactService := new(contact_services_mock.MockContactService)
+		mockCategoryService := new(supplier_categories_services_mock.MockSupplierCategoryService)
 
 		service := &supplierService{
 			repo:            mockSupplierRepo,
@@ -281,7 +283,7 @@ func TestGetSupplierByID(t *testing.T) {
 	ctx := context.TODO()
 
 	t.Run("Success", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 
 		service := &supplierService{
 			repo: mockRepo,
@@ -302,7 +304,7 @@ func TestGetSupplierByID(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 
 		service := &supplierService{
 			repo: mockRepo,
@@ -318,7 +320,7 @@ func TestGetSupplierByID(t *testing.T) {
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 
 		service := &supplierService{
 			repo: mockRepo,
@@ -339,7 +341,7 @@ func TestGetAllSuppliers(t *testing.T) {
 	ctx := context.TODO()
 
 	t.Run("Success", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 
 		service := &supplierService{
 			repo: mockRepo,
@@ -360,7 +362,7 @@ func TestGetAllSuppliers(t *testing.T) {
 	})
 
 	t.Run("EmptyList", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 
 		service := &supplierService{
 			repo: mockRepo,
@@ -376,7 +378,7 @@ func TestGetAllSuppliers(t *testing.T) {
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 
 		service := &supplierService{
 			repo: mockRepo,
@@ -397,7 +399,7 @@ func TestUpdateSupplier(t *testing.T) {
 	ctx := context.TODO()
 
 	t.Run("Success", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 		service := &supplierService{repo: mockRepo}
 
 		supplier := &models.Supplier{
@@ -415,7 +417,7 @@ func TestUpdateSupplier(t *testing.T) {
 	})
 
 	t.Run("MissingName", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 		service := &supplierService{repo: mockRepo}
 
 		supplier := &models.Supplier{
@@ -431,7 +433,7 @@ func TestUpdateSupplier(t *testing.T) {
 	})
 
 	t.Run("MissingVersion", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 		service := &supplierService{repo: mockRepo}
 
 		supplier := &models.Supplier{
@@ -447,7 +449,7 @@ func TestUpdateSupplier(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 		service := &supplierService{repo: mockRepo}
 
 		supplier := &models.Supplier{
@@ -463,7 +465,7 @@ func TestUpdateSupplier(t *testing.T) {
 	})
 
 	t.Run("VersionConflict", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 		service := &supplierService{repo: mockRepo}
 
 		supplier := &models.Supplier{
@@ -481,7 +483,7 @@ func TestUpdateSupplier(t *testing.T) {
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 		service := &supplierService{repo: mockRepo}
 
 		supplier := &models.Supplier{
@@ -500,7 +502,7 @@ func TestUpdateSupplier(t *testing.T) {
 	})
 
 	t.Run("SupplierNotFound", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 		service := &supplierService{repo: mockRepo}
 
 		supplier := &models.Supplier{
@@ -523,7 +525,7 @@ func TestDeleteSupplier(t *testing.T) {
 	ctx := context.TODO()
 
 	t.Run("Success", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 
 		service := &supplierService{
 			repo: mockRepo,
@@ -540,7 +542,7 @@ func TestDeleteSupplier(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 
 		service := &supplierService{
 			repo: mockRepo,
@@ -555,7 +557,7 @@ func TestDeleteSupplier(t *testing.T) {
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(suppliers_repository.MockSupplierRepository)
 
 		service := &supplierService{
 			repo: mockRepo,

@@ -12,9 +12,12 @@ type MockSupplierCategoryRelationRepo struct {
 	mock.Mock
 }
 
-func (m *MockSupplierCategoryRelationRepo) Create(ctx context.Context, rel *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error) {
-	args := m.Called(ctx, rel)
-	return args.Get(0).(*models.SupplierCategoryRelations), args.Error(1)
+func (m *MockSupplierCategoryRelationRepo) Create(ctx context.Context, relation *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error) {
+	args := m.Called(ctx, relation)
+	if rel, ok := args.Get(0).(*models.SupplierCategoryRelations); ok {
+		return rel, args.Error(1)
+	}
+	return nil, args.Error(1)
 }
 
 func (m *MockSupplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {

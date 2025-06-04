@@ -1,4 +1,4 @@
-package supplier_service_mocks
+package services
 
 import (
 	"context"
