@@ -12,63 +12,34 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// Mock do repositório
-type MockSupplierCategoryRelationRepo struct {
-	mock.Mock
-}
-
-func (m *MockSupplierCategoryRelationRepo) Create(ctx context.Context, rel *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error) {
-	args := m.Called(ctx, rel)
-	return args.Get(0).(*models.SupplierCategoryRelations), args.Error(1)
-}
-
-func (m *MockSupplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {
-	args := m.Called(ctx, supplierID)
-	return args.Get(0).([]*models.SupplierCategoryRelations), args.Error(1)
-}
-
-func (m *MockSupplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error) {
-	args := m.Called(ctx, categoryID)
-	return args.Get(0).([]*models.SupplierCategoryRelations), args.Error(1)
-}
-
-func (m *MockSupplierCategoryRelationRepo) Update(ctx context.Context, rel *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error) {
-	args := m.Called(ctx, rel)
-	result := args.Get(0)
-	if result == nil {
-		return nil, args.Error(1)
-	}
-	return result.(*models.SupplierCategoryRelations), args.Error(1)
-}
-
-func (m *MockSupplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, categoryID int64) error {
-	args := m.Called(ctx, supplierID, categoryID)
-	return args.Error(0)
-}
-
-func (m *MockSupplierCategoryRelationRepo) DeleteAllBySupplierId(ctx context.Context, supplierID int64) error {
-	args := m.Called(ctx, supplierID)
-	return args.Error(0)
-}
-
-func (m *MockSupplierCategoryRelationRepo) HasSupplierCategoryRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {
-	args := m.Called(ctx, supplierID, categoryID)
-	return args.Bool(0), args.Error(1)
-}
-
 func TestCreate(t *testing.T) {
-	t.Run("IDs inválidos", func(t *testing.T) {
-		s := service.NewSupplierCategoryRelationService(nil)
 
-		_, err := s.Create(context.Background(), 0, 1)
-		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+	t.Run("dados inválidos - supplierID ou categoryID <= 0", func(t *testing.T) {
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
+		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-		_, err = s.Create(context.Background(), 1, 0)
-		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+		tests := []struct {
+			supplierID int64
+			categoryID int64
+		}{
+			{0, 1},  // supplierID inválido
+			{1, 0},  // categoryID inválido
+			{-1, 5}, // supplierID negativo
+			{4, -3}, // categoryID negativo
+			{0, 0},  // ambos inválidos
+		}
+
+		for _, tt := range tests {
+			result, err := s.Create(context.Background(), tt.supplierID, tt.categoryID)
+			assert.Nil(t, result)
+			assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+		}
+
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("falha ao verificar se relação existe", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		mockRepo.On("HasSupplierCategoryRelation", mock.Anything, int64(1), int64(2)).
@@ -80,7 +51,7 @@ func TestCreate(t *testing.T) {
 	})
 
 	t.Run("relação já existe", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		mockRepo.On("HasSupplierCategoryRelation", mock.Anything, int64(1), int64(2)).
@@ -92,7 +63,7 @@ func TestCreate(t *testing.T) {
 	})
 
 	t.Run("falha ao criar a relação", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		mockRepo.On("HasSupplierCategoryRelation", mock.Anything, int64(1), int64(2)).
@@ -107,13 +78,13 @@ func TestCreate(t *testing.T) {
 	})
 
 	t.Run("criação bem-sucedida", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		mockRepo.On("HasSupplierCategoryRelation", mock.Anything, int64(1), int64(2)).
 			Return(false, nil)
 
-		expected := &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 2}
+		expected := &models.SupplierCategoryRelations{SupplierID: 1, CategoryID: 2}
 		mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*models.SupplierCategoryRelations")).
 			Return(expected, nil)
 
@@ -136,11 +107,11 @@ func TestGetBySupplierId(t *testing.T) {
 	})
 
 	t.Run("busca com sucesso", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		expected := []*models.SupplierCategoryRelations{
-			{ID: 1, SupplierID: 1, CategoryID: 2},
+			{SupplierID: 1, CategoryID: 2},
 		}
 
 		mockRepo.On("GetBySupplierID", mock.Anything, int64(1)).Return(expected, nil)
@@ -154,7 +125,7 @@ func TestGetBySupplierId(t *testing.T) {
 	})
 
 	t.Run("falha ao buscar no repositório", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		mockRepo.On("GetBySupplierID", mock.Anything, int64(1)).Return(([]*models.SupplierCategoryRelations)(nil), errors.New("erro de banco"))
@@ -178,11 +149,11 @@ func TestGetByCategoryId(t *testing.T) {
 	})
 
 	t.Run("busca com sucesso", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		expected := []*models.SupplierCategoryRelations{
-			{ID: 1, SupplierID: 1, CategoryID: 2},
+			{SupplierID: 1, CategoryID: 2},
 		}
 
 		mockRepo.On("GetByCategoryID", mock.Anything, int64(2)).Return(expected, nil)
@@ -196,7 +167,7 @@ func TestGetByCategoryId(t *testing.T) {
 	})
 
 	t.Run("falha ao buscar no repositório", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		mockRepo.On("GetByCategoryID", mock.Anything, int64(2)).Return(([]*models.SupplierCategoryRelations)(nil), errors.New("erro no banco"))
@@ -210,35 +181,68 @@ func TestGetByCategoryId(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	t.Run("IDs inválidos", func(t *testing.T) {
-		s := service.NewSupplierCategoryRelationService(nil)
 
-		invalid := &models.SupplierCategoryRelations{ID: 0, SupplierID: 1, CategoryID: 2, Version: 1}
-		_, err := s.Update(context.Background(), invalid)
+	t.Run("CategoryID inválido (<= 0)", func(t *testing.T) {
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
+		svc := service.NewSupplierCategoryRelationService(mockRepo)
+
+		relation := &models.SupplierCategoryRelations{
+			SupplierID: 1,
+			CategoryID: 0, // inválido
+			Version:    1,
+		}
+
+		result, err := svc.Update(context.Background(), relation)
+		assert.Nil(t, result)
 		assert.ErrorIs(t, err, service.ErrInvalidSupplierCategoryRelationID)
+		mockRepo.AssertExpectations(t)
+	})
 
-		invalid = &models.SupplierCategoryRelations{ID: 1, SupplierID: 0, CategoryID: 2, Version: 1}
-		_, err = s.Update(context.Background(), invalid)
-		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+	t.Run("SupplierID inválido (<= 0)", func(t *testing.T) {
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
+		svc := service.NewSupplierCategoryRelationService(mockRepo)
 
-		invalid = &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 0, Version: 1}
-		_, err = s.Update(context.Background(), invalid)
+		relation := &models.SupplierCategoryRelations{
+			SupplierID: 0, // inválido
+			CategoryID: 2, // válido
+			Version:    1,
+		}
+
+		result, err := svc.Update(context.Background(), relation)
+		assert.Nil(t, result)
 		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Ambos SupplierID e CategoryID inválidos (<= 0)", func(t *testing.T) {
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
+		svc := service.NewSupplierCategoryRelationService(mockRepo)
+
+		relation := &models.SupplierCategoryRelations{
+			SupplierID: -1,
+			CategoryID: 0,
+			Version:    1,
+		}
+
+		result, err := svc.Update(context.Background(), relation)
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, service.ErrInvalidSupplierCategoryRelationID) // <- esta validação vem primeiro
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("versão ausente", func(t *testing.T) {
 		s := service.NewSupplierCategoryRelationService(nil)
 
-		invalid := &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 2, Version: 0}
+		invalid := &models.SupplierCategoryRelations{SupplierID: 1, CategoryID: 2, Version: 0}
 		_, err := s.Update(context.Background(), invalid)
 		assert.ErrorIs(t, err, service.ErrSupplierCategoryRelationVersionRequired)
 	})
 
 	t.Run("relação não encontrada", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-		relation := &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 2, Version: 1}
+		relation := &models.SupplierCategoryRelations{SupplierID: 1, CategoryID: 2, Version: 1}
 
 		mockRepo.On("Update", mock.Anything, relation).
 			Return(nil, repository.ErrRelationNotFound)
@@ -249,10 +253,10 @@ func TestUpdate(t *testing.T) {
 	})
 
 	t.Run("erro no repositório", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-		relation := &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 2, Version: 1}
+		relation := &models.SupplierCategoryRelations{SupplierID: 1, CategoryID: 2, Version: 1}
 
 		mockRepo.On("Update", mock.Anything, relation).
 			Return(nil, errors.New("falha inesperada"))
@@ -263,10 +267,10 @@ func TestUpdate(t *testing.T) {
 	})
 
 	t.Run("atualização bem-sucedida", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-		relation := &models.SupplierCategoryRelations{ID: 1, SupplierID: 1, CategoryID: 2, Version: 1}
+		relation := &models.SupplierCategoryRelations{SupplierID: 1, CategoryID: 2, Version: 1}
 
 		mockRepo.On("Update", mock.Anything, relation).
 			Return(relation, nil)
@@ -278,11 +282,10 @@ func TestUpdate(t *testing.T) {
 	})
 
 	t.Run("relação não encontrada (erro propagado)", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		relation := &models.SupplierCategoryRelations{
-			ID:         1,
 			SupplierID: 1,
 			CategoryID: 2,
 			Version:    1,
@@ -301,17 +304,33 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestHasRelation(t *testing.T) {
-	t.Run("IDs inválidos", func(t *testing.T) {
-		s := service.NewSupplierCategoryRelationService(nil)
 
-		result, err := s.HasRelation(context.Background(), 0, 2)
+	t.Run("dados inválidos - supplierID ou categoryID <= 0", func(t *testing.T) {
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
+		svc := service.NewSupplierCategoryRelationService(mockRepo)
 
-		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
-		assert.False(t, result)
+		tests := []struct {
+			supplierID int64
+			categoryID int64
+		}{
+			{0, 1},  // supplierID inválido
+			{1, 0},  // categoryID inválido
+			{-1, 2}, // supplierID negativo
+			{3, -5}, // categoryID negativo
+			{0, 0},  // ambos inválidos
+		}
+
+		for _, tt := range tests {
+			ok, err := svc.HasRelation(context.Background(), tt.supplierID, tt.categoryID)
+			assert.False(t, ok)
+			assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+		}
+
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("relação existe", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		mockRepo.On("HasSupplierCategoryRelation", mock.Anything, int64(1), int64(2)).Return(true, nil)
@@ -324,7 +343,7 @@ func TestHasRelation(t *testing.T) {
 	})
 
 	t.Run("erro ao verificar existência", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		mockRepo.On("HasSupplierCategoryRelation", mock.Anything, int64(1), int64(2)).Return(false, errors.New("erro no banco"))
@@ -338,19 +357,32 @@ func TestHasRelation(t *testing.T) {
 }
 
 func TestDeleteById(t *testing.T) {
-	t.Run("IDs inválidos", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
-		s := service.NewSupplierCategoryRelationService(mockRepo)
 
-		err := s.DeleteById(context.Background(), 0, 2)
-		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+	t.Run("dados inválidos - supplierID ou categoryID <= 0", func(t *testing.T) {
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
+		svc := service.NewSupplierCategoryRelationService(mockRepo)
 
-		err = s.DeleteById(context.Background(), 1, -5)
-		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+		tests := []struct {
+			supplierID int64
+			categoryID int64
+		}{
+			{0, 1},  // supplierID inválido
+			{1, 0},  // categoryID inválido
+			{-1, 2}, // supplierID negativo
+			{3, -5}, // categoryID negativo
+			{0, 0},  // ambos inválidos
+		}
+
+		for _, tt := range tests {
+			err := svc.DeleteById(context.Background(), tt.supplierID, tt.categoryID)
+			assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+		}
+
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("remoção com sucesso", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(nil)
@@ -361,7 +393,7 @@ func TestDeleteById(t *testing.T) {
 	})
 
 	t.Run("relação não encontrada", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(repository.ErrRelationNotFound)
@@ -372,7 +404,7 @@ func TestDeleteById(t *testing.T) {
 	})
 
 	t.Run("erro inesperado ao deletar", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(errors.New("erro de banco"))
@@ -385,7 +417,7 @@ func TestDeleteById(t *testing.T) {
 
 func TestDeleteAllBySupplierId(t *testing.T) {
 	t.Run("ID inválido", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		err := s.DeleteAllBySupplierId(context.Background(), 0)
@@ -393,7 +425,7 @@ func TestDeleteAllBySupplierId(t *testing.T) {
 	})
 
 	t.Run("remoção com sucesso", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		mockRepo.On("DeleteAllBySupplierId", mock.Anything, int64(1)).Return(nil)
@@ -404,7 +436,7 @@ func TestDeleteAllBySupplierId(t *testing.T) {
 	})
 
 	t.Run("erro do repositório", func(t *testing.T) {
-		mockRepo := new(MockSupplierCategoryRelationRepo)
+		mockRepo := new(repository.MockSupplierCategoryRelationRepo)
 		s := service.NewSupplierCategoryRelationService(mockRepo)
 
 		mockRepo.On("DeleteAllBySupplierId", mock.Anything, int64(99)).Return(errors.New("falha ao deletar"))

@@ -83,7 +83,7 @@ func (s *supplierCategoryRelationService) GetByCategoryId(ctx context.Context, c
 }
 
 func (s *supplierCategoryRelationService) Update(ctx context.Context, relation *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error) {
-	if relation.ID <= 0 {
+	if relation.CategoryID <= 0 {
 		return nil, ErrInvalidSupplierCategoryRelationID
 	}
 

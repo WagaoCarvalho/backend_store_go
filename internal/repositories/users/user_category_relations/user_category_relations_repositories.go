@@ -62,7 +62,7 @@ func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation 
 
 func (r *userCategoryRelationRepositories) GetAll(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
 	const query = `
-		SELECT id, user_id, category_id, created_at, updated_at
+		SELECT user_id, category_id, created_at, updated_at
 		FROM user_category_relations
 		WHERE user_id = $1;
 	`
@@ -91,7 +91,7 @@ func (r *userCategoryRelationRepositories) GetAll(ctx context.Context, userID in
 
 func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
 	const query = `
-		SELECT id, user_id, category_id, created_at, updated_at
+		SELECT user_id, category_id, created_at, updated_at
 		FROM user_category_relations
 		WHERE user_id = $1;
 	`
@@ -120,7 +120,7 @@ func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, user
 
 func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.UserCategoryRelations, error) {
 	const query = `
-		SELECT id, user_id, category_id, created_at, updated_at
+		SELECT user_id, category_id, created_at, updated_at
 		FROM user_category_relations
 		WHERE category_id = $1;
 	`
@@ -151,7 +151,7 @@ func (r *userCategoryRelationRepositories) Update(ctx context.Context, relation 
 	const query = `
 		UPDATE user_category_relations
 		SET user_id = $1, category_id = $2, updated_at = NOW(), version = version + 1
-		WHERE id = $3 AND version = $4
+		user_id = $1 AND category_id = $2 AND version = $3
 		RETURNING updated_at, version;
 	`
 

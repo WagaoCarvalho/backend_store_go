@@ -79,7 +79,7 @@ func (r *supplierCategoryRelationRepo) HasSupplierCategoryRelation(ctx context.C
 
 func (r *supplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {
 	const query = `
-		SELECT id, supplier_id, category_id, created_at, updated_at
+		SELECT supplier_id, category_id, created_at, updated_at
 		FROM supplier_category_relations
 		WHERE supplier_id = $1
 	`
@@ -93,7 +93,7 @@ func (r *supplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supp
 	var relations []*models.SupplierCategoryRelations
 	for rows.Next() {
 		var relationData models.SupplierCategoryRelations
-		if err := rows.Scan(&relationData.ID, &relationData.SupplierID, &relationData.CategoryID, &relationData.CreatedAt, &relationData.UpdatedAt); err != nil {
+		if err := rows.Scan(&relationData.SupplierID, &relationData.CategoryID, &relationData.CreatedAt, &relationData.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrScanRelationRow, err)
 		}
 		relations = append(relations, &relationData)
@@ -107,7 +107,7 @@ func (r *supplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supp
 }
 func (r *supplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error) {
 	const query = `
-		SELECT id, supplier_id, category_id, created_at, updated_at
+		SELECT supplier_id, category_id, created_at, updated_at
 		FROM supplier_category_relations
 		WHERE category_id = $1
 	`
@@ -121,7 +121,7 @@ func (r *supplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, cate
 	var relations []*models.SupplierCategoryRelations
 	for rows.Next() {
 		var relationData models.SupplierCategoryRelations
-		if err := rows.Scan(&relationData.ID, &relationData.SupplierID, &relationData.CategoryID, &relationData.CreatedAt, &relationData.UpdatedAt); err != nil {
+		if err := rows.Scan(&relationData.SupplierID, &relationData.CategoryID, &relationData.CreatedAt, &relationData.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrScanRelationRow, err)
 		}
 		relations = append(relations, &relationData)
@@ -159,10 +159,8 @@ func (r *supplierCategoryRelationRepo) Update(ctx context.Context, relation *mod
 	err := r.db.QueryRow(ctx, query,
 		relation.SupplierID,
 		relation.CategoryID,
-		relation.ID,
 		relation.Version,
 	).Scan(
-		&updated.ID,
 		&updated.SupplierID,
 		&updated.CategoryID,
 		&updated.CreatedAt,
