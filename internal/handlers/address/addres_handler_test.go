@@ -56,41 +56,6 @@ func TestAddressHandler_Create(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("CreateValidationError", func(t *testing.T) {
-		mockService := new(addresses_services.MockAddressService)
-		handler := NewAddressHandler(mockService)
-
-		userID := int64(1)
-		input := &models.Address{
-			UserID:     &userID,
-			Street:     "",
-			City:       "São Paulo",
-			State:      "SP",
-			Country:    "Brasil",
-			PostalCode: "01000-000",
-		}
-
-		mockService.On("Create", mock.Anything, mock.Anything).Return(nil)
-
-		body, _ := json.Marshal(input)
-		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		handler.Create(w, req)
-
-		expected := `{
-		"status": 400,
-		"message": "Erro no campo 'Street': campo obrigatório",
-		"data": null
-	}`
-
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.JSONEq(t, expected, w.Body.String())
-
-		mockService.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
-	})
-
 	t.Run("InvalidJSON", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
@@ -192,41 +157,6 @@ func TestAddressHandler_Update(t *testing.T) {
 		assert.JSONEq(t, expected, rr.Body.String())
 	})
 
-	t.Run("ValidateReturnsGenericError", func(t *testing.T) {
-		mockService := new(addresses_services.MockAddressService)
-		handler := NewAddressHandler(mockService)
-
-		userID := int64(1)
-		input := &models.Address{
-			UserID:     &userID,
-			Street:     "cause_generic_error", // força erro genérico
-			City:       "Cidade",
-			State:      "ST",
-			Country:    "Pais",
-			PostalCode: "12345-678",
-		}
-
-		body, _ := json.Marshal(input)
-
-		req := httptest.NewRequest(http.MethodPut, "/addresses/3", bytes.NewBuffer(body))
-		req = mux.SetURLVars(req, map[string]string{"id": "3"})
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		handler.Update(w, req)
-
-		expected := `{
-		"status": 400,
-		"message": "erro genérico na validação",
-		"data": null
-	}`
-
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.JSONEq(t, expected, w.Body.String())
-
-		mockService.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
-	})
-
 	t.Run("InvalidJSON", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
@@ -288,42 +218,6 @@ func TestAddressHandler_Update(t *testing.T) {
 		assert.JSONEq(t, expected, w.Body.String())
 
 		mockService.AssertExpectations(t)
-	})
-
-	t.Run("ValidationErrorFromValidateMethod", func(t *testing.T) {
-		mockService := new(addresses_services.MockAddressService)
-		handler := NewAddressHandler(mockService)
-
-		userID := int64(1)
-		input := &models.Address{
-			ID:         2,
-			UserID:     &userID,
-			Street:     "", // campo obrigatório vazio -> erro na validação local
-			City:       "São Paulo",
-			State:      "SP",
-			Country:    "Brasil",
-			PostalCode: "01000-000",
-		}
-
-		body, _ := json.Marshal(input)
-		req := httptest.NewRequest(http.MethodPut, "/addresses/2", bytes.NewBuffer(body))
-		req = mux.SetURLVars(req, map[string]string{"id": "2"})
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		handler.Update(w, req)
-
-		expected := `{
-			"status": 400,
-			"message": "Erro no campo 'Street': campo obrigatório",
-			"data": null
-		}`
-
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.JSONEq(t, expected, w.Body.String())
-
-		// Update do serviço NÃO deve ser chamado pois erro ocorreu na validação local
-		mockService.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
 	})
 
 	t.Run("ValidationErrorFromService", func(t *testing.T) {

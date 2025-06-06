@@ -26,11 +26,6 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := address.Validate(); err != nil {
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
-		return
-	}
-
 	createdAddress, err := h.service.Create(r.Context(), &address)
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
@@ -79,15 +74,6 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	address.ID = id
-
-	if err := address.Validate(); err != nil {
-		if ve, ok := err.(*utils.ValidationError); ok {
-			utils.ErrorResponse(w, ve, http.StatusBadRequest)
-			return
-		}
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
-		return
-	}
 
 	if err := h.service.Update(r.Context(), &address); err != nil {
 
