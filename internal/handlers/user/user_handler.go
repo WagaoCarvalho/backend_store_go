@@ -10,7 +10,7 @@ import (
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
 )
 

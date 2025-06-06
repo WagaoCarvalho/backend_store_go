@@ -7,7 +7,7 @@ import (
 
 	modelsLogin "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
 var (

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
 type Address struct {

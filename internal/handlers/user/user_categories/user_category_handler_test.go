@@ -11,7 +11,7 @@ import (
 
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user/user_categories"
 	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

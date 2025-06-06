@@ -8,7 +8,7 @@ import (
 	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_supplier "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers"
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
 type SupplierHandler struct {

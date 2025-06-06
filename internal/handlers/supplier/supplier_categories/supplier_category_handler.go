@@ -5,7 +5,7 @@ import (
 
 	supplier_models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_categories"
 	supplier_categories "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_categories"
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
 type SupplierCategoryHandler interface {

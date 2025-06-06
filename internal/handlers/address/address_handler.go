@@ -7,7 +7,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
 type AddressHandler struct {

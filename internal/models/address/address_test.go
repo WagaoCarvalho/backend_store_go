@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
 func TestAddress_Validate(t *testing.T) {

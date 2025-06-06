@@ -14,7 +14,7 @@ import (
 	repositories_contact "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
 	repositories_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	repositories_category_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
 var (
@@ -81,7 +81,6 @@ func (s *userService) Create(
 		return nil, ErrInvalidEmail
 	}
 
-	// Gerar hash da senha ANTES de salvar
 	if user.Password != "" {
 		hashed, err := auth.HashPassword(user.Password)
 		if err != nil {
@@ -95,11 +94,18 @@ func (s *userService) Create(
 		return nil, fmt.Errorf("%w: %v", ErrCreateUser, err)
 	}
 
+	if createdUser == nil {
+		return nil, fmt.Errorf("usuário criado é nulo")
+	}
+
 	id := int64(createdUser.UID)
-	address.UserID = &id
-	_, err = s.addressRepo.Create(ctx, address)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrCreateAddress, err)
+
+	if address != nil {
+		address.UserID = &id
+		_, err = s.addressRepo.Create(ctx, address)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrCreateAddress, err)
+		}
 	}
 
 	if contact != nil {

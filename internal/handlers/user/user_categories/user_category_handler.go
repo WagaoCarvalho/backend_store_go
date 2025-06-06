@@ -7,7 +7,7 @@ import (
 
 	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories"
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
 )
 

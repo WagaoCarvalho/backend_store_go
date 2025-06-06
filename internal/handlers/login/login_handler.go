@@ -7,7 +7,7 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/auth"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
 type LoginHandler struct {

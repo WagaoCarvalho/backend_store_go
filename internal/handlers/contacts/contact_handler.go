@@ -6,7 +6,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
 type ContactHandler struct {

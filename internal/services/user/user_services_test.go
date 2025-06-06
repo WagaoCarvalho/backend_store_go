@@ -10,21 +10,29 @@ import (
 	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
-	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
+	models_user_categories_relations "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
 	addresses_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	repositories_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
+	contact_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
 	user_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
+	user_category_relations_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestUserService_Create(t *testing.T) {
 
-	setup := func() (*user_repositories.MockUserRepository, *addresses_repositories.MockAddressRepository, *MockContactRepository, *MockUserCategoryRelationRepositories, UserService) {
+	setup := func() (
+		*user_repositories.MockUserRepository,
+		*addresses_repositories.MockAddressRepository,
+		*contact_repositories.MockContactRepository,
+		*user_category_relations_repositories.MockUserCategoryRelationRepo,
+		*userService, // <-- trocar aqui de UserService para *userService
+	) {
 		mockUserRepo := new(user_repositories.MockUserRepository)
 		mockAddressRepo := new(addresses_repositories.MockAddressRepository)
-		mockContactRepo := new(MockContactRepository)
-		mockRelationRepo := new(MockUserCategoryRelationRepositories)
+		mockContactRepo := new(contact_repositories.MockContactRepository)
+		mockRelationRepo := new(user_category_relations_repositories.MockUserCategoryRelationRepo)
 
 		userService := NewUserService(
 			mockUserRepo,
@@ -76,7 +84,7 @@ func TestUserService_Create(t *testing.T) {
 
 		mockAddressRepo.On("Create", mock.Anything, mock.Anything).Return(&models_address.Address{ID: 1}, nil)
 		mockContactRepo.On("Create", mock.Anything, mock.Anything).Return(&models_contact.Contact{ID: 1}, nil)
-		mockRelationRepo.On("Create", mock.Anything, mock.Anything).Return(&models_user_categories.UserCategory{}, nil).Times(len(categoryIDs))
+		mockRelationRepo.On("Create", mock.Anything, mock.Anything).Return(&models_user_categories_relations.UserCategoryRelations{}, nil).Times(len(categoryIDs))
 
 		result, err := userService.Create(context.Background(), newUser, categoryIDs, newAddress, newContact)
 
@@ -142,7 +150,7 @@ func TestUserService_Create(t *testing.T) {
 				Status:   true,
 			}, nil)
 		mockAddressRepo.On("Create", mock.Anything, mock.Anything).Return(&models_address.Address{}, nil)
-		mockContactRepo.On("Create", mock.Anything, mock.Anything).Return(nil, errors.New("erro no contato"))
+		mockContactRepo.On("Create", mock.Anything, mock.Anything).Return((*models_contact.Contact)(nil), errors.New("erro no contato"))
 
 		_, err := userService.Create(context.Background(), &newUser, nil, &models_address.Address{}, &models_contact.Contact{})
 
@@ -184,6 +192,22 @@ func TestUserService_Create(t *testing.T) {
 		mockRelationRepo.AssertExpectations(t)
 	})
 
+	t.Run("usuário criado é nulo", func(t *testing.T) {
+		mockUserRepo, _, _, _, userService := setup()
+
+		user := &models_user.User{
+			Email: "valid@email.com",
+		}
+
+		mockUserRepo.On("Create", mock.Anything, mock.Anything).Return(nil, nil)
+
+		_, err := userService.Create(context.Background(), user, nil, nil, nil)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "usuário criado é nulo")
+		mockUserRepo.AssertExpectations(t)
+	})
+
 	t.Run("email inválido", func(t *testing.T) {
 		_, _, _, _, userService := setup()
 
@@ -197,8 +221,8 @@ func TestUserService_Create(t *testing.T) {
 func TestUserService_GetUsers(t *testing.T) {
 	mockUserRepo := new(user_repositories.MockUserRepository)
 	mockAddressRepo := new(addresses_repositories.MockAddressRepository)
-	mockContactRepo := new(MockContactRepository)
-	mockRelationRepo := new(MockUserCategoryRelationRepositories)
+	mockContactRepo := new(contact_repositories.MockContactRepository)
+	mockRelationRepo := new(user_category_relations_repositories.MockUserCategoryRelationRepo)
 
 	expectedUsers := []*models_user.User{
 		{UID: 1, Username: "user1", Email: "user1@example.com", Status: true},
@@ -216,11 +240,11 @@ func TestUserService_GetUsers(t *testing.T) {
 
 func TestUserService_GetUserById(t *testing.T) {
 
-	setupMocks := func() (*user_repositories.MockUserRepository, *addresses_repositories.MockAddressRepository, *MockContactRepository, *MockUserCategoryRelationRepositories) {
+	setupMocks := func() (*user_repositories.MockUserRepository, *addresses_repositories.MockAddressRepository, *contact_repositories.MockContactRepository, *user_category_relations_repositories.MockUserCategoryRelationRepo) {
 		return new(user_repositories.MockUserRepository),
 			new(addresses_repositories.MockAddressRepository),
-			new(MockContactRepository),
-			new(MockUserCategoryRelationRepositories)
+			new(contact_repositories.MockContactRepository),
+			new(user_category_relations_repositories.MockUserCategoryRelationRepo)
 	}
 
 	t.Run("Deve retornar usuário quando encontrado", func(t *testing.T) {
@@ -269,8 +293,8 @@ func TestUserService_GetUserByEmail(t *testing.T) {
 		service := NewUserService(
 			mockUserRepo,
 			new(addresses_repositories.MockAddressRepository),
-			new(MockContactRepository),
-			new(MockUserCategoryRelationRepositories),
+			new(contact_repositories.MockContactRepository),
+			new(user_category_relations_repositories.MockUserCategoryRelationRepo),
 		)
 		return mockUserRepo, service
 	}
@@ -318,8 +342,8 @@ func TestUserService_Update(t *testing.T) {
 		UserService := NewUserService(
 			mockUserRepo,
 			mockAddressRepo,
-			new(MockContactRepository),
-			new(MockUserCategoryRelationRepositories),
+			new(contact_repositories.MockContactRepository),
+			new(user_category_relations_repositories.MockUserCategoryRelationRepo),
 		)
 
 		return mockUserRepo, mockAddressRepo, UserService
@@ -587,8 +611,8 @@ func TestUserService_Delete(t *testing.T) {
 		userService := NewUserService(
 			mockUserRepo,
 			new(addresses_repositories.MockAddressRepository),
-			new(MockContactRepository),
-			new(MockUserCategoryRelationRepositories),
+			new(contact_repositories.MockContactRepository),
+			new(user_category_relations_repositories.MockUserCategoryRelationRepo),
 		)
 		return mockUserRepo, userService
 	}

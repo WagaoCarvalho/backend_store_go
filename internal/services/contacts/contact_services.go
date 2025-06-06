@@ -7,7 +7,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
 // Erros personalizados

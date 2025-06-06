@@ -9,7 +9,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/product"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/products"
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
 )
 

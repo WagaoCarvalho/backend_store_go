@@ -17,7 +17,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	addresses_services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
-	"github.com/WagaoCarvalho/backend_store_go/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
 func TestAddressHandler_Create(t *testing.T) {
