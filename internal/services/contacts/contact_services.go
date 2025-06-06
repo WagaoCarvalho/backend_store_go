@@ -7,7 +7,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
-	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
 )
 
 // Erros personalizados
@@ -62,7 +62,7 @@ func (s *contactService) Create(ctx context.Context, contact *models.Contact) (*
 		return &models.Contact{}, ErrContactAssociationRequired
 	}
 
-	if contact.Email != "" && !utils.IsValidEmail(contact.Email) {
+	if contact.Email != "" && !utils_validators.IsValidEmail(contact.Email) {
 		return &models.Contact{}, ErrInvalidEmail
 	}
 

@@ -2,9 +2,11 @@ package models
 
 import (
 	"errors"
+	"strings"
 	"time"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
 )
 
 type Address struct {
@@ -23,26 +25,61 @@ type Address struct {
 }
 
 func (a *Address) Validate() error {
+	// Simula erro genérico (usado para testes)
 	if a.Street == "cause_generic_error" {
 		return errors.New("erro genérico na validação")
 	}
+
+	// Pelo menos um vínculo obrigatório
 	if a.UserID == nil && a.ClientID == nil && a.SupplierID == nil {
-		return &utils.ValidationError{Field: "UserID/ClientID/SupplierID", Message: "pelo menos um deve ser informado"}
+		return &utils_errors.ValidationError{
+			Field:   "UserID/ClientID/SupplierID",
+			Message: "pelo menos um deve ser informado",
+		}
 	}
-	if a.Street == "" {
-		return &utils.ValidationError{Field: "Street", Message: "campo obrigatório"}
+
+	// --- Street ---
+	if utils_validators.IsBlank(a.Street) {
+		return &utils_errors.ValidationError{Field: "Street", Message: "campo obrigatório"}
 	}
-	if a.City == "" {
-		return &utils.ValidationError{Field: "City", Message: "campo obrigatório"}
+	if len(a.Street) < 3 {
+		return &utils_errors.ValidationError{Field: "Street", Message: "mínimo de 3 caracteres"}
 	}
-	if a.State == "" {
-		return &utils.ValidationError{Field: "State", Message: "campo obrigatório"}
+	if len(a.Street) > 100 {
+		return &utils_errors.ValidationError{Field: "Street", Message: "máximo de 100 caracteres"}
 	}
-	if a.Country == "" {
-		return &utils.ValidationError{Field: "Country", Message: "campo obrigatório"}
+
+	// --- City ---
+	if utils_validators.IsBlank(a.City) {
+		return &utils_errors.ValidationError{Field: "City", Message: "campo obrigatório"}
 	}
-	if a.PostalCode == "" {
-		return &utils.ValidationError{Field: "PostalCode", Message: "campo obrigatório"}
+	if len(a.City) < 2 {
+		return &utils_errors.ValidationError{Field: "City", Message: "mínimo de 2 caracteres"}
 	}
+
+	// --- State ---
+	if utils_validators.IsBlank(a.State) {
+		return &utils_errors.ValidationError{Field: "State", Message: "campo obrigatório"}
+	}
+	if !utils_validators.IsValidBrazilianState(a.State) {
+		return &utils_errors.ValidationError{Field: "State", Message: "estado inválido"}
+	}
+
+	// --- Country ---
+	if utils_validators.IsBlank(a.Country) {
+		return &utils_errors.ValidationError{Field: "Country", Message: "campo obrigatório"}
+	}
+	if strings.ToLower(strings.TrimSpace(a.Country)) != "brasil" {
+		return &utils_errors.ValidationError{Field: "Country", Message: "país não suportado"}
+	}
+
+	// --- PostalCode ---
+	if utils_validators.IsBlank(a.PostalCode) {
+		return &utils_errors.ValidationError{Field: "PostalCode", Message: "campo obrigatório"}
+	}
+	if !utils_validators.IsValidPostalCode(a.PostalCode) {
+		return &utils_errors.ValidationError{Field: "PostalCode", Message: "formato inválido (ex: 00000-000)"}
+	}
+
 	return nil
 }

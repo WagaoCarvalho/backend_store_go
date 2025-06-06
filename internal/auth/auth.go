@@ -7,7 +7,7 @@ import (
 
 	modelsLogin "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
-	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
 )
 
 var (
@@ -39,7 +39,7 @@ func NewLoginService(repo repositories.UserRepository, jwt TokenGenerator) *logi
 }
 
 func (s *loginService) Login(ctx context.Context, credentials modelsLogin.LoginCredentials) (string, error) {
-	if !utils.IsValidEmail(credentials.Email) {
+	if !utils_validators.IsValidEmail(credentials.Email) {
 		return "", ErrInvalidEmailFormat
 	}
 

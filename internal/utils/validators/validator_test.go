@@ -8,9 +8,9 @@ import (
 
 func TestUtilsFunctions(t *testing.T) {
 	t.Run("IsStringEmpty", func(t *testing.T) {
-		assert.True(t, IsStringEmpty(""), "string vazia deve retornar true")
-		assert.False(t, IsStringEmpty(" "), "string com espaço não deve retornar true")
-		assert.False(t, IsStringEmpty("abc"), "string não vazia deve retornar false")
+		assert.True(t, IsBlank(""), "string vazia deve retornar true")
+		assert.False(t, IsBlank(" "), "string com espaço não deve retornar true")
+		assert.False(t, IsBlank("abc"), "string não vazia deve retornar false")
 	})
 
 	t.Run("IsValidEmail", func(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
 func TestAddress_Validate(t *testing.T) {
@@ -15,7 +15,7 @@ func TestAddress_Validate(t *testing.T) {
 		name    string
 		address Address
 		wantErr bool
-		errType interface{}
+		errType any
 		errMsg  string
 	}{
 		{
@@ -34,43 +34,85 @@ func TestAddress_Validate(t *testing.T) {
 			name:    "Missing all IDs",
 			address: Address{Street: "Rua 1", City: "Cidade", State: "SP", Country: "Brasil", PostalCode: "12345-678"},
 			wantErr: true,
-			errType: &utils.ValidationError{},
+			errType: &utils_errors.ValidationError{},
 			errMsg:  "pelo menos um deve ser informado",
 		},
 		{
-			name:    "Missing Street",
-			address: Address{UserID: &userID, City: "Cidade", State: "SP", Country: "Brasil", PostalCode: "12345-678"},
+			name:    "Blank Street",
+			address: Address{UserID: &userID, Street: "   ", City: "Cidade", State: "SP", Country: "Brasil", PostalCode: "12345-678"},
 			wantErr: true,
-			errType: &utils.ValidationError{},
+			errType: &utils_errors.ValidationError{},
 			errMsg:  "Street",
 		},
 		{
-			name:    "Missing City",
-			address: Address{UserID: &userID, Street: "Rua 1", State: "SP", Country: "Brasil", PostalCode: "12345-678"},
+			name:    "Street too short",
+			address: Address{UserID: &userID, Street: "Ru", City: "Cidade", State: "SP", Country: "Brasil", PostalCode: "12345-678"},
 			wantErr: true,
-			errType: &utils.ValidationError{},
+			errType: &utils_errors.ValidationError{},
+			errMsg:  "mínimo de 3 caracteres",
+		},
+		{
+			name:    "Street too long",
+			address: Address{UserID: &userID, Street: strings.Repeat("a", 101), City: "Cidade", State: "SP", Country: "Brasil", PostalCode: "12345-678"},
+			wantErr: true,
+			errType: &utils_errors.ValidationError{},
+			errMsg:  "máximo de 100 caracteres",
+		},
+		{
+			name:    "Missing City",
+			address: Address{UserID: &userID, Street: "Rua 1", City: "", State: "SP", Country: "Brasil", PostalCode: "12345-678"},
+			wantErr: true,
+			errType: &utils_errors.ValidationError{},
 			errMsg:  "City",
 		},
 		{
-			name:    "Missing State",
-			address: Address{UserID: &userID, Street: "Rua 1", City: "Cidade", Country: "Brasil", PostalCode: "12345-678"},
+			name:    "City too short",
+			address: Address{UserID: &userID, Street: "Rua 1", City: "A", State: "SP", Country: "Brasil", PostalCode: "12345-678"},
 			wantErr: true,
-			errType: &utils.ValidationError{},
+			errType: &utils_errors.ValidationError{},
+			errMsg:  "mínimo de 2 caracteres",
+		},
+		{
+			name:    "Blank State",
+			address: Address{UserID: &userID, Street: "Rua 1", City: "Cidade", State: "   ", Country: "Brasil", PostalCode: "12345-678"},
+			wantErr: true,
+			errType: &utils_errors.ValidationError{},
 			errMsg:  "State",
+		},
+		{
+			name:    "Invalid State",
+			address: Address{UserID: &userID, Street: "Rua 1", City: "Cidade", State: "XX", Country: "Brasil", PostalCode: "12345-678"},
+			wantErr: true,
+			errType: &utils_errors.ValidationError{},
+			errMsg:  "estado inválido",
 		},
 		{
 			name:    "Missing Country",
 			address: Address{UserID: &userID, Street: "Rua 1", City: "Cidade", State: "SP", PostalCode: "12345-678"},
 			wantErr: true,
-			errType: &utils.ValidationError{},
+			errType: &utils_errors.ValidationError{},
 			errMsg:  "Country",
+		},
+		{
+			name:    "Unsupported Country",
+			address: Address{UserID: &userID, Street: "Rua 1", City: "Cidade", State: "SP", Country: "Argentina", PostalCode: "12345-678"},
+			wantErr: true,
+			errType: &utils_errors.ValidationError{},
+			errMsg:  "país não suportado",
 		},
 		{
 			name:    "Missing PostalCode",
 			address: Address{UserID: &userID, Street: "Rua 1", City: "Cidade", State: "SP", Country: "Brasil"},
 			wantErr: true,
-			errType: &utils.ValidationError{},
+			errType: &utils_errors.ValidationError{},
 			errMsg:  "PostalCode",
+		},
+		{
+			name:    "Invalid PostalCode",
+			address: Address{UserID: &userID, Street: "Rua 1", City: "Cidade", State: "SP", Country: "Brasil", PostalCode: "ABC"},
+			wantErr: true,
+			errType: &utils_errors.ValidationError{},
+			errMsg:  "formato inválido",
 		},
 		{
 			name: "Generic error on street",
@@ -96,7 +138,6 @@ func TestAddress_Validate(t *testing.T) {
 				return
 			}
 			if tt.wantErr {
-				// Verifica o tipo se for especificado
 				if tt.errType != nil {
 					if !errors.As(err, &tt.errType) {
 						t.Errorf("expected error type %T, got %T", tt.errType, err)

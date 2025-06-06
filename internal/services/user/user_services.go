@@ -14,7 +14,7 @@ import (
 	repositories_contact "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
 	repositories_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	repositories_category_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
-	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
 )
 
 var (
@@ -77,7 +77,7 @@ func (s *userService) Create(
 	address *models_address.Address,
 	contact *models_contact.Contact,
 ) (*models_user.User, error) {
-	if !utils.IsValidEmail(user.Email) {
+	if !utils_validators.IsValidEmail(user.Email) {
 		return nil, ErrInvalidEmail
 	}
 
@@ -158,7 +158,7 @@ func (s *userService) Update(
 	user *models_user.User,
 	address *models_address.Address,
 ) (*models_user.User, error) {
-	if !utils.IsValidEmail(user.Email) {
+	if !utils_validators.IsValidEmail(user.Email) {
 		return nil, ErrInvalidEmail
 	}
 
