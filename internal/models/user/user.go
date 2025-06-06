@@ -6,6 +6,11 @@ import (
 	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
+
+	"unicode"
+
+	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
 )
 
 type User struct {
@@ -20,4 +25,70 @@ type User struct {
 	Categories []models_user_categories.UserCategory `json:"categories,omitempty"`
 	Address    *models_address.Address               `json:"address,omitempty"`
 	Contact    *models_contact.Contact               `json:"contact,omitempty"`
+}
+
+func (u *User) Validate() error {
+	// Username obrigatório e tamanho
+	if utils_validators.IsBlank(u.Username) {
+		return &utils_errors.ValidationError{Field: "Username", Message: "campo obrigatório"}
+	}
+	if len(u.Username) < 3 || len(u.Username) > 50 {
+		return &utils_errors.ValidationError{Field: "Username", Message: "deve ter entre 3 e 50 caracteres"}
+	}
+
+	// Email obrigatório e válido
+	if utils_validators.IsBlank(u.Email) {
+		return &utils_errors.ValidationError{Field: "Email", Message: "campo obrigatório"}
+	}
+	if len(u.Email) > 100 {
+		return &utils_errors.ValidationError{Field: "Email", Message: "máximo de 100 caracteres"}
+	}
+	if !utils_validators.IsValidEmail(u.Email) {
+		return &utils_errors.ValidationError{Field: "Email", Message: "email inválido"}
+	}
+
+	// Password obrigatório, mínimo 8 caracteres, complexidade mínima
+	if utils_validators.IsBlank(u.Password) {
+		return &utils_errors.ValidationError{Field: "Password", Message: "campo obrigatório"}
+	}
+	if len(u.Password) < 8 {
+		return &utils_errors.ValidationError{Field: "Password", Message: "mínimo de 8 caracteres"}
+	}
+
+	if !hasPasswordComplexity(u.Password) {
+		return &utils_errors.ValidationError{Field: "Password", Message: "deve conter letras maiúsculas, minúsculas e números"}
+	}
+
+	// Validar Address se existir
+	if u.Address != nil {
+		if err := u.Address.Validate(); err != nil {
+			return err
+		}
+	}
+
+	// Validar Contact se existir
+	if u.Contact != nil {
+		if err := u.Contact.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// hasPasswordComplexity verifica se a senha tem pelo menos uma letra maiúscula,
+// uma minúscula e um número.
+func hasPasswordComplexity(pwd string) bool {
+	var hasUpper, hasLower, hasNumber bool
+	for _, c := range pwd {
+		switch {
+		case unicode.IsUpper(c):
+			hasUpper = true
+		case unicode.IsLower(c):
+			hasLower = true
+		case unicode.IsNumber(c):
+			hasNumber = true
+		}
+	}
+	return hasUpper && hasLower && hasNumber
 }

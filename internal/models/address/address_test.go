@@ -114,20 +114,6 @@ func TestAddress_Validate(t *testing.T) {
 			errType: &utils_errors.ValidationError{},
 			errMsg:  "formato inválido",
 		},
-		{
-			name: "Generic error on street",
-			address: Address{
-				UserID:     &userID,
-				Street:     "cause_generic_error",
-				City:       "Cidade",
-				State:      "SP",
-				Country:    "Brasil",
-				PostalCode: "12345-678",
-			},
-			wantErr: true,
-			errType: nil,
-			errMsg:  "erro genérico na validação",
-		},
 	}
 
 	for _, tt := range tests {

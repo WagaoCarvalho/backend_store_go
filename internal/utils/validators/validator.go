@@ -49,3 +49,15 @@ func IsValidCell(cell string) bool {
 	re := regexp.MustCompile(`^\(\d{2}\) 9\d{4}-\d{4}$`)
 	return re.MatchString(cell)
 }
+
+func IsValidCPF(cpf string) bool {
+	// Simplesmente verifica se tem 11 dígitos numéricos (sem pontuação)
+	matched, _ := regexp.MatchString(`^\d{11}$`, cpf)
+	return matched
+}
+
+func IsValidCNPJ(cnpj string) bool {
+	// Simplesmente verifica se tem 14 dígitos numéricos (sem pontuação)
+	matched, _ := regexp.MatchString(`^\d{14}$`, cnpj)
+	return matched
+}

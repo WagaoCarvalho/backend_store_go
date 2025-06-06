@@ -25,7 +25,6 @@ type Contact struct {
 }
 
 func (c *Contact) Validate() error {
-	// Pelo menos um ID deve estar presente
 	if c.UserID == nil && c.ClientID == nil && c.SupplierID == nil {
 		return &utils_errors.ValidationError{
 			Field:   "UserID/ClientID/SupplierID",

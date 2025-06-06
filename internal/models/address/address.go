@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"strings"
 	"time"
 
@@ -25,12 +24,7 @@ type Address struct {
 }
 
 func (a *Address) Validate() error {
-	// Simula erro genérico (usado para testes)
-	if a.Street == "cause_generic_error" {
-		return errors.New("erro genérico na validação")
-	}
 
-	// Pelo menos um vínculo obrigatório
 	if a.UserID == nil && a.ClientID == nil && a.SupplierID == nil {
 		return &utils_errors.ValidationError{
 			Field:   "UserID/ClientID/SupplierID",
