@@ -19,6 +19,9 @@ func IsValidEmail(email string) bool {
 var postalCodeRegex = regexp.MustCompile(`^\d{5}-?\d{3}$`)
 
 func IsValidPostalCode(code string) bool {
+	if code == "00000-000" || code == "00000000" {
+		return false
+	}
 	return postalCodeRegex.MatchString(code)
 }
 

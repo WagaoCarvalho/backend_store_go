@@ -30,9 +30,9 @@ func TestAddressHandler_Create(t *testing.T) {
 			UserID:     &uid,
 			Street:     "Rua Exemplo",
 			City:       "Cidade",
-			State:      "Estado",
+			State:      "SP",
 			Country:    "Brasil",
-			PostalCode: "12345",
+			PostalCode: "12345-678",
 		}
 
 		expected := *input
@@ -110,9 +110,9 @@ func TestAddressHandler_Create(t *testing.T) {
 			UserID:     &uid,
 			Street:     "Rua Falha",
 			City:       "ErroCity",
-			State:      "Estado",
+			State:      "MG",
 			Country:    "Brasil",
-			PostalCode: "00000",
+			PostalCode: "02460-000",
 		}
 
 		mockService.On("Create", mock.Anything, input).Return(&models.Address{}, assert.AnError)
