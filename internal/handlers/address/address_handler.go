@@ -59,6 +59,26 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (h *AddressHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	version, err := h.service.GetVersionByID(r.Context(), int64(id))
+	if err != nil {
+		utils.ErrorResponse(w, err, http.StatusNotFound)
+		return
+	}
+
+	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Versão do endereço encontrada",
+		Data:    map[string]int{"version": version},
+	})
+}
+
 func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {

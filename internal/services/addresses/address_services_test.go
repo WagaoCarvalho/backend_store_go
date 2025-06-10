@@ -12,8 +12,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-var ErrAddressNotFound = errors.New("address: endereço não encontrado")
-
 func TestAddressService_Create(t *testing.T) {
 	mockRepo := new(repositories.MockAddressRepository)
 	service := NewAddressService(mockRepo)
@@ -103,6 +101,62 @@ func TestAddressService_GetByID(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Equal(t, &models.Address{}, result)
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestAddressService_GetVersionByID(t *testing.T) {
+	t.Run("sucesso ao buscar versão do endereço por ID", func(t *testing.T) {
+		mockRepo := new(repositories.MockAddressRepository)
+		service := NewAddressService(mockRepo)
+
+		expectedVersion := 3
+		mockRepo.On("GetVersionByID", mock.Anything, int64(1)).Return(expectedVersion, nil)
+
+		result, err := service.GetVersionByID(context.Background(), 1)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expectedVersion, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha ao buscar versão com ID inválido", func(t *testing.T) {
+		service := NewAddressService(nil)
+
+		result, err := service.GetVersionByID(context.Background(), 0)
+
+		assert.Equal(t, 0, result)
+		assert.Error(t, err)
+		assert.EqualError(t, err, ErrInvalidID.Error())
+	})
+
+	t.Run("endereço não encontrado ao buscar versão", func(t *testing.T) {
+		mockRepo := new(repositories.MockAddressRepository)
+		service := NewAddressService(mockRepo)
+
+		mockRepo.On("GetVersionByID", mock.Anything, int64(1)).Return(0, repositories.ErrAddressNotFound)
+
+		result, err := service.GetVersionByID(context.Background(), 1)
+
+		assert.Error(t, err)
+		assert.Equal(t, 0, result)
+		assert.EqualError(t, err, ErrAddressNotFound.Error())
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro ao buscar versão no repositório", func(t *testing.T) {
+		mockRepo := new(repositories.MockAddressRepository)
+		service := NewAddressService(mockRepo)
+
+		expectedErr := errors.New("erro no banco de dados")
+		mockRepo.On("GetVersionByID", mock.Anything, int64(1)).Return(0, expectedErr)
+
+		result, err := service.GetVersionByID(context.Background(), 1)
+
+		assert.Error(t, err)
+		assert.Equal(t, 0, result)
+		assert.Contains(t, err.Error(), "failed to get address version")
+		assert.True(t, errors.Is(err, expectedErr), "deve envolver o erro original")
 		mockRepo.AssertExpectations(t)
 	})
 }

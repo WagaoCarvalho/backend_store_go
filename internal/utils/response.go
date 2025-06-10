@@ -56,7 +56,15 @@ func FromJson(r io.Reader, target interface{}) error {
 
 func GetIDParam(r *http.Request, key string) (int64, error) {
 	vars := mux.Vars(r)
-	return strconv.ParseInt(vars[key], 10, 64)
+	idStr, ok := vars[key]
+	if !ok || idStr == "" {
+		return 0, fmt.Errorf("missing or empty id param: %s", key)
+	}
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid ID format: %s", idStr)
+	}
+	return id, nil
 }
 
 func ParseErrorResponse(body []byte) (DefaultResponse, error) {

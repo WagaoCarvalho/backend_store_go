@@ -11,17 +11,19 @@ import (
 )
 
 var (
-	ErrCreateAddress   = errors.New("erro ao criar endereço")
-	ErrFetchAddress    = errors.New("erro ao buscar endereço")
-	ErrAddressNotFound = errors.New("endereço não encontrado")
-	ErrUpdateAddress   = errors.New("erro ao atualizar endereço")
-	ErrDeleteAddress   = errors.New("erro ao excluir endereço")
-	ErrVersionConflict = errors.New("conflito de versão: o endereço foi modificado por outra operação")
+	ErrCreateAddress       = errors.New("erro ao criar endereço")
+	ErrFetchAddress        = errors.New("erro ao buscar endereço")
+	ErrAddressNotFound     = errors.New("endereço não encontrado")
+	ErrUpdateAddress       = errors.New("erro ao atualizar endereço")
+	ErrDeleteAddress       = errors.New("erro ao excluir endereço")
+	ErrVersionConflict     = errors.New("conflito de versão: o endereço foi modificado por outra operação")
+	ErrFetchAddressVersion = errors.New("erro ao buscar a versão do endereço")
 )
 
 type AddressRepository interface {
 	Create(ctx context.Context, address *models.Address) (*models.Address, error)
 	GetByID(ctx context.Context, id int64) (*models.Address, error)
+	GetVersionByID(ctx context.Context, id int64) (int, error)
 	Update(ctx context.Context, address *models.Address) error
 	Delete(ctx context.Context, id int64) error
 }
@@ -68,7 +70,7 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 		SELECT 
 			id, user_id, client_id, supplier_id,
 			street, city, state, country, postal_code,
-			version, created_at, updated_at
+			created_at, updated_at
 		FROM addresses
 		WHERE id = $1;
 	`
@@ -84,7 +86,6 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 		&address.State,
 		&address.Country,
 		&address.PostalCode,
-		&address.Version,
 		&address.CreatedAt,
 		&address.UpdatedAt,
 	)
@@ -97,6 +98,25 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 	}
 
 	return &address, nil
+}
+
+func (r *addressRepository) GetVersionByID(ctx context.Context, id int64) (int, error) {
+	const query = `
+		SELECT version
+		FROM addresses
+		WHERE id = $1;
+	`
+
+	var version int
+	err := r.db.QueryRow(ctx, query, id).Scan(&version)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, ErrAddressNotFound
+		}
+		return 0, fmt.Errorf("%w: %v", ErrFetchAddressVersion, err)
+	}
+
+	return version, nil
 }
 
 func (r *addressRepository) Update(ctx context.Context, address *models.Address) error {
