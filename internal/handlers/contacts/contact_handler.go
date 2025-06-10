@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
@@ -50,6 +52,34 @@ func (h *ContactHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(contact)
+}
+
+func (h *ContactHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		utils.ErrorResponse(w, fmt.Errorf("invalid ID format: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	version, err := h.service.GetVersionByID(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, services.ErrInvalidID) {
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
+		if errors.Is(err, services.ErrContactNotFound) {
+			utils.ErrorResponse(w, err, http.StatusNotFound)
+			return
+		}
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Versão do contato encontrada",
+		Data:    map[string]int{"version": version},
+	})
 }
 
 func (h *ContactHandler) GetByUser(w http.ResponseWriter, r *http.Request) {

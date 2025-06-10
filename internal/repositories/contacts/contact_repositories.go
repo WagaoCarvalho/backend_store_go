@@ -29,6 +29,7 @@ type ContactRepository interface {
 	GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error)
 	GetByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error)
 	GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Contact, error)
+	GetVersionByID(ctx context.Context, id int64) (int, error)
 	Update(ctx context.Context, contact *models.Contact) error
 	Delete(ctx context.Context, id int64) error
 }
@@ -102,6 +103,25 @@ func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Cont
 	}
 
 	return &contact, nil
+}
+
+func (r *contactRepository) GetVersionByID(ctx context.Context, id int64) (int, error) {
+	const query = `
+		SELECT version
+		FROM contacts
+		WHERE id = $1;
+	`
+
+	var version int
+	err := r.db.QueryRow(ctx, query, id).Scan(&version)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, ErrContactNotFound
+		}
+		return 0, fmt.Errorf("%w: %v", ErrFetchContact, err)
+	}
+
+	return version, nil
 }
 
 func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error) {

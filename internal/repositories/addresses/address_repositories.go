@@ -44,7 +44,7 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 			created_at, updated_at
 		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-		RETURNING id, version, created_at, updated_at;
+		RETURNING id, created_at, updated_at;
 	`
 
 	err := r.db.QueryRow(ctx, query,
@@ -56,7 +56,7 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 		address.State,
 		address.Country,
 		address.PostalCode,
-	).Scan(&address.ID, &address.Version, &address.CreatedAt, &address.UpdatedAt)
+	).Scan(&address.ID, &address.CreatedAt, &address.UpdatedAt)
 
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrCreateAddress, err)

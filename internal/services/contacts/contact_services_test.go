@@ -176,6 +176,61 @@ func TestGetContactByID(t *testing.T) {
 
 }
 
+func TestGetContactVersionByID(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		mockRepo := new(repositories.MockContactRepository)
+		service := NewContactService(mockRepo)
+
+		mockRepo.On("GetVersionByID", mock.Anything, int64(1)).Return(3, nil)
+
+		version, err := service.GetVersionByID(context.Background(), 1)
+
+		assert.NoError(t, err)
+		assert.Equal(t, 3, version)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		mockRepo := new(repositories.MockContactRepository)
+		service := NewContactService(mockRepo)
+
+		mockRepo.On("GetVersionByID", mock.Anything, int64(1)).Return(0, repositories.ErrContactNotFound)
+
+		version, err := service.GetVersionByID(context.Background(), 1)
+
+		assert.Error(t, err)
+		assert.Equal(t, 0, version)
+		assert.Contains(t, err.Error(), "contato não encontrado")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("invalid id", func(t *testing.T) {
+		mockRepo := new(repositories.MockContactRepository)
+		service := NewContactService(mockRepo)
+
+		version, err := service.GetVersionByID(context.Background(), 0)
+
+		assert.Error(t, err)
+		assert.Equal(t, 0, version)
+		assert.Contains(t, err.Error(), "ID inválido")
+		mockRepo.AssertNotCalled(t, "GetVersionByID")
+	})
+
+	t.Run("repository error", func(t *testing.T) {
+		mockRepo := new(repositories.MockContactRepository)
+		service := NewContactService(mockRepo)
+
+		mockRepo.On("GetVersionByID", mock.Anything, int64(2)).Return(0, errors.New("erro inesperado"))
+
+		version, err := service.GetVersionByID(context.Background(), 2)
+
+		assert.Error(t, err)
+		assert.Equal(t, 0, version)
+		assert.Contains(t, err.Error(), "erro ao verificar versão do contato")
+		mockRepo.AssertExpectations(t)
+	})
+}
+
 func TestGetContactsBySupplier(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockRepo := new(repositories.MockContactRepository)

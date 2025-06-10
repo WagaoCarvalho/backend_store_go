@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -10,57 +9,13 @@ import (
 	"testing"
 
 	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
+	contact_services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts/contact_services_mock"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
-
-// Mock do serviço
-type MockContactService struct {
-	mock.Mock
-}
-
-func (m *MockContactService) Create(ctx context.Context, c *model_contact.Contact) (*model_contact.Contact, error) {
-	args := m.Called(ctx, c) // captura os argumentos retornados do mock
-	contact, _ := args.Get(0).(*model_contact.Contact)
-	return contact, args.Error(1)
-}
-
-func (m *MockContactService) GetByID(ctx context.Context, id int64) (*model_contact.Contact, error) {
-	args := m.Called(ctx, id)
-	return args.Get(0).(*model_contact.Contact), args.Error(1)
-}
-
-func (m *MockContactService) GetByUser(ctx context.Context, userID int64) ([]*model_contact.Contact, error) {
-	args := m.Called(ctx, userID)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*model_contact.Contact), args.Error(1)
-}
-
-func (m *MockContactService) GetByClient(ctx context.Context, clientID int64) ([]*model_contact.Contact, error) {
-	args := m.Called(ctx, clientID)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*model_contact.Contact), args.Error(1)
-}
-
-func (m *MockContactService) GetBySupplier(ctx context.Context, supplierID int64) ([]*model_contact.Contact, error) {
-	args := m.Called(ctx, supplierID)
-	return args.Get(0).([]*model_contact.Contact), args.Error(1)
-}
-
-func (m *MockContactService) Update(ctx context.Context, c *model_contact.Contact) error {
-	args := m.Called(ctx, c)
-	return args.Error(0)
-}
-
-func (m *MockContactService) Delete(ctx context.Context, id int64) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
 
 // Helpers
 func newRequestWithVars(method, url string, body []byte, vars map[string]string) *http.Request {
@@ -70,7 +25,7 @@ func newRequestWithVars(method, url string, body []byte, vars map[string]string)
 
 func TestContactHandler_Create(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		mockSvc := new(MockContactService)
+		mockSvc := new(contact_services_mock.MockContactService)
 		handler := NewContactHandler(mockSvc)
 
 		cont := &model_contact.Contact{ContactName: "Fulano"}
@@ -87,7 +42,7 @@ func TestContactHandler_Create(t *testing.T) {
 	})
 
 	t.Run("InvalidJSON", func(t *testing.T) {
-		handler := NewContactHandler(new(MockContactService))
+		handler := NewContactHandler(new(contact_services_mock.MockContactService))
 
 		req := httptest.NewRequest("POST", "/contacts", bytes.NewBuffer([]byte("{invalid")))
 		w := httptest.NewRecorder()
@@ -98,11 +53,11 @@ func TestContactHandler_Create(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockSvc := new(MockContactService)
+		mockSvc := new(contact_services_mock.MockContactService)
 		handler := NewContactHandler(mockSvc)
 
 		cont := &model_contact.Contact{ContactName: "Erro"}
-		mockSvc.On("Create", mock.Anything, cont).Return(model_contact.Contact{}, errors.New("erro interno"))
+		mockSvc.On("Create", mock.Anything, cont).Return(&model_contact.Contact{}, errors.New("erro interno"))
 
 		body, _ := json.Marshal(cont)
 		req := httptest.NewRequest("POST", "/contacts", bytes.NewBuffer(body))
@@ -115,11 +70,11 @@ func TestContactHandler_Create(t *testing.T) {
 	})
 
 	t.Run("EmptyContactName", func(t *testing.T) {
-		mockSvc := new(MockContactService)
+		mockSvc := new(contact_services_mock.MockContactService)
 		handler := NewContactHandler(mockSvc)
 
 		cont := &model_contact.Contact{ContactName: ""}
-		mockSvc.On("Create", mock.Anything, cont).Return(model_contact.Contact{}, errors.New("nome obrigatório"))
+		mockSvc.On("Create", mock.Anything, cont).Return(&model_contact.Contact{}, errors.New("nome obrigatório"))
 
 		body, _ := json.Marshal(cont)
 		req := httptest.NewRequest("POST", "/contacts", bytes.NewBuffer(body))
@@ -132,254 +87,341 @@ func TestContactHandler_Create(t *testing.T) {
 	})
 }
 
-func TestGetByID_Success(t *testing.T) {
-	mockSvc := new(MockContactService)
+func TestContactHandler_GetByID(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		mockSvc := new(contact_services_mock.MockContactService)
+		handler := NewContactHandler(mockSvc)
+
+		mockSvc.On("GetByID", mock.Anything, int64(1)).Return(&model_contact.Contact{
+			ID:          1,
+			ContactName: "Contato",
+		}, nil)
+
+		req := newRequestWithVars("GET", "/contacts/1", nil, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.GetByID(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("InvalidID", func(t *testing.T) {
+		handler := NewContactHandler(new(contact_services_mock.MockContactService))
+
+		req := newRequestWithVars("GET", "/contacts/abc", nil, map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
+
+		handler.GetByID(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		mockSvc := new(contact_services_mock.MockContactService)
+		handler := NewContactHandler(mockSvc)
+
+		mockSvc.On("GetByID", mock.Anything, int64(2)).Return(&model_contact.Contact{}, errors.New("não encontrado"))
+
+		req := newRequestWithVars("GET", "/contacts/2", nil, map[string]string{"id": "2"})
+		w := httptest.NewRecorder()
+
+		handler.GetByID(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+}
+
+func TestContactHandler_GetVersionByID(t *testing.T) {
+	mockSvc := new(contact_services_mock.MockContactService)
 	handler := NewContactHandler(mockSvc)
 
-	mockSvc.On("GetByID", mock.Anything, int64(1)).Return(&model_contact.Contact{ID: 1, ContactName: "Contato"}, nil)
+	t.Run("success", func(t *testing.T) {
+		mockSvc.On("GetVersionByID", mock.Anything, int64(1)).Return(3, nil).Once()
 
-	req := newRequestWithVars("GET", "/contacts/1", nil, map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
+		req := newRequestWithVars("GET", "/contacts/version/1", nil, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
 
-	handler.GetByID(w, req)
+		handler.GetVersionByID(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
-	mockSvc.AssertExpectations(t)
+		assert.Equal(t, http.StatusOK, w.Code)
+		mockSvc.AssertExpectations(t)
+
+		var resp utils.DefaultResponse
+		err := json.NewDecoder(w.Body).Decode(&resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.Status)
+		assert.Equal(t, "Versão do contato encontrada", resp.Message)
+		dataMap, ok := resp.Data.(map[string]interface{})
+		assert.True(t, ok)
+		assert.Equal(t, float64(3), dataMap["version"])
+	})
+
+	t.Run("invalid ID format", func(t *testing.T) {
+		req := newRequestWithVars("GET", "/contacts/version/abc", nil, map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
+
+		handler.GetVersionByID(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("service returns ErrInvalidID", func(t *testing.T) {
+		mockSvc.On("GetVersionByID", mock.Anything, int64(2)).Return(0, services.ErrInvalidID).Once()
+
+		req := newRequestWithVars("GET", "/contacts/version/2", nil, map[string]string{"id": "2"})
+		w := httptest.NewRecorder()
+
+		handler.GetVersionByID(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("contact not found", func(t *testing.T) {
+		mockSvc.On("GetVersionByID", mock.Anything, int64(3)).Return(0, services.ErrContactNotFound).Once()
+
+		req := newRequestWithVars("GET", "/contacts/version/3", nil, map[string]string{"id": "3"})
+		w := httptest.NewRecorder()
+
+		handler.GetVersionByID(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		mockSvc.On("GetVersionByID", mock.Anything, int64(4)).Return(0, errors.New("erro inesperado")).Once()
+
+		req := newRequestWithVars("GET", "/contacts/version/4", nil, map[string]string{"id": "4"})
+		w := httptest.NewRecorder()
+
+		handler.GetVersionByID(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
 }
 
-func TestGetByID_InvalidID(t *testing.T) {
-	handler := NewContactHandler(new(MockContactService))
+func TestContactHandler_GetByUser(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		mockSvc := new(contact_services_mock.MockContactService)
+		handler := NewContactHandler(mockSvc)
 
-	req := newRequestWithVars("GET", "/contacts/abc", nil, map[string]string{"id": "abc"})
-	w := httptest.NewRecorder()
+		mockSvc.On("GetByUser", mock.Anything, int64(1)).Return([]*model_contact.Contact{}, nil)
 
-	handler.GetByID(w, req)
+		req := newRequestWithVars("GET", "/contacts/user/1", nil, map[string]string{"userID": "1"})
+		w := httptest.NewRecorder()
 
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+		handler.GetByUser(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		mockSvc := new(contact_services_mock.MockContactService)
+		handler := NewContactHandler(mockSvc)
+
+		mockSvc.On("GetByUser", mock.Anything, int64(2)).Return([]*model_contact.Contact{}, errors.New("erro ao buscar"))
+
+		req := newRequestWithVars("GET", "/contacts/user/2", nil, map[string]string{"userID": "2"})
+		w := httptest.NewRecorder()
+
+		handler.GetByUser(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("InvalidID", func(t *testing.T) {
+		handler := NewContactHandler(new(contact_services_mock.MockContactService))
+
+		req := newRequestWithVars("GET", "/contacts/user/abc", nil, map[string]string{"userID": "abc"})
+		w := httptest.NewRecorder()
+
+		handler.GetByUser(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
 }
 
-func TestGetByID_NotFound(t *testing.T) {
-	mockSvc := new(MockContactService)
+func TestContactHandler_GetByClient(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		mockSvc := new(contact_services_mock.MockContactService)
+		handler := NewContactHandler(mockSvc)
+
+		mockSvc.On("GetByClient", mock.Anything, int64(10)).Return([]*model_contact.Contact{}, nil)
+
+		req := newRequestWithVars("GET", "/contacts/client/10", nil, map[string]string{"clientID": "10"})
+		w := httptest.NewRecorder()
+
+		handler.GetByClient(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("ServiceError", func(t *testing.T) {
+		mockSvc := new(contact_services_mock.MockContactService)
+		handler := NewContactHandler(mockSvc)
+
+		req := newRequestWithVars("GET", "/contacts/client/1", nil, map[string]string{"clientID": "1"})
+		w := httptest.NewRecorder()
+
+		// Corrigido: retorno com tipo correto
+		mockSvc.On("GetByClient", mock.Anything, int64(1)).Return([]*model_contact.Contact(nil), errors.New("erro ao buscar contatos"))
+
+		handler.GetByClient(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), "erro ao buscar contatos")
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("InvalidClientID", func(t *testing.T) {
+		mockSvc := new(contact_services_mock.MockContactService)
+		handler := NewContactHandler(mockSvc)
+
+		req := newRequestWithVars("GET", "/contacts/client/abc", nil, map[string]string{"clientID": "abc"})
+		w := httptest.NewRecorder()
+
+		handler.GetByClient(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+}
+
+func TestContactHandler_GetBySupplier(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		mockSvc := new(contact_services_mock.MockContactService)
+		handler := NewContactHandler(mockSvc)
+
+		mockSvc.On("GetBySupplier", mock.Anything, int64(5)).Return([]*model_contact.Contact{}, nil)
+
+		req := newRequestWithVars("GET", "/contacts/supplier/5", nil, map[string]string{"supplierID": "5"})
+		w := httptest.NewRecorder()
+
+		handler.GetBySupplier(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("ServiceError", func(t *testing.T) {
+		mockService := new(contact_services_mock.MockContactService)
+		handler := NewContactHandler(mockService)
+
+		req := httptest.NewRequest(http.MethodGet, "/contacts/supplier/1", nil)
+		req = mux.SetURLVars(req, map[string]string{"supplierID": "1"})
+		rr := httptest.NewRecorder()
+
+		var contatos []*model_contact.Contact = nil
+		mockService.
+			On("GetBySupplier", mock.Anything, int64(1)).
+			Return(contatos, errors.New("erro ao buscar contatos do fornecedor"))
+
+		handler.GetBySupplier(rr, req)
+
+		assert.Equal(t, http.StatusBadRequest, rr.Code)
+		assert.Contains(t, rr.Body.String(), "erro ao buscar contatos do fornecedor")
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("InvalidID", func(t *testing.T) {
+		handler := NewContactHandler(new(contact_services_mock.MockContactService))
+
+		req := newRequestWithVars("GET", "/contacts/supplier/abc", nil, map[string]string{"supplierID": "abc"})
+		w := httptest.NewRecorder()
+
+		handler.GetBySupplier(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+}
+
+func TestContactHandler_Update(t *testing.T) {
+	mockSvc := new(contact_services_mock.MockContactService)
 	handler := NewContactHandler(mockSvc)
 
-	mockSvc.On("GetByID", mock.Anything, int64(2)).Return(&model_contact.Contact{}, errors.New("não encontrado"))
+	t.Run("success", func(t *testing.T) {
+		cont := model_contact.Contact{ID: 1, ContactName: "Atualizado"}
+		mockSvc.On("Update", mock.Anything, &cont).Return(nil).Once()
 
-	req := newRequestWithVars("GET", "/contacts/2", nil, map[string]string{"id": "2"})
-	w := httptest.NewRecorder()
+		body, _ := json.Marshal(cont)
+		req := newRequestWithVars("PUT", "/contacts/1", body, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
 
-	handler.GetByID(w, req)
+		handler.Update(w, req)
 
-	assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Equal(t, http.StatusOK, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("invalid JSON", func(t *testing.T) {
+		req := newRequestWithVars("PUT", "/contacts/1", []byte("{invalid"), map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("service error", func(t *testing.T) {
+		cont := model_contact.Contact{ID: 1, ContactName: "Falha"}
+		mockSvc.On("Update", mock.Anything, &cont).Return(errors.New("erro ao atualizar")).Once()
+
+		body, _ := json.Marshal(cont)
+		req := newRequestWithVars("PUT", "/contacts/1", body, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("invalid ID", func(t *testing.T) {
+		req := newRequestWithVars("PUT", "/contacts/abc", []byte("{}"), map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
 }
 
-func TestGetByUser_Success(t *testing.T) {
-	mockSvc := new(MockContactService)
+func TestContactHandler_Delete(t *testing.T) {
+	mockSvc := new(contact_services_mock.MockContactService)
 	handler := NewContactHandler(mockSvc)
 
-	mockSvc.On("GetByUser", mock.Anything, int64(1)).Return([]*model_contact.Contact{}, nil)
+	t.Run("success", func(t *testing.T) {
+		mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil).Once()
 
-	req := newRequestWithVars("GET", "/contacts/user/1", nil, map[string]string{"userID": "1"})
-	w := httptest.NewRecorder()
+		req := newRequestWithVars("DELETE", "/contacts/1", nil, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
 
-	handler.GetByUser(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
-}
+		handler.Delete(w, req)
 
-func TestGetByUser_InvalidID(t *testing.T) {
-	handler := NewContactHandler(new(MockContactService))
+		assert.Equal(t, http.StatusNoContent, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
 
-	req := newRequestWithVars("GET", "/contacts/user/abc", nil, map[string]string{"userID": "abc"})
-	w := httptest.NewRecorder()
+	t.Run("invalid ID", func(t *testing.T) {
+		req := newRequestWithVars("DELETE", "/contacts/abc", nil, map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
 
-	handler.GetByUser(w, req)
+		handler.Delete(w, req)
 
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
 
-func TestGetByClient_Success(t *testing.T) {
-	mockSvc := new(MockContactService)
-	handler := NewContactHandler(mockSvc)
+	t.Run("not found", func(t *testing.T) {
+		mockSvc.On("Delete", mock.Anything, int64(99)).Return(errors.New("não encontrado")).Once()
 
-	mockSvc.On("GetByClient", mock.Anything, int64(10)).Return([]*model_contact.Contact{}, nil)
+		req := newRequestWithVars("DELETE", "/contacts/99", nil, map[string]string{"id": "99"})
+		w := httptest.NewRecorder()
 
-	req := newRequestWithVars("GET", "/contacts/client/10", nil, map[string]string{"clientID": "10"})
-	w := httptest.NewRecorder()
+		handler.Delete(w, req)
 
-	handler.GetByClient(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
-}
-
-func TestContactHandler_GetByClient_ServiceError(t *testing.T) {
-	mockService := new(MockContactService)
-	handler := NewContactHandler(mockService)
-
-	req := httptest.NewRequest(http.MethodGet, "/contacts/client/1", nil)
-	req = mux.SetURLVars(req, map[string]string{"clientID": "1"})
-	rr := httptest.NewRecorder()
-
-	// Simula erro do serviço
-	mockService.On("GetByClient", mock.Anything, int64(1)).Return(nil, errors.New("erro ao buscar contatos"))
-
-	handler.GetByClient(rr, req)
-
-	assert.Equal(t, http.StatusBadRequest, rr.Code)
-	assert.Contains(t, rr.Body.String(), "erro ao buscar contatos")
-	mockService.AssertExpectations(t)
-}
-
-func TestGetByClient_InvalidID(t *testing.T) {
-	handler := NewContactHandler(new(MockContactService))
-
-	req := newRequestWithVars("GET", "/contacts/client/abc", nil, map[string]string{"clientID": "abc"})
-	w := httptest.NewRecorder()
-
-	handler.GetByClient(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestGetBySupplier_Success(t *testing.T) {
-	mockSvc := new(MockContactService)
-	handler := NewContactHandler(mockSvc)
-
-	mockSvc.On("GetBySupplier", mock.Anything, int64(5)).Return([]*model_contact.Contact{}, nil)
-
-	req := newRequestWithVars("GET", "/contacts/supplier/5", nil, map[string]string{"supplierID": "5"})
-	w := httptest.NewRecorder()
-
-	handler.GetBySupplier(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
-}
-
-func TestContactHandler_GetBySupplier_ServiceError(t *testing.T) {
-	mockService := new(MockContactService)
-	handler := NewContactHandler(mockService)
-
-	req := httptest.NewRequest(http.MethodGet, "/contacts/supplier/1", nil)
-	req = mux.SetURLVars(req, map[string]string{"supplierID": "1"})
-	rr := httptest.NewRecorder()
-
-	var contatos []*model_contact.Contact = nil
-	mockService.
-		On("GetBySupplier", mock.Anything, int64(1)).
-		Return(contatos, errors.New("erro ao buscar contatos do fornecedor"))
-
-	handler.GetBySupplier(rr, req)
-
-	assert.Equal(t, http.StatusBadRequest, rr.Code)
-	assert.Contains(t, rr.Body.String(), "erro ao buscar contatos do fornecedor")
-	mockService.AssertExpectations(t)
-}
-
-func TestGetBySupplier_InvalidID(t *testing.T) {
-	handler := NewContactHandler(new(MockContactService))
-
-	req := newRequestWithVars("GET", "/contacts/supplier/abc", nil, map[string]string{"supplierID": "abc"})
-	w := httptest.NewRecorder()
-
-	handler.GetBySupplier(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestGetByUser_Error(t *testing.T) {
-	mockSvc := new(MockContactService)
-	handler := NewContactHandler(mockSvc)
-
-	mockSvc.On("GetByUser", mock.Anything, int64(2)).Return(nil, errors.New("erro ao buscar"))
-
-	req := newRequestWithVars("GET", "/contacts/user/2", nil, map[string]string{"userID": "2"})
-	w := httptest.NewRecorder()
-
-	handler.GetByUser(w, req)
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestUpdate_Success(t *testing.T) {
-	mockSvc := new(MockContactService)
-	handler := NewContactHandler(mockSvc)
-
-	cont := model_contact.Contact{ID: 1, ContactName: "Atualizado"}
-	mockSvc.On("Update", mock.Anything, &cont).Return(nil)
-
-	body, _ := json.Marshal(cont)
-	req := newRequestWithVars("PUT", "/contacts/1", body, map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
-
-	handler.Update(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
-}
-
-func TestUpdate_InvalidJSON(t *testing.T) {
-	handler := NewContactHandler(new(MockContactService))
-	req := newRequestWithVars("PUT", "/contacts/1", []byte("{invalid"), map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
-
-	handler.Update(w, req)
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestUpdate_ServiceError(t *testing.T) {
-	mockSvc := new(MockContactService)
-	handler := NewContactHandler(mockSvc)
-
-	cont := model_contact.Contact{ID: 1, ContactName: "Falha"}
-	mockSvc.On("Update", mock.Anything, &cont).Return(errors.New("erro ao atualizar"))
-
-	body, _ := json.Marshal(cont)
-	req := newRequestWithVars("PUT", "/contacts/1", body, map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
-
-	handler.Update(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-	mockSvc.AssertExpectations(t)
-}
-
-func TestUpdate_InvalidID(t *testing.T) {
-	handler := NewContactHandler(new(MockContactService))
-	req := newRequestWithVars("PUT", "/contacts/abc", []byte("{}"), map[string]string{"id": "abc"})
-	w := httptest.NewRecorder()
-
-	handler.Update(w, req)
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestDelete_Success(t *testing.T) {
-	mockSvc := new(MockContactService)
-	handler := NewContactHandler(mockSvc)
-
-	mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil)
-
-	req := newRequestWithVars("DELETE", "/contacts/1", nil, map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
-
-	handler.Delete(w, req)
-	assert.Equal(t, http.StatusNoContent, w.Code)
-}
-
-func TestDelete_InvalidID(t *testing.T) {
-	handler := NewContactHandler(new(MockContactService))
-	req := newRequestWithVars("DELETE", "/contacts/abc", nil, map[string]string{"id": "abc"})
-	w := httptest.NewRecorder()
-
-	handler.Delete(w, req)
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestDelete_NotFound(t *testing.T) {
-	mockSvc := new(MockContactService)
-	handler := NewContactHandler(mockSvc)
-
-	mockSvc.On("Delete", mock.Anything, int64(99)).Return(errors.New("não encontrado"))
-
-	req := newRequestWithVars("DELETE", "/contacts/99", nil, map[string]string{"id": "99"})
-	w := httptest.NewRecorder()
-
-	handler.Delete(w, req)
-	assert.Equal(t, http.StatusNotFound, w.Code)
-}
-
-func ptrInt64(i int64) *int64 {
-	return &i
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
 }

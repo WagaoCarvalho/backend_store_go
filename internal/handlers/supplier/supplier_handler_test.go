@@ -15,6 +15,7 @@ import (
 	models_supplier "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
 	models_supplier_category_relations "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
 	address_services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses/address_services_mock"
+	contact_services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts/contact_services_mock"
 	suppliers_services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
@@ -127,7 +128,7 @@ func TestSupplierService_Create(t *testing.T) {
 		mockRelationService := new(MockSupplierCategoryRelationService)
 		mockSupplierCategoryService := new(MockSupplierCategoryService)
 		mockAddressService := new(address_services.MockAddressService)
-		mockContactService := new(MockContactService)
+		mockContactService := new(contact_services_mock.MockContactService)
 		service := suppliers_services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
 
 		input := &models_supplier.Supplier{Name: "Fornecedor Y"}
@@ -148,7 +149,7 @@ func TestSupplierService_Create(t *testing.T) {
 		mockRepo := new(MockSupplierRepo)
 		mockRelationService := new(MockSupplierCategoryRelationService)
 		mockAddressService := new(address_services.MockAddressService)
-		mockContactService := new(MockContactService)
+		mockContactService := new(contact_services_mock.MockContactService)
 		mockSupplierCategoryService := new(MockSupplierCategoryService)
 		service := suppliers_services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
 
@@ -172,7 +173,7 @@ func TestSupplierService_Create(t *testing.T) {
 		mockRepo := new(MockSupplierRepo)
 		mockRelationService := new(MockSupplierCategoryRelationService)
 		mockAddressService := new(address_services.MockAddressService)
-		mockContactService := new(MockContactService)
+		mockContactService := new(contact_services_mock.MockContactService)
 		mockSupplierCategoryService := new(MockSupplierCategoryService)
 		service := suppliers_services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
 
@@ -198,7 +199,7 @@ func TestSupplierService_Create(t *testing.T) {
 		mockRepo := new(MockSupplierRepo)
 		mockRelationService := new(MockSupplierCategoryRelationService)
 		mockAddressService := new(address_services.MockAddressService)
-		mockContactService := new(MockContactService)
+		mockContactService := new(contact_services_mock.MockContactService)
 		mockSupplierCategoryService := new(MockSupplierCategoryService)
 		service := suppliers_services.NewSupplierService(mockRepo, mockRelationService, mockAddressService, mockContactService, mockSupplierCategoryService)
 
