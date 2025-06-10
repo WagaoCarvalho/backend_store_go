@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
-	addresses_services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
+	addresses_services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses/address_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
@@ -317,9 +317,9 @@ func TestAddressHandler_Delete(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
-		mockService.On("Delete", mock.Anything, int64(1), 2).Return(nil)
+		mockService.On("Delete", mock.Anything, int64(1)).Return(nil)
 
-		req := httptest.NewRequest(http.MethodDelete, "/addresses/1?version=2", nil)
+		req := httptest.NewRequest(http.MethodDelete, "/addresses/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 
 		w := httptest.NewRecorder()
@@ -340,10 +340,10 @@ func TestAddressHandler_Delete(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
-		req := httptest.NewRequest(http.MethodDelete, "/addresses/abc?version=1", nil)
+		req := httptest.NewRequest(http.MethodDelete, "/addresses/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
-		w := httptest.NewRecorder()
 
+		w := httptest.NewRecorder()
 		handler.Delete(w, req)
 
 		expected := `{
@@ -356,36 +356,16 @@ func TestAddressHandler_Delete(t *testing.T) {
 		assert.JSONEq(t, expected, w.Body.String())
 	})
 
-	t.Run("InvalidVersion", func(t *testing.T) {
-		mockService := new(addresses_services.MockAddressService)
-		handler := NewAddressHandler(mockService)
-
-		req := httptest.NewRequest(http.MethodDelete, "/addresses/1?version=abc", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.Delete(w, req)
-
-		expected := `{
-			"status": 400,
-			"message": "versão inválida (esperado número inteiro)",
-			"data": null
-		}`
-
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.JSONEq(t, expected, w.Body.String())
-	})
-
 	t.Run("MissingIDError", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
-		mockService.On("Delete", mock.Anything, int64(0), 1).Return(services.ErrAddressIDRequired)
+		mockService.On("Delete", mock.Anything, int64(0)).Return(services.ErrAddressIDRequired)
 
-		req := httptest.NewRequest(http.MethodDelete, "/addresses/0?version=1", nil)
+		req := httptest.NewRequest(http.MethodDelete, "/addresses/0", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "0"})
-		w := httptest.NewRecorder()
 
+		w := httptest.NewRecorder()
 		handler.Delete(w, req)
 
 		expected := `{
@@ -399,59 +379,13 @@ func TestAddressHandler_Delete(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("MissingVersionError", func(t *testing.T) {
-		mockService := new(addresses_services.MockAddressService)
-		handler := NewAddressHandler(mockService)
-
-		mockService.On("Delete", mock.Anything, int64(1), 0).Return(services.ErrVersionRequired)
-
-		req := httptest.NewRequest(http.MethodDelete, "/addresses/1?version=0", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.Delete(w, req)
-
-		expected := `{
-			"status": 400,
-			"message": "versão é obrigatória",
-			"data": null
-		}`
-
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.JSONEq(t, expected, w.Body.String())
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("VersionConflict", func(t *testing.T) {
-		mockService := new(addresses_services.MockAddressService)
-		handler := NewAddressHandler(mockService)
-
-		mockService.On("Delete", mock.Anything, int64(1), 2).Return(services.ErrVersionConflict)
-
-		req := httptest.NewRequest(http.MethodDelete, "/addresses/1?version=2", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.Delete(w, req)
-
-		expected := `{
-			"status": 409,
-			"message": "conflito de versão",
-			"data": null
-		}`
-
-		assert.Equal(t, http.StatusConflict, w.Code)
-		assert.JSONEq(t, expected, w.Body.String())
-		mockService.AssertExpectations(t)
-	})
-
 	t.Run("ServiceError", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
 
-		mockService.On("Delete", mock.Anything, int64(1), 1).Return(errors.New("erro inesperado"))
+		mockService.On("Delete", mock.Anything, int64(1)).Return(errors.New("erro inesperado"))
 
-		req := httptest.NewRequest(http.MethodDelete, "/addresses/1?version=1", nil)
+		req := httptest.NewRequest(http.MethodDelete, "/addresses/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 
 		w := httptest.NewRecorder()
@@ -473,13 +407,12 @@ func TestAddressHandler_Delete(t *testing.T) {
 		handler := NewAddressHandler(mockService)
 
 		id := int64(99)
+		mockService.On("Delete", mock.Anything, id).Return(utils.ErrNotFound)
 
-		mockService.On("Delete", mock.Anything, id, 1).Return(utils.ErrNotFound)
-
-		req := httptest.NewRequest(http.MethodDelete, "/addresses/99?version=1", nil)
+		req := httptest.NewRequest(http.MethodDelete, "/addresses/99", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "99"})
-		w := httptest.NewRecorder()
 
+		w := httptest.NewRecorder()
 		handler.Delete(w, req)
 
 		expected := fmt.Sprintf(`{

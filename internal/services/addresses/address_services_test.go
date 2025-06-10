@@ -17,14 +17,13 @@ var ErrAddressNotFound = errors.New("address: endereço não encontrado")
 func TestAddressService_Create(t *testing.T) {
 	mockRepo := new(repositories.MockAddressRepository)
 	service := NewAddressService(mockRepo)
-
 	t.Run("sucesso na criação do endereço", func(t *testing.T) {
+		userID := int64(1)
 		address := &models.Address{
-			ID:         0,
-			UserID:     nil,
+			UserID:     &userID,
 			Street:     "Rua Teste",
 			City:       "Cidade Teste",
-			State:      "Estado Teste",
+			State:      "SP",
 			Country:    "Brasil",
 			PostalCode: "12345-678",
 		}
@@ -36,6 +35,26 @@ func TestAddressService_Create(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, address, createdAddress)
 		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha na validação do endereço - UserID/ClientID/SupplierID obrigatório", func(t *testing.T) {
+		mockRepo := new(repositories.MockAddressRepository)
+		service := NewAddressService(mockRepo)
+
+		address := &models.Address{
+			Street:     "Rua Teste",
+			City:       "Cidade Teste",
+			State:      "Estado Teste",
+			Country:    "Brasil",
+			PostalCode: "12345-678",
+		}
+
+		createdAddress, err := service.Create(context.Background(), address)
+
+		assert.Nil(t, createdAddress)
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "UserID/ClientID/SupplierID")
+		mockRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 	})
 
 }
@@ -90,11 +109,13 @@ func TestAddressService_GetByID(t *testing.T) {
 
 func TestAddressService_UpdateAddress(t *testing.T) {
 	makeAddress := func() models.Address {
+		userID := int64(1)
 		return models.Address{
 			ID:         1,
+			UserID:     &userID,
 			Street:     "Nova Rua",
 			City:       "Nova Cidade",
-			State:      "Novo Estado",
+			State:      "SP",
 			Country:    "Brasil",
 			PostalCode: "99999-999",
 			Version:    1,
@@ -108,7 +129,8 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 		address := makeAddress()
 
 		mockRepo.On("Update", mock.Anything, mock.MatchedBy(func(a *models.Address) bool {
-			return a != nil && a.ID != 0 && a.ID == address.ID && a.Street == address.Street && a.Version == address.Version
+			return a != nil && a.ID == address.ID && a.Version == address.Version &&
+				a.Street == address.Street && a.UserID != nil && *a.UserID == *address.UserID
 		})).Return(nil)
 
 		err := service.Update(context.Background(), &address)
@@ -121,9 +143,15 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 		mockRepo := new(repositories.MockAddressRepository)
 		service := NewAddressService(mockRepo)
 
+		userID := int64(1)
 		address := models.Address{
-			Street:  "Rua Teste",
-			Version: 1,
+			UserID:     &userID,
+			Street:     "Rua Teste",
+			City:       "Cidade Teste",
+			State:      "SP",
+			Country:    "Brasil",
+			PostalCode: "12345-678",
+			Version:    1,
 		}
 
 		err := service.Update(context.Background(), &address)
@@ -135,32 +163,57 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 		mockRepo := new(repositories.MockAddressRepository)
 		service := NewAddressService(mockRepo)
 
+		userID := int64(1)
 		address := models.Address{
-			ID:      1,
-			Street:  "Rua Teste",
-			Version: 0,
+			ID:         1,
+			UserID:     &userID,
+			Street:     "Rua Teste",
+			City:       "Cidade Teste",
+			State:      "SP",
+			Country:    "Brasil",
+			PostalCode: "12345-678",
+			Version:    0,
 		}
 
 		err := service.Update(context.Background(), &address)
 
-		assert.ErrorContains(t, err, "versão obrigatória")
+		assert.ErrorIs(t, err, ErrVersionRequired)
+	})
+
+	t.Run("falha na validação do endereço no update", func(t *testing.T) {
+		mockRepo := new(repositories.MockAddressRepository)
+		service := NewAddressService(mockRepo)
+
+		address := &models.Address{
+			ID:      1,
+			Version: 1,
+			Street:  "",
+		}
+
+		err := service.Update(context.Background(), address)
+
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "UserID/ClientID/SupplierID")
+		mockRepo.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
 	})
 
 	t.Run("erro por conflito de versão", func(t *testing.T) {
 		mockRepo := new(repositories.MockAddressRepository)
 		service := NewAddressService(mockRepo)
 
+		userID := int64(1)
 		address := &models.Address{
 			ID:         1,
+			UserID:     &userID,
 			Street:     "Rua Conflito",
 			City:       "Cidade Conflito",
-			State:      "Estado Conflito",
+			State:      "SP",
 			Country:    "Brasil",
-			PostalCode: "00000-000",
+			PostalCode: "12345-678",
 			Version:    2,
 		}
 
-		mockRepo.On("Update", mock.Anything, mock.Anything).
+		mockRepo.On("Update", mock.Anything, address).
 			Return(repositories.ErrVersionConflict)
 
 		err := service.Update(context.Background(), address)
@@ -173,19 +226,20 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 		mockRepo := new(repositories.MockAddressRepository)
 		service := NewAddressService(mockRepo)
 
+		userID := int64(1)
 		address := &models.Address{
 			ID:         1,
+			UserID:     &userID,
 			Street:     "Rua Erro Genérico",
 			City:       "Cidade Teste",
-			State:      "Estado Teste",
+			State:      "SP",
 			Country:    "Brasil",
-			PostalCode: "00000-000",
+			PostalCode: "00456-000",
 			Version:    1,
 		}
 
-		mockRepo.On("Update", mock.Anything, mock.MatchedBy(func(a *models.Address) bool {
-			return a.ID != 0 && a.ID == address.ID
-		})).Return(fmt.Errorf("erro inesperado no banco"))
+		mockRepo.On("Update", mock.Anything, address).
+			Return(fmt.Errorf("erro inesperado no banco"))
 
 		err := service.Update(context.Background(), address)
 
@@ -194,7 +248,6 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 		assert.ErrorContains(t, err, "erro inesperado no banco")
 		mockRepo.AssertExpectations(t)
 	})
-
 }
 
 func TestAddressService_DeleteAddress(t *testing.T) {
@@ -202,25 +255,18 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 	service := NewAddressService(mockRepo)
 
 	t.Run("sucesso ao deletar endereço", func(t *testing.T) {
-		mockRepo.On("Delete", mock.Anything, int64(1), 2).Return(nil)
+		mockRepo.On("Delete", mock.Anything, int64(1)).Return(nil)
 
-		err := service.Delete(context.Background(), int64(1), 2)
+		err := service.Delete(context.Background(), int64(1))
 
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("erro ao deletar com ID inválido", func(t *testing.T) {
-		err := service.Delete(context.Background(), 0, 2)
+		err := service.Delete(context.Background(), 0)
 
 		assert.Error(t, err)
 		assert.EqualError(t, err, ErrAddressIDRequired.Error())
-	})
-
-	t.Run("erro ao deletar com versão inválida", func(t *testing.T) {
-		err := service.Delete(context.Background(), 1, 0)
-
-		assert.Error(t, err)
-		assert.EqualError(t, err, ErrVersionRequired.Error())
 	})
 }

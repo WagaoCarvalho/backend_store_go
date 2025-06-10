@@ -3,7 +3,6 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"strconv"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
@@ -99,28 +98,13 @@ func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	versionStr := r.URL.Query().Get("version")
-	version, err := strconv.Atoi(versionStr)
-	if err != nil {
-		utils.ErrorResponse(w, errors.New("versão inválida (esperado número inteiro)"), http.StatusBadRequest)
-		return
-	}
-
-	err = h.service.Delete(r.Context(), int64(id), version)
+	err = h.service.Delete(r.Context(), int64(id))
 	if err != nil {
 		switch {
 		case errors.Is(err, utils.ErrNotFound):
 			utils.ErrorResponse(w, err, http.StatusNotFound)
-
 		case errors.Is(err, services.ErrAddressIDRequired):
 			utils.ErrorResponse(w, errors.New("endereço ID é obrigatório"), http.StatusBadRequest)
-
-		case errors.Is(err, services.ErrVersionRequired):
-			utils.ErrorResponse(w, errors.New("versão é obrigatória"), http.StatusBadRequest)
-
-		case errors.Is(err, services.ErrVersionConflict):
-			utils.ErrorResponse(w, errors.New("conflito de versão"), http.StatusConflict)
-
 		default:
 			utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		}

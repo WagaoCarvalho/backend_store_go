@@ -26,7 +26,7 @@ func (m *MockAddressRepository) Update(ctx context.Context, address *models.Addr
 	return args.Error(0)
 }
 
-func (m *MockAddressRepository) Delete(ctx context.Context, id int64, version int) error {
-	args := m.Called(ctx, id, version)
+func (m *MockAddressRepository) Delete(ctx context.Context, id int64) error {
+	args := m.Called(ctx, id)
 	return args.Error(0)
 }

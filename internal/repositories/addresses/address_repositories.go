@@ -23,7 +23,7 @@ type AddressRepository interface {
 	Create(ctx context.Context, address *models.Address) (*models.Address, error)
 	GetByID(ctx context.Context, id int64) (*models.Address, error)
 	Update(ctx context.Context, address *models.Address) error
-	Delete(ctx context.Context, id int64, version int) error
+	Delete(ctx context.Context, id int64) error
 }
 
 type addressRepository struct {
@@ -144,19 +144,19 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 	return nil
 }
 
-func (r *addressRepository) Delete(ctx context.Context, id int64, version int) error {
+func (r *addressRepository) Delete(ctx context.Context, id int64) error {
 	const query = `
 		DELETE FROM addresses 
-		WHERE id = $1 AND version = $2
+		WHERE id = $1
 	`
 
-	cmdTag, err := r.db.Exec(ctx, query, id, version)
+	cmdTag, err := r.db.Exec(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrDeleteAddress, err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		return ErrVersionConflict
+		return ErrAddressNotFound
 	}
 
 	return nil

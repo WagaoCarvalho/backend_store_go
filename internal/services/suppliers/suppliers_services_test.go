@@ -12,7 +12,7 @@ import (
 	supplier_category_relations "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
 	addresses_repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	suppliers_repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers"
-	contact_services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
+	contact_services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts/contact_services_mock"
 	supplier_categories_services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_categories"
 	supplier_category_relations_service "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_category_relations"
 	"github.com/stretchr/testify/assert"

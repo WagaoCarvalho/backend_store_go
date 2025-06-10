@@ -14,7 +14,7 @@ import (
 	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_supplier "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
 	models_supplier_category_relations "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
-	address_services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
+	address_services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses/address_services_mock"
 	suppliers_services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"

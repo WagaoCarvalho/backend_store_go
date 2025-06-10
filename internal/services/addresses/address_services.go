@@ -21,7 +21,7 @@ type AddressService interface {
 	Create(ctx context.Context, address *models.Address) (*models.Address, error)
 	GetByID(ctx context.Context, id int64) (*models.Address, error)
 	Update(ctx context.Context, address *models.Address) error
-	Delete(ctx context.Context, id int64, version int) error
+	Delete(ctx context.Context, id int64) error
 }
 
 type addressService struct {
@@ -33,6 +33,11 @@ func NewAddressService(repo repositories.AddressRepository) AddressService {
 }
 
 func (s *addressService) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
+
+	if err := address.Validate(); err != nil {
+		return nil, err
+	}
+
 	return s.repo.Create(ctx, address)
 }
 
@@ -44,6 +49,11 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address
 }
 
 func (s *addressService) Update(ctx context.Context, address *models.Address) error {
+
+	if err := address.Validate(); err != nil {
+		return err
+	}
+
 	if address.ID == 0 {
 		return ErrAddressIDRequired
 	}
@@ -62,12 +72,10 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 	return nil
 }
 
-func (s *addressService) Delete(ctx context.Context, id int64, version int) error {
+func (s *addressService) Delete(ctx context.Context, id int64) error {
 	if id == 0 {
 		return ErrAddressIDRequired
 	}
-	if version == 0 {
-		return ErrVersionRequired
-	}
-	return s.repo.Delete(ctx, id, version)
+
+	return s.repo.Delete(ctx, id)
 }
