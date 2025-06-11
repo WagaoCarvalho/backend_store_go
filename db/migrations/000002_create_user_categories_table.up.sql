@@ -15,3 +15,5 @@ INSERT INTO user_categories (id, name, description, created_at, updated_at) VALU
 (3, 'Fornecedor', 'Usuários que fornecem produtos', NOW(), NOW()),
 (4, 'Gerente', 'Usuários que gerenciam vendas e estoque', NOW(), NOW()),
 (5, 'Suporte', 'Usuários responsáveis pelo atendimento ao cliente', NOW(), NOW());
+
+SELECT setval('user_categories_id_seq', (SELECT MAX(id) FROM user_categories));

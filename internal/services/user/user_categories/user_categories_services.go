@@ -26,6 +26,7 @@ var (
 type UserCategoryService interface {
 	GetAll(ctx context.Context) ([]*models.UserCategory, error)
 	GetByID(ctx context.Context, id int64) (*models.UserCategory, error)
+	GetVersionByID(ctx context.Context, id int64) (int, error)
 	Create(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error)
 	Update(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error)
 	Delete(ctx context.Context, id int64) error
@@ -74,6 +75,22 @@ func (s *userCategoryService) GetByID(ctx context.Context, id int64) (*models.Us
 	}
 
 	return category, nil
+}
+
+func (s *userCategoryService) GetVersionByID(ctx context.Context, id int64) (int, error) {
+	if id == 0 {
+		return 0, ErrCategoryIDRequired
+	}
+
+	version, err := s.repo.GetVersionByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, ErrCategoryNotFound) {
+			return 0, ErrCategoryNotFound
+		}
+		return 0, fmt.Errorf("%w: %w", ErrFetchCategory, err)
+	}
+
+	return version, nil
 }
 
 func (s *userCategoryService) Update(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error) {

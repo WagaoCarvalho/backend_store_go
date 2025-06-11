@@ -28,6 +28,7 @@ type UserCategoryRepository interface {
 	Create(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error)
 	Update(ctx context.Context, category *models.UserCategory) error
 	Delete(ctx context.Context, id int64) error
+	GetVersionByID(ctx context.Context, id int64) (int, error)
 }
 
 type userCategoryRepository struct {
@@ -108,6 +109,25 @@ func (r *userCategoryRepository) GetByID(ctx context.Context, id int64) (*models
 	return &category, nil
 }
 
+func (r *userCategoryRepository) GetVersionByID(ctx context.Context, id int64) (int, error) {
+	const query = `
+		SELECT version
+		FROM user_categories
+		WHERE id = $1;
+	`
+
+	var version int
+	err := r.db.QueryRow(ctx, query, id).Scan(&version)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, ErrCategoryNotFound
+		}
+		return 0, fmt.Errorf("%w: %v", ErrGetCategoryByID, err)
+	}
+
+	return version, nil
+}
+
 func (r *userCategoryRepository) Update(ctx context.Context, category *models.UserCategory) error {
 	const query = `
 		UPDATE user_categories
@@ -134,6 +154,16 @@ func (r *userCategoryRepository) Update(ctx context.Context, category *models.Us
 
 	if err := row.Scan(&category.UpdatedAt, &category.Version); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
+
+			var exists bool
+			checkQuery := `SELECT EXISTS(SELECT 1 FROM user_categories WHERE id = $1)`
+			checkErr := r.db.QueryRow(ctx, checkQuery, category.ID).Scan(&exists)
+			if checkErr != nil {
+				return fmt.Errorf("%w: erro ao verificar existência: %v", ErrUpdateCategory, checkErr)
+			}
+			if !exists {
+				return ErrCategoryNotFound
+			}
 			return ErrVersionConflict
 		}
 		return fmt.Errorf("%w: %v", ErrUpdateCategory, err)

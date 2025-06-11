@@ -29,6 +29,7 @@ func NewRouter() *mux.Router {
 	// Módulos de rota
 	RegisterLoginRoutes(r, db)
 	RegisterUserRoutes(r, db)
+	RegisterUserCategoryRoutes(r, db)
 	RegisterProductRoutes(r, db)
 	RegisterAddressRoutes(r, db)
 	RegisterContactRoutes(r, db)

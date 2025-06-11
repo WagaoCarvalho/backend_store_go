@@ -156,6 +156,16 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
+
+			var exists bool
+			checkQuery := `SELECT EXISTS(SELECT 1 FROM addresses WHERE id = $1)`
+			checkErr := r.db.QueryRow(ctx, checkQuery, address.ID).Scan(&exists)
+			if checkErr != nil {
+				return fmt.Errorf("%w: erro ao verificar existência: %v", ErrUpdateAddress, checkErr)
+			}
+			if !exists {
+				return ErrAddressNotFound
+			}
 			return ErrVersionConflict
 		}
 		return fmt.Errorf("%w: %v", ErrUpdateAddress, err)

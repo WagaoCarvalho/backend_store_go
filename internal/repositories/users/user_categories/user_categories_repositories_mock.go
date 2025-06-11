@@ -26,6 +26,11 @@ func (m *MockUserCategoryRepository) GetByID(ctx context.Context, id int64) (*mo
 	return args.Get(0).(*models.UserCategory), args.Error(1)
 }
 
+func (m *MockUserCategoryRepository) GetVersionByID(ctx context.Context, id int64) (int, error) {
+	args := m.Called(ctx, id)
+	return args.Int(0), args.Error(1)
+}
+
 func (m *MockUserCategoryRepository) Create(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error) {
 	args := m.Called(ctx, category)
 
