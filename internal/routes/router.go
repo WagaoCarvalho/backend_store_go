@@ -30,6 +30,7 @@ func NewRouter() *mux.Router {
 	RegisterLoginRoutes(r, db)
 	RegisterUserRoutes(r, db)
 	RegisterUserCategoryRoutes(r, db)
+	RegisterUserCategoryRelationRoutes(r, db)
 	RegisterProductRoutes(r, db)
 	RegisterAddressRoutes(r, db)
 	RegisterContactRoutes(r, db)

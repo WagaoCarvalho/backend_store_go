@@ -149,6 +149,15 @@ func (r *userRepository) Update(ctx context.Context, user *models_user.User) (*m
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
+			var exists bool
+			checkQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)`
+			checkErr := r.db.QueryRow(ctx, checkQuery, user.UID).Scan(&exists)
+			if checkErr != nil {
+				return nil, fmt.Errorf("%w: erro ao verificar existência: %v", ErrUpdateUser, checkErr)
+			}
+			if !exists {
+				return nil, ErrUserNotFound
+			}
 			return nil, ErrVersionConflict
 		}
 		return nil, fmt.Errorf("%w: %v", ErrUpdateUser, err)

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -23,6 +22,7 @@ var (
 	ErrDeleteAllUserRelations = errors.New("erro ao deletar todas as relações do usuário")
 	ErrUpdateRelation         = errors.New("erro ao atualizar relação")
 	ErrVersionConflict        = errors.New("conflito de versão: os dados foram modificados por outro processo")
+	ErrGetVersionByUserID     = errors.New("erro ao obter versão das relações de categoria do usuário")
 )
 
 type UserCategoryRelationRepository interface {
@@ -30,7 +30,6 @@ type UserCategoryRelationRepository interface {
 	GetAll(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
 	GetByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
 	GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.UserCategoryRelations, error)
-	Update(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error)
 	Delete(ctx context.Context, userID, categoryID int64) error
 	DeleteAll(ctx context.Context, userID int64) error
 }
@@ -118,6 +117,27 @@ func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, user
 	return relations, nil
 }
 
+func (r *userCategoryRelationRepositories) GetVersionByUserID(ctx context.Context, userID int64) (int, error) {
+	const query = `
+		SELECT COALESCE(SUM(version) + COUNT(*), 0)
+		FROM user_category_relations
+		WHERE user_id = $1;
+	`
+
+	var combinedVersion int
+	err := r.db.QueryRow(ctx, query, userID).Scan(&combinedVersion)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %v", ErrGetVersionByUserID, err)
+	}
+
+	// Se o usuário não tem relações, retorna erro (caso deseje tratar isso explicitamente)
+	if combinedVersion == 0 {
+		return 0, ErrRelationNotFound
+	}
+
+	return combinedVersion, nil
+}
+
 func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.UserCategoryRelations, error) {
 	const query = `
 		SELECT user_id, category_id, created_at, updated_at
@@ -145,30 +165,6 @@ func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, 
 	}
 
 	return relations, nil
-}
-
-func (r *userCategoryRelationRepositories) Update(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
-	const query = `
-		UPDATE user_category_relations
-		SET user_id = $1, category_id = $2, updated_at = NOW(), version = version + 1
-		user_id = $1 AND category_id = $2 AND version = $3
-		RETURNING updated_at, version;
-	`
-
-	err := r.db.QueryRow(ctx, query,
-		relation.UserID,
-		relation.CategoryID,
-		relation.Version,
-	).Scan(&relation.UpdatedAt, &relation.Version)
-
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrVersionConflict
-		}
-		return nil, fmt.Errorf("%w: %v", ErrUpdateRelation, err)
-	}
-
-	return relation, nil
 }
 
 func (r *userCategoryRelationRepositories) Delete(ctx context.Context, userID, categoryID int64) error {
