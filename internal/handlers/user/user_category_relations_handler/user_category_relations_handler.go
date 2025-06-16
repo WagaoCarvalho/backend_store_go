@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	user_category_relations_models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_category_relations"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
@@ -28,16 +30,32 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	created, err := h.service.Create(ctx, relation.UserID, relation.CategoryID)
+	created, wasCreated, err := h.service.Create(ctx, relation.UserID, relation.CategoryID)
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
+	if errors.Is(err, repositories.ErrInvalidForeignKey) {
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	var status int
+	var message string
+
+	if wasCreated {
+		status = http.StatusCreated
+		message = "Relação criada com sucesso"
+	} else {
+		status = http.StatusOK
+		message = "Relação já existente"
+	}
+
+	utils.ToJson(w, status, utils.DefaultResponse{
 		Data:    created,
-		Message: "Relação criada com sucesso",
-		Status:  http.StatusCreated,
+		Message: message,
+		Status:  status,
 	})
 }
 
@@ -59,31 +77,6 @@ func (h *UserCategoryRelationHandler) GetAllRelationsByUserID(w http.ResponseWri
 	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
 		Data:    relations,
 		Message: "Relações recuperadas com sucesso",
-		Status:  http.StatusOK,
-	})
-}
-
-func (h *UserCategoryRelationHandler) GetVersionByUserID(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	userIDStr := mux.Vars(r)["user_id"]
-	userID, err := strconv.ParseInt(userIDStr, 10, 64)
-	if err != nil || userID <= 0 {
-		utils.ErrorResponse(w, fmt.Errorf("ID de usuário inválido"), http.StatusBadRequest)
-		return
-	}
-
-	version, err := h.service.GetVersionByUserID(ctx, userID)
-	if err != nil {
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
-		Data: map[string]int{
-			"version": version,
-		},
-		Message: "Versão do contato encontrada",
 		Status:  http.StatusOK,
 	})
 }

@@ -34,8 +34,3 @@ func (m *MockUserCategoryRelationRepo) DeleteAll(ctx context.Context, userID int
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
-
-func (m *MockUserCategoryRelationRepo) GetVersionByUserID(ctx context.Context, userID int64) (int, error) {
-	args := m.Called(ctx, userID)
-	return args.Int(0), args.Error(1)
-}

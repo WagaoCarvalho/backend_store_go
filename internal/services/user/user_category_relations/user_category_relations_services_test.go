@@ -22,9 +22,10 @@ func TestUserCategoryRelationServices_Create(t *testing.T) {
 
 		mockRepo.On("Create", mock.Anything, input).Return(expected, nil)
 
-		result, err := service.Create(context.Background(), 1, 2)
+		result, wasCreated, err := service.Create(context.Background(), 1, 2)
 
 		assert.NoError(t, err)
+		assert.True(t, wasCreated)
 		assert.Equal(t, expected, result)
 		mockRepo.AssertExpectations(t)
 	})
@@ -33,10 +34,10 @@ func TestUserCategoryRelationServices_Create(t *testing.T) {
 		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
 		service := NewUserCategoryRelationServices(mockRepo)
 
-		_, err := service.Create(context.Background(), 0, 1)
+		_, _, err := service.Create(context.Background(), 0, 1)
 		assert.ErrorIs(t, err, ErrInvalidUserID)
 
-		_, err = service.Create(context.Background(), 1, 0)
+		_, _, err = service.Create(context.Background(), 1, 0)
 		assert.ErrorIs(t, err, ErrInvalidCategoryID)
 	})
 
@@ -47,12 +48,13 @@ func TestUserCategoryRelationServices_Create(t *testing.T) {
 		existing := &models.UserCategoryRelations{UserID: 1, CategoryID: 2}
 
 		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, repoMocks.ErrRelationExists)
-		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).Return([]*models.UserCategoryRelations{existing}, nil) // slice de ponteiros
+		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).Return([]*models.UserCategoryRelations{existing}, nil)
 
-		result, err := service.Create(context.Background(), 1, 2)
+		result, wasCreated, err := service.Create(context.Background(), 1, 2)
 
 		assert.NoError(t, err)
-		assert.Equal(t, *existing, *result) // desreferenciando para comparar struct
+		assert.False(t, wasCreated)
+		assert.Equal(t, *existing, *result)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -61,9 +63,10 @@ func TestUserCategoryRelationServices_Create(t *testing.T) {
 		service := NewUserCategoryRelationServices(mockRepo)
 
 		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, repoMocks.ErrRelationExists)
-		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).Return([]*models.UserCategoryRelations(nil), errors.New("db error"))
+		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).
+			Return([]*models.UserCategoryRelations{}, errors.New("db error"))
 
-		_, err := service.Create(context.Background(), 1, 2)
+		_, _, err := service.Create(context.Background(), 1, 2)
 
 		assert.ErrorContains(t, err, "erro ao verificar relação existente")
 		mockRepo.AssertExpectations(t)
@@ -78,7 +81,7 @@ func TestUserCategoryRelationServices_Create(t *testing.T) {
 			{UserID: 1, CategoryID: 999},
 		}, nil)
 
-		_, err := service.Create(context.Background(), 1, 2)
+		_, _, err := service.Create(context.Background(), 1, 2)
 
 		assert.ErrorIs(t, err, repoMocks.ErrRelationExists)
 		mockRepo.AssertExpectations(t)
@@ -90,7 +93,7 @@ func TestUserCategoryRelationServices_Create(t *testing.T) {
 
 		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, errors.New("db error"))
 
-		_, err := service.Create(context.Background(), 1, 2)
+		_, _, err := service.Create(context.Background(), 1, 2)
 
 		assert.ErrorContains(t, err, "erro ao criar relação")
 		mockRepo.AssertExpectations(t)
@@ -181,51 +184,6 @@ func TestUserCategoryRelationServices_Delete(t *testing.T) {
 		err := service.Delete(context.Background(), 1, 2)
 
 		assert.ErrorContains(t, err, "erro ao deletar relação")
-		mockRepo.AssertExpectations(t)
-	})
-}
-
-func TestUserCategoryRelationService_GetVersionByUserID(t *testing.T) {
-	t.Run("success - retorna a versão corretamente", func(t *testing.T) {
-		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
-
-		mockRepo.
-			On("GetVersionByUserID", mock.Anything, int64(1)).
-			Return(3, nil)
-
-		version, err := service.GetVersionByUserID(context.Background(), 1)
-
-		assert.NoError(t, err)
-		assert.Equal(t, 3, version)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("error - userID inválido", func(t *testing.T) {
-		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
-
-		version, err := service.GetVersionByUserID(context.Background(), 0)
-
-		assert.Error(t, err)
-		assert.Equal(t, 0, version)
-		assert.ErrorIs(t, err, ErrInvalidUserID)
-	})
-
-	t.Run("error - falha ao obter versão do repositório", func(t *testing.T) {
-		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
-
-		repoErr := errors.New("falha no banco")
-		mockRepo.
-			On("GetVersionByUserID", mock.Anything, int64(2)).
-			Return(0, repoErr)
-
-		version, err := service.GetVersionByUserID(context.Background(), 2)
-
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "erro ao obter a versão da relação")
-		assert.Equal(t, 0, version)
 		mockRepo.AssertExpectations(t)
 	})
 }

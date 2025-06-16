@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 
 	user_category_relations_models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
@@ -29,7 +28,7 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 
 		mockService.
 			On("Create", mock.Anything, int64(1), int64(2)).
-			Return(relation, nil)
+			Return(relation, true, nil)
 
 		body, _ := json.Marshal(relation)
 		req := httptest.NewRequest(http.MethodPost, "/relations", bytes.NewBuffer(body))
@@ -38,6 +37,29 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 		handler.Create(rec, req)
 
 		assert.Equal(t, http.StatusCreated, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("success - relação já existia", func(t *testing.T) {
+		mockService := new(user_category_relations_mock.MockUserCategoryRelationService)
+		handler := NewUserCategoryRelationHandler(mockService)
+
+		relation := &user_category_relations_models.UserCategoryRelations{
+			UserID:     1,
+			CategoryID: 2,
+		}
+
+		mockService.
+			On("Create", mock.Anything, int64(1), int64(2)).
+			Return(relation, false, nil)
+
+		body, _ := json.Marshal(relation)
+		req := httptest.NewRequest(http.MethodPost, "/relations", bytes.NewBuffer(body))
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
 		mockService.AssertExpectations(t)
 	})
 
@@ -64,7 +86,7 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 
 		mockService.
 			On("Create", mock.Anything, int64(1), int64(2)).
-			Return(nil, errors.New("erro ao criar relação"))
+			Return(nil, false, errors.New("erro ao criar relação"))
 
 		body, _ := json.Marshal(relation)
 		req := httptest.NewRequest(http.MethodPost, "/relations", bytes.NewBuffer(body))
@@ -133,67 +155,6 @@ func TestUserCategoryRelationHandler_GetAllRelationsByUserID(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 		assert.Contains(t, rr.Body.String(), "erro interno")
-	})
-}
-
-func TestUserCategoryRelationHandler_GetVersionByUserID(t *testing.T) {
-	t.Run("success - versão retornada com sucesso", func(t *testing.T) {
-		mockService := new(user_category_relations_mock.MockUserCategoryRelationService)
-		handler := NewUserCategoryRelationHandler(mockService)
-
-		userID := int64(1)
-		expectedVersion := 5
-
-		mockService.
-			On("GetVersionByUserID", mock.Anything, userID).
-			Return(expectedVersion, nil)
-
-		req := httptest.NewRequest(http.MethodGet, "/user-category-relation/version/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"user_id": strconv.FormatInt(userID, 10)})
-		rr := httptest.NewRecorder()
-
-		handler.GetVersionByUserID(rr, req)
-
-		assert.Equal(t, http.StatusOK, rr.Code)
-		assert.Contains(t, rr.Body.String(), "Versão do contato encontrada")
-		assert.Contains(t, rr.Body.String(), fmt.Sprintf("%d", expectedVersion))
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("error - ID de usuário inválido", func(t *testing.T) {
-		mockService := new(user_category_relations_mock.MockUserCategoryRelationService)
-		handler := NewUserCategoryRelationHandler(mockService)
-
-		req := httptest.NewRequest(http.MethodGet, "/user-category-relation/version/abc", nil)
-		req = mux.SetURLVars(req, map[string]string{"user_id": "abc"})
-		rr := httptest.NewRecorder()
-
-		handler.GetVersionByUserID(rr, req)
-
-		assert.Equal(t, http.StatusBadRequest, rr.Code)
-		assert.Contains(t, rr.Body.String(), "ID de usu\u00e1rio inv\u00e1lido")
-	})
-
-	t.Run("error - falha ao buscar versão", func(t *testing.T) {
-		mockService := new(user_category_relations_mock.MockUserCategoryRelationService)
-		handler := NewUserCategoryRelationHandler(mockService)
-
-		userID := int64(1)
-		errExpected := errors.New("erro no banco")
-
-		mockService.
-			On("GetVersionByUserID", mock.Anything, userID).
-			Return(0, errExpected)
-
-		req := httptest.NewRequest(http.MethodGet, "/user-category-relation/version/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"user_id": strconv.FormatInt(userID, 10)})
-		rr := httptest.NewRecorder()
-
-		handler.GetVersionByUserID(rr, req)
-
-		assert.Equal(t, http.StatusInternalServerError, rr.Code)
-		assert.Contains(t, rr.Body.String(), "erro no banco")
-		mockService.AssertExpectations(t)
 	})
 }
 

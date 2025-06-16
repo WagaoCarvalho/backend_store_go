@@ -21,14 +21,12 @@ var (
 	ErrDeleteRelation         = errors.New("erro ao deletar relação")
 	ErrDeleteAllUserRelations = errors.New("erro ao deletar todas as relações do usuário")
 	ErrUpdateRelation         = errors.New("erro ao atualizar relação")
-	ErrVersionConflict        = errors.New("conflito de versão: os dados foram modificados por outro processo")
-	ErrGetVersionByUserID     = errors.New("erro ao obter versão das relações de categoria do usuário")
+	ErrInvalidForeignKey      = errors.New("usuário ou categoria inválido")
 )
 
 type UserCategoryRelationRepository interface {
 	Create(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error)
 	GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
-	GetVersionByUserID(ctx context.Context, userID int64) (int, error)
 	Delete(ctx context.Context, userID, categoryID int64) error
 	DeleteAll(ctx context.Context, userID int64) error
 }
@@ -51,6 +49,9 @@ func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation 
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key") {
 			return nil, ErrRelationExists
+		}
+		if strings.Contains(err.Error(), "violates foreign key constraint") {
+			return nil, ErrInvalidForeignKey
 		}
 		return nil, fmt.Errorf("%w: %v", ErrCreateRelation, err)
 	}
@@ -114,27 +115,6 @@ func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, user
 	}
 
 	return relations, nil
-}
-
-func (r *userCategoryRelationRepositories) GetVersionByUserID(ctx context.Context, userID int64) (int, error) {
-	const query = `
-		SELECT COALESCE(SUM(version), 0)
-		FROM user_category_relations
-		WHERE user_id = $1;
-	`
-
-	var combinedVersion int
-	err := r.db.QueryRow(ctx, query, userID).Scan(&combinedVersion)
-	if err != nil {
-		return 0, fmt.Errorf("%w: %v", ErrGetVersionByUserID, err)
-	}
-
-	// Se o usuário não tem relações, retorna erro (caso deseje tratar isso explicitamente)
-	if combinedVersion == 0 {
-		return 0, ErrRelationNotFound
-	}
-
-	return combinedVersion, nil
 }
 
 func (r *userCategoryRelationRepositories) GetByID(ctx context.Context, categoryID int64) ([]*models.UserCategoryRelations, error) {

@@ -11,12 +11,20 @@ type MockUserCategoryRelationService struct {
 	mock.Mock
 }
 
-func (m *MockUserCategoryRelationService) Create(ctx context.Context, userID, categoryID int64) (*user_category_relations.UserCategoryRelations, error) {
+func (m *MockUserCategoryRelationService) Create(ctx context.Context, userID, categoryID int64) (*user_category_relations.UserCategoryRelations, bool, error) {
 	args := m.Called(ctx, userID, categoryID)
+
+	var relation *user_category_relations.UserCategoryRelations
 	if rel, ok := args.Get(0).(*user_category_relations.UserCategoryRelations); ok {
-		return rel, args.Error(1)
+		relation = rel
 	}
-	return nil, args.Error(1)
+
+	created := false
+	if val, ok := args.Get(1).(bool); ok {
+		created = val
+	}
+
+	return relation, created, args.Error(2)
 }
 
 func (m *MockUserCategoryRelationService) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*user_category_relations.UserCategoryRelations, error) {
@@ -25,11 +33,6 @@ func (m *MockUserCategoryRelationService) GetAllRelationsByUserID(ctx context.Co
 		return rels, args.Error(1)
 	}
 	return nil, args.Error(1)
-}
-
-func (m *MockUserCategoryRelationService) GetVersionByUserID(ctx context.Context, userID int64) (int, error) {
-	args := m.Called(ctx, userID)
-	return args.Int(0), args.Error(1)
 }
 
 func (m *MockUserCategoryRelationService) Update(ctx context.Context, relation *user_category_relations.UserCategoryRelations) (*user_category_relations.UserCategoryRelations, error) {

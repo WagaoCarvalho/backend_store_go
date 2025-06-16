@@ -23,9 +23,8 @@ var (
 )
 
 type UserCategoryRelationServices interface {
-	Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelations, error)
+	Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelations, bool, error)
 	GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
-	GetVersionByUserID(ctx context.Context, userID int64) (int, error)
 	Delete(ctx context.Context, userID, categoryID int64) error
 	DeleteAll(ctx context.Context, userID int64) error
 }
@@ -39,12 +38,12 @@ func NewUserCategoryRelationServices(repo repositories.UserCategoryRelationRepos
 	}
 }
 
-func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelations, error) {
+func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelations, bool, error) {
 	if userID <= 0 {
-		return nil, ErrInvalidUserID
+		return nil, false, ErrInvalidUserID
 	}
 	if categoryID <= 0 {
-		return nil, ErrInvalidCategoryID
+		return nil, false, ErrInvalidCategoryID
 	}
 
 	relation := models.UserCategoryRelations{
@@ -57,32 +56,19 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 		if errors.Is(err, repositories.ErrRelationExists) {
 			relations, err := s.relationRepo.GetAllRelationsByUserID(ctx, userID)
 			if err != nil {
-				return nil, fmt.Errorf("%w: %v", ErrCheckExistingRelation, err)
+				return nil, false, fmt.Errorf("%w: %v", ErrCheckExistingRelation, err)
 			}
 			for _, rel := range relations {
 				if rel.CategoryID == categoryID {
-					return rel, nil
+					return rel, false, nil
 				}
 			}
-			return nil, repositories.ErrRelationExists
+			return nil, false, repositories.ErrRelationExists
 		}
-		return nil, fmt.Errorf("%w: %v", ErrCreateRelation, err)
+		return nil, false, fmt.Errorf("%w: %v", ErrCreateRelation, err)
 	}
 
-	return createdRelation, nil
-}
-
-func (s *userCategoryRelationServices) GetVersionByUserID(ctx context.Context, userID int64) (int, error) {
-	if userID <= 0 {
-		return 0, ErrInvalidUserID
-	}
-
-	version, err := s.relationRepo.GetVersionByUserID(ctx, userID)
-	if err != nil {
-		return 0, fmt.Errorf("%w: %v", ErrGetVersion, err)
-	}
-
-	return version, nil
+	return createdRelation, true, nil
 }
 
 func (s *userCategoryRelationServices) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
