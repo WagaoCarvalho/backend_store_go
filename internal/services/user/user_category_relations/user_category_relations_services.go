@@ -19,13 +19,13 @@ var (
 	ErrDeleteRelation             = errors.New("erro ao deletar relação")
 	ErrDeleteAllUserRelations     = errors.New("erro ao deletar todas as relações do usuário")
 	ErrCheckUserCategoryRelations = errors.New("erro ao verificar relações do usuário")
+	ErrGetVersion                 = errors.New("erro ao obter a versão da relação")
 )
 
 type UserCategoryRelationServices interface {
 	Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelations, error)
-	GetAll(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
-	GetByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
-	GetByCategoryID(ctx context.Context, userID, categoryID int64) (bool, error)
+	GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
+	GetVersionByUserID(ctx context.Context, userID int64) (int, error)
 	Delete(ctx context.Context, userID, categoryID int64) error
 	DeleteAll(ctx context.Context, userID int64) error
 }
@@ -55,7 +55,7 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 	createdRelation, err := s.relationRepo.Create(ctx, &relation)
 	if err != nil {
 		if errors.Is(err, repositories.ErrRelationExists) {
-			relations, err := s.relationRepo.GetByUserID(ctx, userID)
+			relations, err := s.relationRepo.GetAllRelationsByUserID(ctx, userID)
 			if err != nil {
 				return nil, fmt.Errorf("%w: %v", ErrCheckExistingRelation, err)
 			}
@@ -72,47 +72,25 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 	return createdRelation, nil
 }
 
-func (s *userCategoryRelationServices) GetByCategoryID(ctx context.Context, userID, categoryID int64) (bool, error) {
+func (s *userCategoryRelationServices) GetVersionByUserID(ctx context.Context, userID int64) (int, error) {
 	if userID <= 0 {
-		return false, ErrInvalidUserID
-	}
-	if categoryID <= 0 {
-		return false, ErrInvalidCategoryID
+		return 0, ErrInvalidUserID
 	}
 
-	relations, err := s.GetAll(ctx, userID)
+	version, err := s.relationRepo.GetVersionByUserID(ctx, userID)
 	if err != nil {
-		return false, fmt.Errorf("%w: %v", ErrCheckUserCategoryRelations, err)
+		return 0, fmt.Errorf("%w: %v", ErrGetVersion, err)
 	}
 
-	for _, rel := range relations {
-		if rel.CategoryID == categoryID {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	return version, nil
 }
 
-func (s *userCategoryRelationServices) GetByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
+func (s *userCategoryRelationServices) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
 	if userID <= 0 {
 		return nil, ErrInvalidUserID
 	}
 
-	relations, err := s.relationRepo.GetByUserID(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrFetchUserRelations, err)
-	}
-
-	return relations, nil
-}
-
-func (s *userCategoryRelationServices) GetAll(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
-	if userID <= 0 {
-		return nil, ErrInvalidUserID
-	}
-
-	relationsPtr, err := s.relationRepo.GetByUserID(ctx, userID)
+	relationsPtr, err := s.relationRepo.GetAllRelationsByUserID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrFetchUserRelations, err)
 	}

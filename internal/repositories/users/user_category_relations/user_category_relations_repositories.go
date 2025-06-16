@@ -27,9 +27,8 @@ var (
 
 type UserCategoryRelationRepository interface {
 	Create(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error)
-	GetAll(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
-	GetByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
-	GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.UserCategoryRelations, error)
+	GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
+	GetVersionByUserID(ctx context.Context, userID int64) (int, error)
 	Delete(ctx context.Context, userID, categoryID int64) error
 	DeleteAll(ctx context.Context, userID int64) error
 }
@@ -59,7 +58,7 @@ func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation 
 	return relation, nil
 }
 
-func (r *userCategoryRelationRepositories) GetAll(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
+func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
 	const query = `
 		SELECT user_id, category_id, created_at, updated_at
 		FROM user_category_relations
@@ -119,7 +118,7 @@ func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, user
 
 func (r *userCategoryRelationRepositories) GetVersionByUserID(ctx context.Context, userID int64) (int, error) {
 	const query = `
-		SELECT COALESCE(SUM(version) + COUNT(*), 0)
+		SELECT COALESCE(SUM(version), 0)
 		FROM user_category_relations
 		WHERE user_id = $1;
 	`
@@ -138,11 +137,13 @@ func (r *userCategoryRelationRepositories) GetVersionByUserID(ctx context.Contex
 	return combinedVersion, nil
 }
 
-func (r *userCategoryRelationRepositories) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.UserCategoryRelations, error) {
+func (r *userCategoryRelationRepositories) GetByID(ctx context.Context, categoryID int64) ([]*models.UserCategoryRelations, error) {
 	const query = `
-		SELECT user_id, category_id, created_at, updated_at
-		FROM user_category_relations
-		WHERE category_id = $1;
+		SELECT u.*
+		FROM users u
+		JOIN user_category_relations r ON u.id = r.user_id
+		WHERE r.category_id = $1;
+
 	`
 
 	rows, err := r.db.Query(ctx, query, categoryID)

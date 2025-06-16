@@ -22,7 +22,7 @@ func RegisterContactRoutes(r *mux.Router, db *pgxpool.Pool) {
 
 	s.HandleFunc("/contact", handler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/contact/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)
-	s.HandleFunc("/contact/{id:[0-9]+}", handler.GetVersionByID).Methods(http.MethodPatch)
+	s.HandleFunc("/contact/version/{id:[0-9]+}", handler.GetVersionByID).Methods(http.MethodGet)
 	s.HandleFunc("/contact/user/{userID:[0-9]+}", handler.GetByUser).Methods(http.MethodGet)
 	s.HandleFunc("/contact/client/{clientID:[0-9]+}", handler.GetByClient).Methods(http.MethodGet)
 	s.HandleFunc("/contact/supplier/{supplierID:[0-9]+}", handler.GetBySupplier).Methods(http.MethodGet)

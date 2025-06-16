@@ -20,12 +20,7 @@ func (m *MockUserCategoryRelationRepo) Create(ctx context.Context, relation *mod
 	return result.(*models.UserCategoryRelations), args.Error(1)
 }
 
-func (m *MockUserCategoryRelationRepo) GetAll(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
-	args := m.Called(ctx, userID)
-	return args.Get(0).([]*models.UserCategoryRelations), args.Error(1)
-}
-
-func (m *MockUserCategoryRelationRepo) GetByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
+func (m *MockUserCategoryRelationRepo) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
 	args := m.Called(ctx, userID)
 	return args.Get(0).([]*models.UserCategoryRelations), args.Error(1)
 }
@@ -40,10 +35,7 @@ func (m *MockUserCategoryRelationRepo) DeleteAll(ctx context.Context, userID int
 	return args.Error(0)
 }
 
-func (m *MockUserCategoryRelationRepo) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.UserCategoryRelations, error) {
-	args := m.Called(ctx, categoryID)
-	if result := args.Get(0); result != nil {
-		return result.([]*models.UserCategoryRelations), args.Error(1)
-	}
-	return nil, args.Error(1)
+func (m *MockUserCategoryRelationRepo) GetVersionByUserID(ctx context.Context, userID int64) (int, error) {
+	args := m.Called(ctx, userID)
+	return args.Int(0), args.Error(1)
 }

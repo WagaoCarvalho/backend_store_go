@@ -19,7 +19,7 @@ func (m *MockUserCategoryRelationService) Create(ctx context.Context, userID, ca
 	return nil, args.Error(1)
 }
 
-func (m *MockUserCategoryRelationService) GetAll(ctx context.Context, userID int64) ([]*user_category_relations.UserCategoryRelations, error) {
+func (m *MockUserCategoryRelationService) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*user_category_relations.UserCategoryRelations, error) {
 	args := m.Called(ctx, userID)
 	if rels, ok := args.Get(0).([]*user_category_relations.UserCategoryRelations); ok {
 		return rels, args.Error(1)
@@ -27,17 +27,9 @@ func (m *MockUserCategoryRelationService) GetAll(ctx context.Context, userID int
 	return nil, args.Error(1)
 }
 
-func (m *MockUserCategoryRelationService) GetByUserID(ctx context.Context, userID int64) ([]*user_category_relations.UserCategoryRelations, error) {
+func (m *MockUserCategoryRelationService) GetVersionByUserID(ctx context.Context, userID int64) (int, error) {
 	args := m.Called(ctx, userID)
-	if rels, ok := args.Get(0).([]*user_category_relations.UserCategoryRelations); ok {
-		return rels, args.Error(1)
-	}
-	return nil, args.Error(1)
-}
-
-func (m *MockUserCategoryRelationService) GetByCategoryID(ctx context.Context, userID, categoryID int64) (bool, error) {
-	args := m.Called(ctx, userID, categoryID)
-	return args.Bool(0), args.Error(1)
+	return args.Int(0), args.Error(1)
 }
 
 func (m *MockUserCategoryRelationService) Update(ctx context.Context, relation *user_category_relations.UserCategoryRelations) (*user_category_relations.UserCategoryRelations, error) {
