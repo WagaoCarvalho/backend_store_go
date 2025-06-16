@@ -155,7 +155,7 @@ func TestUserCategoryRelationHandler_GetVersionByUserID(t *testing.T) {
 		handler.GetVersionByUserID(rr, req)
 
 		assert.Equal(t, http.StatusOK, rr.Code)
-		assert.Contains(t, rr.Body.String(), "\"Vers\u00e3o recuperada com sucesso")
+		assert.Contains(t, rr.Body.String(), "Versão do contato encontrada")
 		assert.Contains(t, rr.Body.String(), fmt.Sprintf("%d", expectedVersion))
 		mockService.AssertExpectations(t)
 	})
