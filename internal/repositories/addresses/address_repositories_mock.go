@@ -21,6 +21,21 @@ func (m *MockAddressRepository) GetByID(ctx context.Context, id int64) (*models.
 	return args.Get(0).(*models.Address), args.Error(1)
 }
 
+func (m *MockAddressRepository) GetByUserID(ctx context.Context, id int64) (*models.Address, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).(*models.Address), args.Error(1)
+}
+
+func (m *MockAddressRepository) GetByClientID(ctx context.Context, id int64) (*models.Address, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).(*models.Address), args.Error(1)
+}
+
+func (m *MockAddressRepository) GetBySupplierID(ctx context.Context, id int64) (*models.Address, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).(*models.Address), args.Error(1)
+}
+
 func (m *MockAddressRepository) GetVersionByID(ctx context.Context, id int64) (int, error) {
 	args := m.Called(ctx, id)
 	return args.Int(0), args.Error(1)

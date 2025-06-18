@@ -22,6 +22,9 @@ var (
 type AddressService interface {
 	Create(ctx context.Context, address *models.Address) (*models.Address, error)
 	GetByID(ctx context.Context, id int64) (*models.Address, error)
+	GetByUserID(ctx context.Context, userID int64) (*models.Address, error)
+	GetByClientID(ctx context.Context, clientID int64) (*models.Address, error)
+	GetBySupplierID(ctx context.Context, supplierID int64) (*models.Address, error)
 	GetVersionByID(ctx context.Context, id int64) (int, error)
 	Update(ctx context.Context, address *models.Address) error
 	Delete(ctx context.Context, id int64) error
@@ -49,6 +52,27 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address
 		return nil, ErrAddressIDRequired
 	}
 	return s.repo.GetByID(ctx, id)
+}
+
+func (s *addressService) GetByUserID(ctx context.Context, id int64) (*models.Address, error) {
+	if id == 0 {
+		return nil, ErrAddressIDRequired
+	}
+	return s.repo.GetByUserID(ctx, id)
+}
+
+func (s *addressService) GetByClientID(ctx context.Context, id int64) (*models.Address, error) {
+	if id == 0 {
+		return nil, ErrAddressIDRequired
+	}
+	return s.repo.GetByClientID(ctx, id)
+}
+
+func (s *addressService) GetBySupplierID(ctx context.Context, id int64) (*models.Address, error) {
+	if id == 0 {
+		return nil, ErrAddressIDRequired
+	}
+	return s.repo.GetBySupplierID(ctx, id)
 }
 
 func (s *addressService) GetVersionByID(ctx context.Context, id int64) (int, error) {

@@ -79,6 +79,66 @@ func (h *AddressHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
+func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	address, err := h.service.GetByUserID(r.Context(), id)
+	if err != nil {
+		utils.ErrorResponse(w, err, http.StatusNotFound)
+		return
+	}
+
+	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Endereço do usuário encontrado",
+		Data:    address,
+	})
+}
+
+func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	address, err := h.service.GetByClientID(r.Context(), id)
+	if err != nil {
+		utils.ErrorResponse(w, err, http.StatusNotFound)
+		return
+	}
+
+	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Endereço do cliente encontrado",
+		Data:    address,
+	})
+}
+
+func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	address, err := h.service.GetBySupplierID(r.Context(), id)
+	if err != nil {
+		utils.ErrorResponse(w, err, http.StatusNotFound)
+		return
+	}
+
+	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Endereço do fornecedor encontrado",
+		Data:    address,
+	})
+}
+
 func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {

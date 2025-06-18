@@ -12,6 +12,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// helper para ponteiro
+func int64Ptr(i int64) *int64 {
+	return &i
+}
+
 func TestAddressService_Create(t *testing.T) {
 	mockRepo := new(repositories.MockAddressRepository)
 	service := NewAddressService(mockRepo)
@@ -98,6 +103,150 @@ func TestAddressService_GetByID(t *testing.T) {
 		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(&models.Address{}, ErrAddressNotFound)
 
 		result, err := service.GetByID(context.Background(), 1)
+
+		assert.Error(t, err)
+		assert.Equal(t, &models.Address{}, result)
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestAddressService_GetByUserID(t *testing.T) {
+	mockRepo := new(repositories.MockAddressRepository)
+	service := NewAddressService(mockRepo)
+
+	t.Run("sucesso ao buscar endereço por UserID", func(t *testing.T) {
+		address := &models.Address{
+			ID:         1,
+			UserID:     int64Ptr(1),
+			Street:     "Rua Teste",
+			City:       "Cidade Teste",
+			State:      "Estado Teste",
+			Country:    "Brasil",
+			PostalCode: "12345-678",
+		}
+
+		mockRepo.On("GetByUserID", mock.Anything, int64(1)).Return(address, nil)
+
+		result, err := service.GetByUserID(context.Background(), 1)
+
+		assert.NoError(t, err)
+		assert.Equal(t, address, result)
+		mockRepo.AssertExpectations(t)
+
+		mockRepo.ExpectedCalls = nil
+		mockRepo.Calls = nil
+	})
+
+	t.Run("falha ao buscar endereço com UserID inválido", func(t *testing.T) {
+		service := NewAddressService(nil)
+
+		result, err := service.GetByUserID(context.Background(), 0)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.EqualError(t, err, ErrAddressIDRequired.Error())
+	})
+
+	t.Run("endereço não encontrado por UserID", func(t *testing.T) {
+		mockRepo.On("GetByUserID", mock.Anything, int64(1)).Return(&models.Address{}, ErrAddressNotFound)
+
+		result, err := service.GetByUserID(context.Background(), 1)
+
+		assert.Error(t, err)
+		assert.Equal(t, &models.Address{}, result)
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestAddressService_GetByClientID(t *testing.T) {
+	mockRepo := new(repositories.MockAddressRepository)
+	service := NewAddressService(mockRepo)
+
+	t.Run("sucesso ao buscar endereço por ClientID", func(t *testing.T) {
+		address := &models.Address{
+			ID:         1,
+			ClientID:   int64Ptr(2),
+			Street:     "Rua Cliente",
+			City:       "Cidade Cliente",
+			State:      "Estado Cliente",
+			Country:    "Brasil",
+			PostalCode: "98765-432",
+		}
+
+		mockRepo.On("GetByClientID", mock.Anything, int64(2)).Return(address, nil)
+
+		result, err := service.GetByClientID(context.Background(), 2)
+
+		assert.NoError(t, err)
+		assert.Equal(t, address, result)
+		mockRepo.AssertExpectations(t)
+
+		mockRepo.ExpectedCalls = nil
+		mockRepo.Calls = nil
+	})
+
+	t.Run("falha ao buscar endereço com ClientID inválido", func(t *testing.T) {
+		service := NewAddressService(nil)
+
+		result, err := service.GetByClientID(context.Background(), 0)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.EqualError(t, err, ErrAddressIDRequired.Error())
+	})
+
+	t.Run("endereço não encontrado por ClientID", func(t *testing.T) {
+		mockRepo.On("GetByClientID", mock.Anything, int64(2)).Return(&models.Address{}, ErrAddressNotFound)
+
+		result, err := service.GetByClientID(context.Background(), 2)
+
+		assert.Error(t, err)
+		assert.Equal(t, &models.Address{}, result)
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestAddressService_GetBySupplierID(t *testing.T) {
+	mockRepo := new(repositories.MockAddressRepository)
+	service := NewAddressService(mockRepo)
+
+	t.Run("sucesso ao buscar endereço por SupplierID", func(t *testing.T) {
+		address := &models.Address{
+			ID:         3,
+			SupplierID: int64Ptr(5),
+			Street:     "Rua Fornecedor",
+			City:       "Cidade Fornecedor",
+			State:      "Estado Fornecedor",
+			Country:    "Brasil",
+			PostalCode: "54321-000",
+		}
+
+		mockRepo.On("GetBySupplierID", mock.Anything, int64(5)).Return(address, nil)
+
+		result, err := service.GetBySupplierID(context.Background(), 5)
+
+		assert.NoError(t, err)
+		assert.Equal(t, address, result)
+		mockRepo.AssertExpectations(t)
+
+		mockRepo.ExpectedCalls = nil
+		mockRepo.Calls = nil
+	})
+
+	t.Run("falha ao buscar endereço com SupplierID inválido", func(t *testing.T) {
+		service := NewAddressService(nil)
+
+		result, err := service.GetBySupplierID(context.Background(), 0)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.EqualError(t, err, ErrAddressIDRequired.Error())
+	})
+
+	t.Run("endereço não encontrado por SupplierID", func(t *testing.T) {
+		mockRepo.On("GetBySupplierID", mock.Anything, int64(5)).Return(&models.Address{}, ErrAddressNotFound)
+
+		result, err := service.GetBySupplierID(context.Background(), 5)
 
 		assert.Error(t, err)
 		assert.Equal(t, &models.Address{}, result)
