@@ -140,39 +140,64 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
-		expected := &models.Address{ID: int64(1), Street: "Rua", City: "Cidade"}
+
+		expected := []*models.Address{
+			{ID: int64(1), Street: "Rua 1", City: "Cidade A"},
+			{ID: int64(2), Street: "Rua 2", City: "Cidade B"},
+		}
+
 		mockService.On("GetByUserID", mock.Anything, int64(1)).Return(expected, nil)
+
 		req := httptest.NewRequest(http.MethodGet, "/addresses/user/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
+
 		handler.GetByUserID(w, req)
+
 		resp := w.Result()
+		defer resp.Body.Close()
+
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
 		var response map[string]interface{}
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		assert.NoError(t, err)
-		assert.Equal(t, "Endereço do usuário encontrado", response["message"])
+
+		assert.Equal(t, "Endereços do usuário encontrados", response["message"])
+		assert.Equal(t, float64(http.StatusOK), response["status"]) // JSON decodifica ints como float64
+
+		data, ok := response["data"].([]interface{})
+		assert.True(t, ok)
+		assert.Len(t, data, 2)
+
 		mockService.AssertExpectations(t)
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
+
 		req := httptest.NewRequest(http.MethodGet, "/addresses/user/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
+
 		handler.GetByUserID(w, req)
+
 		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
-		mockService.On("GetByUserID", mock.Anything, int64(1)).Return(&models.Address{}, assert.AnError)
+
+		mockService.On("GetByUserID", mock.Anything, int64(1)).Return(nil, assert.AnError)
+
 		req := httptest.NewRequest(http.MethodGet, "/addresses/user/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
+
 		handler.GetByUserID(w, req)
+
 		assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
 	})
 }
@@ -181,39 +206,64 @@ func TestAddressHandler_GetByClientID(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
-		expected := &models.Address{ID: int64(1), Street: "Rua", City: "Cidade"}
+
+		expected := []*models.Address{
+			{ID: int64(1), Street: "Rua Cliente 1", City: "Cidade 1"},
+			{ID: int64(2), Street: "Rua Cliente 2", City: "Cidade 2"},
+		}
+
 		mockService.On("GetByClientID", mock.Anything, int64(1)).Return(expected, nil)
+
 		req := httptest.NewRequest(http.MethodGet, "/addresses/client/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
+
 		handler.GetByClientID(w, req)
+
 		resp := w.Result()
+		defer resp.Body.Close()
+
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
 		var response map[string]interface{}
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		assert.NoError(t, err)
-		assert.Equal(t, "Endereço do cliente encontrado", response["message"])
+
+		assert.Equal(t, "Endereços do cliente encontrados", response["message"])
+		assert.Equal(t, float64(http.StatusOK), response["status"])
+
+		data, ok := response["data"].([]interface{})
+		assert.True(t, ok)
+		assert.Len(t, data, 2)
+
 		mockService.AssertExpectations(t)
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
+
 		req := httptest.NewRequest(http.MethodGet, "/addresses/client/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
+
 		handler.GetByClientID(w, req)
+
 		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
-		mockService.On("GetByClientID", mock.Anything, int64(1)).Return(&models.Address{}, assert.AnError)
+
+		mockService.On("GetByClientID", mock.Anything, int64(1)).Return(nil, assert.AnError)
+
 		req := httptest.NewRequest(http.MethodGet, "/addresses/client/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
+
 		handler.GetByClientID(w, req)
+
 		assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
 	})
 }
@@ -222,116 +272,65 @@ func TestAddressHandler_GetBySupplierID(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
-		expected := &models.Address{ID: int64(1), Street: "Rua", City: "Cidade"}
+
+		expected := []*models.Address{
+			{ID: int64(1), Street: "Rua Fornecedor 1", City: "Cidade 1"},
+			{ID: int64(2), Street: "Rua Fornecedor 2", City: "Cidade 2"},
+		}
+
 		mockService.On("GetBySupplierID", mock.Anything, int64(1)).Return(expected, nil)
+
 		req := httptest.NewRequest(http.MethodGet, "/addresses/supplier/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
+
 		handler.GetBySupplierID(w, req)
+
 		resp := w.Result()
+		defer resp.Body.Close()
+
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
 		var response map[string]interface{}
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		assert.NoError(t, err)
-		assert.Equal(t, "Endereço do fornecedor encontrado", response["message"])
+
+		assert.Equal(t, "Endereços do fornecedor encontrados", response["message"])
+		assert.Equal(t, float64(http.StatusOK), response["status"])
+
+		data, ok := response["data"].([]interface{})
+		assert.True(t, ok)
+		assert.Len(t, data, 2)
+
 		mockService.AssertExpectations(t)
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
+
 		req := httptest.NewRequest(http.MethodGet, "/addresses/supplier/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
+
 		handler.GetBySupplierID(w, req)
+
 		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockService)
-		mockService.On("GetBySupplierID", mock.Anything, int64(1)).Return(&models.Address{}, assert.AnError)
+
+		mockService.On("GetBySupplierID", mock.Anything, int64(1)).Return(nil, assert.AnError)
+
 		req := httptest.NewRequest(http.MethodGet, "/addresses/supplier/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
+
 		handler.GetBySupplierID(w, req)
+
 		assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
-	})
-}
-
-func TestAddressHandler_GetVersionByID(t *testing.T) {
-	mockService := new(addresses_services.MockAddressService)
-	handler := &AddressHandler{service: mockService}
-
-	makeRequest := func(id string) *http.Request {
-		req := httptest.NewRequest(http.MethodGet, "/addresses/"+id+"/version", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": id})
-		return req
-	}
-
-	t.Run("sucesso ao buscar versão", func(t *testing.T) {
-		mockService.On("GetVersionByID", mock.Anything, int64(10)).Return(5, nil).Once()
-
-		rr := httptest.NewRecorder()
-		req := makeRequest("10")
-
-		handler.GetVersionByID(rr, req)
-
-		assert.Equal(t, http.StatusOK, rr.Code)
-
-		var resp utils.DefaultResponse
-		err := json.Unmarshal(rr.Body.Bytes(), &resp)
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusOK, resp.Status)
-		assert.Equal(t, "Versão do endereço encontrada", resp.Message)
-
-		dataMap, ok := resp.Data.(map[string]interface{})
-		assert.True(t, ok)
-		assert.Equal(t, float64(5), dataMap["version"])
-
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("InvalidID", func(t *testing.T) {
-		mockService := new(addresses_services.MockAddressService)
-		handler := NewAddressHandler(mockService)
-
-		// Monta requisição simulando rota correta
-		req := httptest.NewRequest(http.MethodGet, "/addresses/abc/version", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "abc"}) // Simula var do mux
-
-		w := httptest.NewRecorder()
-		handler.GetVersionByID(w, req)
-
-		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-		mockService.AssertNotCalled(t, "GetVersionByID", mock.Anything, mock.Anything)
-	})
-
-	t.Run("endereço não encontrado", func(t *testing.T) {
-		mockService.On("GetVersionByID", mock.Anything, int64(20)).Return(0, services.ErrAddressNotFound).Once()
-
-		rr := httptest.NewRecorder()
-		req := makeRequest("20")
-
-		handler.GetVersionByID(rr, req)
-
-		assert.Equal(t, http.StatusNotFound, rr.Code)
-
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("erro genérico do serviço", func(t *testing.T) {
-		otherErr := errors.New("erro inesperado")
-		mockService.On("GetVersionByID", mock.Anything, int64(30)).Return(0, otherErr).Once()
-
-		rr := httptest.NewRecorder()
-		req := makeRequest("30")
-
-		handler.GetVersionByID(rr, req)
-
-		assert.Equal(t, http.StatusNotFound, rr.Code)
-
-		mockService.AssertExpectations(t)
 	})
 }
 

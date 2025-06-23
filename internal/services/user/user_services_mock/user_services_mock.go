@@ -40,12 +40,17 @@ func (m *MockUserService) GetAll(ctx context.Context) ([]*models_user.User, erro
 	return args.Get(0).([]*models_user.User), args.Error(1)
 }
 
-func (m *MockUserService) GetById(ctx context.Context, uid int64) (*models_user.User, error) {
+func (m *MockUserService) GetByID(ctx context.Context, uid int64) (*models_user.User, error) {
 	args := m.Called(ctx, uid)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*models_user.User), args.Error(1)
+}
+
+func (m *MockUserService) GetVersionByID(ctx context.Context, uid int64) (int64, error) {
+	args := m.Called(ctx, uid)
+	return args.Get(0).(int64), args.Error(1)
 }
 
 func (m *MockUserService) GetByEmail(ctx context.Context, email string) (*models_user.User, error) {

@@ -61,32 +61,6 @@ func (h *UserCategoryHandler) GetById(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserCategoryHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
-	if err != nil {
-		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
-		return
-	}
-
-	version, err := h.service.GetVersionByID(ctx, id)
-	if err != nil {
-		status := http.StatusInternalServerError
-		if err.Error() == "categoria não encontrada" {
-			status = http.StatusNotFound
-		}
-		utils.ErrorResponse(w, err, status)
-		return
-	}
-
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
-		Data:    map[string]int{"version": version},
-		Message: "Versão da categoria recuperada com sucesso",
-		Status:  http.StatusOK,
-	})
-}
-
 func (h *UserCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

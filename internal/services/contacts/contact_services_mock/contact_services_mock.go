@@ -26,17 +26,17 @@ func (m *MockContactService) GetVersionByID(ctx context.Context, id int64) (int,
 	return args.Int(0), args.Error(1)
 }
 
-func (m *MockContactService) GetByUser(ctx context.Context, userID int64) ([]*models_contact.Contact, error) {
+func (m *MockContactService) GetByUserID(ctx context.Context, userID int64) ([]*models_contact.Contact, error) {
 	args := m.Called(ctx, userID)
 	return args.Get(0).([]*models_contact.Contact), args.Error(1)
 }
 
-func (m *MockContactService) GetByClient(ctx context.Context, clientID int64) ([]*models_contact.Contact, error) {
+func (m *MockContactService) GetByClientID(ctx context.Context, clientID int64) ([]*models_contact.Contact, error) {
 	args := m.Called(ctx, clientID)
 	return args.Get(0).([]*models_contact.Contact), args.Error(1)
 }
 
-func (m *MockContactService) GetBySupplier(ctx context.Context, supplierID int64) ([]*models_contact.Contact, error) {
+func (m *MockContactService) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models_contact.Contact, error) {
 	args := m.Called(ctx, supplierID)
 	return args.Get(0).([]*models_contact.Contact), args.Error(1)
 }

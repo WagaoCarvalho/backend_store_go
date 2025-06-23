@@ -21,8 +21,6 @@ func RegisterUserCategoryRoutes(r *mux.Router, db *pgxpool.Pool) {
 
 	s.HandleFunc("/user-category", userCategoryHandler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/user-category/{id:[0-9]+}", userCategoryHandler.GetById).Methods(http.MethodGet)
-	s.HandleFunc("/user-category/{id:[0-9]+}", userCategoryHandler.GetVersionByID).Methods(http.MethodPatch)
-	s.HandleFunc("/user-category-relation/version/{user_id:[0-9]+}", userCategoryHandler.GetVersionByID).Methods(http.MethodGet)
 	s.HandleFunc("/user-categories", userCategoryHandler.GetAll).Methods(http.MethodGet)
 	s.HandleFunc("/user-category/{id:[0-9]+}", userCategoryHandler.Update).Methods(http.MethodPut)
 	s.HandleFunc("/user-category/{id:[0-9]+}", userCategoryHandler.Delete).Methods(http.MethodDelete)

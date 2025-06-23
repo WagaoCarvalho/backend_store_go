@@ -19,7 +19,6 @@ var (
 	ErrDeleteRelation             = errors.New("erro ao deletar relação")
 	ErrDeleteAllUserRelations     = errors.New("erro ao deletar todas as relações do usuário")
 	ErrCheckUserCategoryRelations = errors.New("erro ao verificar relações do usuário")
-	ErrGetVersion                 = errors.New("erro ao obter a versão da relação")
 )
 
 type UserCategoryRelationServices interface {

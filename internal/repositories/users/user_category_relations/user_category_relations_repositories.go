@@ -41,8 +41,8 @@ func NewUserCategoryRelationRepositories(db *pgxpool.Pool) UserCategoryRelationR
 
 func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
 	const query = `
-		INSERT INTO user_category_relations (user_id, category_id, created_at, updated_at)
-		VALUES ($1, $2, NOW(), NOW());
+		INSERT INTO user_category_relations (user_id, category_id, created_at)
+		VALUES ($1, $2, NOW());
 	`
 
 	_, err := r.db.Exec(ctx, query, relation.UserID, relation.CategoryID)
@@ -61,7 +61,7 @@ func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation 
 
 func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
 	const query = `
-		SELECT user_id, category_id, created_at, updated_at
+		SELECT user_id, category_id, created_at
 		FROM user_category_relations
 		WHERE user_id = $1;
 	`
@@ -90,7 +90,7 @@ func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.C
 
 func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
 	const query = `
-		SELECT user_id, category_id, created_at, updated_at
+		SELECT user_id, category_id, created_at
 		FROM user_category_relations
 		WHERE user_id = $1;
 	`

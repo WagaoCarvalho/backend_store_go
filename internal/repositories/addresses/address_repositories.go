@@ -11,22 +11,19 @@ import (
 )
 
 var (
-	ErrCreateAddress       = errors.New("erro ao criar endereço")
-	ErrFetchAddress        = errors.New("erro ao buscar endereço")
-	ErrAddressNotFound     = errors.New("endereço não encontrado")
-	ErrUpdateAddress       = errors.New("erro ao atualizar endereço")
-	ErrDeleteAddress       = errors.New("erro ao excluir endereço")
-	ErrVersionConflict     = errors.New("conflito de versão: o endereço foi modificado por outra operação")
-	ErrFetchAddressVersion = errors.New("erro ao buscar a versão do endereço")
+	ErrCreateAddress   = errors.New("erro ao criar endereço")
+	ErrFetchAddress    = errors.New("erro ao buscar endereço")
+	ErrAddressNotFound = errors.New("endereço não encontrado")
+	ErrUpdateAddress   = errors.New("erro ao atualizar endereço")
+	ErrDeleteAddress   = errors.New("erro ao excluir endereço")
 )
 
 type AddressRepository interface {
 	Create(ctx context.Context, address *models.Address) (*models.Address, error)
 	GetByID(ctx context.Context, id int64) (*models.Address, error)
-	GetByUserID(ctx context.Context, userID int64) (*models.Address, error)
-	GetByClientID(ctx context.Context, clientID int64) (*models.Address, error)
-	GetBySupplierID(ctx context.Context, supplierID int64) (*models.Address, error)
-	GetVersionByID(ctx context.Context, id int64) (int, error)
+	GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error)
+	GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error)
+	GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error)
 	Update(ctx context.Context, address *models.Address) error
 	Delete(ctx context.Context, id int64) error
 }
@@ -103,7 +100,7 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 	return &address, nil
 }
 
-func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) (*models.Address, error) {
+func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -113,32 +110,37 @@ func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) (*mod
 		WHERE user_id = $1;
 	`
 
-	var address models.Address
-	err := r.db.QueryRow(ctx, query, userID).Scan(
-		&address.ID,
-		&address.UserID,
-		&address.ClientID,
-		&address.SupplierID,
-		&address.Street,
-		&address.City,
-		&address.State,
-		&address.Country,
-		&address.PostalCode,
-		&address.CreatedAt,
-		&address.UpdatedAt,
-	)
-
+	rows, err := r.db.Query(ctx, query, userID)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrAddressNotFound
-		}
 		return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
 	}
+	defer rows.Close()
 
-	return &address, nil
+	var addresses []*models.Address
+	for rows.Next() {
+		var address models.Address
+		if err := rows.Scan(
+			&address.ID,
+			&address.UserID,
+			&address.ClientID,
+			&address.SupplierID,
+			&address.Street,
+			&address.City,
+			&address.State,
+			&address.Country,
+			&address.PostalCode,
+			&address.CreatedAt,
+			&address.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
+		}
+		addresses = append(addresses, &address)
+	}
+
+	return addresses, nil
 }
 
-func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) (*models.Address, error) {
+func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -148,32 +150,37 @@ func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) (
 		WHERE client_id = $1;
 	`
 
-	var address models.Address
-	err := r.db.QueryRow(ctx, query, clientID).Scan(
-		&address.ID,
-		&address.UserID,
-		&address.ClientID,
-		&address.SupplierID,
-		&address.Street,
-		&address.City,
-		&address.State,
-		&address.Country,
-		&address.PostalCode,
-		&address.CreatedAt,
-		&address.UpdatedAt,
-	)
-
+	rows, err := r.db.Query(ctx, query, clientID)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrAddressNotFound
-		}
 		return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
 	}
+	defer rows.Close()
 
-	return &address, nil
+	var addresses []*models.Address
+	for rows.Next() {
+		var address models.Address
+		if err := rows.Scan(
+			&address.ID,
+			&address.UserID,
+			&address.ClientID,
+			&address.SupplierID,
+			&address.Street,
+			&address.City,
+			&address.State,
+			&address.Country,
+			&address.PostalCode,
+			&address.CreatedAt,
+			&address.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
+		}
+		addresses = append(addresses, &address)
+	}
+
+	return addresses, nil
 }
 
-func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int64) (*models.Address, error) {
+func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -183,48 +190,34 @@ func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int6
 		WHERE supplier_id = $1;
 	`
 
-	var address models.Address
-	err := r.db.QueryRow(ctx, query, supplierID).Scan(
-		&address.ID,
-		&address.UserID,
-		&address.ClientID,
-		&address.SupplierID,
-		&address.Street,
-		&address.City,
-		&address.State,
-		&address.Country,
-		&address.PostalCode,
-		&address.CreatedAt,
-		&address.UpdatedAt,
-	)
-
+	rows, err := r.db.Query(ctx, query, supplierID)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrAddressNotFound
-		}
 		return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
 	}
+	defer rows.Close()
 
-	return &address, nil
-}
-
-func (r *addressRepository) GetVersionByID(ctx context.Context, id int64) (int, error) {
-	const query = `
-		SELECT version
-		FROM addresses
-		WHERE id = $1;
-	`
-
-	var version int
-	err := r.db.QueryRow(ctx, query, id).Scan(&version)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, ErrAddressNotFound
+	var addresses []*models.Address
+	for rows.Next() {
+		var address models.Address
+		if err := rows.Scan(
+			&address.ID,
+			&address.UserID,
+			&address.ClientID,
+			&address.SupplierID,
+			&address.Street,
+			&address.City,
+			&address.State,
+			&address.Country,
+			&address.PostalCode,
+			&address.CreatedAt,
+			&address.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
 		}
-		return 0, fmt.Errorf("%w: %v", ErrFetchAddressVersion, err)
+		addresses = append(addresses, &address)
 	}
 
-	return version, nil
+	return addresses, nil
 }
 
 func (r *addressRepository) Update(ctx context.Context, address *models.Address) error {
@@ -239,14 +232,9 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 			state       = $6,
 			country     = $7,
 			postal_code = $8,
-			version     = version + 1,
 			updated_at  = NOW()
-		WHERE 
-			id      = $9
-			AND version = $10
-		RETURNING 
-			version,
-			updated_at;
+		WHERE id = $9
+		RETURNING updated_at;
 	`
 
 	err := r.db.QueryRow(ctx, query,
@@ -259,22 +247,11 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 		address.Country,
 		address.PostalCode,
 		address.ID,
-		address.Version,
-	).Scan(&address.Version, &address.UpdatedAt)
+	).Scan(&address.UpdatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-
-			var exists bool
-			checkQuery := `SELECT EXISTS(SELECT 1 FROM addresses WHERE id = $1)`
-			checkErr := r.db.QueryRow(ctx, checkQuery, address.ID).Scan(&exists)
-			if checkErr != nil {
-				return fmt.Errorf("%w: erro ao verificar existência: %v", ErrUpdateAddress, checkErr)
-			}
-			if !exists {
-				return ErrAddressNotFound
-			}
-			return ErrVersionConflict
+			return ErrAddressNotFound
 		}
 		return fmt.Errorf("%w: %v", ErrUpdateAddress, err)
 	}

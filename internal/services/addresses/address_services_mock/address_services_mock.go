@@ -21,24 +21,32 @@ func (m *MockAddressService) GetByID(ctx context.Context, id int64) (*models.Add
 	return args.Get(0).(*models.Address), args.Error(1)
 }
 
-func (m *MockAddressService) GetByUserID(ctx context.Context, id int64) (*models.Address, error) {
+func (m *MockAddressService) GetByUserID(ctx context.Context, id int64) ([]*models.Address, error) {
 	args := m.Called(ctx, id)
-	return args.Get(0).(*models.Address), args.Error(1)
+
+	// Precaução para evitar panic se o valor retornado for nil
+	if addresses, ok := args.Get(0).([]*models.Address); ok {
+		return addresses, args.Error(1)
+	}
+	return nil, args.Error(1)
 }
 
-func (m *MockAddressService) GetByClientID(ctx context.Context, id int64) (*models.Address, error) {
+func (m *MockAddressService) GetByClientID(ctx context.Context, id int64) ([]*models.Address, error) {
 	args := m.Called(ctx, id)
-	return args.Get(0).(*models.Address), args.Error(1)
+
+	if addresses, ok := args.Get(0).([]*models.Address); ok {
+		return addresses, args.Error(1)
+	}
+	return nil, args.Error(1)
 }
 
-func (m *MockAddressService) GetBySupplierID(ctx context.Context, id int64) (*models.Address, error) {
+func (m *MockAddressService) GetBySupplierID(ctx context.Context, id int64) ([]*models.Address, error) {
 	args := m.Called(ctx, id)
-	return args.Get(0).(*models.Address), args.Error(1)
-}
 
-func (m *MockAddressService) GetVersionByID(ctx context.Context, id int64) (int, error) {
-	args := m.Called(ctx, id)
-	return args.Int(0), args.Error(1)
+	if addresses, ok := args.Get(0).([]*models.Address); ok {
+		return addresses, args.Error(1)
+	}
+	return nil, args.Error(1)
 }
 
 func (m *MockAddressService) Update(ctx context.Context, address *models.Address) error {

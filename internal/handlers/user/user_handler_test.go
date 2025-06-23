@@ -169,19 +169,19 @@ func TestUserHandler_GetAll(t *testing.T) {
 	})
 }
 
-func TestUserHandler_GetById(t *testing.T) {
+func TestUserHandler_GetByID(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
 		expectedUser := models_user.User{UID: 10, Username: "Carlos"}
-		mockService.On("GetById", mock.Anything, int64(10)).Return(&expectedUser, nil) // <- importante: retornando *User
+		mockService.On("GetByID", mock.Anything, int64(10)).Return(&expectedUser, nil) // <- importante: retornando *User
 
 		req := httptest.NewRequest(http.MethodGet, "/users/10", nil)
 		req = muxSetVars(req, map[string]string{"id": "10"})
 		rec := httptest.NewRecorder()
 
-		handler.GetById(rec, req)
+		handler.GetByID(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
 
@@ -209,7 +209,7 @@ func TestUserHandler_GetById(t *testing.T) {
 		req = muxSetVars(req, map[string]string{"id": "abc"})
 		rec := httptest.NewRecorder()
 
-		handler.GetById(rec, req)
+		handler.GetByID(rec, req)
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 
@@ -223,13 +223,13 @@ func TestUserHandler_GetById(t *testing.T) {
 		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
-		mockService.On("GetById", mock.Anything, int64(99)).Return((*models_user.User)(nil), fmt.Errorf("usuário não encontrado"))
+		mockService.On("GetByID", mock.Anything, int64(99)).Return((*models_user.User)(nil), fmt.Errorf("usuário não encontrado"))
 
 		req := httptest.NewRequest(http.MethodGet, "/users/99", nil)
 		req = muxSetVars(req, map[string]string{"id": "99"})
 		rec := httptest.NewRecorder()
 
-		handler.GetById(rec, req)
+		handler.GetByID(rec, req)
 
 		assert.Equal(t, http.StatusNotFound, rec.Code)
 
@@ -238,6 +238,67 @@ func TestUserHandler_GetById(t *testing.T) {
 		assert.Equal(t, http.StatusNotFound, resp.Status)
 		assert.Contains(t, resp.Message, "usuário não encontrado")
 
+		mockService.AssertExpectations(t)
+	})
+}
+
+func TestUserHandler_GetVersionByID(t *testing.T) {
+	mockService := new(user_services.MockUserService)
+	handler := NewUserHandler(mockService)
+
+	router := mux.NewRouter()
+	router.HandleFunc("/users/{id}/version", handler.GetVersionByID).Methods(http.MethodGet)
+
+	t.Run("deve retornar a versão com sucesso", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/users/1/version", nil)
+		rec := httptest.NewRecorder()
+
+		mockService.On("GetVersionByID", mock.Anything, int64(1)).
+			Return(int64(5), nil).Once()
+
+		router.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Contains(t, rec.Body.String(), `"version":5`)
+		assert.Contains(t, rec.Body.String(), `"Versão do usuário obtida com sucesso`)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("deve retornar erro 400 para ID inválido", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/users/abc/version", nil)
+		rec := httptest.NewRecorder()
+
+		router.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Contains(t, rec.Body.String(), "ID inválido")
+	})
+
+	t.Run("deve retornar erro 404 se usuário não encontrado", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/users/2/version", nil)
+		rec := httptest.NewRecorder()
+
+		mockService.On("GetVersionByID", mock.Anything, int64(2)).
+			Return(int64(0), repository.ErrUserNotFound).Once()
+
+		router.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+		assert.Contains(t, rec.Body.String(), "usuário não encontrado")
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("deve retornar erro 500 para erro genérico", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/users/3/version", nil)
+		rec := httptest.NewRecorder()
+
+		mockService.On("GetVersionByID", mock.Anything, int64(3)).
+			Return(int64(0), fmt.Errorf("erro no banco")).Once()
+
+		router.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+		assert.Contains(t, rec.Body.String(), "erro no banco")
 		mockService.AssertExpectations(t)
 	})
 }

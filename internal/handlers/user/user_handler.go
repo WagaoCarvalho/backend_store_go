@@ -73,14 +73,14 @@ func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) GetById(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
 		return
 	}
 
-	user, err := h.service.GetById(r.Context(), id)
+	user, err := h.service.GetByID(r.Context(), id)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if err.Error() == "usuário não encontrado" {
@@ -94,6 +94,32 @@ func (h *UserHandler) GetById(w http.ResponseWriter, r *http.Request) {
 		Status:  http.StatusOK,
 		Message: "Usuário encontrado",
 		Data:    user,
+	})
+}
+
+func (h *UserHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	version, err := h.service.GetVersionByID(r.Context(), id)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if errors.Is(err, repository.ErrUserNotFound) {
+			status = http.StatusNotFound
+		}
+		utils.ErrorResponse(w, err, status)
+		return
+	}
+
+	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Versão do usuário obtida com sucesso",
+		Data: map[string]int64{
+			"version": version,
+		},
 	})
 }
 

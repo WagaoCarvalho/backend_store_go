@@ -31,7 +31,8 @@ func RegisterUserRoutes(r *mux.Router, db *pgxpool.Pool) {
 
 	//s.HandleFunc("/user", handler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/users", handler.GetAll).Methods(http.MethodGet)
-	s.HandleFunc("/user/id/{id}", handler.GetById).Methods(http.MethodGet)
+	s.HandleFunc("/user/id/{id}", handler.GetByID).Methods(http.MethodGet)
+	s.HandleFunc("/user/version/{id}", handler.GetVersionByID).Methods(http.MethodGet)
 	s.HandleFunc("/user/email/{email}", handler.GetByEmail).Methods(http.MethodGet)
 	s.HandleFunc("/user/{id}", handler.Update).Methods(http.MethodPut)
 	s.HandleFunc("/user/{id}", handler.Delete).Methods(http.MethodDelete)

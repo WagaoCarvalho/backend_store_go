@@ -21,11 +21,6 @@ func (m *MockContactRepository) GetByID(ctx context.Context, id int64) (*models.
 	return args.Get(0).(*models.Contact), args.Error(1)
 }
 
-func (m *MockContactRepository) GetVersionByID(ctx context.Context, id int64) (int, error) {
-	args := m.Called(ctx, id)
-	return args.Int(0), args.Error(1)
-}
-
 func (m *MockContactRepository) GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error) {
 	args := m.Called(ctx, userID)
 	return args.Get(0).([]*models.Contact), args.Error(1)

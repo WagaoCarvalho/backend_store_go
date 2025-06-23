@@ -176,61 +176,6 @@ func TestGetContactByID(t *testing.T) {
 
 }
 
-func TestGetContactVersionByID(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		mockRepo := new(repositories.MockContactRepository)
-		service := NewContactService(mockRepo)
-
-		mockRepo.On("GetVersionByID", mock.Anything, int64(1)).Return(3, nil)
-
-		version, err := service.GetVersionByID(context.Background(), 1)
-
-		assert.NoError(t, err)
-		assert.Equal(t, 3, version)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("not found", func(t *testing.T) {
-		mockRepo := new(repositories.MockContactRepository)
-		service := NewContactService(mockRepo)
-
-		mockRepo.On("GetVersionByID", mock.Anything, int64(1)).Return(0, repositories.ErrContactNotFound)
-
-		version, err := service.GetVersionByID(context.Background(), 1)
-
-		assert.Error(t, err)
-		assert.Equal(t, 0, version)
-		assert.Contains(t, err.Error(), "contato não encontrado")
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("invalid id", func(t *testing.T) {
-		mockRepo := new(repositories.MockContactRepository)
-		service := NewContactService(mockRepo)
-
-		version, err := service.GetVersionByID(context.Background(), 0)
-
-		assert.Error(t, err)
-		assert.Equal(t, 0, version)
-		assert.Contains(t, err.Error(), "ID inválido")
-		mockRepo.AssertNotCalled(t, "GetVersionByID")
-	})
-
-	t.Run("repository error", func(t *testing.T) {
-		mockRepo := new(repositories.MockContactRepository)
-		service := NewContactService(mockRepo)
-
-		mockRepo.On("GetVersionByID", mock.Anything, int64(2)).Return(0, errors.New("erro inesperado"))
-
-		version, err := service.GetVersionByID(context.Background(), 2)
-
-		assert.Error(t, err)
-		assert.Equal(t, 0, version)
-		assert.Contains(t, err.Error(), "erro ao verificar versão do contato")
-		mockRepo.AssertExpectations(t)
-	})
-}
-
 func TestGetContactsBySupplier(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockRepo := new(repositories.MockContactRepository)
@@ -252,7 +197,7 @@ func TestGetContactsBySupplier(t *testing.T) {
 		mockRepo.On("GetBySupplierID", mock.Anything, int64(1)).
 			Return(expectedContacts, nil)
 
-		contacts, err := service.GetBySupplier(context.Background(), 1)
+		contacts, err := service.GetBySupplierID(context.Background(), 1)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedContacts, contacts)
@@ -266,7 +211,7 @@ func TestGetContactsBySupplier(t *testing.T) {
 		mockRepo.On("GetBySupplierID", mock.Anything, int64(1)).
 			Return([]*models.Contact{}, nil)
 
-		contacts, err := service.GetBySupplier(context.Background(), 1)
+		contacts, err := service.GetBySupplierID(context.Background(), 1)
 
 		assert.NoError(t, err)
 		assert.Empty(t, contacts)
@@ -277,7 +222,7 @@ func TestGetContactsBySupplier(t *testing.T) {
 		mockRepo := new(repositories.MockContactRepository)
 		service := NewContactService(mockRepo)
 
-		contacts, err := service.GetBySupplier(context.Background(), 0)
+		contacts, err := service.GetBySupplierID(context.Background(), 0)
 
 		assert.Error(t, err)
 		assert.Nil(t, contacts)
@@ -292,7 +237,7 @@ func TestGetContactsBySupplier(t *testing.T) {
 		mockRepo.On("GetBySupplierID", mock.Anything, int64(1)).
 			Return([]*models.Contact(nil), errors.New("erro de banco"))
 
-		contacts, err := service.GetBySupplier(context.Background(), 1)
+		contacts, err := service.GetBySupplierID(context.Background(), 1)
 
 		assert.Error(t, err)
 		assert.Nil(t, contacts)
@@ -323,7 +268,7 @@ func TestGetContactsByClient(t *testing.T) {
 		mockRepo.On("GetByClientID", mock.Anything, int64(1)).
 			Return(expectedContacts, nil)
 
-		contacts, err := service.GetByClient(context.Background(), 1)
+		contacts, err := service.GetByClientID(context.Background(), 1)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedContacts, contacts)
@@ -337,7 +282,7 @@ func TestGetContactsByClient(t *testing.T) {
 		mockRepo.On("GetByClientID", mock.Anything, int64(1)).
 			Return([]*models.Contact{}, nil)
 
-		contacts, err := service.GetByClient(context.Background(), 1)
+		contacts, err := service.GetByClientID(context.Background(), 1)
 
 		assert.NoError(t, err)
 		assert.Empty(t, contacts)
@@ -348,7 +293,7 @@ func TestGetContactsByClient(t *testing.T) {
 		mockRepo := new(repositories.MockContactRepository)
 		service := NewContactService(mockRepo)
 
-		contacts, err := service.GetByClient(context.Background(), 0)
+		contacts, err := service.GetByClientID(context.Background(), 0)
 
 		assert.Error(t, err)
 		assert.Nil(t, contacts)
@@ -363,7 +308,7 @@ func TestGetContactsByClient(t *testing.T) {
 		mockRepo.On("GetByClientID", mock.Anything, int64(1)).
 			Return([]*models.Contact(nil), errors.New("erro de banco"))
 
-		contacts, err := service.GetByClient(context.Background(), 1)
+		contacts, err := service.GetByClientID(context.Background(), 1)
 
 		assert.Error(t, err)
 		assert.Nil(t, contacts)
@@ -381,14 +326,12 @@ func TestUpdateContact(t *testing.T) {
 			ID:          1,
 			ContactName: "Old Name",
 			Email:       "old@example.com",
-			Version:     1,
 		}
 
 		updatedContact := &models.Contact{
 			ID:          1,
 			ContactName: "New Name",
 			Email:       "new@example.com",
-			Version:     1,
 		}
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(existingContact, nil)
@@ -407,7 +350,6 @@ func TestUpdateContact(t *testing.T) {
 		updatedContact := &models.Contact{
 			ID:          1,
 			ContactName: "New Name",
-			Version:     1,
 		}
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).Return((*models.Contact)(nil), repositories.ErrContactNotFound)
@@ -416,10 +358,10 @@ func TestUpdateContact(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "contato não encontrado")
-		mockRepo.AssertNotCalled(t, "Updatecontac")
+		mockRepo.AssertNotCalled(t, "Update")
 	})
 
-	t.Run("validation error", func(t *testing.T) {
+	t.Run("validation error - missing contact name", func(t *testing.T) {
 		mockRepo := new(repositories.MockContactRepository)
 		service := NewContactService(mockRepo)
 
@@ -459,7 +401,6 @@ func TestUpdateContact(t *testing.T) {
 		contact := &models.Contact{
 			ID:          1,
 			ContactName: "Valid Name",
-			Version:     1,
 		}
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).
@@ -480,7 +421,6 @@ func TestUpdateContact(t *testing.T) {
 		contact := &models.Contact{
 			ID:          1,
 			ContactName: "Valid Name",
-			Version:     1,
 		}
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(contact, nil)
@@ -492,45 +432,6 @@ func TestUpdateContact(t *testing.T) {
 		assert.Contains(t, err.Error(), "erro ao atualizar contato")
 		mockRepo.AssertExpectations(t)
 	})
-
-	t.Run("validation error - missing version", func(t *testing.T) {
-		mockRepo := new(repositories.MockContactRepository)
-		service := NewContactService(mockRepo)
-
-		contact := &models.Contact{
-			ID:          1,
-			ContactName: "Nome válido",
-			Version:     0, // versão ausente
-		}
-
-		err := service.Update(context.Background(), contact)
-
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "versão do contato é obrigatória")
-		mockRepo.AssertNotCalled(t, "GetByID")
-		mockRepo.AssertNotCalled(t, "Update")
-	})
-
-	t.Run("version conflict error", func(t *testing.T) {
-		mockRepo := new(repositories.MockContactRepository)
-		service := NewContactService(mockRepo)
-
-		contact := &models.Contact{
-			ID:          1,
-			ContactName: "Nome válido",
-			Version:     1,
-		}
-
-		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(contact, nil)
-		mockRepo.On("Update", mock.Anything, contact).Return(repositories.ErrVersionConflict)
-
-		err := service.Update(context.Background(), contact)
-
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "conflito de versão")
-		mockRepo.AssertExpectations(t)
-	})
-
 }
 
 func TestDeleteContact(t *testing.T) {
@@ -632,7 +533,7 @@ func TestGetContactsByUser(t *testing.T) {
 
 		mockRepo.On("GetByUserID", mock.Anything, int64(1)).Return(expectedContacts, nil)
 
-		contacts, err := service.GetByUser(context.Background(), 1)
+		contacts, err := service.GetByUserID(context.Background(), 1)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedContacts, contacts)
@@ -645,7 +546,7 @@ func TestGetContactsByUser(t *testing.T) {
 
 		mockRepo.On("GetByUserID", mock.Anything, int64(1)).Return([]*models.Contact{}, nil)
 
-		contacts, err := service.GetByUser(context.Background(), 1)
+		contacts, err := service.GetByUserID(context.Background(), 1)
 
 		assert.NoError(t, err)
 		assert.Empty(t, contacts)
@@ -656,7 +557,7 @@ func TestGetContactsByUser(t *testing.T) {
 		mockRepo := new(repositories.MockContactRepository)
 		service := NewContactService(mockRepo)
 
-		contacts, err := service.GetByUser(context.Background(), 0)
+		contacts, err := service.GetByUserID(context.Background(), 0)
 
 		assert.Error(t, err)
 		assert.Nil(t, contacts)
@@ -671,7 +572,7 @@ func TestGetContactsByUser(t *testing.T) {
 		mockRepo.On("GetByUserID", mock.Anything, int64(1)).
 			Return([]*models.Contact(nil), errors.New("erro de banco"))
 
-		contacts, err := service.GetByUser(context.Background(), 1)
+		contacts, err := service.GetByUserID(context.Background(), 1)
 
 		assert.Error(t, err)
 		assert.Nil(t, contacts)

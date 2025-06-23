@@ -12,9 +12,7 @@ import (
 var (
 	ErrInvalidAddressData = errors.New("address: dados do endereço inválidos")
 	ErrAddressIDRequired  = errors.New("address: ID do endereço é obrigatório")
-	ErrVersionRequired    = errors.New("address: versão obrigatória para atualização")
 	ErrUpdateAddress      = errors.New("address: erro ao atualizar")
-	ErrVersionConflict    = errors.New("address: conflito de versão")
 	ErrInvalidID          = errors.New("address: id inválido")
 	ErrAddressNotFound    = errors.New("address: endereço não encontrado")
 )
@@ -22,10 +20,9 @@ var (
 type AddressService interface {
 	Create(ctx context.Context, address *models.Address) (*models.Address, error)
 	GetByID(ctx context.Context, id int64) (*models.Address, error)
-	GetByUserID(ctx context.Context, userID int64) (*models.Address, error)
-	GetByClientID(ctx context.Context, clientID int64) (*models.Address, error)
-	GetBySupplierID(ctx context.Context, supplierID int64) (*models.Address, error)
-	GetVersionByID(ctx context.Context, id int64) (int, error)
+	GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error)
+	GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error)
+	GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error)
 	Update(ctx context.Context, address *models.Address) error
 	Delete(ctx context.Context, id int64) error
 }
@@ -54,45 +51,28 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address
 	return s.repo.GetByID(ctx, id)
 }
 
-func (s *addressService) GetByUserID(ctx context.Context, id int64) (*models.Address, error) {
+func (s *addressService) GetByUserID(ctx context.Context, id int64) ([]*models.Address, error) {
 	if id == 0 {
 		return nil, ErrAddressIDRequired
 	}
 	return s.repo.GetByUserID(ctx, id)
 }
 
-func (s *addressService) GetByClientID(ctx context.Context, id int64) (*models.Address, error) {
+func (s *addressService) GetByClientID(ctx context.Context, id int64) ([]*models.Address, error) {
 	if id == 0 {
 		return nil, ErrAddressIDRequired
 	}
 	return s.repo.GetByClientID(ctx, id)
 }
 
-func (s *addressService) GetBySupplierID(ctx context.Context, id int64) (*models.Address, error) {
+func (s *addressService) GetBySupplierID(ctx context.Context, id int64) ([]*models.Address, error) {
 	if id == 0 {
 		return nil, ErrAddressIDRequired
 	}
 	return s.repo.GetBySupplierID(ctx, id)
 }
 
-func (s *addressService) GetVersionByID(ctx context.Context, id int64) (int, error) {
-	if id <= 0 {
-		return 0, ErrInvalidID
-	}
-
-	version, err := s.repo.GetVersionByID(ctx, id)
-	if err != nil {
-		if errors.Is(err, repositories.ErrAddressNotFound) {
-			return 0, ErrAddressNotFound
-		}
-		return 0, fmt.Errorf("failed to get address version: %w", err)
-	}
-
-	return version, nil
-}
-
 func (s *addressService) Update(ctx context.Context, address *models.Address) error {
-
 	if err := address.Validate(); err != nil {
 		return err
 	}
@@ -100,15 +80,9 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 	if address.ID == 0 {
 		return ErrAddressIDRequired
 	}
-	if address.Version == 0 {
-		return ErrVersionRequired
-	}
 
 	err := s.repo.Update(ctx, address)
 	if err != nil {
-		if errors.Is(err, repositories.ErrVersionConflict) {
-			return fmt.Errorf("%w: %v", ErrVersionConflict, err)
-		}
 		return fmt.Errorf("%w: %v", ErrUpdateAddress, err)
 	}
 

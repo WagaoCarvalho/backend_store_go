@@ -26,6 +26,7 @@ type UserRepository interface {
 	Create(ctx context.Context, user *models_user.User) (*models_user.User, error)
 	GetAll(ctx context.Context) ([]*models_user.User, error)
 	GetByID(ctx context.Context, id int64) (*models_user.User, error)
+	GetVersionByID(ctx context.Context, id int64) (int64, error)
 	GetByEmail(ctx context.Context, email string) (*models_user.User, error)
 	Update(ctx context.Context, user *models_user.User) (*models_user.User, error)
 	Delete(ctx context.Context, id int64) error
@@ -98,6 +99,21 @@ func (r *userRepository) GetByID(ctx context.Context, uid int64) (*models_user.U
 	}
 
 	return user, nil
+}
+
+func (r *userRepository) GetVersionByID(ctx context.Context, id int64) (int64, error) {
+	const query = `SELECT version FROM users WHERE id = $1`
+
+	var version int64
+	err := r.db.QueryRow(ctx, query, id).Scan(&version)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, ErrUserNotFound
+		}
+		return 0, fmt.Errorf("erro ao buscar versão do usuário: %w", err)
+	}
+
+	return version, nil
 }
 
 func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models_user.User, error) {

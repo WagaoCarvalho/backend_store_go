@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
-	user_category_services "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories"
 	user_category_services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories/user_categories_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
@@ -223,69 +222,6 @@ func TestUserCategoryHandler_GetById(t *testing.T) {
 		assert.Equal(t, http.StatusNotFound, resp.Status)
 		assert.Equal(t, "categoria não encontrada", resp.Message)
 
-		mockSvc.AssertExpectations(t)
-	})
-}
-
-func TestUserCategoryHandler_GetVersionByID(t *testing.T) {
-	t.Run("Success", func(t *testing.T) {
-		mockSvc := new(user_category_services_mock.MockUserCategoryService)
-		handler := NewUserCategoryHandler(mockSvc)
-
-		mockSvc.On("GetVersionByID", mock.Anything, int64(1)).Return(3, nil)
-
-		req := newRequestWithVars("GET", "/categories/version/1", nil, map[string]string{"id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.GetVersionByID(w, req)
-
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Body.String(), `"version":3`)
-		mockSvc.AssertExpectations(t)
-	})
-
-	t.Run("Invalid ID", func(t *testing.T) {
-		mockSvc := new(user_category_services_mock.MockUserCategoryService)
-		handler := NewUserCategoryHandler(mockSvc)
-
-		req := newRequestWithVars("GET", "/categories/version/abc", nil, map[string]string{"id": "abc"})
-		w := httptest.NewRecorder()
-
-		handler.GetVersionByID(w, req)
-
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Contains(t, w.Body.String(), "ID inválido")
-	})
-
-	t.Run("Not Found", func(t *testing.T) {
-		mockSvc := new(user_category_services_mock.MockUserCategoryService)
-		handler := NewUserCategoryHandler(mockSvc)
-
-		mockSvc.On("GetVersionByID", mock.Anything, int64(2)).Return(0, user_category_services.ErrCategoryNotFound)
-
-		req := newRequestWithVars("GET", "/categories/version/2", nil, map[string]string{"id": "2"})
-		w := httptest.NewRecorder()
-
-		handler.GetVersionByID(w, req)
-
-		assert.Equal(t, http.StatusNotFound, w.Code)
-		assert.Contains(t, w.Body.String(), user_category_services.ErrCategoryNotFound.Error())
-		mockSvc.AssertExpectations(t)
-	})
-
-	t.Run("Internal Error", func(t *testing.T) {
-		mockSvc := new(user_category_services_mock.MockUserCategoryService)
-		handler := NewUserCategoryHandler(mockSvc)
-
-		mockSvc.On("GetVersionByID", mock.Anything, int64(3)).Return(0, errors.New("erro inesperado"))
-
-		req := newRequestWithVars("GET", "/categories/version/3", nil, map[string]string{"id": "3"})
-		w := httptest.NewRecorder()
-
-		handler.GetVersionByID(w, req)
-
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		assert.Contains(t, w.Body.String(), "erro inesperado")
 		mockSvc.AssertExpectations(t)
 	})
 }

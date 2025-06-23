@@ -27,20 +27,16 @@ var (
 	ErrUpdateContact              = errors.New("erro ao atualizar contato")
 	ErrDeleteContact              = errors.New("erro ao deletar contato")
 	ErrCheckContact               = errors.New("erro ao verificar contato")
-	ErrVersionRequired            = errors.New("versão do contato é obrigatória")
-	ErrVersionMismatch            = errors.New("conflito de versão ao atualizar contato")
 	ErrUpdateFailed               = errors.New("erro ao atualizar contato")
 	ErrCheckBeforeUpdate          = errors.New("erro ao verificar existência do contato antes da atualização")
-	ErrCheckContactVersion        = errors.New("erro ao verificar versão do contato")
 )
 
 type ContactService interface {
 	Create(ctx context.Context, contact *models.Contact) (*models.Contact, error)
 	GetByID(ctx context.Context, id int64) (*models.Contact, error)
-	GetByUser(ctx context.Context, userID int64) ([]*models.Contact, error)
-	GetByClient(ctx context.Context, clientID int64) ([]*models.Contact, error)
-	GetBySupplier(ctx context.Context, supplierID int64) ([]*models.Contact, error)
-	GetVersionByID(ctx context.Context, id int64) (int, error)
+	GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error)
+	GetByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error)
+	GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Contact, error)
 	Update(ctx context.Context, contact *models.Contact) error
 	Delete(ctx context.Context, id int64) error
 }
@@ -92,23 +88,7 @@ func (s *contactService) GetByID(ctx context.Context, id int64) (*models.Contact
 	return contact, nil
 }
 
-func (s *contactService) GetVersionByID(ctx context.Context, id int64) (int, error) {
-	if id <= 0 {
-		return 0, ErrInvalidID
-	}
-
-	version, err := s.contactRepo.GetVersionByID(ctx, id)
-	if err != nil {
-		if errors.Is(err, repositories.ErrContactNotFound) {
-			return 0, ErrContactNotFound
-		}
-		return 0, fmt.Errorf("%w: %v", ErrCheckContactVersion, err)
-	}
-
-	return version, nil
-}
-
-func (s *contactService) GetByUser(ctx context.Context, userID int64) ([]*models.Contact, error) {
+func (s *contactService) GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error) {
 	if userID <= 0 {
 		return nil, ErrUserIDInvalid
 	}
@@ -121,7 +101,7 @@ func (s *contactService) GetByUser(ctx context.Context, userID int64) ([]*models
 	return contacts, nil
 }
 
-func (s *contactService) GetByClient(ctx context.Context, clientID int64) ([]*models.Contact, error) {
+func (s *contactService) GetByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error) {
 	if clientID <= 0 {
 		return nil, ErrClientIDInvalid
 	}
@@ -134,7 +114,7 @@ func (s *contactService) GetByClient(ctx context.Context, clientID int64) ([]*mo
 	return contacts, nil
 }
 
-func (s *contactService) GetBySupplier(ctx context.Context, supplierID int64) ([]*models.Contact, error) {
+func (s *contactService) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Contact, error) {
 	if supplierID <= 0 {
 		return nil, ErrSupplierIDInvalid
 	}
@@ -148,16 +128,12 @@ func (s *contactService) GetBySupplier(ctx context.Context, supplierID int64) ([
 }
 
 func (s *contactService) Update(ctx context.Context, c *models.Contact) error {
-	if c.ID == 0 || c.ID <= 0 {
+	if c.ID <= 0 {
 		return ErrInvalidID
 	}
 
 	if c.ContactName == "" {
 		return ErrContactNameRequired
-	}
-
-	if c.Version <= 0 {
-		return ErrVersionRequired
 	}
 
 	_, err := s.contactRepo.GetByID(ctx, c.ID)
@@ -170,9 +146,6 @@ func (s *contactService) Update(ctx context.Context, c *models.Contact) error {
 
 	err = s.contactRepo.Update(ctx, c)
 	if err != nil {
-		if errors.Is(err, repositories.ErrVersionConflict) {
-			return ErrVersionMismatch
-		}
 		return fmt.Errorf("%w: %v", ErrUpdateFailed, err)
 	}
 

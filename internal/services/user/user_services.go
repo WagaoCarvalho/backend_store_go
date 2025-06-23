@@ -24,6 +24,7 @@ var (
 	ErrCreateContact          = errors.New("erro ao criar contato")
 	ErrCreateCategoryRelation = errors.New("erro ao criar relação com categoria")
 	ErrGetUser                = errors.New("erro ao buscar usuário")
+	ErrGetVersion             = errors.New("erro ao buscar usuário")
 	ErrUpdateUser             = errors.New("erro ao atualizar usuário")
 	ErrDeleteUser             = errors.New("erro ao deletar usuário")
 	ErrFetchAddress           = errors.New("erro ao buscar o endereço")
@@ -32,7 +33,8 @@ var (
 
 type UserService interface {
 	GetAll(ctx context.Context) ([]*models_user.User, error)
-	GetById(ctx context.Context, uid int64) (*models_user.User, error)
+	GetByID(ctx context.Context, uid int64) (*models_user.User, error)
+	GetVersionByID(ctx context.Context, uid int64) (int64, error)
 	GetByEmail(ctx context.Context, email string) (*models_user.User, error)
 	Delete(ctx context.Context, uid int64) error
 	Update(
@@ -137,12 +139,23 @@ func (s *userService) GetAll(ctx context.Context) ([]*models_user.User, error) {
 	return s.repo.GetAll(ctx)
 }
 
-func (s *userService) GetById(ctx context.Context, uid int64) (*models_user.User, error) {
+func (s *userService) GetByID(ctx context.Context, uid int64) (*models_user.User, error) {
 	user, err := s.repo.GetByID(ctx, uid)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrGetUser, err)
 	}
 	return user, nil
+}
+
+func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, error) {
+	version, err := s.repo.GetVersionByID(ctx, uid)
+	if err != nil {
+		if errors.Is(err, repositories_user.ErrUserNotFound) {
+			return 0, repositories_user.ErrUserNotFound
+		}
+		return 0, fmt.Errorf("user: erro ao obter versão: %w", err)
+	}
+	return version, nil
 }
 
 func (s *userService) GetByEmail(ctx context.Context, email string) (*models_user.User, error) {
@@ -164,9 +177,6 @@ func (s *userService) Update(
 
 	updatedUser, err := s.repo.Update(ctx, user)
 	if err != nil {
-		if errors.Is(err, repositories_user.ErrVersionConflict) {
-			return nil, repositories_user.ErrVersionConflict
-		}
 		if errors.Is(err, repositories_user.ErrUserNotFound) {
 			return nil, repositories_user.ErrUserNotFound
 		}
@@ -174,16 +184,12 @@ func (s *userService) Update(
 	}
 
 	if address != nil {
-		existing, err := s.addressRepo.GetByID(ctx, address.ID)
+		_, err := s.addressRepo.GetByID(ctx, address.ID)
 		if err != nil {
 			if errors.Is(err, repositories_address.ErrAddressNotFound) {
 				return nil, repositories_address.ErrAddressNotFound
 			}
 			return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
-		}
-
-		if existing.Version != address.Version {
-			return nil, repositories_address.ErrVersionConflict
 		}
 
 		err = s.addressRepo.Update(ctx, address)

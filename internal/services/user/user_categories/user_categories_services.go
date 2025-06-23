@@ -11,22 +11,20 @@ import (
 )
 
 var (
-	ErrCreateCategory          = errors.New("erro ao criar categoria")
-	ErrFetchCategories         = errors.New("erro ao buscar categorias")
-	ErrFetchCategory           = errors.New("erro ao buscar categoria")
-	ErrUpdateCategory          = errors.New("erro ao atualizar categoria")
-	ErrDeleteCategory          = errors.New("erro ao deletar categoria")
-	ErrCategoryNotFound        = errors.New("categoria não encontrada")
-	ErrInvalidCategoryName     = errors.New("o nome da categoria é obrigatório")
-	ErrInvalidCategory         = errors.New("categoria: objeto inválido")
-	ErrCategoryIDRequired      = errors.New("categoria: ID da categoria é obrigatório")
-	ErrCategoryVersionRequired = errors.New("categoria: versão da categoria é obrigatória")
+	ErrCreateCategory      = errors.New("erro ao criar categoria")
+	ErrFetchCategories     = errors.New("erro ao buscar categorias")
+	ErrFetchCategory       = errors.New("erro ao buscar categoria")
+	ErrUpdateCategory      = errors.New("erro ao atualizar categoria")
+	ErrDeleteCategory      = errors.New("erro ao deletar categoria")
+	ErrCategoryNotFound    = errors.New("categoria não encontrada")
+	ErrInvalidCategoryName = errors.New("o nome da categoria é obrigatório")
+	ErrInvalidCategory     = errors.New("categoria: objeto inválido")
+	ErrCategoryIDRequired  = errors.New("categoria: ID da categoria é obrigatório")
 )
 
 type UserCategoryService interface {
 	GetAll(ctx context.Context) ([]*models.UserCategory, error)
 	GetByID(ctx context.Context, id int64) (*models.UserCategory, error)
-	GetVersionByID(ctx context.Context, id int64) (int, error)
 	Create(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error)
 	Update(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error)
 	Delete(ctx context.Context, id int64) error
@@ -77,22 +75,6 @@ func (s *userCategoryService) GetByID(ctx context.Context, id int64) (*models.Us
 	return category, nil
 }
 
-func (s *userCategoryService) GetVersionByID(ctx context.Context, id int64) (int, error) {
-	if id == 0 {
-		return 0, ErrCategoryIDRequired
-	}
-
-	version, err := s.repo.GetVersionByID(ctx, id)
-	if err != nil {
-		if errors.Is(err, ErrCategoryNotFound) {
-			return 0, ErrCategoryNotFound
-		}
-		return 0, fmt.Errorf("%w: %w", ErrFetchCategory, err)
-	}
-
-	return version, nil
-}
-
 func (s *userCategoryService) Update(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error) {
 	if category == nil {
 		return nil, ErrInvalidCategory
@@ -100,20 +82,13 @@ func (s *userCategoryService) Update(ctx context.Context, category *models.UserC
 	if category.ID == 0 {
 		return nil, ErrCategoryIDRequired
 	}
-	if category.Version == 0 {
-		return nil, ErrCategoryVersionRequired
-	}
 
 	err := s.repo.Update(ctx, category)
 	if err != nil {
-		switch {
-		case errors.Is(err, repositories.ErrVersionConflict):
-			return nil, repositories.ErrVersionConflict
-		case errors.Is(err, repositories.ErrCategoryNotFound):
+		if errors.Is(err, repositories.ErrCategoryNotFound) {
 			return nil, repositories.ErrCategoryNotFound
-		default:
-			return nil, fmt.Errorf("%w", err)
 		}
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return category, nil

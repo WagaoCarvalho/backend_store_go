@@ -20,7 +20,6 @@ var (
 	ErrScanContact             = errors.New("erro ao escanear contato")
 	ErrUpdateContact           = errors.New("erro ao atualizar contato")
 	ErrDeleteContact           = errors.New("erro ao deletar contato")
-	ErrVersionConflict         = errors.New("conflito de versão: o endereço foi modificado por outra operação")
 )
 
 type ContactRepository interface {
@@ -29,7 +28,6 @@ type ContactRepository interface {
 	GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error)
 	GetByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error)
 	GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Contact, error)
-	GetVersionByID(ctx context.Context, id int64) (int, error)
 	Update(ctx context.Context, contact *models.Contact) error
 	Delete(ctx context.Context, id int64) error
 }
@@ -103,25 +101,6 @@ func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Cont
 	}
 
 	return &contact, nil
-}
-
-func (r *contactRepository) GetVersionByID(ctx context.Context, id int64) (int, error) {
-	const query = `
-		SELECT version
-		FROM contacts
-		WHERE id = $1;
-	`
-
-	var version int
-	err := r.db.QueryRow(ctx, query, id).Scan(&version)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, ErrContactNotFound
-		}
-		return 0, fmt.Errorf("%w: %v", ErrFetchContact, err)
-	}
-
-	return version, nil
 }
 
 func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error) {
@@ -269,17 +248,12 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 			phone            = $7,
 			cell             = $8,
 			contact_type     = $9,
-			version          = version + 1,
 			updated_at       = NOW()
 		WHERE
-			id      = $10
-			AND version = $11
-		RETURNING
-			version,
-			updated_at;
+			id = $10
 	`
 
-	err := r.db.QueryRow(ctx, query,
+	cmdTag, err := r.db.Exec(ctx, query,
 		contact.UserID,
 		contact.ClientID,
 		contact.SupplierID,
@@ -290,15 +264,14 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 		contact.Cell,
 		contact.ContactType,
 		contact.ID,
-		contact.Version,
-	).Scan(&contact.Version, &contact.UpdatedAt)
+	)
 
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-
-			return ErrVersionConflict
-		}
 		return fmt.Errorf("%w: %v", ErrUpdateContact, err)
+	}
+
+	if cmdTag.RowsAffected() == 0 {
+		return ErrContactNotFound
 	}
 
 	return nil

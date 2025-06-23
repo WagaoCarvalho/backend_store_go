@@ -9,7 +9,6 @@ CREATE TABLE contacts (
     phone VARCHAR(20),
     cell VARCHAR(20),
     contact_type VARCHAR(50),
-    version INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
 );

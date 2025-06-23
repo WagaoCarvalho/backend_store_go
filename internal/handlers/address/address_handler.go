@@ -59,26 +59,6 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *AddressHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
-	id, err := utils.GetIDParam(r, "id")
-	if err != nil {
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
-		return
-	}
-
-	version, err := h.service.GetVersionByID(r.Context(), int64(id))
-	if err != nil {
-		utils.ErrorResponse(w, err, http.StatusNotFound)
-		return
-	}
-
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
-		Message: "Versão do endereço encontrada",
-		Data:    map[string]int{"version": version},
-	})
-}
-
 func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
@@ -86,7 +66,7 @@ func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	address, err := h.service.GetByUserID(r.Context(), id)
+	addresses, err := h.service.GetByUserID(r.Context(), id)
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
@@ -94,8 +74,8 @@ func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 
 	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
-		Message: "Endereço do usuário encontrado",
-		Data:    address,
+		Message: "Endereços do usuário encontrados",
+		Data:    addresses,
 	})
 }
 
@@ -106,7 +86,7 @@ func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	address, err := h.service.GetByClientID(r.Context(), id)
+	addresses, err := h.service.GetByClientID(r.Context(), id)
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
@@ -114,8 +94,8 @@ func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 
 	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
-		Message: "Endereço do cliente encontrado",
-		Data:    address,
+		Message: "Endereços do cliente encontrados",
+		Data:    addresses,
 	})
 }
 
@@ -126,7 +106,7 @@ func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	address, err := h.service.GetBySupplierID(r.Context(), id)
+	addresses, err := h.service.GetBySupplierID(r.Context(), id)
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
@@ -134,8 +114,8 @@ func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request)
 
 	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
-		Message: "Endereço do fornecedor encontrado",
-		Data:    address,
+		Message: "Endereços do fornecedor encontrados",
+		Data:    addresses,
 	})
 }
 

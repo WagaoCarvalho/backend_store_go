@@ -27,5 +27,4 @@ func RegisterAddressRoutes(r *mux.Router, db *pgxpool.Pool) {
 	s.HandleFunc("/address/supplier/{id:[0-9]+}", handler.GetBySupplierID).Methods(http.MethodGet)
 	s.HandleFunc("/address/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
 	s.HandleFunc("/address/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
-	s.HandleFunc("/address/version/{id:[0-9]+}", handler.GetVersionByID).Methods(http.MethodGet)
 }
