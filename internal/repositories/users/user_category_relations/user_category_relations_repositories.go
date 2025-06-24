@@ -20,7 +20,6 @@ var (
 	ErrIterateRelations       = errors.New("erro após ler relações")
 	ErrDeleteRelation         = errors.New("erro ao deletar relação")
 	ErrDeleteAllUserRelations = errors.New("erro ao deletar todas as relações do usuário")
-	ErrUpdateRelation         = errors.New("erro ao atualizar relação")
 	ErrInvalidForeignKey      = errors.New("usuário ou categoria inválido")
 )
 
@@ -75,7 +74,7 @@ func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.C
 	var relations []*models.UserCategoryRelations
 	for rows.Next() {
 		var rel models.UserCategoryRelations
-		if err := rows.Scan(&rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
+		if err := rows.Scan(&rel.UserID, &rel.CategoryID, &rel.CreatedAt); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrScanRelation, err)
 		}
 		relations = append(relations, &rel)
@@ -104,7 +103,7 @@ func (r *userCategoryRelationRepositories) GetByUserID(ctx context.Context, user
 	var relations []*models.UserCategoryRelations
 	for rows.Next() {
 		var rel models.UserCategoryRelations
-		if err := rows.Scan(&rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
+		if err := rows.Scan(&rel.UserID, &rel.CategoryID, &rel.CreatedAt); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrScanRelation, err)
 		}
 		relations = append(relations, &rel)
@@ -135,7 +134,7 @@ func (r *userCategoryRelationRepositories) GetByID(ctx context.Context, category
 	var relations []*models.UserCategoryRelations
 	for rows.Next() {
 		var rel models.UserCategoryRelations
-		if err := rows.Scan(&rel.UserID, &rel.CategoryID, &rel.CreatedAt, &rel.UpdatedAt); err != nil {
+		if err := rows.Scan(&rel.UserID, &rel.CategoryID, &rel.CreatedAt); err != nil {
 			return nil, fmt.Errorf("%w: %v", ErrScanRelation, err)
 		}
 		relations = append(relations, &rel)

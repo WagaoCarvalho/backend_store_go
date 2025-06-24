@@ -309,7 +309,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusInternalServerError, resp.Status)
-		assert.Equal(t, "erro ao atualizar", resp.Message)
+		assert.Contains(t, resp.Message, "erro ao atualizar")
 
 		mockSvc.AssertExpectations(t)
 	})

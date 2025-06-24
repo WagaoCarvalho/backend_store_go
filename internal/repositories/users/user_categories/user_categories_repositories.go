@@ -19,7 +19,6 @@ var (
 	ErrCreateCategory    = errors.New("erro ao criar categoria")
 	ErrUpdateCategory    = errors.New("erro ao atualizar categoria")
 	ErrDeleteCategory    = errors.New("erro ao deletar categoria")
-	ErrVersionConflict   = errors.New("conflito de versão: os dados foram modificados por outro processo")
 )
 
 type UserCategoryRepository interface {
@@ -114,37 +113,22 @@ func (r *userCategoryRepository) Update(ctx context.Context, category *models.Us
 		SET 
 			name        = $1,
 			description = $2,
-			updated_at  = NOW(),
-			version     = version + 1
+			updated_at  = NOW()
 		WHERE 
-			id      = $3
-		AND 
-			version = $4
+			id = $3
 		RETURNING 
-			updated_at,
-			version;
+			updated_at;
 	`
 
-	row := r.db.QueryRow(ctx, query,
+	err := r.db.QueryRow(ctx, query,
 		category.Name,
 		category.Description,
 		category.ID,
-		category.Version,
-	)
+	).Scan(&category.UpdatedAt)
 
-	if err := row.Scan(&category.UpdatedAt, &category.Version); err != nil {
+	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-
-			var exists bool
-			checkQuery := `SELECT EXISTS(SELECT 1 FROM user_categories WHERE id = $1)`
-			checkErr := r.db.QueryRow(ctx, checkQuery, category.ID).Scan(&exists)
-			if checkErr != nil {
-				return fmt.Errorf("%w: erro ao verificar existência: %v", ErrUpdateCategory, checkErr)
-			}
-			if !exists {
-				return ErrCategoryNotFound
-			}
-			return ErrVersionConflict
+			return ErrCategoryNotFound
 		}
 		return fmt.Errorf("%w: %v", ErrUpdateCategory, err)
 	}

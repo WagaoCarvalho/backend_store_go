@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
@@ -82,7 +84,6 @@ func (h *UserCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Status:  http.StatusCreated,
 	})
 }
-
 func (h *UserCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -101,7 +102,12 @@ func (h *UserCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	updatedCategory, err := h.service.Update(ctx, category)
 	if err != nil {
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		if errors.Is(err, repo.ErrCategoryNotFound) {
+			utils.ErrorResponse(w, fmt.Errorf("categoria não encontrada"), http.StatusNotFound)
+			return
+		}
+
+		utils.ErrorResponse(w, fmt.Errorf("erro ao atualizar categoria: %v", err), http.StatusInternalServerError)
 		return
 	}
 
