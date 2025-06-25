@@ -2,18 +2,11 @@ package repositories
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	"github.com/jackc/pgx/v5/pgxpool"
-)
-
-var (
-	ErrDBConnURLNotDefined = errors.New("variável de ambiente DB_CONN_URL não definida")
-	ErrDBParseConfig       = errors.New("erro ao parsear configuração do pool de conexão")
-	ErrDBNewPool           = errors.New("erro ao criar novo pool de conexão")
 )
 
 var dbPool *pgxpool.Pool

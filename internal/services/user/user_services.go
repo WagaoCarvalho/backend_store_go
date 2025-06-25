@@ -29,6 +29,7 @@ var (
 	ErrDeleteUser             = errors.New("erro ao deletar usuário")
 	ErrFetchAddress           = errors.New("erro ao buscar o endereço")
 	ErrUpdateAddress          = errors.New("erro ao atualizar o endereço")
+	ErrInvalidVersion         = errors.New("versão inválida")
 )
 
 type UserService interface {
@@ -175,10 +176,17 @@ func (s *userService) Update(
 		return nil, ErrInvalidEmail
 	}
 
+	if user.Version <= 0 {
+		return nil, ErrInvalidVersion
+	}
+
 	updatedUser, err := s.repo.Update(ctx, user)
 	if err != nil {
 		if errors.Is(err, repositories_user.ErrUserNotFound) {
 			return nil, repositories_user.ErrUserNotFound
+		}
+		if errors.Is(err, repositories_user.ErrVersionConflict) {
+			return nil, repositories_user.ErrVersionConflict
 		}
 		return nil, fmt.Errorf("%w: %v", ErrUpdateUser, err)
 	}

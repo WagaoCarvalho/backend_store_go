@@ -1,32 +1,31 @@
 package routes
 
 import (
-	"log"
 	"net/http"
 
-	homeHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/home"
+	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/home"
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/middlewares"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/db_postgres"
 	"github.com/gorilla/mux"
 )
 
-func NewRouter() *mux.Router {
+func NewRouter(log *logger.LoggerAdapter) *mux.Router {
 	r := mux.NewRouter().StrictSlash(true)
 
-	r.Use(middlewares.Logging)
-	r.Use(middlewares.RecoverPanic)
+	r.Use(middlewares.RequestIDMiddleware())
+	r.Use(middlewares.RecoverMiddleware(log))
+	r.Use(middlewares.LoggingMiddleware(log))
 	r.Use(middlewares.RateLimiter)
 	r.Use(middlewares.CORS)
 
 	db, err := repo.Connect(&repo.RealPgxPool{})
 	if err != nil {
-		log.Fatalf("Erro ao conectar ao banco de dados: %v", err)
+		log.Error(nil, err, "Erro ao conectar ao banco de dados", nil)
 	}
 
-	// Rotas públicas
-	r.HandleFunc("/", homeHandlers.GetHome).Methods(http.MethodGet)
+	r.HandleFunc("/", handlers.GetHome).Methods(http.MethodGet)
 
-	// Módulos de rota
 	RegisterLoginRoutes(r, db)
 	RegisterUserRoutes(r, db)
 	RegisterUserCategoryRoutes(r, db)

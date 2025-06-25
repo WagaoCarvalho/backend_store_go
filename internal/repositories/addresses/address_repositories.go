@@ -10,14 +10,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var (
-	ErrCreateAddress   = errors.New("erro ao criar endereço")
-	ErrFetchAddress    = errors.New("erro ao buscar endereço")
-	ErrAddressNotFound = errors.New("endereço não encontrado")
-	ErrUpdateAddress   = errors.New("erro ao atualizar endereço")
-	ErrDeleteAddress   = errors.New("erro ao excluir endereço")
-)
-
 type AddressRepository interface {
 	Create(ctx context.Context, address *models.Address) (*models.Address, error)
 	GetByID(ctx context.Context, id int64) (*models.Address, error)

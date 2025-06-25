@@ -10,6 +10,12 @@ type Config struct {
 	Database Database
 	Jwt      Jwt
 	Server   Server
+	App      App
+}
+
+type App struct {
+	Env      string // dev, prod, staging
+	LogLevel string // debug, info, warn, error
 }
 
 func LoadConfig() Config {
@@ -22,5 +28,6 @@ func LoadConfig() Config {
 		Database: LoadDatabaseConfig(),
 		Jwt:      LoadJwtConfig(),
 		Server:   LoadServerConfig(),
+		App:      LoadAppConfig(),
 	}
 }

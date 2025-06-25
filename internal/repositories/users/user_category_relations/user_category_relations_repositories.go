@@ -2,25 +2,11 @@ package repositories
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
 	"github.com/jackc/pgx/v5/pgxpool"
-)
-
-var (
-	ErrRelationNotFound       = errors.New("relação usuário-categoria não encontrada")
-	ErrRelationExists         = errors.New("relação já existe")
-	ErrCreateRelation         = errors.New("erro ao criar relação")
-	ErrGetRelationsByUser     = errors.New("erro ao buscar relações por usuário")
-	ErrGetRelationsByCategory = errors.New("erro ao buscar relações por categoria")
-	ErrScanRelation           = errors.New("erro ao ler relação")
-	ErrIterateRelations       = errors.New("erro após ler relações")
-	ErrDeleteRelation         = errors.New("erro ao deletar relação")
-	ErrDeleteAllUserRelations = errors.New("erro ao deletar todas as relações do usuário")
-	ErrInvalidForeignKey      = errors.New("usuário ou categoria inválido")
 )
 
 type UserCategoryRelationRepository interface {

@@ -380,23 +380,24 @@ func TestUserHandler_Update(t *testing.T) {
 		mockService := new(user_services.MockUserService)
 		handler := NewUserHandler(mockService)
 
-		inputUser := &models_user.User{Username: "Atualizado"}
-		inputAddress := &models_address.Address{Street: "Rua Nova"}
+		inputUser := &models_user.User{
+			Username: "Atualizado",
+			Address: &models_address.Address{
+				Street: "Rua Nova",
+			},
+		}
 		updatedUser := &models_user.User{UID: 1, Username: "Atualizado"}
 
 		mockService.On("Update",
 			mock.Anything,
 			mock.MatchedBy(func(u *models_user.User) bool {
-				return u.UID == 1 && u.Username == "Atualizado"
+				return u.UID == 1 && u.Username == "Atualizado" && u.Address != nil && u.Address.Street == "Rua Nova"
 			}),
-			mock.MatchedBy(func(a *models_address.Address) bool {
-				return a.Street == "Rua Nova"
-			}),
+			mock.Anything, // Address extraído dentro do handler do próprio u.Address
 		).Return(updatedUser, nil)
 
 		body := map[string]interface{}{
-			"user":    inputUser,
-			"address": inputAddress,
+			"user": inputUser,
 		}
 		jsonBody, _ := json.Marshal(body)
 
@@ -414,6 +415,32 @@ func TestUserHandler_Update(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.Status)
 		assert.Equal(t, "Usuário atualizado com sucesso", resp.Message)
 
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("UserDataNil", func(t *testing.T) {
+		mockService := new(user_services.MockUserService)
+		handler := NewUserHandler(mockService)
+
+		body := map[string]interface{}{
+			"user": nil, // user nil para simular o erro
+		}
+		jsonBody, _ := json.Marshal(body)
+
+		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(jsonBody))
+		req = muxSetVars(req, map[string]string{"id": "1"})
+		rec := httptest.NewRecorder()
+
+		handler.Update(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		resp, err := utils.ParseErrorResponse(rec.Body.Bytes())
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "dados do usuário são obrigatórios")
+
+		// O serviço NÃO deve ser chamado
 		mockService.AssertExpectations(t)
 	})
 
@@ -483,7 +510,7 @@ func TestUserHandler_Update(t *testing.T) {
 			mock.MatchedBy(func(u *models_user.User) bool {
 				return u.UID == 2 && u.Username == "Carlos"
 			}),
-			(*models_address.Address)(nil), // Address como nil
+			mock.Anything,
 		).Return(nil, repository.ErrVersionConflict)
 
 		body := map[string]interface{}{
@@ -541,7 +568,6 @@ func TestUserHandler_Update(t *testing.T) {
 
 		mockService.AssertExpectations(t)
 	})
-
 }
 
 func TestUserHandler_Delete(t *testing.T) {

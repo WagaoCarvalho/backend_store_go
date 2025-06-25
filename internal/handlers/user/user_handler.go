@@ -151,8 +151,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requestData struct {
-		User    *models_user.User       `json:"user"`
-		Address *models_address.Address `json:"address"`
+		User *models_user.User `json:"user"`
 	}
 
 	id, err := utils.GetIDParam(r, "id")
@@ -166,9 +165,15 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestData.User.UID = id
+	if requestData.User == nil {
+		utils.ErrorResponse(w, fmt.Errorf("dados do usuário são obrigatórios"), http.StatusBadRequest)
+		return
+	}
 
-	updatedUser, err := h.service.Update(r.Context(), requestData.User, requestData.Address)
+	requestData.User.UID = id
+	address := requestData.User.Address
+
+	updatedUser, err := h.service.Update(r.Context(), requestData.User, address)
 	if err != nil {
 		if errors.Is(err, repository.ErrVersionConflict) {
 			utils.ErrorResponse(w, err, http.StatusConflict)

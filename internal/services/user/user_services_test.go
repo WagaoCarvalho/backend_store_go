@@ -415,6 +415,22 @@ func TestUserService_Update(t *testing.T) {
 		return mockUserRepo, mockAddressRepo, UserService
 	}
 
+	t.Run("versão inválida", func(t *testing.T) {
+		_, _, service := setup()
+
+		user := &models_user.User{
+			UID:      1,
+			Username: "user1",
+			Email:    "valid@example.com",
+			Status:   true,
+		}
+
+		updated, err := service.Update(context.Background(), user, nil)
+
+		assert.Nil(t, updated)
+		assert.ErrorIs(t, err, ErrInvalidVersion)
+	})
+
 	t.Run("deve atualizar usuário com sucesso", func(t *testing.T) {
 		mockRepoUser, _, service := setup()
 
@@ -423,6 +439,7 @@ func TestUserService_Update(t *testing.T) {
 			Username: "user1",
 			Email:    "valid@example.com",
 			Status:   true,
+			Version:  1,
 		}
 
 		expectedUser := *inputUser
@@ -454,12 +471,35 @@ func TestUserService_Update(t *testing.T) {
 		assert.Contains(t, err.Error(), "email inválido")
 	})
 
+	t.Run("deve retornar erro de conflito de versão", func(t *testing.T) {
+		mockRepoUser, _, service := setup()
+
+		inputUser := &models_user.User{
+			UID:     1,
+			Email:   "valid@example.com",
+			Version: 2, // versão enviada pelo front
+		}
+
+		// Simula retorno de conflito de versão pelo repositório
+		mockRepoUser.On("Update", mock.Anything, inputUser).
+			Return(nil, user_repositories.ErrVersionConflict).Once()
+
+		result, err := service.Update(context.Background(), inputUser, nil)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, user_repositories.ErrVersionConflict)
+
+		mockRepoUser.AssertExpectations(t)
+	})
+
 	t.Run("deve lidar com usuário não encontrado", func(t *testing.T) {
 		mockRepoUser, _, service := setup()
 
 		user := &models_user.User{
-			UID:   999,
-			Email: "valid@example.com",
+			UID:     999,
+			Email:   "valid@example.com",
+			Version: 1,
 		}
 
 		mockRepoUser.On("Update", mock.Anything, mock.Anything).
@@ -478,8 +518,9 @@ func TestUserService_Update(t *testing.T) {
 		mockRepoUser, _, service := setup()
 
 		user := &models_user.User{
-			UID:   1,
-			Email: "valid@example.com",
+			UID:     1,
+			Email:   "valid@example.com",
+			Version: 1,
 		}
 
 		mockRepoUser.On("Update", mock.Anything, mock.Anything).
@@ -498,8 +539,9 @@ func TestUserService_Update(t *testing.T) {
 		mockRepoUser, mockAddressRepo, service := setup()
 
 		user := &models_user.User{
-			UID:   1,
-			Email: "valid@example.com",
+			UID:     1,
+			Email:   "valid@example.com",
+			Version: 1,
 		}
 
 		mockRepoUser.On("Update", mock.Anything, user).
@@ -518,7 +560,7 @@ func TestUserService_Update(t *testing.T) {
 	t.Run("GetByID retorna ErrAddressNotFound", func(t *testing.T) {
 		userRepo, addressRepo, service := setup()
 
-		user := &models_user.User{UID: 1, Email: "teste@email.com"}
+		user := &models_user.User{UID: 1, Email: "teste@email.com", Version: 1}
 		address := &models.Address{ID: 1}
 
 		addressRepo.On("GetByID", mock.Anything, int64(1)).
@@ -539,7 +581,7 @@ func TestUserService_Update(t *testing.T) {
 	t.Run("GetByID retorna erro genérico", func(t *testing.T) {
 		userRepo, addressRepo, service := setup()
 
-		user := &models_user.User{UID: 1, Email: "teste@email.com"}
+		user := &models_user.User{UID: 1, Email: "teste@email.com", Version: 1}
 		address := &models.Address{ID: 1}
 		erroGen := errors.New("erro qualquer")
 
@@ -561,7 +603,7 @@ func TestUserService_Update(t *testing.T) {
 	t.Run("Erro na atualização do endereço", func(t *testing.T) {
 		mockRepo, addressRepo, service := setup()
 
-		user := &models_user.User{UID: 1, Email: "test@example.com"}
+		user := &models_user.User{UID: 1, Email: "test@example.com", Version: 1}
 		address := &models.Address{ID: 1}
 		existingAddr := &models.Address{ID: 1}
 
@@ -587,7 +629,7 @@ func TestUserService_Update(t *testing.T) {
 	t.Run("Atualização do endereço com sucesso", func(t *testing.T) {
 		mockRepo, addressRepo, service := setup()
 
-		user := &models_user.User{UID: 1, Email: "test@example.com"}
+		user := &models_user.User{UID: 1, Email: "test@example.com", Version: 1}
 		address := &models.Address{ID: 1}
 		existingAddr := &models.Address{ID: 1}
 

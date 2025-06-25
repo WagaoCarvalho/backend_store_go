@@ -10,18 +10,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var (
-	ErrContactNotFound         = errors.New("contato não encontrado")
-	ErrCreateContact           = errors.New("erro ao criar contato")
-	ErrFetchContact            = errors.New("erro ao buscar contato")
-	ErrFetchContactsByUser     = errors.New("erro ao buscar contatos por user_id")
-	ErrFetchContactsByClient   = errors.New("erro ao buscar contatos por client_id")
-	ErrFetchContactsBySupplier = errors.New("erro ao buscar contatos por supplier_id")
-	ErrScanContact             = errors.New("erro ao escanear contato")
-	ErrUpdateContact           = errors.New("erro ao atualizar contato")
-	ErrDeleteContact           = errors.New("erro ao deletar contato")
-)
-
 type ContactRepository interface {
 	Create(ctx context.Context, contact *models.Contact) (*models.Contact, error)
 	GetByID(ctx context.Context, id int64) (*models.Contact, error)
