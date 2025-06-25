@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	userCategoryHandler "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user/user_categories_handler"
-	"github.com/WagaoCarvalho/backend_store_go/internal/middlewares"
+	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	userCategoryRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
 	userCategoryService "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories"
 	"github.com/gorilla/mux"
@@ -17,7 +17,7 @@ func RegisterUserCategoryRoutes(r *mux.Router, db *pgxpool.Pool) {
 	userCategoryHandler := userCategoryHandler.NewUserCategoryHandler(userCategoryService)
 
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(middlewares.IsAuthByBearerToken)
+	s.Use(jwt.IsAuthByBearerToken)
 
 	s.HandleFunc("/user-category", userCategoryHandler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/user-category/{id:[0-9]+}", userCategoryHandler.GetById).Methods(http.MethodGet)

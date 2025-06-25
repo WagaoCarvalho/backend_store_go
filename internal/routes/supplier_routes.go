@@ -5,7 +5,7 @@ import (
 
 	supplierHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/supplier"
 	supplierCategoryHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/supplier/supplier_categories"
-	"github.com/WagaoCarvalho/backend_store_go/internal/middlewares"
+	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	addressRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	contactRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
 	supplierRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers"
@@ -38,7 +38,7 @@ func RegisterSupplierRoutes(r *mux.Router, db *pgxpool.Pool) {
 	categoryHandler := supplierCategoryHandlers.NewSupplierCategoryHandler(categoryService)
 
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(middlewares.IsAuthByBearerToken)
+	s.Use(jwt.IsAuthByBearerToken)
 
 	s.HandleFunc("/supplier", supplierHandler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/supplier/{id:[0-9]+}", supplierHandler.GetSupplierByID).Methods(http.MethodGet)

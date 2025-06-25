@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	productHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/product"
-	"github.com/WagaoCarvalho/backend_store_go/internal/middlewares"
+	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	productRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
 	productServices "github.com/WagaoCarvalho/backend_store_go/internal/services/products"
 
@@ -18,7 +18,7 @@ func RegisterProductRoutes(r *mux.Router, db *pgxpool.Pool) {
 	handler := productHandlers.NewProductHandler(service)
 
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(middlewares.IsAuthByBearerToken)
+	s.Use(jwt.IsAuthByBearerToken)
 
 	s.HandleFunc("/products", handler.GetProducts).Methods(http.MethodGet)
 	s.HandleFunc("/product/{id}", handler.GetProductById).Methods(http.MethodGet)

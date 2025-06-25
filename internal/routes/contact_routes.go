@@ -3,22 +3,22 @@ package routes
 import (
 	"net/http"
 
-	contactHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/contacts"
-	"github.com/WagaoCarvalho/backend_store_go/internal/middlewares"
-	contactRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
-	contactServices "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
+	contact_handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/contacts"
+	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
+	contact_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
+	contact_services "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func RegisterContactRoutes(r *mux.Router, db *pgxpool.Pool) {
-	repo := contactRepositories.NewContactRepository(db)
-	service := contactServices.NewContactService(repo)
-	handler := contactHandlers.NewContactHandler(service)
+	repo := contact_repositories.NewContactRepository(db)
+	service := contact_services.NewContactService(repo)
+	handler := contact_handlers.NewContactHandler(service)
 
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(middlewares.IsAuthByBearerToken)
+	s.Use(jwt.IsAuthByBearerToken)
 
 	s.HandleFunc("/contact", handler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/contact/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)

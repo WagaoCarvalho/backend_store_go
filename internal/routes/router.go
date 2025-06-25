@@ -5,7 +5,11 @@ import (
 
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/home"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
-	"github.com/WagaoCarvalho/backend_store_go/internal/middlewares"
+	cors "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/cors"
+	logging "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/logging"
+	rate_limiter "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/rate_limiter"
+	recover "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/recover"
+	request "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/request"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/db_postgres"
 	"github.com/gorilla/mux"
 )
@@ -13,11 +17,11 @@ import (
 func NewRouter(log *logger.LoggerAdapter) *mux.Router {
 	r := mux.NewRouter().StrictSlash(true)
 
-	r.Use(middlewares.RequestIDMiddleware())
-	r.Use(middlewares.RecoverMiddleware(log))
-	r.Use(middlewares.LoggingMiddleware(log))
-	r.Use(middlewares.RateLimiter)
-	r.Use(middlewares.CORS)
+	r.Use(request.RequestIDMiddleware())
+	r.Use(recover.RecoverMiddleware(log))
+	r.Use(logging.LoggingMiddleware(log))
+	r.Use(rate_limiter.RateLimiter)
+	r.Use(cors.CORS)
 
 	db, err := repo.Connect(&repo.RealPgxPool{})
 	if err != nil {

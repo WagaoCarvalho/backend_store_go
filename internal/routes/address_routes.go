@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	addressHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/address"
-	"github.com/WagaoCarvalho/backend_store_go/internal/middlewares"
+	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	addressRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	addressServices "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
 
@@ -18,7 +18,7 @@ func RegisterAddressRoutes(r *mux.Router, db *pgxpool.Pool) {
 	handler := addressHandlers.NewAddressHandler(service)
 
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(middlewares.IsAuthByBearerToken)
+	s.Use(jwt.IsAuthByBearerToken)
 
 	s.HandleFunc("/addresses", handler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/address/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)
