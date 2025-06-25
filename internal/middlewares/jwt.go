@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/WagaoCarvalho/backend_store_go/config"
+	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	"github.com/golang-jwt/jwt/v5"
 )
 

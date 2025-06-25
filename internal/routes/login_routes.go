@@ -8,7 +8,7 @@ import (
 	loginHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/login"
 	userRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 
-	"github.com/WagaoCarvalho/backend_store_go/config"
+	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
