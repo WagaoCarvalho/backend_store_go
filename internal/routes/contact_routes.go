@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	contact_handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/contacts"
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	contact_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
 	contact_services "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
@@ -12,8 +13,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RegisterContactRoutes(r *mux.Router, db *pgxpool.Pool) {
-	repo := contact_repositories.NewContactRepository(db)
+func RegisterContactRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
+	repo := contact_repositories.NewContactRepository(db, log)
 	service := contact_services.NewContactService(repo)
 	handler := contact_handlers.NewContactHandler(service)
 

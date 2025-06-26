@@ -19,7 +19,7 @@ import (
 func RegisterUserRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
 	userRepo := user_repositories.NewUserRepository(db)
 	addressRepo := address_repositories.NewAddressRepository(db, log)
-	contactRepo := contact_repositories.NewContactRepository(db)
+	contactRepo := contact_repositories.NewContactRepository(db, log)
 	relationRepo := user_category_relation_repo.NewUserCategoryRelationRepositories(db)
 
 	userService := user_services.NewUserService(userRepo, addressRepo, contactRepo, relationRepo)

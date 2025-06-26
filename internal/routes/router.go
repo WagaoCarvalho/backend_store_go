@@ -36,7 +36,7 @@ func NewRouter(log *logger.LoggerAdapter) *mux.Router {
 	RegisterUserCategoryRelationRoutes(r, db)
 	RegisterProductRoutes(r, db)
 	RegisterAddressRoutes(r, db, log)
-	RegisterContactRoutes(r, db)
+	RegisterContactRoutes(r, db, log)
 	RegisterSupplierRoutes(r, db, log)
 	RegisterSupplierCategoryRoutes(r, db)
 
