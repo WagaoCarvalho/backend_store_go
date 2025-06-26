@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	userCategoryHandler "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user/user_categories_handler"
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	userCategoryRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
 	userCategoryService "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories"
@@ -11,8 +12,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RegisterUserCategoryRoutes(r *mux.Router, db *pgxpool.Pool) {
-	userCategoryRepo := userCategoryRepositories.NewUserCategoryRepository(db)
+func RegisterUserCategoryRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
+	userCategoryRepo := userCategoryRepositories.NewUserCategoryRepository(db, log)
 	userCategoryService := userCategoryService.NewUserCategoryService(userCategoryRepo)
 	userCategoryHandler := userCategoryHandler.NewUserCategoryHandler(userCategoryService)
 

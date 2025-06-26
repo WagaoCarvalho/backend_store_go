@@ -7,6 +7,7 @@ import (
 
 	logger "github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -29,13 +30,6 @@ type contactRepository struct {
 
 func NewContactRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) ContactRepository {
 	return &contactRepository{db: db, logger: logger}
-}
-
-func derefInt64(ptr *int64) interface{} {
-	if ptr == nil {
-		return nil
-	}
-	return *ptr
 }
 
 func (r *contactRepository) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
@@ -65,9 +59,9 @@ func (r *contactRepository) Create(ctx context.Context, contact *models.Contact)
 
 	r.logger.Info(ctx, "Contato criado com sucesso", map[string]interface{}{
 		"contact_id":  contact.ID,
-		"user_id":     derefInt64(contact.UserID),
-		"client_id":   derefInt64(contact.ClientID),
-		"supplier_id": derefInt64(contact.SupplierID),
+		"user_id":     utils.Int64OrNil(contact.UserID),
+		"client_id":   utils.Int64OrNil(contact.ClientID),
+		"supplier_id": utils.Int64OrNil(contact.SupplierID),
 		"email":       contact.Email,
 	})
 
@@ -115,9 +109,9 @@ func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Cont
 
 	r.logger.Info(ctx, "Contato encontrado com sucesso", map[string]interface{}{
 		"contact_id":  contact.ID,
-		"user_id":     derefInt64(contact.UserID),
-		"client_id":   derefInt64(contact.ClientID),
-		"supplier_id": derefInt64(contact.SupplierID),
+		"user_id":     utils.Int64OrNil(contact.UserID),
+		"client_id":   utils.Int64OrNil(contact.ClientID),
+		"supplier_id": utils.Int64OrNil(contact.SupplierID),
 		"email":       contact.Email,
 	})
 
@@ -332,9 +326,9 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 	if err != nil {
 		r.logger.Error(ctx, err, "Erro ao atualizar contato", map[string]interface{}{
 			"contact_id":  contact.ID,
-			"user_id":     derefInt64(contact.UserID),
-			"client_id":   derefInt64(contact.ClientID),
-			"supplier_id": derefInt64(contact.SupplierID),
+			"user_id":     utils.Int64OrNil(contact.UserID),
+			"client_id":   utils.Int64OrNil(contact.ClientID),
+			"supplier_id": utils.Int64OrNil(contact.SupplierID),
 			"email":       contact.Email,
 		})
 		return fmt.Errorf("%w: %v", ErrUpdateContact, err)

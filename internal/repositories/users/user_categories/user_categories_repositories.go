@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -19,11 +20,12 @@ type UserCategoryRepository interface {
 }
 
 type userCategoryRepository struct {
-	db *pgxpool.Pool
+	db     *pgxpool.Pool
+	logger *logger.LoggerAdapter
 }
 
-func NewUserCategoryRepository(db *pgxpool.Pool) UserCategoryRepository {
-	return &userCategoryRepository{db: db}
+func NewUserCategoryRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) UserCategoryRepository {
+	return &userCategoryRepository{db: db, logger: logger}
 }
 
 func (r *userCategoryRepository) Create(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error) {
@@ -37,8 +39,17 @@ func (r *userCategoryRepository) Create(ctx context.Context, category *models.Us
 		Scan(&category.ID, &category.CreatedAt, &category.UpdatedAt)
 
 	if err != nil {
+		r.logger.Error(ctx, err, "Erro ao criar categoria de usuário", map[string]interface{}{
+			"name":        category.Name,
+			"description": category.Description,
+		})
 		return nil, fmt.Errorf("%w: %v", ErrCreateCategory, err)
 	}
+
+	r.logger.Info(ctx, "Categoria de usuário criada com sucesso", map[string]interface{}{
+		"category_id": category.ID,
+		"name":        category.Name,
+	})
 
 	return category, nil
 }
@@ -48,6 +59,7 @@ func (r *userCategoryRepository) GetAll(ctx context.Context) ([]*models.UserCate
 
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
+		r.logger.Error(ctx, err, "Erro ao buscar todas as categorias de usuário", nil)
 		return nil, fmt.Errorf("%w: %v", ErrGetCategories, err)
 	}
 	defer rows.Close()
@@ -57,14 +69,20 @@ func (r *userCategoryRepository) GetAll(ctx context.Context) ([]*models.UserCate
 		category := new(models.UserCategory)
 		if err := rows.Scan(&category.ID, &category.Name, &category.Description,
 			&category.CreatedAt, &category.UpdatedAt); err != nil {
+			r.logger.Error(ctx, err, "Erro ao fazer scan de categoria de usuário", nil)
 			return nil, fmt.Errorf("%w: %v", ErrScanCategory, err)
 		}
 		categories = append(categories, category)
 	}
 
 	if err := rows.Err(); err != nil {
+		r.logger.Error(ctx, err, "Erro ao iterar categorias de usuário", nil)
 		return nil, fmt.Errorf("%w: %v", ErrIterateCategories, err)
 	}
+
+	r.logger.Info(ctx, "Categorias de usuário buscadas com sucesso", map[string]interface{}{
+		"total": len(categories),
+	})
 
 	return categories, nil
 }
@@ -88,10 +106,21 @@ func (r *userCategoryRepository) GetByID(ctx context.Context, id int64) (*models
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
+			r.logger.Warn(ctx, "Categoria de usuário não encontrada", map[string]interface{}{
+				"category_id": id,
+			})
 			return nil, ErrCategoryNotFound
 		}
+
+		r.logger.Error(ctx, err, "Erro ao buscar categoria de usuário por ID", map[string]interface{}{
+			"category_id": id,
+		})
 		return nil, fmt.Errorf("%w: %v", ErrGetCategoryByID, err)
 	}
+
+	r.logger.Info(ctx, "Categoria de usuário buscada com sucesso", map[string]interface{}{
+		"category_id": category.ID,
+	})
 
 	return &category, nil
 }
@@ -117,10 +146,22 @@ func (r *userCategoryRepository) Update(ctx context.Context, category *models.Us
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
+			r.logger.Warn(ctx, "Categoria de usuário não encontrada para atualização", map[string]interface{}{
+				"category_id": category.ID,
+			})
 			return ErrCategoryNotFound
 		}
+
+		r.logger.Error(ctx, err, "Erro ao atualizar categoria de usuário", map[string]interface{}{
+			"category_id": category.ID,
+			"name":        category.Name,
+		})
 		return fmt.Errorf("%w: %v", ErrUpdateCategory, err)
 	}
+
+	r.logger.Info(ctx, "Categoria de usuário atualizada com sucesso", map[string]interface{}{
+		"category_id": category.ID,
+	})
 
 	return nil
 }
@@ -130,12 +171,22 @@ func (r *userCategoryRepository) Delete(ctx context.Context, id int64) error {
 
 	result, err := r.db.Exec(ctx, query, id)
 	if err != nil {
+		r.logger.Error(ctx, err, "Erro ao excluir categoria de usuário", map[string]interface{}{
+			"category_id": id,
+		})
 		return fmt.Errorf("%w: %v", ErrDeleteCategory, err)
 	}
 
 	if result.RowsAffected() == 0 {
+		r.logger.Warn(ctx, "Categoria de usuário não encontrada para exclusão", map[string]interface{}{
+			"category_id": id,
+		})
 		return ErrCategoryNotFound
 	}
+
+	r.logger.Info(ctx, "Categoria de usuário excluída com sucesso", map[string]interface{}{
+		"category_id": id,
+	})
 
 	return nil
 }

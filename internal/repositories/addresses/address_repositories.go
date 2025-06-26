@@ -7,6 +7,7 @@ import (
 
 	logger "github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -28,13 +29,6 @@ type addressRepository struct {
 
 func NewAddressRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) AddressRepository {
 	return &addressRepository{db: db, logger: logger}
-}
-
-func derefInt64(ptr *int64) interface{} {
-	if ptr == nil {
-		return nil
-	}
-	return *ptr
 }
 
 func (r *addressRepository) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
@@ -61,9 +55,9 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 
 	if err != nil {
 		r.logger.Error(ctx, err, "Erro ao criar endereço", map[string]interface{}{
-			"user_id":     derefInt64(address.UserID),
-			"client_id":   derefInt64(address.ClientID),
-			"supplier_id": derefInt64(address.SupplierID),
+			"user_id":     utils.Int64OrNil(address.UserID),
+			"client_id":   utils.Int64OrNil(address.ClientID),
+			"supplier_id": utils.Int64OrNil(address.SupplierID),
 			"street":      address.Street,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrCreateAddress, err)
@@ -71,7 +65,7 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 
 	r.logger.Info(ctx, "Endereço criado com sucesso", map[string]interface{}{
 		"address_id": address.ID,
-		"user_id":    derefInt64(address.UserID),
+		"user_id":    utils.Int64OrNil(address.UserID),
 	})
 
 	return address, nil
@@ -118,7 +112,7 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 
 	r.logger.Info(ctx, "Endereço recuperado com sucesso", map[string]interface{}{
 		"address_id": address.ID,
-		"user_id":    derefInt64(address.UserID),
+		"user_id":    utils.Int64OrNil(address.UserID),
 	})
 
 	return &address, nil
