@@ -20,7 +20,7 @@ func RegisterUserRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapt
 	userRepo := user_repositories.NewUserRepository(db)
 	addressRepo := address_repositories.NewAddressRepository(db, log)
 	contactRepo := contact_repositories.NewContactRepository(db, log)
-	relationRepo := user_category_relation_repo.NewUserCategoryRelationRepositories(db)
+	relationRepo := user_category_relation_repo.NewUserCategoryRelationRepositories(db, log)
 
 	userService := user_services.NewUserService(userRepo, addressRepo, contactRepo, relationRepo)
 	handler := user_handlers.NewUserHandler(userService)
