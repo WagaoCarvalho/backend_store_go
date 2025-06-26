@@ -19,6 +19,10 @@ func (l *LoggerAdapter) WithContext(ctx context.Context) *logrus.Entry {
 	return l.base.WithField("request_id", contextutils.GetRequestID(ctx))
 }
 
+func (l *LoggerAdapter) Warn(ctx context.Context, msg string, extraFields map[string]interface{}) {
+	l.WithContext(ctx).WithFields(logrus.Fields(extraFields)).Warn(msg)
+}
+
 func (l *LoggerAdapter) Info(ctx context.Context, msg string, extraFields map[string]interface{}) {
 	l.WithContext(ctx).WithFields(logrus.Fields(extraFields)).Info(msg)
 }

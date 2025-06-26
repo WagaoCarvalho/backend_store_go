@@ -31,13 +31,13 @@ func NewRouter(log *logger.LoggerAdapter) *mux.Router {
 	r.HandleFunc("/", handlers.GetHome).Methods(http.MethodGet)
 
 	RegisterLoginRoutes(r, db)
-	RegisterUserRoutes(r, db)
+	RegisterUserRoutes(r, db, log)
 	RegisterUserCategoryRoutes(r, db)
 	RegisterUserCategoryRelationRoutes(r, db)
 	RegisterProductRoutes(r, db)
-	RegisterAddressRoutes(r, db)
+	RegisterAddressRoutes(r, db, log)
 	RegisterContactRoutes(r, db)
-	RegisterSupplierRoutes(r, db)
+	RegisterSupplierRoutes(r, db, log)
 	RegisterSupplierCategoryRoutes(r, db)
 
 	return r

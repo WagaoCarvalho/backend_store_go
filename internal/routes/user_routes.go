@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	user_handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user"
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	address_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	contact_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
@@ -15,9 +16,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RegisterUserRoutes(r *mux.Router, db *pgxpool.Pool) {
+func RegisterUserRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
 	userRepo := user_repositories.NewUserRepository(db)
-	addressRepo := address_repositories.NewAddressRepository(db)
+	addressRepo := address_repositories.NewAddressRepository(db, log)
 	contactRepo := contact_repositories.NewContactRepository(db)
 	relationRepo := user_category_relation_repo.NewUserCategoryRelationRepositories(db)
 

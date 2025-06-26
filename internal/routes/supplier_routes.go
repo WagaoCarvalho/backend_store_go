@@ -5,6 +5,7 @@ import (
 
 	supplierHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/supplier"
 	supplierCategoryHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/supplier/supplier_categories"
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	addressRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	contactRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
@@ -21,11 +22,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RegisterSupplierRoutes(r *mux.Router, db *pgxpool.Pool) {
+func RegisterSupplierRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
 	supplierRepo := supplierRepositories.NewSupplierRepository(db)
 	supplierCategoryRepo := supplierCategoryRepositories.NewSupplierCategoryRepository(db)
 	supplierCategoryRelationRepo := supplierCategoryRelationRepositories.NewSupplierCategoryRelationRepo(db)
-	addressRepo := addressRepositories.NewAddressRepository(db)
+	addressRepo := addressRepositories.NewAddressRepository(db, log)
 	contactRepo := contactRepositories.NewContactRepository(db)
 
 	relationService := supplierCategoryRelations.NewSupplierCategoryRelationService(supplierCategoryRelationRepo)
