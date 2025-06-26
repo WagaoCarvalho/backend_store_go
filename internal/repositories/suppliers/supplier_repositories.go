@@ -1,4 +1,4 @@
-package repository
+package repositories
 
 import (
 	"context"
@@ -8,16 +8,6 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-)
-
-var (
-	ErrSupplierNotFound = errors.New("fornecedor não encontrado")
-	ErrSupplierCreate   = errors.New("erro ao criar fornecedor")
-	ErrSupplierUpdate   = errors.New("erro ao atualizar fornecedor")
-	ErrSupplierDelete   = errors.New("erro ao deletar fornecedor")
-	ErrSupplierList     = errors.New("erro ao listar fornecedores")
-	ErrSupplierRetrieve = errors.New("erro ao buscar fornecedor por ID")
-	ErrVersionConflict  = errors.New("conflito de versão: o endereço foi modificado por outra operação")
 )
 
 type SupplierRepository interface {
