@@ -35,6 +35,14 @@ func (m *MockUserCategoryRelationService) GetAllRelationsByUserID(ctx context.Co
 	return nil, args.Error(1)
 }
 
+func (m *MockUserCategoryRelationService) HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error) {
+	args := m.Called(ctx, userID, categoryID)
+	if exists, ok := args.Get(0).(bool); ok {
+		return exists, args.Error(1)
+	}
+	return false, args.Error(1)
+}
+
 func (m *MockUserCategoryRelationService) Update(ctx context.Context, relation *user_category_relations.UserCategoryRelations) (*user_category_relations.UserCategoryRelations, error) {
 	args := m.Called(ctx, relation)
 	if updated, ok := args.Get(0).(*user_category_relations.UserCategoryRelations); ok {

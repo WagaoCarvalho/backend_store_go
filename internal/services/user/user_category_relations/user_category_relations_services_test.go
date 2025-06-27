@@ -136,6 +136,66 @@ func TestUserCategoryRelationServices_GetAllRelationsByUserID(t *testing.T) {
 	})
 }
 
+func TestUserCategoryRelationServices_HasUserCategoryRelation(t *testing.T) {
+
+	t.Run("Success_ExistsTrue", func(t *testing.T) {
+		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
+		service := NewUserCategoryRelationServices(mockRepo)
+
+		mockRepo.On("HasUserCategoryRelation", mock.Anything, int64(1), int64(2)).Return(true, nil)
+
+		exists, err := service.HasUserCategoryRelation(context.Background(), 1, 2)
+
+		assert.NoError(t, err)
+		assert.True(t, exists)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Success_ExistsFalse", func(t *testing.T) {
+		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
+		service := NewUserCategoryRelationServices(mockRepo)
+
+		mockRepo.On("HasUserCategoryRelation", mock.Anything, int64(1), int64(3)).Return(false, nil)
+
+		exists, err := service.HasUserCategoryRelation(context.Background(), 1, 3)
+
+		assert.NoError(t, err)
+		assert.False(t, exists)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("InvalidUserID", func(t *testing.T) {
+		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
+		service := NewUserCategoryRelationServices(mockRepo)
+
+		_, err := service.HasUserCategoryRelation(context.Background(), 0, 1)
+		assert.ErrorIs(t, err, ErrInvalidUserID)
+	})
+
+	t.Run("InvalidCategoryID", func(t *testing.T) {
+		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
+		service := NewUserCategoryRelationServices(mockRepo)
+
+		_, err := service.HasUserCategoryRelation(context.Background(), 1, 0)
+		assert.ErrorIs(t, err, ErrInvalidCategoryID)
+	})
+
+	t.Run("RepositoryError", func(t *testing.T) {
+		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
+		service := NewUserCategoryRelationServices(mockRepo)
+
+		expectedErr := errors.New("erro no banco de dados")
+		mockRepo.On("HasUserCategoryRelation", mock.Anything, int64(1), int64(2)).Return(false, expectedErr)
+
+		exists, err := service.HasUserCategoryRelation(context.Background(), 1, 2)
+
+		assert.False(t, exists)
+		assert.ErrorIs(t, err, ErrCheckRelationExists)
+		assert.Contains(t, err.Error(), expectedErr.Error())
+		mockRepo.AssertExpectations(t)
+	})
+}
+
 func TestUserCategoryRelationServices_Delete(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)

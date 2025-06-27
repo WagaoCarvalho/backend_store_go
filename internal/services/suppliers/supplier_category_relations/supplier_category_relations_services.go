@@ -10,25 +10,23 @@ import (
 )
 
 var (
-	ErrRelationNotFound                        = errors.New("relação supplier-categoria não encontrada")
-	ErrRelationExists                          = errors.New("relação já existe")
-	ErrInvalidRelationData                     = errors.New("dados inválidos para relação")
-	ErrCheckRelationExists                     = errors.New("erro ao verificar existência da relação")
-	ErrCreateRelation                          = errors.New("erro ao criar relação")
-	ErrDeleteRelation                          = errors.New("erro ao deletar relação")
-	ErrDeleteAllRelations                      = errors.New("erro ao deletar todas as relações do fornecedor")
-	ErrInvalidSupplierCategoryRelationID       = errors.New("ID da relação é inválido")
-	ErrInvalidSupplierCategoryRelationData     = errors.New("dados da relação de categoria do fornecedor são inválidos")
-	ErrSupplierCategoryRelationVersionRequired = errors.New("versão da relação é obrigatória")
-	ErrSupplierCategoryRelationNotFound        = errors.New("relação de categoria do fornecedor não encontrada")
-	ErrSupplierCategoryRelationUpdate          = errors.New("erro ao atualizar a relação de categoria do fornecedor")
+	ErrRelationNotFound                    = errors.New("relação supplier-categoria não encontrada")
+	ErrRelationExists                      = errors.New("relação já existe")
+	ErrInvalidRelationData                 = errors.New("dados inválidos para relação")
+	ErrCheckRelationExists                 = errors.New("erro ao verificar existência da relação")
+	ErrCreateRelation                      = errors.New("erro ao criar relação")
+	ErrDeleteRelation                      = errors.New("erro ao deletar relação")
+	ErrDeleteAllRelations                  = errors.New("erro ao deletar todas as relações do fornecedor")
+	ErrInvalidSupplierCategoryRelationID   = errors.New("ID da relação é inválido")
+	ErrInvalidSupplierCategoryRelationData = errors.New("dados da relação de categoria do fornecedor são inválidos")
+	ErrSupplierCategoryRelationNotFound    = errors.New("relação de categoria do fornecedor não encontrada")
+	ErrSupplierCategoryRelationUpdate      = errors.New("erro ao atualizar a relação de categoria do fornecedor")
 )
 
 type SupplierCategoryRelationService interface {
 	Create(ctx context.Context, supplierID, categoryID int64) (*models.SupplierCategoryRelations, error)
 	GetBySupplierId(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error)
 	GetByCategoryId(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error)
-	Update(ctx context.Context, relation *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error)
 	DeleteById(ctx context.Context, supplierID, categoryID int64) error
 	DeleteAllBySupplierId(ctx context.Context, supplierID int64) error
 	HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error)
@@ -80,30 +78,6 @@ func (s *supplierCategoryRelationService) GetByCategoryId(ctx context.Context, c
 		return nil, ErrInvalidRelationData
 	}
 	return s.repository.GetByCategoryID(ctx, categoryID)
-}
-
-func (s *supplierCategoryRelationService) Update(ctx context.Context, relation *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error) {
-	if relation.CategoryID <= 0 {
-		return nil, ErrInvalidSupplierCategoryRelationID
-	}
-
-	if relation.SupplierID <= 0 || relation.CategoryID <= 0 {
-		return nil, ErrInvalidRelationData
-	}
-
-	if relation.Version <= 0 {
-		return nil, ErrSupplierCategoryRelationVersionRequired
-	}
-
-	updatedRelation, err := s.repository.Update(ctx, relation)
-	if err != nil {
-		if errors.Is(err, ErrSupplierCategoryRelationNotFound) {
-			return nil, fmt.Errorf("%w", ErrSupplierCategoryRelationNotFound)
-		}
-		return nil, fmt.Errorf("%w: %v", ErrSupplierCategoryRelationUpdate, err)
-	}
-
-	return updatedRelation, nil
 }
 
 func (s *supplierCategoryRelationService) DeleteById(ctx context.Context, supplierID, categoryID int64) error {

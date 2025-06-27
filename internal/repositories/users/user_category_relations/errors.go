@@ -13,4 +13,5 @@ var (
 	ErrDeleteRelation         = errors.New("erro ao deletar relação")
 	ErrDeleteAllUserRelations = errors.New("erro ao deletar todas as relações do usuário")
 	ErrInvalidForeignKey      = errors.New("usuário ou categoria inválido")
+	ErrCheckRelationExists    = errors.New("erro ao verificar se a relação entre usuário e categoria existe")
 )

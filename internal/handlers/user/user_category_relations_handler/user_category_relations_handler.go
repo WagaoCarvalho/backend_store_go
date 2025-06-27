@@ -32,12 +32,11 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 
 	created, wasCreated, err := h.service.Create(ctx, relation.UserID, relation.CategoryID)
 	if err != nil {
+		if errors.Is(err, repositories.ErrInvalidForeignKey) {
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	if errors.Is(err, repositories.ErrInvalidForeignKey) {
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -77,6 +76,34 @@ func (h *UserCategoryRelationHandler) GetAllRelationsByUserID(w http.ResponseWri
 	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
 		Data:    relations,
 		Message: "Relações recuperadas com sucesso",
+		Status:  http.StatusOK,
+	})
+}
+
+func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	userID, err := strconv.ParseInt(mux.Vars(r)["user_id"], 10, 64)
+	if err != nil || userID <= 0 {
+		utils.ErrorResponse(w, fmt.Errorf("ID de usuário inválido"), http.StatusBadRequest)
+		return
+	}
+
+	categoryID, err := strconv.ParseInt(mux.Vars(r)["category_id"], 10, 64)
+	if err != nil || categoryID <= 0 {
+		utils.ErrorResponse(w, fmt.Errorf("ID de categoria inválido"), http.StatusBadRequest)
+		return
+	}
+
+	exists, err := h.service.HasUserCategoryRelation(ctx, userID, categoryID)
+	if err != nil {
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+		Data:    map[string]bool{"exists": exists},
+		Message: "Verificação concluída com sucesso",
 		Status:  http.StatusOK,
 	})
 }

@@ -10,11 +10,10 @@ import (
 )
 
 var (
-	ErrCategoryNameRequired            = errors.New("nome da categoria é obrigatório")
-	ErrCategoryIDInvalid               = errors.New("ID inválido")
-	ErrCategoryIDRequired              = errors.New("ID da categoria é obrigatório")
-	ErrCategoryDeleteInvalidID         = errors.New("ID inválido para exclusão")
-	ErrSupplierCategoryVersionRequired = errors.New("versão da categoria do fornecedor é obrigatória e deve ser maior que zero")
+	ErrCategoryNameRequired    = errors.New("nome da categoria é obrigatório")
+	ErrCategoryIDInvalid       = errors.New("ID inválido")
+	ErrCategoryIDRequired      = errors.New("ID da categoria é obrigatório")
+	ErrCategoryDeleteInvalidID = errors.New("ID inválido para exclusão")
 )
 
 type SupplierCategoryService interface {
@@ -57,9 +56,6 @@ func (s *supplierCategoryServiceImpl) Update(ctx context.Context, category *mode
 	}
 	if strings.TrimSpace(category.Name) == "" {
 		return ErrCategoryNameRequired
-	}
-	if category.Version <= 0 {
-		return ErrSupplierCategoryVersionRequired
 	}
 
 	return s.repo.Update(ctx, category)

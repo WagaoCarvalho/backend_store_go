@@ -4,14 +4,15 @@ import (
 	"net/http"
 
 	supplierCategoryHandler "github.com/WagaoCarvalho/backend_store_go/internal/handlers/supplier/supplier_categories"
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	supplierCategoryRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_categories"
 	supplierCategoryServices "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_categories"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RegisterSupplierCategoryRoutes(r *mux.Router, db *pgxpool.Pool) {
-	supplierCategoryRepo := supplierCategoryRepositories.NewSupplierCategoryRepository(db)
+func RegisterSupplierCategoryRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
+	supplierCategoryRepo := supplierCategoryRepositories.NewSupplierCategoryRepository(db, log)
 	supplierCategoryService := supplierCategoryServices.NewSupplierCategoryService(supplierCategoryRepo)
 	supplierCategoryHandler := supplierCategoryHandler.NewSupplierCategoryHandler(supplierCategoryService)
 

@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	user_category_relations_models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
 	user_category_relations_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_category_relations/user_category_relations_services_mock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -60,6 +62,30 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 		handler.Create(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("error - foreign key inválida", func(t *testing.T) {
+		mockService := new(user_category_relations_mock.MockUserCategoryRelationService)
+		handler := NewUserCategoryRelationHandler(mockService)
+
+		// Cria um JSON válido para o body da requisição
+		body := `{"user_id":1,"category_id":999}`
+
+		// Simula o erro específico retornado pelo service
+		mockService.On("Create", mock.Anything, int64(1), int64(999)).
+			Return(nil, false, repositories.ErrInvalidForeignKey)
+
+		req := httptest.NewRequest(http.MethodPost, "/user-category-relations", strings.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+
+		rr := httptest.NewRecorder()
+
+		handler.Create(rr, req)
+
+		assert.Equal(t, http.StatusBadRequest, rr.Code)
+		assert.Contains(t, rr.Body.String(), repositories.ErrInvalidForeignKey.Error())
+
 		mockService.AssertExpectations(t)
 	})
 
@@ -155,6 +181,107 @@ func TestUserCategoryRelationHandler_GetAllRelationsByUserID(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 		assert.Contains(t, rr.Body.String(), "erro interno")
+	})
+}
+
+func TestUserCategoryRelationHandler_HasUserCategoryRelation(t *testing.T) {
+	t.Run("success - relação existe", func(t *testing.T) {
+		mockService := new(user_category_relations_mock.MockUserCategoryRelationService)
+		handler := NewUserCategoryRelationHandler(mockService)
+
+		mockService.On("HasUserCategoryRelation", mock.Anything, int64(1), int64(2)).Return(true, nil)
+
+		req := httptest.NewRequest(http.MethodGet, "/user-category-relation/1/category/2", nil)
+		req = mux.SetURLVars(req, map[string]string{
+			"user_id":     "1",
+			"category_id": "2",
+		})
+		rr := httptest.NewRecorder()
+
+		handler.HasUserCategoryRelation(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.Contains(t, rr.Body.String(), `"exists":true`)
+		assert.Contains(t, rr.Body.String(), "Verificação concluída com sucesso")
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("success - relação não existe", func(t *testing.T) {
+		mockService := new(user_category_relations_mock.MockUserCategoryRelationService)
+		handler := NewUserCategoryRelationHandler(mockService)
+
+		mockService.On("HasUserCategoryRelation", mock.Anything, int64(1), int64(3)).Return(false, nil)
+
+		req := httptest.NewRequest(http.MethodGet, "/user-category-relation/1/category/3", nil)
+		req = mux.SetURLVars(req, map[string]string{
+			"user_id":     "1",
+			"category_id": "3",
+		})
+		rr := httptest.NewRecorder()
+
+		handler.HasUserCategoryRelation(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.Contains(t, rr.Body.String(), `"exists":false`)
+		assert.Contains(t, rr.Body.String(), "Verificação concluída com sucesso")
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("error - user_id inválido", func(t *testing.T) {
+		mockService := new(user_category_relations_mock.MockUserCategoryRelationService)
+		handler := NewUserCategoryRelationHandler(mockService)
+
+		req := httptest.NewRequest(http.MethodGet, "/user-category-relation/abc/category/2", nil)
+		req = mux.SetURLVars(req, map[string]string{
+			"user_id":     "abc",
+			"category_id": "2",
+		})
+		rr := httptest.NewRecorder()
+
+		handler.HasUserCategoryRelation(rr, req)
+
+		assert.Equal(t, http.StatusBadRequest, rr.Code)
+		assert.Contains(t, rr.Body.String(), "ID de usuário inválido")
+	})
+
+	t.Run("error - category_id inválido", func(t *testing.T) {
+		mockService := new(user_category_relations_mock.MockUserCategoryRelationService)
+		handler := NewUserCategoryRelationHandler(mockService)
+
+		req := httptest.NewRequest(http.MethodGet, "/user-category-relation/1/category/xyz", nil)
+		req = mux.SetURLVars(req, map[string]string{
+			"user_id":     "1",
+			"category_id": "xyz",
+		})
+		rr := httptest.NewRecorder()
+
+		handler.HasUserCategoryRelation(rr, req)
+
+		assert.Equal(t, http.StatusBadRequest, rr.Code)
+		assert.Contains(t, rr.Body.String(), "ID de categoria inválido")
+	})
+
+	t.Run("error - falha no serviço", func(t *testing.T) {
+		mockService := new(user_category_relations_mock.MockUserCategoryRelationService)
+		handler := NewUserCategoryRelationHandler(mockService)
+
+		mockService.On("HasUserCategoryRelation", mock.Anything, int64(1), int64(2)).Return(false, errors.New("erro interno")).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/user-category-relation/1/category/2", nil)
+		req = mux.SetURLVars(req, map[string]string{
+			"user_id":     "1",
+			"category_id": "2",
+		})
+		rr := httptest.NewRecorder()
+
+		handler.HasUserCategoryRelation(rr, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rr.Code)
+		assert.Contains(t, rr.Body.String(), "erro interno")
+
+		mockService.AssertExpectations(t)
 	})
 }
 

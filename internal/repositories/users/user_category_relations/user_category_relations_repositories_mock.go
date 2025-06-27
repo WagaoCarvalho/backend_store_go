@@ -25,6 +25,11 @@ func (m *MockUserCategoryRelationRepo) GetAllRelationsByUserID(ctx context.Conte
 	return args.Get(0).([]*models.UserCategoryRelations), args.Error(1)
 }
 
+func (m *MockUserCategoryRelationRepo) HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error) {
+	args := m.Called(ctx, userID, categoryID)
+	return args.Bool(0), args.Error(1)
+}
+
 func (m *MockUserCategoryRelationRepo) Delete(ctx context.Context, userID, categoryID int64) error {
 	args := m.Called(ctx, userID, categoryID)
 	return args.Error(0)

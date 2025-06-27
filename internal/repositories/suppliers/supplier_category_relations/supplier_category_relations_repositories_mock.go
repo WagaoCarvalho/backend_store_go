@@ -30,15 +30,6 @@ func (m *MockSupplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, 
 	return args.Get(0).([]*models.SupplierCategoryRelations), args.Error(1)
 }
 
-func (m *MockSupplierCategoryRelationRepo) Update(ctx context.Context, rel *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error) {
-	args := m.Called(ctx, rel)
-	result := args.Get(0)
-	if result == nil {
-		return nil, args.Error(1)
-	}
-	return result.(*models.SupplierCategoryRelations), args.Error(1)
-}
-
 func (m *MockSupplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, categoryID int64) error {
 	args := m.Called(ctx, supplierID, categoryID)
 	return args.Error(0)

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_categories"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -19,11 +20,12 @@ type SupplierCategoryRepository interface {
 }
 
 type supplierCategoryRepository struct {
-	db *pgxpool.Pool
+	db     *pgxpool.Pool
+	logger *logger.LoggerAdapter
 }
 
-func NewSupplierCategoryRepository(db *pgxpool.Pool) SupplierCategoryRepository {
-	return &supplierCategoryRepository{db: db}
+func NewSupplierCategoryRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) SupplierCategoryRepository {
+	return &supplierCategoryRepository{db: db, logger: logger}
 }
 
 func (r *supplierCategoryRepository) Create(ctx context.Context, category *models.SupplierCategory) (int64, error) {
@@ -35,8 +37,18 @@ func (r *supplierCategoryRepository) Create(ctx context.Context, category *model
 
 	err := r.db.QueryRow(ctx, query, category.Name, category.Description).Scan(&category.ID)
 	if err != nil {
+		r.logger.Error(ctx, err, "Erro ao criar categoria de fornecedor", map[string]interface{}{
+			"name":        category.Name,
+			"description": category.Description,
+		})
 		return 0, fmt.Errorf("%w: %v", ErrSupplierCategoryCreate, err)
 	}
+
+	r.logger.Info(ctx, "Categoria de fornecedor criada com sucesso", map[string]interface{}{
+		"category_id": category.ID,
+		"name":        category.Name,
+		"description": category.Description,
+	})
 
 	return category.ID, nil
 }
@@ -57,8 +69,16 @@ func (r *supplierCategoryRepository) GetByID(ctx context.Context, id int64) (*mo
 		&category.UpdatedAt,
 	)
 	if err != nil {
+		r.logger.Error(ctx, err, "Erro ao buscar categoria de fornecedor por ID", map[string]interface{}{
+			"category_id": id,
+		})
 		return nil, fmt.Errorf("%w: %v", ErrSupplierCategoryNotFound, err)
 	}
+
+	r.logger.Info(ctx, "Categoria de fornecedor encontrada com sucesso", map[string]interface{}{
+		"category_id": category.ID,
+		"name":        category.Name,
+	})
 
 	return &category, nil
 }
@@ -72,6 +92,7 @@ func (r *supplierCategoryRepository) GetAll(ctx context.Context) ([]*models.Supp
 
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
+		r.logger.Error(ctx, err, "Erro ao buscar todas as categorias de fornecedores", nil)
 		return nil, fmt.Errorf("%w: %v", ErrSupplierCategoryGetAll, err)
 	}
 	defer rows.Close()
@@ -80,10 +101,20 @@ func (r *supplierCategoryRepository) GetAll(ctx context.Context) ([]*models.Supp
 	for rows.Next() {
 		var cat models.SupplierCategory
 		if err := rows.Scan(&cat.ID, &cat.Name, &cat.Description, &cat.CreatedAt, &cat.UpdatedAt); err != nil {
+			r.logger.Error(ctx, err, "Erro ao escanear categoria de fornecedor", nil)
 			return nil, fmt.Errorf("%w: %v", ErrSupplierCategoryScanRow, err)
 		}
 		categories = append(categories, &cat)
 	}
+
+	if err := rows.Err(); err != nil {
+		r.logger.Error(ctx, err, "Erro durante iteração das categorias de fornecedores", nil)
+		return nil, fmt.Errorf("%w: %v", ErrSupplierCategoryGetAll, err)
+	}
+
+	r.logger.Info(ctx, "Categorias de fornecedores recuperadas com sucesso", map[string]interface{}{
+		"total": len(categories),
+	})
 
 	return categories, nil
 }
@@ -94,40 +125,36 @@ func (r *supplierCategoryRepository) Update(ctx context.Context, category *model
 		SET
 			name        = $1,
 			description = $2,
-			updated_at  = NOW(),
-			version     = version + 1
+			updated_at  = NOW()
 		WHERE
-			id      	= $3 AND
-			version 	= $4
-		RETURNING
-			id,
-			name,
-			description,
-			created_at,
-			updated_at,
-			version;
+			id = $3
+		RETURNING 
+			updated_at;
 	`
 
 	err := r.db.QueryRow(ctx, query,
 		category.Name,
 		category.Description,
 		category.ID,
-		category.Version,
-	).Scan(
-		&category.ID,
-		&category.Name,
-		&category.Description,
-		&category.CreatedAt,
-		&category.UpdatedAt,
-		&category.Version,
-	)
+	).Scan(&category.UpdatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
+			r.logger.Warn(ctx, "Categoria de fornecedor não encontrada para atualização", map[string]interface{}{
+				"category_id": category.ID,
+			})
 			return ErrSupplierCategoryNotFound
 		}
+
+		r.logger.Error(ctx, err, "Erro ao atualizar categoria de fornecedor", map[string]interface{}{
+			"category_id": category.ID,
+		})
 		return fmt.Errorf("%w: %v", ErrSupplierCategoryUpdate, err)
 	}
+
+	r.logger.Info(ctx, "Categoria de fornecedor atualizada com sucesso", map[string]interface{}{
+		"category_id": category.ID,
+	})
 
 	return nil
 }
@@ -137,12 +164,22 @@ func (r *supplierCategoryRepository) Delete(ctx context.Context, id int64) error
 
 	cmdTag, err := r.db.Exec(ctx, query, id)
 	if err != nil {
+		r.logger.Error(ctx, err, "Erro ao excluir categoria de fornecedor", map[string]interface{}{
+			"category_id": id,
+		})
 		return fmt.Errorf("%w: %v", ErrSupplierCategoryDelete, err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
+		r.logger.Warn(ctx, "Categoria de fornecedor não encontrada para exclusão", map[string]interface{}{
+			"category_id": id,
+		})
 		return ErrSupplierCategoryNotFound
 	}
+
+	r.logger.Info(ctx, "Categoria de fornecedor excluída com sucesso", map[string]interface{}{
+		"category_id": id,
+	})
 
 	return nil
 }

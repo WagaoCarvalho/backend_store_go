@@ -22,6 +22,7 @@ func RegisterUserCategoryRelationRoutes(r *mux.Router, db *pgxpool.Pool, log *lo
 
 	s.HandleFunc("/user-category-relation", relationHandler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/user-category-relations/{user_id:[0-9]+}", relationHandler.GetAllRelationsByUserID).Methods(http.MethodGet)
+	s.HandleFunc("/user-category-relation/{user_id:[0-9]+}/category/{category_id:[0-9]+}/exists", relationHandler.HasUserCategoryRelation).Methods(http.MethodGet)
 	s.HandleFunc("/user-category-relation/{user_id:[0-9]+}/category/{category_id:[0-9]+}", relationHandler.Delete).Methods(http.MethodDelete)
 	s.HandleFunc("/user-category-relation/{user_id:[0-9]+}", relationHandler.DeleteAll).Methods(http.MethodDelete)
 }

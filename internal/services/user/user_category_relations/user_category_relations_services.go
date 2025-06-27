@@ -19,11 +19,13 @@ var (
 	ErrDeleteRelation             = errors.New("erro ao deletar relação")
 	ErrDeleteAllUserRelations     = errors.New("erro ao deletar todas as relações do usuário")
 	ErrCheckUserCategoryRelations = errors.New("erro ao verificar relações do usuário")
+	ErrCheckRelationExists        = errors.New("erro ao verificar se a relação entre usuário e categoria existe")
 )
 
 type UserCategoryRelationServices interface {
 	Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelations, bool, error)
 	GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
+	HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error)
 	Delete(ctx context.Context, userID, categoryID int64) error
 	DeleteAll(ctx context.Context, userID int64) error
 }
@@ -81,6 +83,22 @@ func (s *userCategoryRelationServices) GetAllRelationsByUserID(ctx context.Conte
 	}
 
 	return relationsPtr, nil
+}
+
+func (s *userCategoryRelationServices) HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error) {
+	if userID <= 0 {
+		return false, ErrInvalidUserID
+	}
+	if categoryID <= 0 {
+		return false, ErrInvalidCategoryID
+	}
+
+	exists, err := s.relationRepo.HasUserCategoryRelation(ctx, userID, categoryID)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", ErrCheckRelationExists, err)
+	}
+
+	return exists, nil
 }
 
 func (s *userCategoryRelationServices) Delete(ctx context.Context, userID, categoryID int64) error {

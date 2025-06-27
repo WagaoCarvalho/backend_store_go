@@ -121,9 +121,8 @@ func TestSupplierCategoryService_Update(t *testing.T) {
 		service := NewSupplierCategoryService(mockRepo)
 
 		category := &models.SupplierCategory{
-			ID:      1,
-			Name:    "Atualizada",
-			Version: 1,
+			ID:   1,
+			Name: "Atualizada",
 		}
 
 		mockRepo.On("Update", mock.Anything, category).Return(nil)
@@ -139,9 +138,8 @@ func TestSupplierCategoryService_Update(t *testing.T) {
 		service := NewSupplierCategoryService(mockRepo)
 
 		category := &models.SupplierCategory{
-			ID:      0,
-			Name:    "Nome válido",
-			Version: 1,
+			ID:   0,
+			Name: "Nome válido",
 		}
 
 		err := service.Update(context.Background(), category)
@@ -156,9 +154,8 @@ func TestSupplierCategoryService_Update(t *testing.T) {
 		service := NewSupplierCategoryService(mockRepo)
 
 		category := &models.SupplierCategory{
-			ID:      1,
-			Name:    "   ", // vazio após trim
-			Version: 1,
+			ID:   1,
+			Name: "   ",
 		}
 
 		err := service.Update(context.Background(), category)
@@ -168,31 +165,13 @@ func TestSupplierCategoryService_Update(t *testing.T) {
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
-	t.Run("deve retornar erro se versão for zero", func(t *testing.T) {
-		mockRepo := new(repo.MockSupplierCategoryRepo)
-		service := NewSupplierCategoryService(mockRepo)
-
-		category := &models.SupplierCategory{
-			ID:      1,
-			Name:    "Nome válido",
-			Version: 0,
-		}
-
-		err := service.Update(context.Background(), category)
-
-		assert.Error(t, err)
-		assert.Equal(t, ErrSupplierCategoryVersionRequired, err)
-		mockRepo.AssertNotCalled(t, "Update")
-	})
-
 	t.Run("deve propagar erro do repositório", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierCategoryRepo)
 		service := NewSupplierCategoryService(mockRepo)
 
 		category := &models.SupplierCategory{
-			ID:      1,
-			Name:    "Nome válido",
-			Version: 1,
+			ID:   1,
+			Name: "Nome válido",
 		}
 
 		mockRepo.On("Update", mock.Anything, category).

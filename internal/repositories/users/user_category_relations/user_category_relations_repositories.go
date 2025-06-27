@@ -2,16 +2,19 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserCategoryRelationRepository interface {
 	Create(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error)
+	HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error)
 	GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
 	Delete(ctx context.Context, userID, categoryID int64) error
 	DeleteAll(ctx context.Context, userID int64) error
@@ -105,6 +108,40 @@ func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.C
 	})
 
 	return relations, nil
+}
+
+func (r *userCategoryRelationRepositories) HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error) {
+	const query = `
+		SELECT 1
+		FROM user_category_relations
+		WHERE user_id = $1 AND category_id = $2
+		LIMIT 1;
+	`
+
+	var exists int
+	err := r.db.QueryRow(ctx, query, userID, categoryID).Scan(&exists)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			r.logger.Info(ctx, "Relação entre usuário e categoria não existe", map[string]interface{}{
+				"user_id":     userID,
+				"category_id": categoryID,
+			})
+			return false, nil
+		}
+
+		r.logger.Error(ctx, err, "Erro ao verificar existência de relação entre usuário e categoria", map[string]interface{}{
+			"user_id":     userID,
+			"category_id": categoryID,
+		})
+		return false, fmt.Errorf("%w: %v", ErrCheckRelationExists, err)
+	}
+
+	r.logger.Info(ctx, "Relação entre usuário e categoria existe", map[string]interface{}{
+		"user_id":     userID,
+		"category_id": categoryID,
+	})
+
+	return true, nil
 }
 
 func (r *userCategoryRelationRepositories) Delete(ctx context.Context, userID, categoryID int64) error {

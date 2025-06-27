@@ -24,7 +24,7 @@ import (
 
 func RegisterSupplierRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
 	supplierRepo := supplierRepositories.NewSupplierRepository(db)
-	supplierCategoryRepo := supplierCategoryRepositories.NewSupplierCategoryRepository(db)
+	supplierCategoryRepo := supplierCategoryRepositories.NewSupplierCategoryRepository(db, log)
 	supplierCategoryRelationRepo := supplierCategoryRelationRepositories.NewSupplierCategoryRelationRepo(db)
 	addressRepo := addressRepositories.NewAddressRepository(db, log)
 	contactRepo := contactRepositories.NewContactRepository(db, log)
