@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
-	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
@@ -29,10 +27,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requestData struct {
-		User        *models_user.User       `json:"user"`
-		CategoryIDs []int64                 `json:"category_id"`
-		Address     *models_address.Address `json:"address"`
-		Contact     *models_contact.Contact `json:"contact"`
+		User *models_user.User `json:"user"`
 	}
 
 	if err := utils.FromJson(r.Body, &requestData); err != nil {
@@ -40,13 +35,8 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdUser, err := h.service.Create(
-		r.Context(),
-		requestData.User,
-		requestData.CategoryIDs,
-		requestData.Address,
-		requestData.Contact,
-	)
+	createdUser, err := h.service.Create(r.Context(), requestData.User)
+
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
@@ -171,9 +161,8 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	requestData.User.UID = id
-	address := requestData.User.Address
 
-	updatedUser, err := h.service.Update(r.Context(), requestData.User, address)
+	updatedUser, err := h.service.Update(r.Context(), requestData.User)
 	if err != nil {
 		if errors.Is(err, repository.ErrVersionConflict) {
 			utils.ErrorResponse(w, err, http.StatusConflict)

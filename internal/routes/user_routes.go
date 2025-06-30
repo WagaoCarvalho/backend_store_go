@@ -3,27 +3,21 @@ package routes
 import (
 	"net/http"
 
-	user_handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user"
+	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
-	address_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
-	contact_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
-	user_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
-	user_category_relation_repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
-	user_services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func RegisterUserRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
-	userRepo := user_repositories.NewUserRepository(db)
-	addressRepo := address_repositories.NewAddressRepository(db, log)
-	contactRepo := contact_repositories.NewContactRepository(db, log)
-	relationRepo := user_category_relation_repo.NewUserCategoryRelationRepositories(db, log)
+	userRepo := repositories.NewUserRepository(db, log)
 
-	userService := user_services.NewUserService(userRepo, addressRepo, contactRepo, relationRepo)
-	handler := user_handlers.NewUserHandler(userService)
+	userService := services.NewUserService(userRepo)
+	handler := handlers.NewUserHandler(userService)
 
 	r.HandleFunc("/user", handler.Create).Methods(http.MethodPost)
 

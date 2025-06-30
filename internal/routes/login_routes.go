@@ -6,6 +6,7 @@ import (
 
 	loginServices "github.com/WagaoCarvalho/backend_store_go/internal/auth"
 	loginHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/login"
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	userRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
@@ -13,8 +14,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RegisterLoginRoutes(r *mux.Router, db *pgxpool.Pool) {
-	userRepo := userRepositories.NewUserRepository(db)
+func RegisterLoginRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
+	userRepo := userRepositories.NewUserRepository(db, log)
 
 	// 🔐 Carregar configuração JWT
 	jwtCfg := config.LoadJwtConfig()

@@ -3,29 +3,17 @@ package services
 import (
 	"context"
 
-	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
-	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	"github.com/stretchr/testify/mock"
 )
-
-type MockUserCategoryRelationRepositories struct {
-	mock.Mock
-}
 
 // Mock do serviço de usuário
 type MockUserService struct {
 	mock.Mock
 }
 
-func (m *MockUserService) Create(
-	ctx context.Context,
-	user *models_user.User,
-	categoryIDs []int64,
-	address *models_address.Address,
-	contact *models_contact.Contact,
-) (*models_user.User, error) {
-	args := m.Called(ctx, user, categoryIDs, address, contact)
+func (m *MockUserService) Create(ctx context.Context, user *models_user.User) (*models_user.User, error) {
+	args := m.Called(ctx, user)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -66,12 +54,8 @@ func (m *MockUserService) Delete(ctx context.Context, uid int64) error {
 	return args.Error(0)
 }
 
-func (m *MockUserService) Update(
-	ctx context.Context,
-	user *models_user.User,
-	address *models_address.Address,
-) (*models_user.User, error) {
-	args := m.Called(ctx, user, address)
+func (m *MockUserService) Update(ctx context.Context, user *models_user.User) (*models_user.User, error) {
+	args := m.Called(ctx, user)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

@@ -10,18 +10,6 @@ import (
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
 )
 
-var (
-	ErrCreateCategory      = errors.New("erro ao criar categoria")
-	ErrFetchCategories     = errors.New("erro ao buscar categorias")
-	ErrFetchCategory       = errors.New("erro ao buscar categoria")
-	ErrUpdateCategory      = errors.New("erro ao atualizar categoria")
-	ErrDeleteCategory      = errors.New("erro ao deletar categoria")
-	ErrCategoryNotFound    = errors.New("categoria não encontrada")
-	ErrInvalidCategoryName = errors.New("o nome da categoria é obrigatório")
-	ErrInvalidCategory     = errors.New("categoria: objeto inválido")
-	ErrCategoryIDRequired  = errors.New("categoria: ID da categoria é obrigatório")
-)
-
 type UserCategoryService interface {
 	GetAll(ctx context.Context) ([]*models.UserCategory, error)
 	GetByID(ctx context.Context, id int64) (*models.UserCategory, error)
