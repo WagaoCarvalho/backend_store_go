@@ -2,19 +2,10 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
-)
-
-var (
-	ErrInvalidAddressData = errors.New("address: dados do endereço inválidos")
-	ErrAddressIDRequired  = errors.New("address: ID do endereço é obrigatório")
-	ErrUpdateAddress      = errors.New("address: erro ao atualizar")
-	ErrInvalidID          = errors.New("address: id inválido")
-	ErrAddressNotFound    = errors.New("address: endereço não encontrado")
 )
 
 type AddressService interface {

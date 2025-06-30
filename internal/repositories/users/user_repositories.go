@@ -249,12 +249,28 @@ func (r *userRepository) Delete(ctx context.Context, uid int64) error {
 
 	result, err := r.db.Exec(ctx, query, uid)
 	if err != nil {
+		r.logger.Error(ctx, err, "Erro ao deletar usuário", map[string]interface{}{
+			"user_id": uid,
+		})
 		return fmt.Errorf("%w: %v", ErrDeleteUser, err)
 	}
 
-	if result.RowsAffected() == 0 {
+	rows := result.RowsAffected()
+	r.logger.Info(ctx, "Resultado do DELETE", map[string]interface{}{
+		"user_id": uid,
+		"rows":    rows,
+	})
+
+	if rows == 0 {
+		r.logger.Warn(ctx, "Nenhum usuário encontrado para deletar", map[string]interface{}{
+			"user_id": uid,
+		})
 		return ErrUserNotFound
 	}
+
+	r.logger.Info(ctx, "Usuário deletado com sucesso", map[string]interface{}{
+		"user_id": uid,
+	})
 
 	return nil
 }
