@@ -12,6 +12,7 @@ import (
 	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	contact_services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts/contact_services_mock"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -456,7 +457,18 @@ func TestContactHandler_Delete(t *testing.T) {
 
 		handler.Delete(w, req)
 
-		assert.Equal(t, http.StatusNoContent, w.Code)
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var response utils.DefaultResponse
+		err := json.NewDecoder(resp.Body).Decode(&response)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, response.Status)
+		assert.Equal(t, "Contato deletado com sucesso", response.Message)
+		assert.Nil(t, response.Data)
+
 		mockSvc.AssertExpectations(t)
 	})
 
@@ -470,7 +482,11 @@ func TestContactHandler_Delete(t *testing.T) {
 
 		handler.Delete(w, req)
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		assert.Contains(t, w.Body.String(), "ID inválido")
 	})
 
 	t.Run("not found", func(t *testing.T) {
@@ -478,14 +494,19 @@ func TestContactHandler_Delete(t *testing.T) {
 		mockSvc := new(contact_services_mock.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
-		mockSvc.On("Delete", mock.Anything, int64(99)).Return(errors.New("não encontrado")).Once()
+		mockSvc.On("Delete", mock.Anything, int64(99)).Return(errors.New("contato não encontrado")).Once()
 
 		req := newRequestWithVars("DELETE", "/contacts/99", nil, map[string]string{"id": "99"})
 		w := httptest.NewRecorder()
 
 		handler.Delete(w, req)
 
-		assert.Equal(t, http.StatusNotFound, w.Code)
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+		assert.Contains(t, w.Body.String(), "contato não encontrado")
+
 		mockSvc.AssertExpectations(t)
 	})
 }
