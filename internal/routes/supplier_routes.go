@@ -31,7 +31,7 @@ func RegisterSupplierRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerA
 
 	relationService := supplierCategoryRelations.NewSupplierCategoryRelationService(supplierCategoryRelationRepo)
 	categoryService := supplierCategoryServices.NewSupplierCategoryService(supplierCategoryRepo)
-	addressService := addressServices.NewAddressService(addressRepo)
+	addressService := addressServices.NewAddressService(addressRepo, log)
 	contactService := contactServices.NewContactService(contactRepo)
 	supplierService := supplierServices.NewSupplierService(supplierRepo, relationService, addressService, contactService, categoryService)
 

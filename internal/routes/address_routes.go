@@ -15,8 +15,8 @@ import (
 
 func RegisterAddressRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
 	repo := addressRepositories.NewAddressRepository(db, log)
-	service := addressServices.NewAddressService(repo)
-	handler := addressHandlers.NewAddressHandler(service)
+	service := addressServices.NewAddressService(repo, log)
+	handler := addressHandlers.NewAddressHandler(service, log)
 
 	s := r.PathPrefix("/").Subrouter()
 	s.Use(jwt.IsAuthByBearerToken)

@@ -54,7 +54,16 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 	).Scan(&address.ID, &address.CreatedAt, &address.UpdatedAt)
 
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao criar endereço", map[string]interface{}{
+		if IsForeignKeyViolation(err) {
+			r.logger.Warn(ctx, "[addressRepository] - Falha por chave estrangeira ao criar endereço", map[string]interface{}{
+				"user_id":     utils.Int64OrNil(address.UserID),
+				"client_id":   utils.Int64OrNil(address.ClientID),
+				"supplier_id": utils.Int64OrNil(address.SupplierID),
+			})
+			return nil, ErrInvalidForeignKey
+		}
+
+		r.logger.Error(ctx, err, "[addressRepository] - Erro ao criar endereço", map[string]interface{}{
 			"user_id":     utils.Int64OrNil(address.UserID),
 			"client_id":   utils.Int64OrNil(address.ClientID),
 			"supplier_id": utils.Int64OrNil(address.SupplierID),
@@ -63,7 +72,7 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 		return nil, fmt.Errorf("%w: %v", ErrCreateAddress, err)
 	}
 
-	r.logger.Info(ctx, "Endereço criado com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[addressRepository] - Endereço criado com sucesso", map[string]interface{}{
 		"address_id": address.ID,
 		"user_id":    utils.Int64OrNil(address.UserID),
 	})
@@ -98,19 +107,19 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Info(ctx, "Endereço não encontrado", map[string]interface{}{
+			r.logger.Info(ctx, "[addressRepository] - Endereço não encontrado", map[string]interface{}{
 				"address_id": id,
 			})
 			return nil, ErrAddressNotFound
 		}
 
-		r.logger.Error(ctx, err, "Erro ao buscar endereço", map[string]interface{}{
+		r.logger.Error(ctx, err, "[addressRepository] - Erro ao buscar endereço", map[string]interface{}{
 			"address_id": id,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
 	}
 
-	r.logger.Info(ctx, "Endereço recuperado com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[addressRepository] - Endereço recuperado com sucesso", map[string]interface{}{
 		"address_id": address.ID,
 		"user_id":    utils.Int64OrNil(address.UserID),
 	})
@@ -130,7 +139,7 @@ func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 
 	rows, err := r.db.Query(ctx, query, userID)
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao buscar endereços por user_id", map[string]interface{}{
+		r.logger.Error(ctx, err, "[addressRepository] - Erro ao buscar endereços por user_id", map[string]interface{}{
 			"user_id": userID,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
@@ -153,7 +162,7 @@ func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 			&address.CreatedAt,
 			&address.UpdatedAt,
 		); err != nil {
-			r.logger.Error(ctx, err, "Erro ao fazer scan dos endereços", map[string]interface{}{
+			r.logger.Error(ctx, err, "[addressRepository] - Erro ao fazer scan dos endereços", map[string]interface{}{
 				"user_id": userID,
 			})
 			return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
@@ -161,7 +170,7 @@ func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 		addresses = append(addresses, &address)
 	}
 
-	r.logger.Info(ctx, "Endereços recuperados com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[addressRepository] - Endereços recuperados com sucesso", map[string]interface{}{
 		"user_id":       userID,
 		"total_results": len(addresses),
 	})
@@ -181,7 +190,7 @@ func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) (
 
 	rows, err := r.db.Query(ctx, query, clientID)
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao buscar endereços por client_id", map[string]interface{}{
+		r.logger.Error(ctx, err, "[addressRepository] - Erro ao buscar endereços por client_id", map[string]interface{}{
 			"client_id": clientID,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
@@ -204,7 +213,7 @@ func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) (
 			&address.CreatedAt,
 			&address.UpdatedAt,
 		); err != nil {
-			r.logger.Error(ctx, err, "Erro ao fazer scan dos endereços por client_id", map[string]interface{}{
+			r.logger.Error(ctx, err, "[addressRepository] - Erro ao fazer scan dos endereços por client_id", map[string]interface{}{
 				"client_id": clientID,
 			})
 			return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
@@ -212,7 +221,7 @@ func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) (
 		addresses = append(addresses, &address)
 	}
 
-	r.logger.Info(ctx, "Endereços recuperados com sucesso por client_id", map[string]interface{}{
+	r.logger.Info(ctx, "[addressRepository] - Endereços recuperados com sucesso por client_id", map[string]interface{}{
 		"client_id":     clientID,
 		"total_results": len(addresses),
 	})
@@ -232,7 +241,7 @@ func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int6
 
 	rows, err := r.db.Query(ctx, query, supplierID)
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao buscar endereços por supplier_id", map[string]interface{}{
+		r.logger.Error(ctx, err, "[addressRepository] - Erro ao buscar endereços por supplier_id", map[string]interface{}{
 			"supplier_id": supplierID,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
@@ -255,7 +264,7 @@ func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int6
 			&address.CreatedAt,
 			&address.UpdatedAt,
 		); err != nil {
-			r.logger.Error(ctx, err, "Erro ao fazer scan dos endereços por supplier_id", map[string]interface{}{
+			r.logger.Error(ctx, err, "[addressRepository] - Erro ao fazer scan dos endereços por supplier_id", map[string]interface{}{
 				"supplier_id": supplierID,
 			})
 			return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
@@ -263,7 +272,7 @@ func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int6
 		addresses = append(addresses, &address)
 	}
 
-	r.logger.Info(ctx, "Endereços recuperados com sucesso por supplier_id", map[string]interface{}{
+	r.logger.Info(ctx, "[addressRepository] - Endereços recuperados com sucesso por supplier_id", map[string]interface{}{
 		"supplier_id":   supplierID,
 		"total_results": len(addresses),
 	})
@@ -302,23 +311,23 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Info(ctx, "Endereço não encontrado para atualização", map[string]interface{}{
+			r.logger.Info(ctx, "[addressRepository] - Endereço não encontrado para atualização", map[string]interface{}{
 				"address_id": address.ID,
-				"user_id":    address.UserID,
+				"user_id":    utils.Int64OrNil(address.UserID),
 			})
 			return ErrAddressNotFound
 		}
 
-		r.logger.Error(ctx, err, "Erro ao atualizar endereço", map[string]interface{}{
+		r.logger.Error(ctx, err, "[addressRepository] - Erro ao atualizar endereço", map[string]interface{}{
 			"address_id": address.ID,
-			"user_id":    address.UserID,
+			"user_id":    utils.Int64OrNil(address.UserID),
 		})
 		return fmt.Errorf("%w: %v", ErrUpdateAddress, err)
 	}
 
-	r.logger.Info(ctx, "Endereço atualizado com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[addressRepository] - Endereço atualizado com sucesso", map[string]interface{}{
 		"address_id": address.ID,
-		"user_id":    address.UserID,
+		"user_id":    utils.Int64OrNil(address.UserID),
 	})
 
 	return nil
@@ -332,20 +341,20 @@ func (r *addressRepository) Delete(ctx context.Context, id int64) error {
 
 	cmdTag, err := r.db.Exec(ctx, query, id)
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao deletar endereço", map[string]interface{}{
+		r.logger.Error(ctx, err, "[addressRepository] - Erro ao deletar endereço", map[string]interface{}{
 			"address_id": id,
 		})
 		return fmt.Errorf("%w: %v", ErrDeleteAddress, err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		r.logger.Info(ctx, "Endereço não encontrado para exclusão", map[string]interface{}{
+		r.logger.Info(ctx, "[addressRepository] - Endereço não encontrado para exclusão", map[string]interface{}{
 			"address_id": id,
 		})
 		return ErrAddressNotFound
 	}
 
-	r.logger.Info(ctx, "Endereço deletado com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[addressRepository] - Endereço deletado com sucesso", map[string]interface{}{
 		"address_id": id,
 	})
 

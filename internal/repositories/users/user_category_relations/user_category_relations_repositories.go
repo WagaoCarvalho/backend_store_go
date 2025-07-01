@@ -38,28 +38,28 @@ func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation 
 	_, err := r.db.Exec(ctx, query, relation.UserID, relation.CategoryID)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key") {
-			r.logger.Warn(ctx, "Relação já existente entre usuário e categoria", map[string]interface{}{
+			r.logger.Warn(ctx, "[userCategoryRelationRepositories] - Relação já existente entre usuário e categoria", map[string]interface{}{
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
 			})
 			return nil, ErrRelationExists
 		}
 		if strings.Contains(err.Error(), "violates foreign key constraint") {
-			r.logger.Warn(ctx, "Chave estrangeira inválida na criação da relação", map[string]interface{}{
+			r.logger.Warn(ctx, "[userCategoryRelationRepositories] - Chave estrangeira inválida na criação da relação", map[string]interface{}{
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
 			})
 			return nil, ErrInvalidForeignKey
 		}
 
-		r.logger.Error(ctx, err, "Erro ao criar relação entre usuário e categoria", map[string]interface{}{
+		r.logger.Error(ctx, err, "[userCategoryRelationRepositories] - Erro ao criar relação entre usuário e categoria", map[string]interface{}{
 			"user_id":     relation.UserID,
 			"category_id": relation.CategoryID,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrCreateRelation, err)
 	}
 
-	r.logger.Info(ctx, "Relação entre usuário e categoria criada com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[userCategoryRelationRepositories] - Relação entre usuário e categoria criada com sucesso", map[string]interface{}{
 		"user_id":     relation.UserID,
 		"category_id": relation.CategoryID,
 	})
@@ -76,7 +76,7 @@ func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.C
 
 	rows, err := r.db.Query(ctx, query, userID)
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao buscar relações por user_id", map[string]interface{}{
+		r.logger.Error(ctx, err, "[userCategoryRelationRepositories] - Erro ao buscar relações por user_id", map[string]interface{}{
 			"user_id": userID,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrGetRelationsByUser, err)
@@ -87,7 +87,7 @@ func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.C
 	for rows.Next() {
 		var rel models.UserCategoryRelations
 		if err := rows.Scan(&rel.UserID, &rel.CategoryID, &rel.CreatedAt); err != nil {
-			r.logger.Error(ctx, err, "Erro ao escanear relação de categoria de usuário", map[string]interface{}{
+			r.logger.Error(ctx, err, "[userCategoryRelationRepositories] - Erro ao escanear relação de categoria de usuário", map[string]interface{}{
 				"user_id": userID,
 			})
 			return nil, fmt.Errorf("%w: %v", ErrScanRelation, err)
@@ -96,13 +96,13 @@ func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.C
 	}
 
 	if err := rows.Err(); err != nil {
-		r.logger.Error(ctx, err, "Erro ao iterar sobre as relações de categoria de usuário", map[string]interface{}{
+		r.logger.Error(ctx, err, "[userCategoryRelationRepositories] - Erro ao iterar sobre as relações de categoria de usuário", map[string]interface{}{
 			"user_id": userID,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrIterateRelations, err)
 	}
 
-	r.logger.Info(ctx, "Relações de categorias do usuário obtidas com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[userCategoryRelationRepositories] - Relações de categorias do usuário obtidas com sucesso", map[string]interface{}{
 		"user_id":         userID,
 		"relations_count": len(relations),
 	})
@@ -122,21 +122,21 @@ func (r *userCategoryRelationRepositories) HasUserCategoryRelation(ctx context.C
 	err := r.db.QueryRow(ctx, query, userID, categoryID).Scan(&exists)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Info(ctx, "Relação entre usuário e categoria não existe", map[string]interface{}{
+			r.logger.Info(ctx, "[userCategoryRelationRepositories] - Relação entre usuário e categoria não existe", map[string]interface{}{
 				"user_id":     userID,
 				"category_id": categoryID,
 			})
 			return false, nil
 		}
 
-		r.logger.Error(ctx, err, "Erro ao verificar existência de relação entre usuário e categoria", map[string]interface{}{
+		r.logger.Error(ctx, err, "[userCategoryRelationRepositories] - Erro ao verificar existência de relação entre usuário e categoria", map[string]interface{}{
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
 		return false, fmt.Errorf("%w: %v", ErrCheckRelationExists, err)
 	}
 
-	r.logger.Info(ctx, "Relação entre usuário e categoria existe", map[string]interface{}{
+	r.logger.Info(ctx, "[userCategoryRelationRepositories] - Relação entre usuário e categoria existe", map[string]interface{}{
 		"user_id":     userID,
 		"category_id": categoryID,
 	})
@@ -152,7 +152,7 @@ func (r *userCategoryRelationRepositories) Delete(ctx context.Context, userID, c
 
 	result, err := r.db.Exec(ctx, query, userID, categoryID)
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao excluir relação entre usuário e categoria", map[string]interface{}{
+		r.logger.Error(ctx, err, "[userCategoryRelationRepositories] - Erro ao excluir relação entre usuário e categoria", map[string]interface{}{
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
@@ -160,14 +160,14 @@ func (r *userCategoryRelationRepositories) Delete(ctx context.Context, userID, c
 	}
 
 	if result.RowsAffected() == 0 {
-		r.logger.Warn(ctx, "Relação entre usuário e categoria não encontrada para exclusão", map[string]interface{}{
+		r.logger.Warn(ctx, "[userCategoryRelationRepositories] - Relação entre usuário e categoria não encontrada para exclusão", map[string]interface{}{
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
 		return ErrRelationNotFound
 	}
 
-	r.logger.Info(ctx, "Relação entre usuário e categoria excluída com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[userCategoryRelationRepositories] - Relação entre usuário e categoria excluída com sucesso", map[string]interface{}{
 		"user_id":     userID,
 		"category_id": categoryID,
 	})
@@ -183,13 +183,13 @@ func (r *userCategoryRelationRepositories) DeleteAll(ctx context.Context, userID
 
 	result, err := r.db.Exec(ctx, query, userID)
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao excluir todas as relações do usuário", map[string]interface{}{
+		r.logger.Error(ctx, err, "[userCategoryRelationRepositories] - Erro ao excluir todas as relações do usuário", map[string]interface{}{
 			"user_id": userID,
 		})
 		return fmt.Errorf("%w: %v", ErrDeleteAllUserRelations, err)
 	}
 
-	r.logger.Info(ctx, "Todas as relações do usuário foram excluídas com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[userCategoryRelationRepositories] - Todas as relações do usuário foram excluídas com sucesso", map[string]interface{}{
 		"user_id":       userID,
 		"rows_affected": result.RowsAffected(),
 	})

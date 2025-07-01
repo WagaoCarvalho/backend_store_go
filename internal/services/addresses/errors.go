@@ -8,4 +8,5 @@ var (
 	ErrUpdateAddress      = errors.New("address: erro ao atualizar")
 	ErrInvalidID          = errors.New("address: id inválido")
 	ErrAddressNotFound    = errors.New("address: endereço não encontrado")
+	ErrDeleteAddress      = errors.New("address: erro ao deletar endereço")
 )

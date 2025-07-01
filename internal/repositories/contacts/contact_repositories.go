@@ -57,7 +57,7 @@ func (r *contactRepository) Create(ctx context.Context, contact *models.Contact)
 		return nil, fmt.Errorf("%w: %v", ErrCreateContact, err)
 	}
 
-	r.logger.Info(ctx, "Contato criado com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[contactRepository] - Contato criado com sucesso", map[string]interface{}{
 		"contact_id":  contact.ID,
 		"user_id":     utils.Int64OrNil(contact.UserID),
 		"client_id":   utils.Int64OrNil(contact.ClientID),
@@ -95,19 +95,19 @@ func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Cont
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Error(ctx, ErrContactNotFound, "Contato não encontrado", map[string]interface{}{
+			r.logger.Error(ctx, ErrContactNotFound, "[contactRepository] - Contato não encontrado", map[string]interface{}{
 				"contact_id": id,
 			})
 			return nil, ErrContactNotFound
 		}
 
-		r.logger.Error(ctx, err, "Erro ao buscar contato por ID", map[string]interface{}{
+		r.logger.Error(ctx, err, "[contactRepository] - Erro ao buscar contato por ID", map[string]interface{}{
 			"contact_id": id,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrFetchContact, err)
 	}
 
-	r.logger.Info(ctx, "Contato encontrado com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[contactRepository] - Contato encontrado com sucesso", map[string]interface{}{
 		"contact_id":  contact.ID,
 		"user_id":     utils.Int64OrNil(contact.UserID),
 		"client_id":   utils.Int64OrNil(contact.ClientID),
@@ -129,7 +129,7 @@ func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 
 	rows, err := r.db.Query(ctx, query, userID)
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao buscar contatos por user_id", map[string]interface{}{
+		r.logger.Error(ctx, err, "[contactRepository] - Erro ao buscar contatos por user_id", map[string]interface{}{
 			"user_id": userID,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrFetchContactsByUser, err)
@@ -153,7 +153,7 @@ func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 			&contact.CreatedAt,
 			&contact.UpdatedAt,
 		); err != nil {
-			r.logger.Error(ctx, err, "Erro ao fazer scan do contato", map[string]interface{}{
+			r.logger.Error(ctx, err, "[contactRepository] - Erro ao fazer scan do contato", map[string]interface{}{
 				"user_id": userID,
 			})
 			return nil, fmt.Errorf("%w: %v", ErrScanContact, err)
@@ -162,13 +162,13 @@ func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 	}
 
 	if err := rows.Err(); err != nil {
-		r.logger.Error(ctx, err, "Erro ao iterar sobre os contatos", map[string]interface{}{
+		r.logger.Error(ctx, err, "[contactRepository] - Erro ao iterar sobre os contatos", map[string]interface{}{
 			"user_id": userID,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrFetchContactsByUser, err)
 	}
 
-	r.logger.Info(ctx, "Contatos buscados com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[contactRepository] - Contatos buscados com sucesso", map[string]interface{}{
 		"user_id":      userID,
 		"total_result": len(contacts),
 	})
@@ -187,7 +187,7 @@ func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) (
 
 	rows, err := r.db.Query(ctx, query, clientID)
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao buscar contatos por client_id", map[string]interface{}{
+		r.logger.Error(ctx, err, "[contactRepository] - Erro ao buscar contatos por client_id", map[string]interface{}{
 			"client_id": clientID,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrFetchContactsByClient, err)
@@ -211,7 +211,7 @@ func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) (
 			&contact.CreatedAt,
 			&contact.UpdatedAt,
 		); err != nil {
-			r.logger.Error(ctx, err, "Erro ao fazer scan do contato por client_id", map[string]interface{}{
+			r.logger.Error(ctx, err, "[contactRepository] - Erro ao fazer scan do contato por client_id", map[string]interface{}{
 				"client_id": clientID,
 			})
 			return nil, fmt.Errorf("%w: %v", ErrScanContact, err)
@@ -220,13 +220,13 @@ func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) (
 	}
 
 	if err := rows.Err(); err != nil {
-		r.logger.Error(ctx, err, "Erro ao iterar sobre os contatos por client_id", map[string]interface{}{
+		r.logger.Error(ctx, err, "[contactRepository] - Erro ao iterar sobre os contatos por client_id", map[string]interface{}{
 			"client_id": clientID,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrFetchContactsByClient, err)
 	}
 
-	r.logger.Info(ctx, "Contatos buscados com sucesso por client_id", map[string]interface{}{
+	r.logger.Info(ctx, "[contactRepository] - Contatos buscados com sucesso por client_id", map[string]interface{}{
 		"client_id":    clientID,
 		"total_result": len(contacts),
 	})
@@ -245,7 +245,7 @@ func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int6
 
 	rows, err := r.db.Query(ctx, query, supplierID)
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao buscar contatos por supplier_id", map[string]interface{}{
+		r.logger.Error(ctx, err, "[contactRepository] - Erro ao buscar contatos por supplier_id", map[string]interface{}{
 			"supplier_id": supplierID,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrFetchContactsBySupplier, err)
@@ -269,7 +269,7 @@ func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int6
 			&contact.CreatedAt,
 			&contact.UpdatedAt,
 		); err != nil {
-			r.logger.Error(ctx, err, "Erro ao fazer scan do contato por supplier_id", map[string]interface{}{
+			r.logger.Error(ctx, err, "[contactRepository] - Erro ao fazer scan do contato por supplier_id", map[string]interface{}{
 				"supplier_id": supplierID,
 			})
 			return nil, fmt.Errorf("%w: %v", ErrScanContact, err)
@@ -278,13 +278,13 @@ func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int6
 	}
 
 	if err := rows.Err(); err != nil {
-		r.logger.Error(ctx, err, "Erro ao iterar sobre os contatos por supplier_id", map[string]interface{}{
+		r.logger.Error(ctx, err, "[contactRepository] - Erro ao iterar sobre os contatos por supplier_id", map[string]interface{}{
 			"supplier_id": supplierID,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrFetchContactsBySupplier, err)
 	}
 
-	r.logger.Info(ctx, "Contatos buscados com sucesso por supplier_id", map[string]interface{}{
+	r.logger.Info(ctx, "[contactRepository] - Contatos buscados com sucesso por supplier_id", map[string]interface{}{
 		"supplier_id":  supplierID,
 		"total_result": len(contacts),
 	})
@@ -324,7 +324,7 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 	)
 
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao atualizar contato", map[string]interface{}{
+		r.logger.Error(ctx, err, "[contactRepository] - Erro ao atualizar contato", map[string]interface{}{
 			"contact_id":  contact.ID,
 			"user_id":     utils.Int64OrNil(contact.UserID),
 			"client_id":   utils.Int64OrNil(contact.ClientID),
@@ -335,13 +335,13 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		r.logger.Info(ctx, "Contato não encontrado para atualização", map[string]interface{}{
+		r.logger.Info(ctx, "[contactRepository] - Contato não encontrado para atualização", map[string]interface{}{
 			"contact_id": contact.ID,
 		})
 		return ErrContactNotFound
 	}
 
-	r.logger.Info(ctx, "Contato atualizado com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[contactRepository] - Contato atualizado com sucesso", map[string]interface{}{
 		"contact_id": contact.ID,
 	})
 
@@ -353,20 +353,20 @@ func (r *contactRepository) Delete(ctx context.Context, id int64) error {
 
 	result, err := r.db.Exec(ctx, query, id)
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao deletar contato", map[string]interface{}{
+		r.logger.Error(ctx, err, "[contactRepository] - Erro ao deletar contato", map[string]interface{}{
 			"contact_id": id,
 		})
 		return fmt.Errorf("%w: %v", ErrDeleteContact, err)
 	}
 
 	if rowsAffected := result.RowsAffected(); rowsAffected == 0 {
-		r.logger.Info(ctx, "Contato não encontrado para exclusão", map[string]interface{}{
+		r.logger.Info(ctx, "[contactRepository] - Contato não encontrado para exclusão", map[string]interface{}{
 			"contact_id": id,
 		})
 		return ErrContactNotFound
 	}
 
-	r.logger.Info(ctx, "Contato deletado com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[contactRepository] - Contato deletado com sucesso", map[string]interface{}{
 		"contact_id": id,
 	})
 

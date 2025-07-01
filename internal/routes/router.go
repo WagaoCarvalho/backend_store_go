@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"context"
 	"net/http"
 
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/home"
@@ -25,7 +26,7 @@ func NewRouter(log *logger.LoggerAdapter) *mux.Router {
 
 	db, err := repo.Connect(&repo.RealPgxPool{})
 	if err != nil {
-		log.Error(nil, err, "Erro ao conectar ao banco de dados", nil)
+		log.Error(context.TODO(), err, "Erro ao conectar ao banco de dados", nil)
 	}
 
 	r.HandleFunc("/", handlers.GetHome).Methods(http.MethodGet)
