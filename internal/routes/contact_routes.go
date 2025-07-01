@@ -15,8 +15,8 @@ import (
 
 func RegisterContactRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
 	repo := contact_repositories.NewContactRepository(db, log)
-	service := contact_services.NewContactService(repo)
-	handler := contact_handlers.NewContactHandler(service)
+	service := contact_services.NewContactService(repo, log)
+	handler := contact_handlers.NewContactHandler(service, log)
 
 	s := r.PathPrefix("/").Subrouter()
 	s.Use(jwt.IsAuthByBearerToken)

@@ -32,6 +32,12 @@ func NewAddressRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) Addres
 }
 
 func (r *addressRepository) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
+	r.logger.Info(ctx, "[addressRepository] - Iniciando criação de endereço", map[string]interface{}{
+		"user_id":     utils.Int64OrNil(address.UserID),
+		"client_id":   utils.Int64OrNil(address.ClientID),
+		"supplier_id": utils.Int64OrNil(address.SupplierID),
+		"street":      address.Street,
+	})
 	const query = `
 		INSERT INTO addresses (
 			user_id, client_id, supplier_id,
@@ -81,6 +87,9 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 }
 
 func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Address, error) {
+	r.logger.Info(ctx, "[addressRepository] - Iniciando busca de endereço", map[string]interface{}{
+		"address_id": id,
+	})
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -128,6 +137,9 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 }
 
 func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
+	r.logger.Info(ctx, "[addressRepository] - Iniciando busca de endereços por usuário", map[string]interface{}{
+		"user_id": userID,
+	})
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -179,6 +191,10 @@ func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 }
 
 func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
+	r.logger.Info(ctx, "[addressRepository] - Iniciando busca de endereços por cliente", map[string]interface{}{
+		"client_id": clientID,
+	})
+
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -230,6 +246,10 @@ func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) (
 }
 
 func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
+	r.logger.Info(ctx, "[addressRepository] - Iniciando busca de endereços por fornecedor", map[string]interface{}{
+		"supplier_id": supplierID,
+	})
+
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -281,6 +301,14 @@ func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int6
 }
 
 func (r *addressRepository) Update(ctx context.Context, address *models.Address) error {
+	r.logger.Info(ctx, "[addressRepository] - Iniciando atualização de endereço", map[string]interface{}{
+		"address_id":  address.ID,
+		"user_id":     utils.Int64OrNil(address.UserID),
+		"client_id":   utils.Int64OrNil(address.ClientID),
+		"supplier_id": utils.Int64OrNil(address.SupplierID),
+		"street":      address.Street,
+	})
+
 	const query = `
 		UPDATE addresses
 		SET 
@@ -334,6 +362,9 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 }
 
 func (r *addressRepository) Delete(ctx context.Context, id int64) error {
+	r.logger.Info(ctx, "[addressRepository] - Iniciando exclusão de endereço", map[string]interface{}{
+		"address_id": id,
+	})
 	const query = `
 		DELETE FROM addresses 
 		WHERE id = $1
@@ -341,7 +372,7 @@ func (r *addressRepository) Delete(ctx context.Context, id int64) error {
 
 	cmdTag, err := r.db.Exec(ctx, query, id)
 	if err != nil {
-		r.logger.Error(ctx, err, "[addressRepository] - Erro ao deletar endereço", map[string]interface{}{
+		r.logger.Error(ctx, err, "[addressRepository] - Erro ao excluir endereço", map[string]interface{}{
 			"address_id": id,
 		})
 		return fmt.Errorf("%w: %v", ErrDeleteAddress, err)
@@ -354,7 +385,7 @@ func (r *addressRepository) Delete(ctx context.Context, id int64) error {
 		return ErrAddressNotFound
 	}
 
-	r.logger.Info(ctx, "[addressRepository] - Endereço deletado com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[addressRepository] - Endereço excluído com sucesso", map[string]interface{}{
 		"address_id": id,
 	})
 

@@ -33,6 +33,13 @@ func NewContactRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) Contac
 }
 
 func (r *contactRepository) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
+	r.logger.Info(ctx, "[contactRepository] - Iniciando criação de contato", map[string]interface{}{
+		"contact_name": contact.ContactName,
+		"user_id":      utils.Int64OrNil(contact.UserID),
+		"client_id":    utils.Int64OrNil(contact.ClientID),
+		"supplier_id":  utils.Int64OrNil(contact.SupplierID),
+	})
+
 	const query = `
 		INSERT INTO contacts (
 			user_id, client_id, supplier_id, contact_name, contact_position,
@@ -69,6 +76,10 @@ func (r *contactRepository) Create(ctx context.Context, contact *models.Contact)
 }
 
 func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
+	r.logger.Info(ctx, "[contactRepository] - Iniciando busca de contato", map[string]interface{}{
+		"contact_id": id,
+	})
+
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
@@ -119,6 +130,10 @@ func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Cont
 }
 
 func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error) {
+	r.logger.Info(ctx, "[contactRepository] - Iniciando busca de contatos por usuário", map[string]interface{}{
+		"user_id": userID,
+	})
+
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
@@ -168,7 +183,7 @@ func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 		return nil, fmt.Errorf("%w: %v", ErrFetchContactsByUser, err)
 	}
 
-	r.logger.Info(ctx, "[contactRepository] - Contatos buscados com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, "[contactRepository] - Contatos de usuário buscados com sucesso", map[string]interface{}{
 		"user_id":      userID,
 		"total_result": len(contacts),
 	})
@@ -177,6 +192,10 @@ func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 }
 
 func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error) {
+	r.logger.Info(ctx, "[contactRepository] - Iniciando busca de contatos por cliente", map[string]interface{}{
+		"client_id": clientID,
+	})
+
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
@@ -235,6 +254,10 @@ func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) (
 }
 
 func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Contact, error) {
+	r.logger.Info(ctx, "[contactRepository] - Iniciando busca de contatos por fornecedor", map[string]interface{}{
+		"supplier_id": supplierID,
+	})
+
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
@@ -293,6 +316,14 @@ func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int6
 }
 
 func (r *contactRepository) Update(ctx context.Context, contact *models.Contact) error {
+	r.logger.Info(ctx, "[contactRepository] - Iniciando atualização de contato", map[string]interface{}{
+		"contact_id":   contact.ID,
+		"contact_name": contact.ContactName,
+		"user_id":      utils.Int64OrNil(contact.UserID),
+		"client_id":    utils.Int64OrNil(contact.ClientID),
+		"supplier_id":  utils.Int64OrNil(contact.SupplierID),
+	})
+
 	const query = `
 		UPDATE contacts
 		SET
@@ -349,6 +380,10 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 }
 
 func (r *contactRepository) Delete(ctx context.Context, id int64) error {
+	r.logger.Info(ctx, "[contactRepository] - Iniciando exclusão de contato", map[string]interface{}{
+		"contact_id": id,
+	})
+
 	const query = `DELETE FROM contacts WHERE id = $1`
 
 	result, err := r.db.Exec(ctx, query, id)

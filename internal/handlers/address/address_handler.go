@@ -97,6 +97,10 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
+	h.logger.Info(r.Context(), "[AddressHandler] - Iniciando busca de endereços por UserID", map[string]interface{}{
+		"path": r.URL.Path,
+	})
+
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(r.Context(), "[AddressHandler] - ID inválido para busca por UserID", map[string]interface{}{
@@ -132,6 +136,10 @@ func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
+	h.logger.Info(r.Context(), "[AddressHandler] - Iniciando busca de endereços por ClientID", map[string]interface{}{
+		"path": r.URL.Path,
+	})
+
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(r.Context(), "[AddressHandler] - ID do cliente inválido", map[string]interface{}{
@@ -167,6 +175,10 @@ func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
+	h.logger.Info(r.Context(), "[AddressHandler] - Iniciando busca de endereços por SupplierID", map[string]interface{}{
+		"path": r.URL.Path,
+	})
+
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(r.Context(), "[AddressHandler] - ID inválido ao buscar endereço por SupplierID", map[string]interface{}{
@@ -224,7 +236,8 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 	address.ID = id
 
 	h.logger.Info(r.Context(), "[AddressHandler] - Iniciando atualização de endereço", map[string]interface{}{
-		"id": id,
+		"path":       r.URL.Path,
+		"address_id": address.ID,
 	})
 
 	if err := h.service.Update(r.Context(), &address); err != nil {
@@ -259,7 +272,7 @@ func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(r.Context(), "[AddressHandler] - ID inválido para exclusão", map[string]interface{}{
-			"error": err.Error(),
+			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, errors.New("ID inválido (esperado número inteiro)"), http.StatusBadRequest)
 		return
@@ -269,13 +282,13 @@ func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		"address_id": id,
 	})
 
-	err = h.service.Delete(r.Context(), int64(id))
+	err = h.service.Delete(r.Context(), id)
 	if err != nil {
 		switch {
 		case errors.Is(err, utils.ErrNotFound):
 			h.logger.Warn(r.Context(), "[AddressHandler] - Endereço não encontrado para exclusão", map[string]interface{}{
 				"address_id": id,
-				"error":      err.Error(),
+				"erro":       err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusNotFound)
 		case errors.Is(err, services.ErrAddressIDRequired):
