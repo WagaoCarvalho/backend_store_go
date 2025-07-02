@@ -14,7 +14,7 @@ import (
 
 type ContactHandler struct {
 	service services.ContactService
-	logger  *logger.LoggerAdapter // supondo que o logger seja injetado assim
+	logger  *logger.LoggerAdapter
 }
 
 func NewContactHandler(service services.ContactService, logger *logger.LoggerAdapter) *ContactHandler {
@@ -47,7 +47,6 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Exemplo: trata erros de validação como BadRequest
 		if err.Error() == "nome obrigatório" || err.Error() == "erro interno" {
 			h.logger.Warn(r.Context(), "[ContactHandler] - Erro de validação ou negócio", map[string]interface{}{
 				"erro": err.Error(),
@@ -267,9 +266,5 @@ func (h *ContactHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		"contact_id": id,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
-		Message: "Contato deletado com sucesso",
-		Data:    nil,
-	})
+	w.WriteHeader(http.StatusNoContent)
 }

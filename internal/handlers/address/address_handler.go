@@ -307,9 +307,5 @@ func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		"address_id": id,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
-		Message: "Endereço deletado com sucesso",
-		Data:    nil,
-	})
+	w.WriteHeader(http.StatusNoContent)
 }

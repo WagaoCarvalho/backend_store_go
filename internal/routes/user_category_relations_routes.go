@@ -14,8 +14,8 @@ import (
 
 func RegisterUserCategoryRelationRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
 	relationRepo := user_category_relation_repository.NewUserCategoryRelationRepositories(db, log)
-	relationService := user_category_relation_service.NewUserCategoryRelationServices(relationRepo)
-	relationHandler := user_category_relation_handler.NewUserCategoryRelationHandler(relationService)
+	relationService := user_category_relation_service.NewUserCategoryRelationServices(relationRepo, log)
+	relationHandler := user_category_relation_handler.NewUserCategoryRelationHandler(relationService, log)
 
 	s := r.PathPrefix("/").Subrouter()
 	s.Use(jwt.IsAuthByBearerToken)

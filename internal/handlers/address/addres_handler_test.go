@@ -24,7 +24,7 @@ import (
 )
 
 func TestAddressHandler_Create(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New()) // evita conflito de nome com pacote
+	logAdapter := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
@@ -216,7 +216,7 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
-		handler := NewAddressHandler(mockService, logger) // passa logger no handler
+		handler := NewAddressHandler(mockService, logger)
 		expected := []*models.Address{
 			{ID: int64(1), Street: "Rua 1", City: "Cidade A"},
 			{ID: int64(2), Street: "Rua 2", City: "Cidade B"},
@@ -233,7 +233,7 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		assert.NoError(t, err)
 		assert.Equal(t, "Endereços do usuário encontrados", response["message"])
-		assert.Equal(t, float64(http.StatusOK), response["status"]) // JSON decodifica ints como float64
+		assert.Equal(t, float64(http.StatusOK), response["status"])
 		data, ok := response["data"].([]interface{})
 		assert.True(t, ok)
 		assert.Len(t, data, 2)
@@ -333,7 +333,7 @@ func TestAddressHandler_GetByClientID(t *testing.T) {
 }
 
 func TestAddressHandler_GetBySupplierID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mock
+	logger := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("Success", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
@@ -394,7 +394,7 @@ func TestAddressHandler_GetBySupplierID(t *testing.T) {
 }
 
 func TestAddressHandler_Update(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New()) // Logger real ou mock
+	logAdapter := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("InvalidIDParam", func(t *testing.T) {
 		mockService := new(addresses_services.MockAddressService)
@@ -556,7 +556,7 @@ func TestAddressHandler_Update(t *testing.T) {
 }
 
 func TestAddressHandler_Delete(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New()) // Logger simples para os testes
+	logger := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
@@ -570,9 +570,8 @@ func TestAddressHandler_Delete(t *testing.T) {
 
 		handler.Delete(w, req)
 
-		expected := `{"status":200,"message":"Endereço deletado com sucesso","data":null}`
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.JSONEq(t, expected, w.Body.String())
+		assert.Equal(t, http.StatusNoContent, w.Code)
+		assert.Empty(t, w.Body.String())
 		mockService.AssertExpectations(t)
 	})
 

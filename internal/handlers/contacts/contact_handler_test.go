@@ -12,21 +12,19 @@ import (
 	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	contact_services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts/contact_services_mock"
-	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-// Helpers
 func newRequestWithVars(method, url string, body []byte, vars map[string]string) *http.Request {
 	req := httptest.NewRequest(method, url, bytes.NewBuffer(body))
 	return mux.SetURLVars(req, vars)
 }
 
 func TestContactHandler_Create(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New()) // Exemplo para criar logAdapter, se necessário
+	logAdapter := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := new(contact_services_mock.MockContactService)
@@ -180,7 +178,7 @@ func TestContactHandler_GetByID(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
 		mockSvc := new(contact_services_mock.MockContactService)
-		handler := NewContactHandler(mockSvc, logAdapter) // passou o logger aqui
+		handler := NewContactHandler(mockSvc, logAdapter)
 
 		expectedContact := &model_contact.Contact{
 			ID:          1,
@@ -460,14 +458,8 @@ func TestContactHandler_Delete(t *testing.T) {
 		resp := w.Result()
 		defer resp.Body.Close()
 
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		var response utils.DefaultResponse
-		err := json.NewDecoder(resp.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusOK, response.Status)
-		assert.Equal(t, "Contato deletado com sucesso", response.Message)
-		assert.Nil(t, response.Data)
+		assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+		assert.Empty(t, w.Body.String())
 
 		mockSvc.AssertExpectations(t)
 	})

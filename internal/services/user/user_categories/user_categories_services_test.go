@@ -5,13 +5,17 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
 	user_categories_repositories_mock "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestUserCategoryService_Create(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New()) // logger real
+
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
 
@@ -22,7 +26,7 @@ func TestUserCategoryService_Create(t *testing.T) {
 			return cat.Name == inputCategory.Name && cat.Description == inputCategory.Description
 		})).Return(createdCategory, nil)
 
-		service := NewUserCategoryService(mockRepo)
+		service := NewUserCategoryService(mockRepo, logger)
 		category, err := service.Create(context.Background(), inputCategory)
 
 		assert.NoError(t, err)
@@ -32,7 +36,7 @@ func TestUserCategoryService_Create(t *testing.T) {
 
 	t.Run("ErrInvalidCategoryName", func(t *testing.T) {
 		mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
-		service := NewUserCategoryService(mockRepo)
+		service := NewUserCategoryService(mockRepo, logger)
 
 		invalidCategory := &models.UserCategory{Name: "   "} // nome só com espaços
 
@@ -50,7 +54,7 @@ func TestUserCategoryService_Create(t *testing.T) {
 			return cat.Name == inputCategory.Name && cat.Description == inputCategory.Description
 		})).Return(nil, errors.New("db error"))
 
-		service := NewUserCategoryService(mockRepo)
+		service := NewUserCategoryService(mockRepo, logger)
 		category, err := service.Create(context.Background(), inputCategory)
 
 		assert.Error(t, err)
@@ -60,10 +64,11 @@ func TestUserCategoryService_Create(t *testing.T) {
 
 		mockRepo.AssertExpectations(t)
 	})
-
 }
 
 func TestUserCategoryService_GetAll(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
+
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
 		expectedCategories := []*models.UserCategory{
@@ -72,7 +77,7 @@ func TestUserCategoryService_GetAll(t *testing.T) {
 
 		mockRepo.On("GetAll", mock.Anything).Return(expectedCategories, nil)
 
-		service := NewUserCategoryService(mockRepo)
+		service := NewUserCategoryService(mockRepo, logger)
 		categories, err := service.GetAll(context.Background())
 
 		assert.NoError(t, err)
@@ -84,7 +89,7 @@ func TestUserCategoryService_GetAll(t *testing.T) {
 		mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
 		mockRepo.On("GetAll", mock.Anything).Return([]*models.UserCategory(nil), errors.New("db error"))
 
-		service := NewUserCategoryService(mockRepo)
+		service := NewUserCategoryService(mockRepo, logger)
 		categories, err := service.GetAll(context.Background())
 
 		assert.Error(t, err)
@@ -96,8 +101,9 @@ func TestUserCategoryService_GetAll(t *testing.T) {
 }
 
 func TestUserCategoryService_GetCategoryById(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
 	mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
-	service := NewUserCategoryService(mockRepo)
+	service := NewUserCategoryService(mockRepo, logger)
 
 	t.Run("Success", func(t *testing.T) {
 		expectedCategory := &models.UserCategory{ID: 1, Name: "Category1", Description: "Desc1"}
@@ -111,8 +117,6 @@ func TestUserCategoryService_GetCategoryById(t *testing.T) {
 	})
 
 	t.Run("ErrCategoryIDRequired", func(t *testing.T) {
-		service := NewUserCategoryService(mockRepo)
-
 		category, err := service.GetByID(context.Background(), 0)
 
 		assert.Nil(t, category)
@@ -131,9 +135,6 @@ func TestUserCategoryService_GetCategoryById(t *testing.T) {
 	})
 
 	t.Run("ReturnCategoryNotFound", func(t *testing.T) {
-		mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
-		service := NewUserCategoryService(mockRepo)
-
 		mockRepo.On("GetByID", mock.Anything, int64(4)).Return(nil, ErrCategoryNotFound).Once()
 
 		category, err := service.GetByID(context.Background(), 4)
@@ -143,10 +144,7 @@ func TestUserCategoryService_GetCategoryById(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("ReturnCategoryNotFound", func(t *testing.T) {
-		mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
-		service := NewUserCategoryService(mockRepo)
-
+	t.Run("ReturnCategoryNotFound_Duplicate", func(t *testing.T) {
 		mockRepo.On("GetByID", mock.Anything, int64(4)).Return((*models.UserCategory)(nil), ErrCategoryNotFound).Once()
 
 		category, err := service.GetByID(context.Background(), 4)
@@ -155,12 +153,12 @@ func TestUserCategoryService_GetCategoryById(t *testing.T) {
 		assert.Nil(t, category)
 		mockRepo.AssertExpectations(t)
 	})
-
 }
 
 func TestUserCategoryService_UpdateCategory(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
 	mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
-	service := NewUserCategoryService(mockRepo)
+	service := NewUserCategoryService(mockRepo, logger)
 
 	t.Run("Success", func(t *testing.T) {
 		updatedCategory := &models.UserCategory{ID: 1, Name: "UpdatedCategory", Description: "UpdatedDesc"}
@@ -212,8 +210,9 @@ func TestUserCategoryService_UpdateCategory(t *testing.T) {
 }
 
 func TestUserCategoryService_DeleteCategoryById(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
 	mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
-	service := NewUserCategoryService(mockRepo)
+	service := NewUserCategoryService(mockRepo, logger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockRepo.On("Delete", mock.Anything, int64(1)).Return(nil).Once()
@@ -231,9 +230,7 @@ func TestUserCategoryService_DeleteCategoryById(t *testing.T) {
 		err := service.Delete(context.Background(), 2)
 
 		assert.Error(t, err)
-		// Como o erro é envolvido, devemos usar errors.Is para verificar se contém ErrDeleteCategory
 		assert.True(t, errors.Is(err, ErrDeleteCategory))
-		// Também podemos verificar se a mensagem do erro inclui o erro original do repo
 		assert.ErrorContains(t, err, "db delete error")
 		mockRepo.AssertExpectations(t)
 	})

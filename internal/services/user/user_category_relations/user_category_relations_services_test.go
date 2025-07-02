@@ -5,17 +5,22 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
 	repoMocks "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
 )
 
 func TestUserCategoryRelationServices_Create(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mock
+
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		input := &models.UserCategoryRelations{UserID: 1, CategoryID: 2}
 		expected := input
@@ -32,7 +37,7 @@ func TestUserCategoryRelationServices_Create(t *testing.T) {
 
 	t.Run("InvalidIDs", func(t *testing.T) {
 		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		_, _, err := service.Create(context.Background(), 0, 1)
 		assert.ErrorIs(t, err, ErrInvalidUserID)
@@ -43,7 +48,7 @@ func TestUserCategoryRelationServices_Create(t *testing.T) {
 
 	t.Run("AlreadyExists_ReturnsExisting", func(t *testing.T) {
 		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		existing := &models.UserCategoryRelations{UserID: 1, CategoryID: 2}
 
@@ -60,7 +65,7 @@ func TestUserCategoryRelationServices_Create(t *testing.T) {
 
 	t.Run("AlreadyExists_GetByUserIDFails", func(t *testing.T) {
 		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, repoMocks.ErrRelationExists)
 		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).
@@ -74,7 +79,7 @@ func TestUserCategoryRelationServices_Create(t *testing.T) {
 
 	t.Run("AlreadyExists_ButRelationNotFound", func(t *testing.T) {
 		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, repoMocks.ErrRelationExists)
 		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).Return([]*models.UserCategoryRelations{
@@ -87,9 +92,28 @@ func TestUserCategoryRelationServices_Create(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("ForeignKeyViolation_ReturnsInvalidForeignKeyError", func(t *testing.T) {
+		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
+
+		userID := int64(1)
+		categoryID := int64(999)
+
+		mockRepo.
+			On("Create", mock.Anything, mock.Anything).
+			Return(nil, repositories.ErrInvalidForeignKey)
+
+		rel, wasCreated, err := service.Create(context.Background(), userID, categoryID)
+
+		assert.Nil(t, rel)
+		assert.False(t, wasCreated)
+		assert.ErrorIs(t, err, repositories.ErrInvalidForeignKey)
+		mockRepo.AssertExpectations(t)
+	})
+
 	t.Run("RepositoryError", func(t *testing.T) {
 		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, errors.New("db error"))
 
@@ -101,10 +125,12 @@ func TestUserCategoryRelationServices_Create(t *testing.T) {
 }
 
 func TestUserCategoryRelationServices_GetAllRelationsByUserID(t *testing.T) {
-	mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-	service := NewUserCategoryRelationServices(mockRepo)
+	logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mock
 
 	t.Run("Success", func(t *testing.T) {
+		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
+
 		expected := []*models.UserCategoryRelations{{UserID: 1, CategoryID: 2}}
 		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).Return(expected, nil)
 
@@ -116,16 +142,19 @@ func TestUserCategoryRelationServices_GetAllRelationsByUserID(t *testing.T) {
 	})
 
 	t.Run("InvalidUserID", func(t *testing.T) {
+		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
+
 		_, err := service.GetAllRelationsByUserID(context.Background(), 0)
 		assert.ErrorIs(t, err, ErrInvalidUserID)
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
 		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		expectedErr := errors.New("erro no banco de dados")
-		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).Return([]*models.UserCategoryRelations(nil), expectedErr)
+		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).Return(([]*models.UserCategoryRelations)(nil), expectedErr)
 
 		result, err := service.GetAllRelationsByUserID(context.Background(), 1)
 
@@ -137,10 +166,11 @@ func TestUserCategoryRelationServices_GetAllRelationsByUserID(t *testing.T) {
 }
 
 func TestUserCategoryRelationServices_HasUserCategoryRelation(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New()) // ou mock logger
 
 	t.Run("Success_ExistsTrue", func(t *testing.T) {
 		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		mockRepo.On("HasUserCategoryRelation", mock.Anything, int64(1), int64(2)).Return(true, nil)
 
@@ -153,7 +183,7 @@ func TestUserCategoryRelationServices_HasUserCategoryRelation(t *testing.T) {
 
 	t.Run("Success_ExistsFalse", func(t *testing.T) {
 		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		mockRepo.On("HasUserCategoryRelation", mock.Anything, int64(1), int64(3)).Return(false, nil)
 
@@ -166,7 +196,7 @@ func TestUserCategoryRelationServices_HasUserCategoryRelation(t *testing.T) {
 
 	t.Run("InvalidUserID", func(t *testing.T) {
 		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		_, err := service.HasUserCategoryRelation(context.Background(), 0, 1)
 		assert.ErrorIs(t, err, ErrInvalidUserID)
@@ -174,7 +204,7 @@ func TestUserCategoryRelationServices_HasUserCategoryRelation(t *testing.T) {
 
 	t.Run("InvalidCategoryID", func(t *testing.T) {
 		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		_, err := service.HasUserCategoryRelation(context.Background(), 1, 0)
 		assert.ErrorIs(t, err, ErrInvalidCategoryID)
@@ -182,7 +212,7 @@ func TestUserCategoryRelationServices_HasUserCategoryRelation(t *testing.T) {
 
 	t.Run("RepositoryError", func(t *testing.T) {
 		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
+		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		expectedErr := errors.New("erro no banco de dados")
 		mockRepo.On("HasUserCategoryRelation", mock.Anything, int64(1), int64(2)).Return(false, expectedErr)
@@ -197,10 +227,12 @@ func TestUserCategoryRelationServices_HasUserCategoryRelation(t *testing.T) {
 }
 
 func TestUserCategoryRelationServices_Delete(t *testing.T) {
-	t.Run("Success", func(t *testing.T) {
-		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
+	logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mock
+	mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
+	service := NewUserCategoryRelationServices(mockRepo, logger)
 
+	t.Run("Success", func(t *testing.T) {
+		mockRepo.ExpectedCalls = nil
 		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(nil)
 
 		err := service.Delete(context.Background(), 1, 2)
@@ -210,23 +242,17 @@ func TestUserCategoryRelationServices_Delete(t *testing.T) {
 	})
 
 	t.Run("InvalidUserID", func(t *testing.T) {
-		service := NewUserCategoryRelationServices(new(repoMocks.MockUserCategoryRelationRepo))
-
 		err := service.Delete(context.Background(), 0, 1)
 		assert.ErrorIs(t, err, ErrInvalidUserID)
 	})
 
 	t.Run("InvalidCategoryID", func(t *testing.T) {
-		service := NewUserCategoryRelationServices(new(repoMocks.MockUserCategoryRelationRepo))
-
 		err := service.Delete(context.Background(), 1, 0)
 		assert.ErrorIs(t, err, ErrInvalidCategoryID)
 	})
 
 	t.Run("RelationNotFound", func(t *testing.T) {
-		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
-
+		mockRepo.ExpectedCalls = nil
 		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(repoMocks.ErrRelationNotFound)
 
 		err := service.Delete(context.Background(), 1, 2)
@@ -236,9 +262,7 @@ func TestUserCategoryRelationServices_Delete(t *testing.T) {
 	})
 
 	t.Run("DeleteError", func(t *testing.T) {
-		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
-
+		mockRepo.ExpectedCalls = nil
 		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(errors.New("db error"))
 
 		err := service.Delete(context.Background(), 1, 2)
@@ -249,10 +273,12 @@ func TestUserCategoryRelationServices_Delete(t *testing.T) {
 }
 
 func TestUserCategoryRelationServices_DeleteAll(t *testing.T) {
-	t.Run("Success", func(t *testing.T) {
-		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
+	logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mock
+	mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
+	service := NewUserCategoryRelationServices(mockRepo, logger)
 
+	t.Run("Success", func(t *testing.T) {
+		mockRepo.ExpectedCalls = nil
 		mockRepo.On("DeleteAll", mock.Anything, int64(1)).Return(nil)
 
 		err := service.DeleteAll(context.Background(), 1)
@@ -262,17 +288,13 @@ func TestUserCategoryRelationServices_DeleteAll(t *testing.T) {
 	})
 
 	t.Run("InvalidUserID", func(t *testing.T) {
-		service := NewUserCategoryRelationServices(new(repoMocks.MockUserCategoryRelationRepo))
-
 		err := service.DeleteAll(context.Background(), 0)
 
 		assert.ErrorIs(t, err, ErrInvalidUserID)
 	})
 
 	t.Run("DeleteAllError", func(t *testing.T) {
-		mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
-		service := NewUserCategoryRelationServices(mockRepo)
-
+		mockRepo.ExpectedCalls = nil
 		mockRepo.On("DeleteAll", mock.Anything, int64(1)).Return(errors.New("db error"))
 
 		err := service.DeleteAll(context.Background(), 1)

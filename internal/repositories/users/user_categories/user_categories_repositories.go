@@ -29,6 +29,11 @@ func NewUserCategoryRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) U
 }
 
 func (r *userCategoryRepository) Create(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error) {
+	r.logger.Info(ctx, "[userCategoryRepository] - Categoria de usuário criada com sucesso", map[string]interface{}{
+		"id":   category.ID,
+		"name": category.Name,
+	})
+
 	const query = `
 		INSERT INTO user_categories (name, description, created_at, updated_at)
 		VALUES ($1, $2, NOW(), NOW())
@@ -55,6 +60,8 @@ func (r *userCategoryRepository) Create(ctx context.Context, category *models.Us
 }
 
 func (r *userCategoryRepository) GetAll(ctx context.Context) ([]*models.UserCategory, error) {
+	r.logger.Info(ctx, "[userCategoryRepository] - Buscando todas as categorias de usuário", nil)
+
 	query := `SELECT id, name, description, created_at, updated_at FROM user_categories`
 
 	rows, err := r.db.Query(ctx, query)
@@ -88,6 +95,10 @@ func (r *userCategoryRepository) GetAll(ctx context.Context) ([]*models.UserCate
 }
 
 func (r *userCategoryRepository) GetByID(ctx context.Context, id int64) (*models.UserCategory, error) {
+	r.logger.Info(ctx, "[userCategoryRepository] - Buscando categoria de usuário por ID", map[string]interface{}{
+		"category_id": id,
+	})
+
 	const query = `
 		SELECT id, name, description, created_at, updated_at
 		FROM user_categories
@@ -126,6 +137,11 @@ func (r *userCategoryRepository) GetByID(ctx context.Context, id int64) (*models
 }
 
 func (r *userCategoryRepository) Update(ctx context.Context, category *models.UserCategory) error {
+	r.logger.Info(ctx, "[userCategoryRepository] - Iniciando atualização de categoria de usuário", map[string]interface{}{
+		"category_id": category.ID,
+		"name":        category.Name,
+	})
+
 	const query = `
 		UPDATE user_categories
 		SET 
@@ -167,6 +183,10 @@ func (r *userCategoryRepository) Update(ctx context.Context, category *models.Us
 }
 
 func (r *userCategoryRepository) Delete(ctx context.Context, id int64) error {
+	r.logger.Info(ctx, "[userCategoryRepository] - Iniciando exclusão de categoria de usuário", map[string]interface{}{
+		"category_id": id,
+	})
+
 	query := `DELETE FROM user_categories WHERE id = $1`
 
 	result, err := r.db.Exec(ctx, query, id)

@@ -158,7 +158,7 @@ func TestUserHandler_GetByID(t *testing.T) {
 		handler := NewUserHandler(mockService)
 
 		expectedUser := models.User{UID: 10, Username: "Carlos"}
-		mockService.On("GetByID", mock.Anything, int64(10)).Return(&expectedUser, nil) // <- importante: retornando *User
+		mockService.On("GetByID", mock.Anything, int64(10)).Return(&expectedUser, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/users/10", nil)
 		req = muxSetVars(req, map[string]string{"id": "10"})
@@ -174,7 +174,6 @@ func TestUserHandler_GetByID(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.Status)
 		assert.Equal(t, "Usuário encontrado", resp.Message)
 
-		// Type assertion correta
 		actualUser, ok := resp.Data.(map[string]interface{})
 		assert.True(t, ok)
 
@@ -403,7 +402,7 @@ func TestUserHandler_Update(t *testing.T) {
 		handler := NewUserHandler(mockService)
 
 		body := map[string]interface{}{
-			"user": nil, // user nil para simular o erro
+			"user": nil,
 		}
 		jsonBody, _ := json.Marshal(body)
 
@@ -420,7 +419,6 @@ func TestUserHandler_Update(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.Status)
 		assert.Contains(t, resp.Message, "dados do usuário são obrigatórios")
 
-		// O serviço NÃO deve ser chamado
 		mockService.AssertExpectations(t)
 	})
 
@@ -428,7 +426,7 @@ func TestUserHandler_Update(t *testing.T) {
 		mockService := new(services.MockUserService)
 		handler := NewUserHandler(mockService)
 
-		req := httptest.NewRequest(http.MethodGet, "/users/1", nil) // GET ao invés de PUT
+		req := httptest.NewRequest(http.MethodGet, "/users/1", nil)
 		req = muxSetVars(req, map[string]string{"id": "1"})
 		rec := httptest.NewRecorder()
 
@@ -642,7 +640,7 @@ func TestUserHandler_Delete(t *testing.T) {
 		mockService := new(services.MockUserService)
 		handler := NewUserHandler(mockService)
 
-		req := httptest.NewRequest(http.MethodGet, "/users/1", nil) // GET em vez de DELETE
+		req := httptest.NewRequest(http.MethodGet, "/users/1", nil)
 		req = muxSetVars(req, map[string]string{"id": "1"})
 		rec := httptest.NewRecorder()
 

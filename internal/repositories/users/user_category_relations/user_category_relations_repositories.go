@@ -30,6 +30,11 @@ func NewUserCategoryRelationRepositories(db *pgxpool.Pool, logger *logger.Logger
 }
 
 func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
+	r.logger.Info(ctx, "[userCategoryRelationRepositories] - Iniciando criação de relação usuário-categoria", map[string]interface{}{
+		"user_id":     relation.UserID,
+		"category_id": relation.CategoryID,
+	})
+
 	const query = `
 		INSERT INTO user_category_relations (user_id, category_id, created_at)
 		VALUES ($1, $2, NOW());
@@ -68,6 +73,10 @@ func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation 
 }
 
 func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
+	r.logger.Info(ctx, "[userCategoryRelationRepositories] - Buscando relações de categorias para o usuário", map[string]interface{}{
+		"user_id": userID,
+	})
+
 	const query = `
 		SELECT user_id, category_id, created_at
 		FROM user_category_relations
@@ -111,6 +120,11 @@ func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.C
 }
 
 func (r *userCategoryRelationRepositories) HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error) {
+	r.logger.Info(ctx, "[userCategoryRelationRepositories] - Verificando se o usuário possui relação com a categoria", map[string]interface{}{
+		"user_id":     userID,
+		"category_id": categoryID,
+	})
+
 	const query = `
 		SELECT 1
 		FROM user_category_relations
@@ -145,6 +159,11 @@ func (r *userCategoryRelationRepositories) HasUserCategoryRelation(ctx context.C
 }
 
 func (r *userCategoryRelationRepositories) Delete(ctx context.Context, userID, categoryID int64) error {
+	r.logger.Info(ctx, "[userCategoryRelationRepositories] - Iniciando exclusão da relação usuário-categoria", map[string]interface{}{
+		"user_id":     userID,
+		"category_id": categoryID,
+	})
+
 	const query = `
 		DELETE FROM user_category_relations 
 		WHERE user_id = $1 AND category_id = $2;
@@ -176,6 +195,10 @@ func (r *userCategoryRelationRepositories) Delete(ctx context.Context, userID, c
 }
 
 func (r *userCategoryRelationRepositories) DeleteAll(ctx context.Context, userID int64) error {
+	r.logger.Info(ctx, "[userCategoryRelationRepositories] - Iniciando exclusão de todas as relações para usuário", map[string]interface{}{
+		"user_id": userID,
+	})
+
 	const query = `
 		DELETE FROM user_category_relations
 		WHERE user_id = $1;
