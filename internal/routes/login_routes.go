@@ -23,8 +23,12 @@ func RegisterLoginRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdap
 	// 🪙 Criar JWTManager
 	jwtManager := loginServices.NewJWTManager(jwtCfg.SecretKey, time.Hour)
 
-	// 💡 Injetar JWTManager no serviço
-	service := loginServices.NewLoginService(userRepo, jwtManager)
+	// 🔑 Criar Hasher (bcrypt)
+	hasher := loginServices.BcryptHasher{}
+
+	// 💡 Injetar dependências no serviço de login
+	service := loginServices.NewLoginService(userRepo, jwtManager, hasher)
+
 	handler := loginHandlers.NewLoginHandler(service)
 
 	r.HandleFunc("/login", handler.Login).Methods(http.MethodPost)

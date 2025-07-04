@@ -34,6 +34,12 @@ func NewUserRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) UserRepos
 }
 
 func (r *userRepository) Create(ctx context.Context, user *models.User) (*models.User, error) {
+	r.logger.Info(ctx, "[userRepository] - Iniciando criação de usuário", map[string]interface{}{
+		"username": user.Username,
+		"email":    user.Email,
+		"status":   user.Status,
+	})
+
 	query := `
 		INSERT INTO users (username, email, password_hash, status, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, NOW(), NOW())
@@ -62,6 +68,8 @@ func (r *userRepository) Create(ctx context.Context, user *models.User) (*models
 }
 
 func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
+	r.logger.Info(ctx, "[userRepository] - Iniciando recuperação de todos os usuários", nil)
+
 	query := `SELECT id, username, email, password_hash, status, created_at, updated_at FROM users`
 
 	rows, err := r.db.Query(ctx, query)
@@ -94,6 +102,10 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 }
 
 func (r *userRepository) GetByID(ctx context.Context, uid int64) (*models.User, error) {
+	r.logger.Info(ctx, "[userRepository] - Iniciando recuperação de usuário por ID", map[string]interface{}{
+		"user_id": uid,
+	})
+
 	user := &models.User{}
 
 	query := `SELECT id, username, email, password_hash, status, created_at, updated_at FROM users WHERE id = $1`
@@ -123,6 +135,10 @@ func (r *userRepository) GetByID(ctx context.Context, uid int64) (*models.User, 
 }
 
 func (r *userRepository) GetVersionByID(ctx context.Context, id int64) (int64, error) {
+	r.logger.Info(ctx, "[userRepository] - Iniciando recuperação de versão do usuário por ID", map[string]interface{}{
+		"user_id": id,
+	})
+
 	const query = `SELECT version FROM users WHERE id = $1`
 
 	var version int64
@@ -150,6 +166,10 @@ func (r *userRepository) GetVersionByID(ctx context.Context, id int64) (int64, e
 }
 
 func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+	r.logger.Info(ctx, "[userRepository] - Iniciando recuperação de usuário por email", map[string]interface{}{
+		"email": email,
+	})
+
 	user := &models.User{}
 	query := `SELECT id, username, email, password_hash, status, created_at, updated_at FROM users WHERE email = $1`
 
@@ -186,6 +206,13 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.
 }
 
 func (r *userRepository) Update(ctx context.Context, user *models.User) (*models.User, error) {
+	r.logger.Info(ctx, "[userRepository] - Iniciando atualização de usuário", map[string]interface{}{
+		"user_id":  user.UID,
+		"username": user.Username,
+		"email":    user.Email,
+		"status":   user.Status,
+	})
+
 	const query = `
 		UPDATE users 
 		SET 
@@ -245,6 +272,10 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) (*models
 }
 
 func (r *userRepository) Delete(ctx context.Context, uid int64) error {
+	r.logger.Info(ctx, "[userRepository] - Iniciando exclusão de usuário", map[string]interface{}{
+		"user_id": uid,
+	})
+
 	const query = `DELETE FROM users WHERE id = $1`
 
 	result, err := r.db.Exec(ctx, query, uid)

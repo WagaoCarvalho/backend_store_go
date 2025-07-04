@@ -29,12 +29,14 @@ type TokenGenerator interface {
 type loginService struct {
 	userRepo   repositories.UserRepository
 	jwtManager TokenGenerator
+	hasher     PasswordHasher
 }
 
-func NewLoginService(repo repositories.UserRepository, jwt TokenGenerator) *loginService {
+func NewLoginService(repo repositories.UserRepository, jwt TokenGenerator, hasher PasswordHasher) *loginService {
 	return &loginService{
 		userRepo:   repo,
 		jwtManager: jwt,
+		hasher:     hasher,
 	}
 }
 
@@ -49,7 +51,7 @@ func (s *loginService) Login(ctx context.Context, credentials modelsLogin.LoginC
 		return "", ErrInvalidCredentials
 	}
 
-	if err := ComparePassword(user.Password, credentials.Password); err != nil {
+	if err := s.hasher.Compare(user.Password, credentials.Password); err != nil {
 		return "", ErrInvalidCredentials
 	}
 

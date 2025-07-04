@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 
+	"github.com/WagaoCarvalho/backend_store_go/internal/auth"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
@@ -16,7 +17,10 @@ import (
 func RegisterUserRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
 	userRepo := repositories.NewUserRepository(db, log)
 
-	userService := services.NewUserService(userRepo)
+	// Instancia o hasher bcrypt
+	hasher := auth.BcryptHasher{}
+
+	userService := services.NewUserService(userRepo, log, hasher)
 	handler := handlers.NewUserHandler(userService)
 
 	r.HandleFunc("/user", handler.Create).Methods(http.MethodPost)
@@ -24,7 +28,6 @@ func RegisterUserRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapt
 	s := r.PathPrefix("/").Subrouter()
 	s.Use(jwt.IsAuthByBearerToken)
 
-	//s.HandleFunc("/user", handler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/users", handler.GetAll).Methods(http.MethodGet)
 	s.HandleFunc("/user/id/{id}", handler.GetByID).Methods(http.MethodGet)
 	s.HandleFunc("/user/version/{id}", handler.GetVersionByID).Methods(http.MethodGet)

@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/auth"
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	repositories_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
@@ -22,24 +23,39 @@ type UserService interface {
 }
 
 type userService struct {
-	repo repositories_user.UserRepository
+	repo   repositories_user.UserRepository
+	logger *logger.LoggerAdapter
+	hasher auth.PasswordHasher
 }
 
-func NewUserService(repo repositories_user.UserRepository) *userService {
-	return &userService{repo: repo}
+func NewUserService(repo repositories_user.UserRepository, logger *logger.LoggerAdapter, hasher auth.PasswordHasher) *userService {
+	return &userService{
+		repo:   repo,
+		logger: logger,
+		hasher: hasher,
+	}
 }
 
-func (s *userService) Create(
-	ctx context.Context,
-	user *models_user.User,
-) (*models_user.User, error) {
+func (s *userService) Create(ctx context.Context, user *models_user.User) (*models_user.User, error) {
+	s.logger.Info(ctx, "[userService] - Iniciando criação de usuário", map[string]interface{}{
+		"username": user.Username,
+		"email":    user.Email,
+		"status":   user.Status,
+	})
+
 	if !utils_validators.IsValidEmail(user.Email) {
+		s.logger.Error(ctx, ErrInvalidEmail, "[userService] - Email inválido", map[string]interface{}{
+			"email": user.Email,
+		})
 		return nil, ErrInvalidEmail
 	}
 
 	if user.Password != "" {
-		hashed, err := auth.HashPassword(user.Password)
+		hashed, err := s.hasher.Hash(user.Password)
 		if err != nil {
+			s.logger.Error(ctx, err, "[userService] - Erro ao hashear senha", map[string]interface{}{
+				"email": user.Email,
+			})
 			return nil, fmt.Errorf("erro ao hashear senha: %w", err)
 		}
 		user.Password = hashed
@@ -47,12 +63,24 @@ func (s *userService) Create(
 
 	createdUser, err := s.repo.Create(ctx, user)
 	if err != nil {
+		s.logger.Error(ctx, err, "[userService] - Erro ao criar usuário no repositório", map[string]interface{}{
+			"email": user.Email,
+		})
 		return nil, fmt.Errorf("%w: %v", ErrCreateUser, err)
 	}
 
 	if createdUser == nil {
+		s.logger.Error(ctx, nil, "[userService] - Usuário criado é nulo", map[string]interface{}{
+			"email": user.Email,
+		})
 		return nil, fmt.Errorf("usuário criado é nulo")
 	}
+
+	s.logger.Info(ctx, "[userService] - Usuário criado com sucesso", map[string]interface{}{
+		"user_id":  createdUser.UID,
+		"username": createdUser.Username,
+		"email":    createdUser.Email,
+	})
 
 	return createdUser, nil
 }
