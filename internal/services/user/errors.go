@@ -10,4 +10,5 @@ var (
 	ErrUpdateUser     = errors.New("erro ao atualizar usuário")
 	ErrDeleteUser     = errors.New("erro ao deletar usuário")
 	ErrInvalidVersion = errors.New("versão inválida")
+	ErrGetAllUsers    = errors.New("erro ao buscar usuários")
 )
