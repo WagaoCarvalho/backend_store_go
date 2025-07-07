@@ -26,10 +26,10 @@ func NewAddressHandler(service services.AddressService, logger *logger.LoggerAda
 func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var address models.Address
 
-	h.logger.Info(r.Context(), "[AddressHandler] - Iniciando criação de endereço", map[string]interface{}{})
+	h.logger.Info(r.Context(), "[AddressHandler] - "+logger.LogCreateInit, map[string]interface{}{})
 
 	if err := utils.FromJson(r.Body, &address); err != nil {
-		h.logger.Warn(r.Context(), "[AddressHandler] - Falha ao fazer parse do JSON", map[string]interface{}{
+		h.logger.Warn(r.Context(), "[AddressHandler] - "+logger.LogParseJsonError, map[string]interface{}{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -39,19 +39,19 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 	createdAddress, err := h.service.Create(r.Context(), &address)
 	if err != nil {
 		if errors.Is(err, repositories.ErrInvalidForeignKey) {
-			h.logger.Warn(r.Context(), "[AddressHandler] - Foreign key inválida", map[string]interface{}{
+			h.logger.Warn(r.Context(), "[AddressHandler] - "+logger.LogForeignKeyViolation, map[string]interface{}{
 				"erro": err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
 		}
 
-		h.logger.Error(r.Context(), err, "[AddressHandler] - Erro ao criar endereço", map[string]interface{}{})
+		h.logger.Error(r.Context(), err, "[AddressHandler] - "+logger.LogCreateError, map[string]interface{}{})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[AddressHandler] - Endereço criado com sucesso", map[string]interface{}{
+	h.logger.Info(r.Context(), "[AddressHandler] - "+logger.LogCreateSuccess, map[string]interface{}{
 		"address_id": createdAddress.ID,
 	})
 

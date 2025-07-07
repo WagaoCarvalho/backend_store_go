@@ -21,7 +21,7 @@ func RegisterUserRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapt
 	hasher := auth.BcryptHasher{}
 
 	userService := services.NewUserService(userRepo, log, hasher)
-	handler := handlers.NewUserHandler(userService)
+	handler := handlers.NewUserHandler(userService, log)
 
 	r.HandleFunc("/user", handler.Create).Methods(http.MethodPost)
 

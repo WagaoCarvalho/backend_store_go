@@ -33,14 +33,14 @@ func NewAddressService(repo repositories.AddressRepository, logger *logger.Logge
 }
 
 func (s *addressService) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
-	s.logger.Info(ctx, "[addressService] - Iniciando criação de endereço", map[string]interface{}{
+	s.logger.Info(ctx, "[addressService] - "+logger.LogCreateInit, map[string]interface{}{
 		"user_id":     utils.Int64OrNil(address.UserID),
 		"client_id":   utils.Int64OrNil(address.ClientID),
 		"supplier_id": utils.Int64OrNil(address.SupplierID),
 	})
 
 	if err := address.Validate(); err != nil {
-		s.logger.Warn(ctx, "[addressService] - Validação de endereço falhou", map[string]interface{}{
+		s.logger.Warn(ctx, "[addressService] - "+logger.LogErrorValidate, map[string]interface{}{
 			"erro": err.Error(),
 		})
 		return nil, err
@@ -48,13 +48,13 @@ func (s *addressService) Create(ctx context.Context, address *models.Address) (*
 
 	createdAddress, err := s.repo.Create(ctx, address)
 	if err != nil {
-		s.logger.Error(ctx, err, "[addressService] - Erro ao criar endereço no repositório", map[string]interface{}{
+		s.logger.Error(ctx, err, "[addressService] - "+logger.LogCreateError, map[string]interface{}{
 			"street": address.Street,
 		})
 		return nil, err
 	}
 
-	s.logger.Info(ctx, "[addressService] - Endereço criado com sucesso", map[string]interface{}{
+	s.logger.Info(ctx, "[addressService] - "+logger.LogCreateSuccess, map[string]interface{}{
 		"address_id": createdAddress.ID,
 	})
 
