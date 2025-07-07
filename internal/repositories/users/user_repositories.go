@@ -34,13 +34,14 @@ func NewUserRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) UserRepos
 }
 
 func (r *userRepository) Create(ctx context.Context, user *models.User) (*models.User, error) {
-	r.logger.Info(ctx, "[userRepository] - Iniciando criação de usuário", map[string]interface{}{
+	ref := "[userRepository - Create] - "
+	r.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
 		"username": user.Username,
 		"email":    user.Email,
 		"status":   user.Status,
 	})
 
-	query := `
+	const query = `
 		INSERT INTO users (username, email, password_hash, status, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, NOW(), NOW())
 		RETURNING id, created_at, updated_at
@@ -50,7 +51,7 @@ func (r *userRepository) Create(ctx context.Context, user *models.User) (*models
 		Scan(&user.UID, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
-		r.logger.Error(ctx, err, "[userRepository] - Erro ao criar usuário", map[string]interface{}{
+		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 			"username": user.Username,
 			"email":    user.Email,
 			"status":   user.Status,
@@ -58,7 +59,7 @@ func (r *userRepository) Create(ctx context.Context, user *models.User) (*models
 		return nil, fmt.Errorf("%w: %v", ErrCreateUser, err)
 	}
 
-	r.logger.Info(ctx, "[userRepository] - Usuário criado com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
 		"user_id":  user.UID,
 		"username": user.Username,
 		"email":    user.Email,
@@ -68,13 +69,17 @@ func (r *userRepository) Create(ctx context.Context, user *models.User) (*models
 }
 
 func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
-	r.logger.Info(ctx, "[userRepository] - Iniciando recuperação de todos os usuários", nil)
+	ref := "[userRepository - GetAll] - "
+	r.logger.Info(ctx, ref+logger.LogGetInit, nil)
 
-	query := `SELECT id, username, email, password_hash, status, created_at, updated_at FROM users`
+	const query = `
+		SELECT id, username, email, password_hash, status, created_at, updated_at
+		FROM users
+	`
 
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
-		r.logger.Error(ctx, err, "[userRepository] - Erro ao buscar todos os usuários", nil)
+		r.logger.Error(ctx, err, ref+logger.LogGetError, nil)
 		return nil, fmt.Errorf("%w: %v", ErrGetUsers, err)
 	}
 	defer rows.Close()
@@ -82,19 +87,27 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 	var users []*models.User
 	for rows.Next() {
 		var user models.User
-		if err := rows.Scan(&user.UID, &user.Username, &user.Email, &user.Password, &user.Status, &user.CreatedAt, &user.UpdatedAt); err != nil {
-			r.logger.Error(ctx, err, "[userRepository] - Erro ao escanear linha de usuário", nil)
+		if err := rows.Scan(
+			&user.UID,
+			&user.Username,
+			&user.Email,
+			&user.Password,
+			&user.Status,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err != nil {
+			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, nil)
 			return nil, fmt.Errorf("%w: %v", ErrScanUserRow, err)
 		}
 		users = append(users, &user)
 	}
 
 	if err := rows.Err(); err != nil {
-		r.logger.Error(ctx, err, "[userRepository] - Erro ao iterar sobre as linhas de usuários", nil)
+		r.logger.Error(ctx, err, ref+logger.LogIterateError, nil)
 		return nil, fmt.Errorf("%w: %v", ErrIterateUserRows, err)
 	}
 
-	r.logger.Info(ctx, "[userRepository] - Usuários obtidos com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"total_users": len(users),
 	})
 
@@ -102,32 +115,44 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 }
 
 func (r *userRepository) GetByID(ctx context.Context, uid int64) (*models.User, error) {
-	r.logger.Info(ctx, "[userRepository] - Iniciando recuperação de usuário por ID", map[string]interface{}{
+	ref := "[userRepository - GetByID] - "
+	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"user_id": uid,
 	})
 
 	user := &models.User{}
 
-	query := `SELECT id, username, email, password_hash, status, created_at, updated_at FROM users WHERE id = $1`
+	const query = `
+		SELECT id, username, email, password_hash, status, created_at, updated_at
+		FROM users
+		WHERE id = $1
+	`
+
 	err := r.db.QueryRow(ctx, query, uid).Scan(
-		&user.UID, &user.Username, &user.Email, &user.Password,
-		&user.Status, &user.CreatedAt, &user.UpdatedAt,
+		&user.UID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.Status,
+		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
+
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Warn(ctx, "[userRepository] - Usuário não encontrado", map[string]interface{}{
+			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id": uid,
 			})
 			return nil, ErrUserNotFound
 		}
 
-		r.logger.Error(ctx, err, "[userRepository] - Erro ao buscar usuário por ID", map[string]interface{}{
+		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": uid,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrFetchUser, err)
 	}
 
-	r.logger.Info(ctx, "[userRepository] - Usuário recuperado com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id": uid,
 	})
 
@@ -135,7 +160,8 @@ func (r *userRepository) GetByID(ctx context.Context, uid int64) (*models.User, 
 }
 
 func (r *userRepository) GetVersionByID(ctx context.Context, id int64) (int64, error) {
-	r.logger.Info(ctx, "[userRepository] - Iniciando recuperação de versão do usuário por ID", map[string]interface{}{
+	ref := "[userRepository - GetVersionByID] - "
+	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"user_id": id,
 	})
 
@@ -145,19 +171,19 @@ func (r *userRepository) GetVersionByID(ctx context.Context, id int64) (int64, e
 	err := r.db.QueryRow(ctx, query, id).Scan(&version)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Warn(ctx, "[userRepository] - Versão não encontrada: usuário não existe", map[string]interface{}{
+			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id": id,
 			})
 			return 0, ErrUserNotFound
 		}
 
-		r.logger.Error(ctx, err, "[userRepository] - Erro ao buscar versão do usuário", map[string]interface{}{
+		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": id,
 		})
-		return 0, fmt.Errorf("[userRepository] - erro ao buscar versão do usuário: %w", err)
+		return 0, fmt.Errorf("%w: %v", ErrFetchUserVersion, err)
 	}
 
-	r.logger.Info(ctx, "[userRepository] - Versão do usuário obtida com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id": id,
 		"version": version,
 	})
@@ -166,13 +192,18 @@ func (r *userRepository) GetVersionByID(ctx context.Context, id int64) (int64, e
 }
 
 func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
-	r.logger.Info(ctx, "[userRepository] - Iniciando recuperação de usuário por email", map[string]interface{}{
+	ref := "[userRepository - GetByEmail] - "
+	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"email": email,
 	})
 
-	user := &models.User{}
-	query := `SELECT id, username, email, password_hash, status, created_at, updated_at FROM users WHERE email = $1`
+	const query = `
+		SELECT id, username, email, password_hash, status, created_at, updated_at
+		FROM users
+		WHERE email = $1
+	`
 
+	user := &models.User{}
 	err := r.db.QueryRow(ctx, query, email).Scan(
 		&user.UID,
 		&user.Username,
@@ -185,19 +216,19 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Warn(ctx, "[userRepository] - Usuário não encontrado com o email informado", map[string]interface{}{
+			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"email": email,
 			})
 			return nil, ErrUserNotFound
 		}
 
-		r.logger.Error(ctx, err, "[userRepository] - Erro ao buscar usuário por email", map[string]interface{}{
+		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"email": email,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrFetchUser, err)
 	}
 
-	r.logger.Info(ctx, "[userRepository] - Usuário obtido com sucesso por email", map[string]interface{}{
+	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id": user.UID,
 		"email":   email,
 	})
@@ -206,7 +237,8 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.
 }
 
 func (r *userRepository) Update(ctx context.Context, user *models.User) (*models.User, error) {
-	r.logger.Info(ctx, "[userRepository] - Iniciando atualização de usuário", map[string]interface{}{
+	ref := "[userRepository - Update] - "
+	r.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
 		"user_id":  user.UID,
 		"username": user.Username,
 		"email":    user.Email,
@@ -215,15 +247,8 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) (*models
 
 	const query = `
 		UPDATE users 
-		SET 
-			username   = $1,
-			email      = $2,
-			status     = $3,
-			updated_at = NOW(),
-			version    = version + 1
-		WHERE 
-			id      = $4 AND 
-			version = $5
+		SET username = $1, email = $2, status = $3, updated_at = NOW(), version = version + 1
+		WHERE id = $4 AND version = $5
 		RETURNING updated_at, version
 	`
 
@@ -241,30 +266,30 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) (*models
 			checkQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)`
 			checkErr := r.db.QueryRow(ctx, checkQuery, user.UID).Scan(&exists)
 			if checkErr != nil {
-				r.logger.Error(ctx, checkErr, "[userRepository] - Erro ao verificar existência do usuário durante conflito de versão", map[string]interface{}{
+				r.logger.Error(ctx, checkErr, ref+logger.LogUpdateError, map[string]any{
 					"user_id": user.UID,
 				})
 				return nil, fmt.Errorf("%w: erro ao verificar existência: %v", ErrUpdateUser, checkErr)
 			}
 			if !exists {
-				r.logger.Warn(ctx, "[userRepository] - Usuário não encontrado ao tentar atualizar", map[string]interface{}{
+				r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 					"user_id": user.UID,
 				})
 				return nil, ErrUserNotFound
 			}
-			r.logger.Warn(ctx, "[userRepository] - Conflito de versão ao atualizar usuário", map[string]interface{}{
+			r.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"user_id": user.UID,
 			})
 			return nil, ErrVersionConflict
 		}
 
-		r.logger.Error(ctx, err, "[userRepository] - Erro ao atualizar usuário", map[string]interface{}{
+		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"user_id": user.UID,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrUpdateUser, err)
 	}
 
-	r.logger.Info(ctx, "[userRepository] - Usuário atualizado com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
 		"user_id": user.UID,
 	})
 
@@ -272,7 +297,8 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) (*models
 }
 
 func (r *userRepository) Delete(ctx context.Context, uid int64) error {
-	r.logger.Info(ctx, "[userRepository] - Iniciando exclusão de usuário", map[string]interface{}{
+	ref := "[userRepository - Delete] - "
+	r.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
 		"user_id": uid,
 	})
 
@@ -280,20 +306,20 @@ func (r *userRepository) Delete(ctx context.Context, uid int64) error {
 
 	result, err := r.db.Exec(ctx, query, uid)
 	if err != nil {
-		r.logger.Error(ctx, err, "[userRepository] - Erro ao deletar usuário", map[string]interface{}{
+		r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"user_id": uid,
 		})
 		return fmt.Errorf("%w: %v", ErrDeleteUser, err)
 	}
 
 	if result.RowsAffected() == 0 {
-		r.logger.Warn(ctx, "[userRepository] - Nenhum usuário encontrado para deletar", map[string]interface{}{
+		r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 			"user_id": uid,
 		})
 		return ErrUserNotFound
 	}
 
-	r.logger.Info(ctx, "[userRepository] - Usuário deletado com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
 		"user_id": uid,
 	})
 

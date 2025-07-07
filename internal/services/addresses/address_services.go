@@ -40,7 +40,7 @@ func (s *addressService) Create(ctx context.Context, address *models.Address) (*
 	})
 
 	if err := address.Validate(); err != nil {
-		s.logger.Warn(ctx, "[addressService] - "+logger.LogErrorValidate, map[string]interface{}{
+		s.logger.Warn(ctx, "[addressService] - "+logger.LogValidateError, map[string]interface{}{
 			"erro": err.Error(),
 		})
 		return nil, err
