@@ -1,6 +1,10 @@
 package repositories
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/jackc/pgx/v5/pgconn"
+)
 
 var (
 	ErrContactNotFound         = errors.New("contato não encontrado")
@@ -12,4 +16,10 @@ var (
 	ErrScanContact             = errors.New("erro ao escanear contato")
 	ErrUpdateContact           = errors.New("erro ao atualizar contato")
 	ErrDeleteContact           = errors.New("erro ao deletar contato")
+	ErrInvalidForeignKey       = errors.New("referência inválida: usuário, cliente ou fornecedor não existe")
 )
+
+func IsForeignKeyViolation(err error) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == "23503"
+}
