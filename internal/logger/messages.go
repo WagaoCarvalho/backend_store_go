@@ -23,6 +23,12 @@ const (
 	LogDeleteError   = "Erro ao deletar"
 	LogDeleteSuccess = "Sucesso ao deletar"
 
+	//Email
+	LogEmailInvalid = "email inválido"
+
+	//Password
+	LogPasswordInvalid = "erro ao hashear senha"
+
 	//ForeignKey
 	LogForeignKeyViolation = "Violação de chave estrangeira"
 	LogForeignKeyHasExists = "Relação já existe"

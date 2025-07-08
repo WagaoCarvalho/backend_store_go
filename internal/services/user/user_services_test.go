@@ -295,7 +295,7 @@ func TestUserService_GetVersionByID(t *testing.T) {
 
 		version, err := service.GetVersionByID(context.Background(), 2)
 
-		assert.ErrorContains(t, err, "erro ao obter versão")
+		assert.ErrorContains(t, err, "versão inválida")
 		assert.Equal(t, int64(0), version)
 		mockRepo.AssertExpectations(t)
 	})
