@@ -32,41 +32,45 @@ func NewUserCategoryService(repo repositories.UserCategoryRepository, logger *lo
 }
 
 func (s *userCategoryService) Create(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error) {
-	s.logger.Info(ctx, "[userCategoryService] - Iniciando criação de categoria", map[string]interface{}{
+	ref := "[userCategoryService - Create] - "
+	s.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
 		"name": category.Name,
 	})
 
 	if strings.TrimSpace(category.Name) == "" {
-		s.logger.Warn(ctx, "[userCategoryService] - Nome da categoria inválido (vazio)", nil)
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
+			"name": category.Name,
+		})
 		return nil, ErrInvalidCategoryName
 	}
 
 	createdCategory, err := s.repo.Create(ctx, category)
 	if err != nil {
-		s.logger.Error(ctx, err, "[userCategoryService] - Erro ao criar categoria", map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 			"name": category.Name,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrCreateCategory, err)
 	}
 
-	s.logger.Info(ctx, "[userCategoryService] - Categoria criada com sucesso", map[string]interface{}{
-		"id":   createdCategory.ID,
-		"name": createdCategory.Name,
+	s.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
+		"category_id": createdCategory.ID,
+		"name":        createdCategory.Name,
 	})
 
 	return createdCategory, nil
 }
 
 func (s *userCategoryService) GetAll(ctx context.Context) ([]*models.UserCategory, error) {
-	s.logger.Info(ctx, "[userCategoryService] - Iniciando recuperação de todas as categorias", nil)
+	ref := "[userCategoryService - GetAll] - "
+	s.logger.Info(ctx, ref+logger.LogGetInit, nil)
 
 	categories, err := s.repo.GetAll(ctx)
 	if err != nil {
-		s.logger.Error(ctx, err, "[userCategoryService] - Erro ao recuperar categorias", nil)
+		s.logger.Error(ctx, err, ref+logger.LogGetError, nil)
 		return nil, fmt.Errorf("%w: %v", ErrFetchCategories, err)
 	}
 
-	s.logger.Info(ctx, "[userCategoryService] - Categorias recuperadas com sucesso", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"count": len(categories),
 	})
 
@@ -74,93 +78,126 @@ func (s *userCategoryService) GetAll(ctx context.Context) ([]*models.UserCategor
 }
 
 func (s *userCategoryService) GetByID(ctx context.Context, id int64) (*models.UserCategory, error) {
-	if id == 0 {
-		s.logger.Warn(ctx, "[userCategoryService] - ID da categoria inválido (zero)", map[string]interface{}{
+	ref := "[userCategoryService - GetByID] - "
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
+		"category_id": id,
+	})
+
+	if id <= 0 {
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"category_id": id,
 		})
 		return nil, ErrCategoryIDRequired
 	}
 
-	s.logger.Info(ctx, "[userCategoryService] - Iniciando recuperação da categoria por ID", map[string]interface{}{
-		"category_id": id,
-	})
-
 	category, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, ErrCategoryNotFound) {
-			s.logger.Warn(ctx, "[userCategoryService] - Categoria não encontrada", map[string]interface{}{
+			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"category_id": id,
 			})
 			return nil, ErrCategoryNotFound
 		}
-		s.logger.Error(ctx, err, "[userCategoryService] - Erro ao recuperar categoria", map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"category_id": id,
 		})
-		return nil, fmt.Errorf("%w: %w", ErrFetchCategory, err)
+		return nil, fmt.Errorf("%w: %v", ErrFetchCategory, err)
 	}
 
-	s.logger.Info(ctx, "[userCategoryService] - Categoria recuperada com sucesso", map[string]interface{}{
-		"category_id": id,
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"category_id": category.ID,
 	})
 
 	return category, nil
 }
 
 func (s *userCategoryService) Update(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error) {
-	if category == nil {
-		s.logger.Warn(ctx, "[userCategoryService] - Categoria inválida (nil) passada para atualização", nil)
-		return nil, ErrInvalidCategory
-	}
+	ref := "[userCategoryService - Update] - "
+
 	if category.ID == 0 {
-		s.logger.Warn(ctx, "[userCategoryService] - ID da categoria inválido (zero) para atualização", nil)
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
+			"id": category.ID,
+		})
 		return nil, ErrCategoryIDRequired
 	}
 
-	s.logger.Info(ctx, "[userCategoryService] - Iniciando atualização da categoria", map[string]interface{}{
-		"category_id": category.ID,
-		"name":        category.Name,
-	})
-
-	err := s.repo.Update(ctx, category)
-	if err != nil {
-		if errors.Is(err, repositories.ErrCategoryNotFound) {
-			s.logger.Warn(ctx, "[userCategoryService] - Categoria não encontrada para atualização", map[string]interface{}{
-				"category_id": category.ID,
-			})
-			return nil, repositories.ErrCategoryNotFound
-		}
-		s.logger.Error(ctx, err, "[userCategoryService] - Erro ao atualizar categoria", map[string]interface{}{
-			"category_id": category.ID,
+	if err := category.Validate(); err != nil {
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
+			"id":   category.ID,
+			"erro": err.Error(),
 		})
-		return nil, fmt.Errorf("%w", err)
+		return nil, err
 	}
 
-	s.logger.Info(ctx, "[userCategoryService] - Categoria atualizada com sucesso", map[string]interface{}{
-		"category_id": category.ID,
+	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"id":   category.ID,
+		"name": category.Name,
+	})
+
+	if _, err := s.repo.GetByID(ctx, int64(category.ID)); err != nil {
+		if errors.Is(err, repositories.ErrCategoryNotFound) {
+			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"id": category.ID,
+			})
+			return nil, ErrCategoryNotFound
+		}
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"id": category.ID,
+		})
+		return nil, fmt.Errorf("%w: %v", ErrCheckBeforeUpdate, err)
+	}
+
+	if err := s.repo.Update(ctx, category); err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"id": category.ID,
+		})
+		return nil, fmt.Errorf("%w: %v", ErrUpdateCategory, err)
+	}
+
+	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"id": category.ID,
 	})
 
 	return category, nil
 }
 
 func (s *userCategoryService) Delete(ctx context.Context, id int64) error {
-	if id == 0 {
-		s.logger.Warn(ctx, "[userCategoryService] - ID da categoria inválido (zero) para deleção", nil)
+	ref := "[userCategoryService - Delete] - "
+
+	if id <= 0 {
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
+			"id": id,
+		})
 		return ErrCategoryIDRequired
 	}
 
-	s.logger.Info(ctx, "[userCategoryService] - Iniciando deleção da categoria", map[string]interface{}{
-		"category_id": id,
+	s.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
+		"id": id,
 	})
 
+	_, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, repositories.ErrCategoryNotFound) {
+			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"id": id,
+			})
+			return ErrCategoryNotFound
+		}
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"id": id,
+		})
+		return fmt.Errorf("%w: %v", ErrFetchCategory, err)
+	}
+
 	if err := s.repo.Delete(ctx, id); err != nil {
-		s.logger.Error(ctx, err, "[userCategoryService] - Erro ao deletar categoria", map[string]interface{}{
-			"category_id": id,
+		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
+			"id": id,
 		})
 		return fmt.Errorf("%w: %v", ErrDeleteCategory, err)
 	}
 
-	s.logger.Info(ctx, "[userCategoryService] - Categoria deletada com sucesso", map[string]interface{}{
-		"category_id": id,
+	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
+		"id": id,
 	})
 
 	return nil

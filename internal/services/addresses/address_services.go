@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
@@ -33,14 +34,15 @@ func NewAddressService(repo repositories.AddressRepository, logger *logger.Logge
 }
 
 func (s *addressService) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
-	s.logger.Info(ctx, "[addressService] - "+logger.LogCreateInit, map[string]interface{}{
+	ref := "[addressService - Create] - "
+	s.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
 		"user_id":     utils.Int64OrNil(address.UserID),
 		"client_id":   utils.Int64OrNil(address.ClientID),
 		"supplier_id": utils.Int64OrNil(address.SupplierID),
 	})
 
 	if err := address.Validate(); err != nil {
-		s.logger.Warn(ctx, "[addressService] - "+logger.LogValidateError, map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"erro": err.Error(),
 		})
 		return nil, err
@@ -48,13 +50,13 @@ func (s *addressService) Create(ctx context.Context, address *models.Address) (*
 
 	createdAddress, err := s.repo.Create(ctx, address)
 	if err != nil {
-		s.logger.Error(ctx, err, "[addressService] - "+logger.LogCreateError, map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 			"street": address.Street,
 		})
 		return nil, err
 	}
 
-	s.logger.Info(ctx, "[addressService] - "+logger.LogCreateSuccess, map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
 		"address_id": createdAddress.ID,
 	})
 
@@ -62,12 +64,13 @@ func (s *addressService) Create(ctx context.Context, address *models.Address) (*
 }
 
 func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address, error) {
-	s.logger.Info(ctx, "[addressService] - Iniciando busca de endereço por ID", map[string]interface{}{
+	ref := "[addressService - GetByID] - "
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"address_id": id,
 	})
 
-	if id == 0 {
-		s.logger.Warn(ctx, "[addressService] - ID do endereço não fornecido", map[string]interface{}{
+	if id <= 0 {
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"address_id": id,
 		})
 		return nil, ErrAddressIDRequired
@@ -75,13 +78,20 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address
 
 	address, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		s.logger.Error(ctx, err, "[addressService] - Erro ao buscar endereço por ID", map[string]interface{}{
+		if errors.Is(err, repositories.ErrAddressNotFound) {
+			s.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
+				"address_id": id,
+			})
+			return nil, ErrAddressNotFound
+		}
+
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"address_id": id,
 		})
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", ErrCheckAddress, err)
 	}
 
-	s.logger.Info(ctx, "[addressService] - Endereço recuperado com sucesso", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"address_id": address.ID,
 	})
 
@@ -89,12 +99,13 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address
 }
 
 func (s *addressService) GetByUserID(ctx context.Context, id int64) ([]*models.Address, error) {
-	s.logger.Info(ctx, "[addressService] - Iniciando busca de endereços por UserID", map[string]interface{}{
+	ref := "[addressService - GetByUserID] - "
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"user_id": id,
 	})
 
 	if id == 0 {
-		s.logger.Warn(ctx, "[addressService] - ID de usuário inválido para busca de endereços", map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"user_id": id,
 		})
 		return nil, ErrAddressIDRequired
@@ -102,13 +113,13 @@ func (s *addressService) GetByUserID(ctx context.Context, id int64) ([]*models.A
 
 	addresses, err := s.repo.GetByUserID(ctx, id)
 	if err != nil {
-		s.logger.Error(ctx, err, "[addressService] - Erro ao buscar endereços no repositório", map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": id,
 		})
 		return nil, err
 	}
 
-	s.logger.Info(ctx, "[addressService] - Endereços recuperados com sucesso", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id":         id,
 		"total_addresses": len(addresses),
 	})
@@ -117,12 +128,13 @@ func (s *addressService) GetByUserID(ctx context.Context, id int64) ([]*models.A
 }
 
 func (s *addressService) GetByClientID(ctx context.Context, id int64) ([]*models.Address, error) {
-	s.logger.Info(ctx, "[addressService] - Iniciando busca de endereços por ClientID", map[string]interface{}{
+	ref := "[addressService - GetByClientID] - "
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"client_id": id,
 	})
 
 	if id == 0 {
-		s.logger.Warn(ctx, "[addressService] - ClientID não fornecido", map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"client_id": id,
 		})
 		return nil, ErrAddressIDRequired
@@ -130,13 +142,13 @@ func (s *addressService) GetByClientID(ctx context.Context, id int64) ([]*models
 
 	addresses, err := s.repo.GetByClientID(ctx, id)
 	if err != nil {
-		s.logger.Error(ctx, err, "[addressService] - Erro ao buscar endereços por ClientID", map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"client_id": id,
 		})
 		return nil, err
 	}
 
-	s.logger.Info(ctx, "[addressService] - Endereços recuperados com sucesso", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"client_id":   id,
 		"total_items": len(addresses),
 	})
@@ -145,12 +157,13 @@ func (s *addressService) GetByClientID(ctx context.Context, id int64) ([]*models
 }
 
 func (s *addressService) GetBySupplierID(ctx context.Context, id int64) ([]*models.Address, error) {
-	s.logger.Info(ctx, "[addressService] - Iniciando busca de endereços por SupplierID", map[string]interface{}{
+	ref := "[addressService - GetBySupplierID] - "
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"supplier_id": id,
 	})
 
 	if id == 0 {
-		s.logger.Warn(ctx, "[addressService] - SupplierID não fornecido", map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"supplier_id": id,
 		})
 		return nil, ErrAddressIDRequired
@@ -158,13 +171,13 @@ func (s *addressService) GetBySupplierID(ctx context.Context, id int64) ([]*mode
 
 	addresses, err := s.repo.GetBySupplierID(ctx, id)
 	if err != nil {
-		s.logger.Error(ctx, err, "[addressService] - Erro ao buscar endereços por SupplierID", map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"supplier_id": id,
 		})
 		return nil, err
 	}
 
-	s.logger.Info(ctx, "[addressService] - Endereços recuperados com sucesso", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"supplier_id": id,
 		"total_items": len(addresses),
 	})
@@ -173,7 +186,8 @@ func (s *addressService) GetBySupplierID(ctx context.Context, id int64) ([]*mode
 }
 
 func (s *addressService) Update(ctx context.Context, address *models.Address) error {
-	s.logger.Info(ctx, "[addressService] - Iniciando atualização de endereço", map[string]interface{}{
+	ref := "[addressService - Update] - "
+	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
 		"address_id":  address.ID,
 		"user_id":     utils.Int64OrNil(address.UserID),
 		"client_id":   utils.Int64OrNil(address.ClientID),
@@ -181,14 +195,14 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 	})
 
 	if err := address.Validate(); err != nil {
-		s.logger.Warn(ctx, "[addressService] - Validação de endereço falhou", map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"erro": err.Error(),
 		})
 		return err
 	}
 
 	if address.ID == 0 {
-		s.logger.Warn(ctx, "[addressService] - ID do endereço não fornecido para atualização", map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"address_id": address.ID,
 		})
 		return ErrAddressIDRequired
@@ -196,42 +210,40 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 
 	err := s.repo.Update(ctx, address)
 	if err != nil {
-		s.logger.Error(ctx, err, "[addressService] - Erro ao atualizar endereço no repositório", map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"address_id": address.ID,
 		})
 		return fmt.Errorf("%w: %v", ErrUpdateAddress, err)
 	}
 
-	s.logger.Info(ctx, "[addressService] - Endereço atualizado com sucesso", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
 		"address_id": address.ID,
 	})
 
 	return nil
 }
-
 func (s *addressService) Delete(ctx context.Context, id int64) error {
-	s.logger.Info(ctx, "[addressService] - Iniciando exclusão de endereço", map[string]interface{}{
+	ref := "[addressService - Delete] - "
+	s.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
 		"address_id": id,
 	})
 
-	if id == 0 {
-		s.logger.Warn(ctx, "[addressService] - ID do endereço não fornecido para exclusão", map[string]interface{}{
+	if id <= 0 {
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"address_id": id,
 		})
 		return ErrAddressIDRequired
 	}
 
-	err := s.repo.Delete(ctx, id)
-	if err != nil {
-		s.logger.Error(ctx, err, "[addressService] - Erro ao excluir endereço no repositório", map[string]interface{}{
+	if err := s.repo.Delete(ctx, id); err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"address_id": id,
 		})
 		return fmt.Errorf("%w: %v", ErrDeleteAddress, err)
 	}
 
-	s.logger.Info(ctx, "[addressService] - Endereço excluído com sucesso", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
 		"address_id": id,
 	})
-
 	return nil
 }

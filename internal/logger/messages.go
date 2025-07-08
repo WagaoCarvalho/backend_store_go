@@ -33,8 +33,9 @@ const (
 	LogCheckError    = "Erro ao verificar existência de relação entre usuário e categoria"
 	LogCheckSuccess  = "Relação entre usuário e categoria encontrada"
 
-	LogIterateError   = "Erro ao Iterar"
-	LogNotFound       = "Não encontrado"
-	LogValidateError  = "Validação falhou"
+	LogValidateError = "Validação falhou"
+	LogIterateError  = "Erro ao Iterar"
+	LogNotFound      = "Não encontrado"
+
 	LogParseJsonError = "Falha ao fazer parse do JSON"
 )

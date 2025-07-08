@@ -12,4 +12,5 @@ var (
 	ErrInvalidCategoryName = errors.New("o nome da categoria é obrigatório")
 	ErrInvalidCategory     = errors.New("categoria: objeto inválido")
 	ErrCategoryIDRequired  = errors.New("categoria: ID da categoria é obrigatório")
+	ErrCheckBeforeUpdate   = errors.New("erro ao verificar dados antes da atualização")
 )
