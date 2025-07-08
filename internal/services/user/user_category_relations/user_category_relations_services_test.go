@@ -15,7 +15,7 @@ import (
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
 )
 
-func TestUserCategoryRelationServices_Create(t *testing.T) {
+func Test_Create(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mock
 
 	t.Run("Success", func(t *testing.T) {
@@ -124,7 +124,7 @@ func TestUserCategoryRelationServices_Create(t *testing.T) {
 	})
 }
 
-func TestUserCategoryRelationServices_GetAllRelationsByUserID(t *testing.T) {
+func Test_GetAllRelationsByUserID(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mock
 
 	t.Run("Success", func(t *testing.T) {
@@ -165,7 +165,7 @@ func TestUserCategoryRelationServices_GetAllRelationsByUserID(t *testing.T) {
 	})
 }
 
-func TestUserCategoryRelationServices_HasUserCategoryRelation(t *testing.T) {
+func Test_HasUserCategoryRelation(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New()) // ou mock logger
 
 	t.Run("Success_ExistsTrue", func(t *testing.T) {
@@ -226,7 +226,7 @@ func TestUserCategoryRelationServices_HasUserCategoryRelation(t *testing.T) {
 	})
 }
 
-func TestUserCategoryRelationServices_Delete(t *testing.T) {
+func Test_Delete(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mock
 	mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
 	service := NewUserCategoryRelationServices(mockRepo, logger)
@@ -272,7 +272,7 @@ func TestUserCategoryRelationServices_Delete(t *testing.T) {
 	})
 }
 
-func TestUserCategoryRelationServices_DeleteAll(t *testing.T) {
+func Test_DeleteAll(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mock
 	mockRepo := new(repoMocks.MockUserCategoryRelationRepo)
 	service := NewUserCategoryRelationServices(mockRepo, logger)

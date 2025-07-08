@@ -31,14 +31,16 @@ func NewUserCategoryRelationServices(repo repositories.UserCategoryRelationRepos
 }
 
 func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelations, bool, error) {
+	ref := "[userCategoryRelationServices - Create] - "
+
 	if userID <= 0 {
-		s.logger.Warn(ctx, "[userCategoryRelationServices] - ID de usuário inválido", map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"user_id": userID,
 		})
 		return nil, false, ErrInvalidUserID
 	}
 	if categoryID <= 0 {
-		s.logger.Warn(ctx, "[userCategoryRelationServices] - ID de categoria inválido", map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"category_id": categoryID,
 		})
 		return nil, false, ErrInvalidCategoryID
@@ -49,7 +51,7 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 		CategoryID: categoryID,
 	}
 
-	s.logger.Info(ctx, "[userCategoryRelationServices] - Iniciando criação da relação usuário-categoria", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
 		"user_id":     userID,
 		"category_id": categoryID,
 	})
@@ -58,15 +60,14 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 	if err != nil {
 		switch {
 		case errors.Is(err, repositories.ErrRelationExists):
-			s.logger.Warn(ctx, "[userCategoryRelationServices] - Relação já existente", map[string]interface{}{
+			s.logger.Warn(ctx, ref+logger.LogForeignKeyHasExists, map[string]any{
 				"user_id":     userID,
 				"category_id": categoryID,
 			})
 
-			// Verifica se a relação de fato existe
 			relations, getErr := s.relationRepo.GetAllRelationsByUserID(ctx, userID)
 			if getErr != nil {
-				s.logger.Error(ctx, getErr, "[userCategoryRelationServices] - Erro ao verificar relações existentes", map[string]interface{}{
+				s.logger.Error(ctx, getErr, ref+logger.LogCheckError, map[string]any{
 					"user_id": userID,
 				})
 				return nil, false, fmt.Errorf("%w: %v", ErrCheckExistingRelation, getErr)
@@ -77,18 +78,18 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 					return rel, false, nil
 				}
 			}
-			// Retorna erro se não encontrar
+
 			return nil, false, repositories.ErrRelationExists
 
 		case errors.Is(err, repositories.ErrInvalidForeignKey):
-			s.logger.Warn(ctx, "[userCategoryRelationServices] - Chave estrangeira inválida", map[string]interface{}{
+			s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 				"user_id":     userID,
 				"category_id": categoryID,
 			})
 			return nil, false, repositories.ErrInvalidForeignKey
 
 		default:
-			s.logger.Error(ctx, err, "[userCategoryRelationServices] - Erro ao criar relação", map[string]interface{}{
+			s.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 				"user_id":     userID,
 				"category_id": categoryID,
 			})
@@ -96,7 +97,7 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 		}
 	}
 
-	s.logger.Info(ctx, "[userCategoryRelationServices] - Relação criada com sucesso", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
 		"user_id":     userID,
 		"category_id": categoryID,
 	})
@@ -105,26 +106,28 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 }
 
 func (s *userCategoryRelationServices) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
+	ref := "[userCategoryRelationServices - GetAllRelationsByUserID] - "
+
 	if userID <= 0 {
-		s.logger.Warn(ctx, "[userCategoryRelationServices] - ID de usuário inválido para listar relações", map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"user_id": userID,
 		})
 		return nil, ErrInvalidUserID
 	}
 
-	s.logger.Info(ctx, "[userCategoryRelationServices] - Iniciando listagem das relações do usuário", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"user_id": userID,
 	})
 
 	relationsPtr, err := s.relationRepo.GetAllRelationsByUserID(ctx, userID)
 	if err != nil {
-		s.logger.Error(ctx, err, "[userCategoryRelationServices] - Erro ao buscar relações do usuário", map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": userID,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrFetchUserRelations, err)
 	}
 
-	s.logger.Info(ctx, "[userCategoryRelationServices] - Relações do usuário listadas com sucesso", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id":       userID,
 		"relations_len": len(relationsPtr),
 	})
@@ -133,34 +136,36 @@ func (s *userCategoryRelationServices) GetAllRelationsByUserID(ctx context.Conte
 }
 
 func (s *userCategoryRelationServices) HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error) {
+	ref := "[userCategoryRelationServices - HasUserCategoryRelation] - "
+
 	if userID <= 0 {
-		s.logger.Warn(ctx, "[userCategoryRelationServices] - ID de usuário inválido para verificação de relação", map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"user_id": userID,
 		})
 		return false, ErrInvalidUserID
 	}
 	if categoryID <= 0 {
-		s.logger.Warn(ctx, "[userCategoryRelationServices] - ID de categoria inválido para verificação de relação", map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"category_id": categoryID,
 		})
 		return false, ErrInvalidCategoryID
 	}
 
-	s.logger.Info(ctx, "[userCategoryRelationServices] - Verificando existência de relação usuário-categoria", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"user_id":     userID,
 		"category_id": categoryID,
 	})
 
 	exists, err := s.relationRepo.HasUserCategoryRelation(ctx, userID, categoryID)
 	if err != nil {
-		s.logger.Error(ctx, err, "[userCategoryRelationServices] - Erro ao verificar existência da relação", map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
 		return false, fmt.Errorf("%w: %v", ErrCheckRelationExists, err)
 	}
 
-	s.logger.Info(ctx, "[userCategoryRelationServices] - Verificação concluída", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id":     userID,
 		"category_id": categoryID,
 		"exists":      exists,
@@ -170,20 +175,22 @@ func (s *userCategoryRelationServices) HasUserCategoryRelation(ctx context.Conte
 }
 
 func (s *userCategoryRelationServices) Delete(ctx context.Context, userID, categoryID int64) error {
+	ref := "[userCategoryRelationServices - Delete] - "
+
 	if userID <= 0 {
-		s.logger.Warn(ctx, "[userCategoryRelationServices] - ID de usuário inválido para deleção de relação", map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"user_id": userID,
 		})
 		return ErrInvalidUserID
 	}
 	if categoryID <= 0 {
-		s.logger.Warn(ctx, "[userCategoryRelationServices] - ID de categoria inválido para deleção de relação", map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"category_id": categoryID,
 		})
 		return ErrInvalidCategoryID
 	}
 
-	s.logger.Info(ctx, "[userCategoryRelationServices] - Iniciando deleção da relação usuário-categoria", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
 		"user_id":     userID,
 		"category_id": categoryID,
 	})
@@ -191,20 +198,20 @@ func (s *userCategoryRelationServices) Delete(ctx context.Context, userID, categ
 	err := s.relationRepo.Delete(ctx, userID, categoryID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrRelationNotFound) {
-			s.logger.Warn(ctx, "[userCategoryRelationServices] - Relação usuário-categoria não encontrada para deleção", map[string]interface{}{
+			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id":     userID,
 				"category_id": categoryID,
 			})
 			return err
 		}
-		s.logger.Error(ctx, err, "[userCategoryRelationServices] - Erro ao deletar relação usuário-categoria", map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
 		return fmt.Errorf("%w: %v", ErrDeleteRelation, err)
 	}
 
-	s.logger.Info(ctx, "[userCategoryRelationServices] - Relação usuário-categoria deletada com sucesso", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
 		"user_id":     userID,
 		"category_id": categoryID,
 	})
@@ -213,26 +220,28 @@ func (s *userCategoryRelationServices) Delete(ctx context.Context, userID, categ
 }
 
 func (s *userCategoryRelationServices) DeleteAll(ctx context.Context, userID int64) error {
+	ref := "[userCategoryRelationServices - DeleteAll] - "
+
 	if userID <= 0 {
-		s.logger.Warn(ctx, "[userCategoryRelationServices] - ID de usuário inválido para deleção de todas as relações", map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"user_id": userID,
 		})
 		return ErrInvalidUserID
 	}
 
-	s.logger.Info(ctx, "[userCategoryRelationServices] - Iniciando deleção de todas as relações do usuário", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
 		"user_id": userID,
 	})
 
 	err := s.relationRepo.DeleteAll(ctx, userID)
 	if err != nil {
-		s.logger.Error(ctx, err, "[userCategoryRelationServices] - Erro ao deletar todas as relações do usuário", map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"user_id": userID,
 		})
 		return fmt.Errorf("%w: %v", ErrDeleteAllUserRelations, err)
 	}
 
-	s.logger.Info(ctx, "[userCategoryRelationServices] - Todas as relações do usuário deletadas com sucesso", map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
 		"user_id": userID,
 	})
 
