@@ -128,15 +128,16 @@ func TestAddressService_GetByID(t *testing.T) {
 	})
 
 	t.Run("endereço não encontrado", func(t *testing.T) {
-		mockRepo.On("GetByID", mock.Anything, int64(2)).Return((*models.Address)(nil), ErrAddressNotFound)
+		mockRepo.On("GetByID", mock.Anything, int64(2)).
+			Return((*models.Address)(nil), repositories.ErrAddressNotFound).Once() // Correção aqui
 
 		result, err := service.GetByID(context.Background(), 2)
 
-		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrAddressNotFound)
 		assert.Nil(t, result)
-		assert.EqualError(t, err, ErrAddressNotFound.Error())
 		mockRepo.AssertExpectations(t)
 	})
+
 }
 
 func TestAddressService_GetByUserID(t *testing.T) {
