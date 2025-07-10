@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/auth"
+	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/login"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )

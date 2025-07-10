@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/auth"
+	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"

@@ -4,7 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	loginServices "github.com/WagaoCarvalho/backend_store_go/internal/auth"
+	jwt "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
+	login "github.com/WagaoCarvalho/backend_store_go/internal/auth/login"
+	pass "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	loginHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/login"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	userRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
@@ -21,13 +23,13 @@ func RegisterLoginRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdap
 	jwtCfg := config.LoadJwtConfig()
 
 	// 🪙 Criar JWTManager
-	jwtManager := loginServices.NewJWTManager(jwtCfg.SecretKey, time.Hour)
+	jwtManager := jwt.NewJWTManager(jwtCfg.SecretKey, time.Hour)
 
 	// 🔑 Criar Hasher (bcrypt)
-	hasher := loginServices.BcryptHasher{}
+	hasher := pass.BcryptHasher{}
 
 	// 💡 Injetar dependências no serviço de login
-	service := loginServices.NewLoginService(userRepo, log, jwtManager, hasher)
+	service := login.NewLoginService(userRepo, log, jwtManager, hasher)
 
 	handler := loginHandlers.NewLoginHandler(service)
 

@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/auth"
+	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/login"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models_login "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"

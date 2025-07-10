@@ -5,8 +5,9 @@ import (
 	"errors"
 	"time"
 
+	pass "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	logger "github.com/WagaoCarvalho/backend_store_go/internal/logger"
-	modelsLogin "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
+	models_login "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
 )
@@ -20,7 +21,7 @@ var (
 )
 
 type LoginService interface {
-	Login(ctx context.Context, credentials modelsLogin.LoginCredentials) (string, error)
+	Login(ctx context.Context, credentials models_login.LoginCredentials) (string, error)
 }
 
 type TokenGenerator interface {
@@ -31,10 +32,10 @@ type loginService struct {
 	userRepo   repositories.UserRepository
 	logger     *logger.LoggerAdapter
 	jwtManager TokenGenerator
-	hasher     PasswordHasher
+	hasher     pass.PasswordHasher
 }
 
-func NewLoginService(repo repositories.UserRepository, logger *logger.LoggerAdapter, jwt TokenGenerator, hasher PasswordHasher) *loginService {
+func NewLoginService(repo repositories.UserRepository, logger *logger.LoggerAdapter, jwt TokenGenerator, hasher pass.PasswordHasher) *loginService {
 	return &loginService{
 		userRepo:   repo,
 		logger:     logger,
@@ -43,7 +44,7 @@ func NewLoginService(repo repositories.UserRepository, logger *logger.LoggerAdap
 	}
 }
 
-func (s *loginService) Login(ctx context.Context, credentials modelsLogin.LoginCredentials) (string, error) {
+func (s *loginService) Login(ctx context.Context, credentials models_login.LoginCredentials) (string, error) {
 	ref := "[loginService - Login] - "
 	s.logger.Info(ctx, ref+"iniciando login", map[string]any{
 		"email": credentials.Email,
