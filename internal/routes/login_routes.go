@@ -27,7 +27,7 @@ func RegisterLoginRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdap
 	hasher := loginServices.BcryptHasher{}
 
 	// 💡 Injetar dependências no serviço de login
-	service := loginServices.NewLoginService(userRepo, jwtManager, hasher)
+	service := loginServices.NewLoginService(userRepo, log, jwtManager, hasher)
 
 	handler := loginHandlers.NewLoginHandler(service)
 

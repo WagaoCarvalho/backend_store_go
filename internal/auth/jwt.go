@@ -6,7 +6,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// ✅ Esta struct pertence ao jwt.go
 type JWTManager struct {
 	SecretKey     string
 	TokenDuration time.Duration
