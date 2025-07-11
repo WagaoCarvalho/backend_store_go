@@ -3,23 +3,29 @@ package routes
 import (
 	"net/http"
 
-	addressHandlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/address"
+	"github.com/WagaoCarvalho/backend_store_go/internal/config"
+	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/address"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
-	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
-	addressRepositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
-	addressServices "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
+	middlewares "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RegisterAddressRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
-	repo := addressRepositories.NewAddressRepository(db, log)
-	service := addressServices.NewAddressService(repo, log)
-	handler := addressHandlers.NewAddressHandler(service, log)
+func RegisterAddressRoutes(
+	r *mux.Router,
+	db *pgxpool.Pool,
+	log *logger.LoggerAdapter,
+	blacklist middlewares.TokenBlacklist, // <- injetar blacklist aqui
+) {
+	repo := repositories.NewAddressRepository(db, log)
+	service := services.NewAddressService(repo, log)
+	handler := handlers.NewAddressHandler(service, log)
 
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(jwt.IsAuthByBearerToken)
+	s.Use(middlewares.IsAuthByBearerToken(blacklist, log, config.LoadConfig().Jwt.SecretKey)) // <- uso atualizado do middleware
 
 	s.HandleFunc("/addresses", handler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/address/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	redis "github.com/WagaoCarvalho/backend_store_go/internal/auth/redis"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/home"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	cors "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/cors"
@@ -29,17 +30,16 @@ func NewRouter(log *logger.LoggerAdapter) *mux.Router {
 		log.Error(context.TODO(), err, "Erro ao conectar ao banco de dados", nil)
 	}
 
+	blacklist := redis.NewRedisTokenBlacklist("localhost:6379", "", 0)
+
 	r.HandleFunc("/", handlers.GetHome).Methods(http.MethodGet)
 
-	RegisterLoginRoutes(r, db, log)
-	RegisterUserRoutes(r, db, log)
-	RegisterUserCategoryRoutes(r, db, log)
-	RegisterUserCategoryRelationRoutes(r, db, log)
-	RegisterProductRoutes(r, db)
-	RegisterAddressRoutes(r, db, log)
-	RegisterContactRoutes(r, db, log)
-	RegisterSupplierRoutes(r, db, log)
-	RegisterSupplierCategoryRoutes(r, db, log)
+	RegisterLoginRoutes(r, db, log, blacklist)
+	RegisterUserRoutes(r, db, log, blacklist)
+	RegisterUserCategoryRoutes(r, db, log, blacklist)
+	RegisterUserCategoryRelationRoutes(r, db, log, blacklist)
+	RegisterAddressRoutes(r, db, log, blacklist)
+	RegisterContactRoutes(r, db, log, blacklist)
 
 	return r
 }

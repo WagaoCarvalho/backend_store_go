@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
+	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
@@ -14,19 +15,24 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RegisterUserRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
+func RegisterUserRoutes(
+	r *mux.Router,
+	db *pgxpool.Pool,
+	log *logger.LoggerAdapter,
+	blacklist jwt.TokenBlacklist, // <- injetar a blacklist
+) {
 	userRepo := repositories.NewUserRepository(db, log)
-
-	// Instancia o hasher bcrypt
 	hasher := auth.BcryptHasher{}
 
 	userService := services.NewUserService(userRepo, log, hasher)
 	handler := handlers.NewUserHandler(userService, log)
 
+	// Rota pública
 	r.HandleFunc("/user", handler.Create).Methods(http.MethodPost)
 
+	// Rotas protegidas
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(jwt.IsAuthByBearerToken)
+	s.Use(jwt.IsAuthByBearerToken(blacklist, log, config.LoadConfig().Jwt.SecretKey)) // <- uso correto do middleware
 
 	s.HandleFunc("/users", handler.GetAll).Methods(http.MethodGet)
 	s.HandleFunc("/user/id/{id}", handler.GetByID).Methods(http.MethodGet)

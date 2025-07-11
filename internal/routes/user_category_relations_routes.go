@@ -3,22 +3,28 @@ package routes
 import (
 	"net/http"
 
-	user_category_relation_handler "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user/user_category_relations_handler"
+	"github.com/WagaoCarvalho/backend_store_go/internal/config"
+	handler "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user/user_category_relations_handler"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
-	user_category_relation_repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
-	user_category_relation_service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_category_relations"
+	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_category_relations"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RegisterUserCategoryRelationRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter) {
-	relationRepo := user_category_relation_repository.NewUserCategoryRelationRepositories(db, log)
-	relationService := user_category_relation_service.NewUserCategoryRelationServices(relationRepo, log)
-	relationHandler := user_category_relation_handler.NewUserCategoryRelationHandler(relationService, log)
+func RegisterUserCategoryRelationRoutes(
+	r *mux.Router,
+	db *pgxpool.Pool,
+	log *logger.LoggerAdapter,
+	blacklist jwt.TokenBlacklist, // <- injeta blacklist aqui
+) {
+	relationRepo := repository.NewUserCategoryRelationRepositories(db, log)
+	relationService := service.NewUserCategoryRelationServices(relationRepo, log)
+	relationHandler := handler.NewUserCategoryRelationHandler(relationService, log)
 
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(jwt.IsAuthByBearerToken)
+	s.Use(jwt.IsAuthByBearerToken(blacklist, log, config.LoadConfig().Jwt.SecretKey)) // <- middleware atualizado com blacklist
 
 	s.HandleFunc("/user-category-relation", relationHandler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/user-category-relations/{user_id:[0-9]+}", relationHandler.GetAllRelationsByUserID).Methods(http.MethodGet)
