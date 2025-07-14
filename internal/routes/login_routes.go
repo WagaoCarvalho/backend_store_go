@@ -21,20 +21,15 @@ import (
 func RegisterLoginRoutes(r *mux.Router, db *pgxpool.Pool, log *logger.LoggerAdapter, blacklist logout.TokenBlacklist) {
 	userRepo := userRepositories.NewUserRepository(db, log)
 
-	// 🔐 Carregar configuração JWT
 	jwtCfg := config.LoadJwtConfig()
 
-	// 🪙 Criar JWTManager
 	jwtManager := jwt.NewJWTManager(jwtCfg.SecretKey, time.Hour)
 
-	// 🔑 Criar Hasher (bcrypt)
 	hasher := pass.BcryptHasher{}
 
-	// 💡 Injetar dependências no serviço de login
 	loginService := login.NewLoginService(userRepo, log, jwtManager, hasher)
-	loginHandler := loginHandlers.NewLoginHandler(loginService)
+	loginHandler := loginHandlers.NewLoginHandler(loginService, log)
 
-	// Serviço e handler de logout, injetando blacklist e secretKey
 	logoutService := logout.NewLogoutService(blacklist, log, jwtCfg.SecretKey)
 	logoutHandler := logoutHandlers.NewLogoutHandler(logoutService, log)
 

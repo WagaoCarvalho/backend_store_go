@@ -24,12 +24,13 @@ func NewAddressHandler(service services.AddressService, logger *logger.LoggerAda
 }
 
 func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
+	ref := "[AddressHandler - Create] "
 	var address models.Address
 
-	h.logger.Info(r.Context(), "[AddressHandler] - "+logger.LogCreateInit, map[string]interface{}{})
+	h.logger.Info(r.Context(), ref+logger.LogCreateInit, map[string]interface{}{})
 
 	if err := utils.FromJson(r.Body, &address); err != nil {
-		h.logger.Warn(r.Context(), "[AddressHandler] - "+logger.LogParseJsonError, map[string]interface{}{
+		h.logger.Warn(r.Context(), ref+logger.LogParseJsonError, map[string]interface{}{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -39,19 +40,19 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 	createdAddress, err := h.service.Create(r.Context(), &address)
 	if err != nil {
 		if errors.Is(err, repositories.ErrInvalidForeignKey) {
-			h.logger.Warn(r.Context(), "[AddressHandler] - "+logger.LogForeignKeyViolation, map[string]interface{}{
+			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]interface{}{
 				"erro": err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
 		}
 
-		h.logger.Error(r.Context(), err, "[AddressHandler] - "+logger.LogCreateError, map[string]interface{}{})
+		h.logger.Error(r.Context(), err, ref+logger.LogCreateError, map[string]interface{}{})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[AddressHandler] - "+logger.LogCreateSuccess, map[string]interface{}{
+	h.logger.Info(r.Context(), ref+logger.LogCreateSuccess, map[string]interface{}{
 		"address_id": createdAddress.ID,
 	})
 
@@ -63,13 +64,12 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	h.logger.Info(r.Context(), "[AddressHandler] - Iniciando busca de endereço por ID", map[string]interface{}{
-		"path": r.URL.Path,
-	})
+	ref := "[AddressHandler - GetByID] "
+	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]interface{}{})
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), "[AddressHandler] - ID inválido recebido", map[string]interface{}{
+		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]interface{}{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -78,14 +78,14 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	address, err := h.service.GetByID(r.Context(), id)
 	if err != nil {
-		h.logger.Error(r.Context(), err, "[AddressHandler] - Erro ao buscar endereço", map[string]interface{}{
+		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]interface{}{
 			"address_id": id,
 		})
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[AddressHandler] - Endereço encontrado com sucesso", map[string]interface{}{
+	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]interface{}{
 		"address_id": address.ID,
 	})
 
@@ -97,33 +97,28 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
-	h.logger.Info(r.Context(), "[AddressHandler] - Iniciando busca de endereços por UserID", map[string]interface{}{
-		"path": r.URL.Path,
-	})
+	ref := "[AddressHandler - GetByUserID] "
+	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]interface{}{})
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), "[AddressHandler] - ID inválido para busca por UserID", map[string]interface{}{
-			"error": err.Error(),
+		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]interface{}{
+			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[AddressHandler] - Iniciando busca de endereços por UserID", map[string]interface{}{
-		"user_id": id,
-	})
-
 	addresses, err := h.service.GetByUserID(r.Context(), id)
 	if err != nil {
-		h.logger.Error(r.Context(), err, "[AddressHandler] - Erro ao buscar endereços por UserID", map[string]interface{}{
+		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]interface{}{
 			"user_id": id,
 		})
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[AddressHandler] - Endereços do usuário encontrados com sucesso", map[string]interface{}{
+	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]interface{}{
 		"user_id": id,
 		"count":   len(addresses),
 	})
@@ -136,33 +131,28 @@ func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
-	h.logger.Info(r.Context(), "[AddressHandler] - Iniciando busca de endereços por ClientID", map[string]interface{}{
-		"path": r.URL.Path,
-	})
+	ref := "[AddressHandler - GetByClientID] "
+	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]interface{}{})
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), "[AddressHandler] - ID do cliente inválido", map[string]interface{}{
-			"error": err.Error(),
+		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]interface{}{
+			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[AddressHandler] - Iniciando busca de endereços por ClientID", map[string]interface{}{
-		"client_id": id,
-	})
-
 	addresses, err := h.service.GetByClientID(r.Context(), id)
 	if err != nil {
-		h.logger.Error(r.Context(), err, "[AddressHandler] - Erro ao buscar endereços por ClientID", map[string]interface{}{
+		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]interface{}{
 			"client_id": id,
 		})
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[AddressHandler] - Endereços do cliente encontrados com sucesso", map[string]interface{}{
+	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]interface{}{
 		"client_id": id,
 		"count":     len(addresses),
 	})
@@ -175,34 +165,28 @@ func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
-	h.logger.Info(r.Context(), "[AddressHandler] - Iniciando busca de endereços por SupplierID", map[string]interface{}{
-		"path": r.URL.Path,
-	})
+	ref := "[AddressHandler - GetBySupplierID] "
+	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]interface{}{})
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), "[AddressHandler] - ID inválido ao buscar endereço por SupplierID", map[string]interface{}{
-			"error": err.Error(),
+		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]interface{}{
+			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[AddressHandler] - Buscando endereços por SupplierID", map[string]interface{}{
-		"supplier_id": id,
-	})
-
 	addresses, err := h.service.GetBySupplierID(r.Context(), id)
 	if err != nil {
-		h.logger.Warn(r.Context(), "[AddressHandler] - Erro ao buscar endereços por SupplierID", map[string]interface{}{
-			"error":       err.Error(),
+		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]interface{}{
 			"supplier_id": id,
 		})
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[AddressHandler] - Endereços do fornecedor encontrados", map[string]interface{}{
+	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]interface{}{
 		"supplier_id": id,
 		"count":       len(addresses),
 	})
@@ -215,9 +199,11 @@ func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
+	ref := "[AddressHandler - Update] "
+
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), "[AddressHandler] - ID inválido para update", map[string]interface{}{
+		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]interface{}{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -226,23 +212,21 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	var address models.Address
 	if err := utils.FromJson(r.Body, &address); err != nil {
-		h.logger.Warn(r.Context(), "[AddressHandler] - JSON inválido no update", map[string]interface{}{
+		h.logger.Warn(r.Context(), ref+logger.LogParseJsonError, map[string]interface{}{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
-
 	address.ID = id
 
-	h.logger.Info(r.Context(), "[AddressHandler] - Iniciando atualização de endereço", map[string]interface{}{
-		"path":       r.URL.Path,
+	h.logger.Info(r.Context(), ref+logger.LogUpdateInit, map[string]interface{}{
 		"address_id": address.ID,
 	})
 
 	if err := h.service.Update(r.Context(), &address); err != nil {
 		if ve, ok := err.(*utils.ValidationError); ok {
-			h.logger.Warn(r.Context(), "[AddressHandler] - Falha na validação ao atualizar endereço", map[string]interface{}{
+			h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]interface{}{
 				"erro": ve.Error(),
 				"id":   id,
 			})
@@ -250,14 +234,14 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		h.logger.Error(r.Context(), err, "[AddressHandler] - Erro ao atualizar endereço", map[string]interface{}{
+		h.logger.Error(r.Context(), err, ref+logger.LogUpdateError, map[string]interface{}{
 			"id": id,
 		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[AddressHandler] - Endereço atualizado com sucesso", map[string]interface{}{
+	h.logger.Info(r.Context(), ref+logger.LogUpdateSuccess, map[string]interface{}{
 		"id": id,
 	})
 
@@ -269,16 +253,18 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	ref := "[AddressHandler - Delete] "
+
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), "[AddressHandler] - ID inválido para exclusão", map[string]interface{}{
+		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]interface{}{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, errors.New("ID inválido (esperado número inteiro)"), http.StatusBadRequest)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[AddressHandler] - Iniciando exclusão de endereço", map[string]interface{}{
+	h.logger.Info(r.Context(), ref+logger.LogDeleteInit, map[string]interface{}{
 		"address_id": id,
 	})
 
@@ -286,16 +272,18 @@ func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, utils.ErrNotFound):
-			h.logger.Warn(r.Context(), "[AddressHandler] - Endereço não encontrado para exclusão", map[string]interface{}{
+			h.logger.Warn(r.Context(), ref+logger.LogNotFound, map[string]interface{}{
 				"address_id": id,
 				"erro":       err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusNotFound)
 		case errors.Is(err, services.ErrAddressIDRequired):
-			h.logger.Warn(r.Context(), "[AddressHandler] - ID do endereço obrigatório para exclusão", nil)
+			h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]interface{}{
+				"erro": err.Error(),
+			})
 			utils.ErrorResponse(w, errors.New("endereço ID é obrigatório"), http.StatusBadRequest)
 		default:
-			h.logger.Error(r.Context(), err, "[AddressHandler] - Erro ao deletar endereço", map[string]interface{}{
+			h.logger.Error(r.Context(), err, ref+logger.LogDeleteError, map[string]interface{}{
 				"address_id": id,
 			})
 			utils.ErrorResponse(w, err, http.StatusInternalServerError)
@@ -303,7 +291,7 @@ func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info(r.Context(), "[AddressHandler] - Endereço excluído com sucesso", map[string]interface{}{
+	h.logger.Info(r.Context(), ref+logger.LogDeleteSuccess, map[string]interface{}{
 		"address_id": id,
 	})
 

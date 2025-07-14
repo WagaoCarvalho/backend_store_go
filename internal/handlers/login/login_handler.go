@@ -6,40 +6,59 @@ import (
 	"net/http"
 
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/login"
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
 type LoginHandler struct {
 	service auth.LoginService
+	logger  *logger.LoggerAdapter
 }
 
-func NewLoginHandler(service auth.LoginService) *LoginHandler {
-	return &LoginHandler{service: service}
+func NewLoginHandler(service auth.LoginService, logger *logger.LoggerAdapter) *LoginHandler {
+	return &LoginHandler{
+		service: service,
+		logger:  logger,
+	}
 }
 
 func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
+	ref := "[LoginHandler] - Login"
+
+	h.logger.Info(r.Context(), ref+logger.LogCreateInit, map[string]any{})
+
 	if r.Method != http.MethodPost {
+		h.logger.Warn(r.Context(), ref+" - método HTTP inválido", map[string]any{
+			"method": r.Method,
+		})
 		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
 		return
 	}
 
 	var credentials models.LoginCredentials
 	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {
+		h.logger.Warn(r.Context(), ref+logger.LogParseJsonError, map[string]any{
+			"erro": err.Error(),
+		})
 		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
 		return
 	}
 
 	token, err := h.service.Login(r.Context(), credentials)
 	if err != nil {
+		h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{
+			"erro": err.Error(),
+		})
 		utils.ErrorResponse(w, err, http.StatusUnauthorized)
 		return
 	}
 
-	response := utils.DefaultResponse{
+	h.logger.Info(r.Context(), ref+logger.LogCreateSuccess, map[string]any{})
+
+	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Login realizado com sucesso",
 		Data:    map[string]string{"token": token},
-	}
-	utils.ToJson(w, http.StatusOK, response)
+	})
 }

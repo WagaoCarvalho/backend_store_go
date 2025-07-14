@@ -478,7 +478,8 @@ func TestContactHandler_Delete(t *testing.T) {
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		assert.Contains(t, w.Body.String(), "ID inválido")
+		assert.Contains(t, w.Body.String(), "invalid ID format: abc")
+
 	})
 
 	t.Run("not found", func(t *testing.T) {

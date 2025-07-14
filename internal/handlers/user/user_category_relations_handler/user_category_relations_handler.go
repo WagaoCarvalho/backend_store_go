@@ -27,13 +27,15 @@ func NewUserCategoryRelationHandler(service services.UserCategoryRelationService
 }
 
 func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Request) {
+	ref := "[UserCategoryRelationHandler - Create] "
 	ctx := r.Context()
-	h.logger.Info(ctx, "[UserCategoryRelationHandler] - Iniciando criação de relação usuário-categoria", nil)
+
+	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]interface{}{})
 
 	var relation *models.UserCategoryRelations
 	if err := utils.FromJson(r.Body, &relation); err != nil {
-		h.logger.Warn(ctx, "[UserCategoryRelationHandler] - JSON inválido ao criar relação", map[string]interface{}{
-			"error": err.Error(),
+		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]interface{}{
+			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
@@ -42,16 +44,16 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 	created, wasCreated, err := h.service.Create(ctx, relation.UserID, relation.CategoryID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrInvalidForeignKey) {
-			h.logger.Warn(ctx, "[UserCategoryRelationHandler] - Chave estrangeira inválida", map[string]interface{}{
+			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]interface{}{
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
-				"error":       err.Error(),
+				"erro":        err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
 		}
 
-		h.logger.Error(ctx, err, "[UserCategoryRelationHandler] - Erro ao criar relação", map[string]interface{}{
+		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]interface{}{
 			"user_id":     relation.UserID,
 			"category_id": relation.CategoryID,
 		})
@@ -61,22 +63,22 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 
 	var status int
 	var message string
+	var logMsg string
 
 	if wasCreated {
 		status = http.StatusCreated
 		message = "Relação criada com sucesso"
-		h.logger.Info(ctx, "[UserCategoryRelationHandler] - Relação criada com sucesso", map[string]interface{}{
-			"user_id":     relation.UserID,
-			"category_id": relation.CategoryID,
-		})
+		logMsg = logger.LogCreateSuccess
 	} else {
 		status = http.StatusOK
 		message = "Relação já existente"
-		h.logger.Info(ctx, "[UserCategoryRelationHandler] - Relação já existente", map[string]interface{}{
-			"user_id":     relation.UserID,
-			"category_id": relation.CategoryID,
-		})
+		logMsg = logger.LogAlreadyExists
 	}
+
+	h.logger.Info(ctx, ref+logMsg, map[string]interface{}{
+		"user_id":     relation.UserID,
+		"category_id": relation.CategoryID,
+	})
 
 	utils.ToJson(w, status, utils.DefaultResponse{
 		Data:    created,
@@ -86,14 +88,15 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *UserCategoryRelationHandler) GetAllRelationsByUserID(w http.ResponseWriter, r *http.Request) {
+	ref := "[UserCategoryRelationHandler - GetAllRelationsByUserID] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, "[UserCategoryRelationHandler] - Iniciando busca de relações por ID de usuário", nil)
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]interface{}{})
 
 	id, err := strconv.ParseInt(mux.Vars(r)["user_id"], 10, 64)
 	if err != nil {
-		h.logger.Warn(ctx, "[UserCategoryRelationHandler] - ID de usuário inválido recebido para busca", map[string]interface{}{
-			"error": err.Error(),
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]interface{}{
+			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("ID de usuário inválido"), http.StatusBadRequest)
 		return
@@ -101,14 +104,14 @@ func (h *UserCategoryRelationHandler) GetAllRelationsByUserID(w http.ResponseWri
 
 	relations, err := h.service.GetAllRelationsByUserID(ctx, id)
 	if err != nil {
-		h.logger.Error(ctx, err, "[UserCategoryRelationHandler] - Erro ao recuperar relações", map[string]interface{}{
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]interface{}{
 			"user_id": id,
 		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(ctx, "[UserCategoryRelationHandler] - Relações recuperadas com sucesso", map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]interface{}{
 		"user_id": id,
 		"total":   len(relations),
 	})
@@ -121,14 +124,16 @@ func (h *UserCategoryRelationHandler) GetAllRelationsByUserID(w http.ResponseWri
 }
 
 func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWriter, r *http.Request) {
+	ref := "[UserCategoryRelationHandler - HasUserCategoryRelation] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, "[UserCategoryRelationHandler] - Iniciando verificação de relação usuário-categoria", nil)
+	h.logger.Info(ctx, ref+logger.LogVerificationInit, map[string]interface{}{})
 
 	userID, err := strconv.ParseInt(mux.Vars(r)["user_id"], 10, 64)
 	if err != nil || userID <= 0 {
-		h.logger.Warn(ctx, "[UserCategoryRelationHandler] - ID de usuário inválido", map[string]interface{}{
-			"error": err,
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]interface{}{
+			"campo": "user_id",
+			"erro":  err,
 		})
 		utils.ErrorResponse(w, fmt.Errorf("ID de usuário inválido"), http.StatusBadRequest)
 		return
@@ -136,8 +141,9 @@ func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWri
 
 	categoryID, err := strconv.ParseInt(mux.Vars(r)["category_id"], 10, 64)
 	if err != nil || categoryID <= 0 {
-		h.logger.Warn(ctx, "[UserCategoryRelationHandler] - ID de categoria inválido", map[string]interface{}{
-			"error": err,
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]interface{}{
+			"campo": "category_id",
+			"erro":  err,
 		})
 		utils.ErrorResponse(w, fmt.Errorf("ID de categoria inválido"), http.StatusBadRequest)
 		return
@@ -145,7 +151,7 @@ func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWri
 
 	exists, err := h.service.HasUserCategoryRelation(ctx, userID, categoryID)
 	if err != nil {
-		h.logger.Error(ctx, err, "[UserCategoryRelationHandler] - Erro ao verificar relação", map[string]interface{}{
+		h.logger.Error(ctx, err, ref+logger.LogVerificationError, map[string]interface{}{
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
@@ -153,7 +159,7 @@ func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWri
 		return
 	}
 
-	h.logger.Info(ctx, "[UserCategoryRelationHandler] - Verificação concluída", map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogVerificationSuccess, map[string]interface{}{
 		"user_id":     userID,
 		"category_id": categoryID,
 		"exists":      exists,
@@ -167,24 +173,25 @@ func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWri
 }
 
 func (h *UserCategoryRelationHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	ref := "[UserCategoryRelationHandler - Delete] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, "[UserCategoryRelationHandler] - Iniciando exclusão de relação usuário-categoria", nil)
+	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]interface{}{})
 
-	userID, err1 := strconv.ParseInt(mux.Vars(r)["user_id"], 10, 64)
-	categoryID, err2 := strconv.ParseInt(mux.Vars(r)["category_id"], 10, 64)
+	userID, errUserID := strconv.ParseInt(mux.Vars(r)["user_id"], 10, 64)
+	categoryID, errCategoryID := strconv.ParseInt(mux.Vars(r)["category_id"], 10, 64)
 
-	if err1 != nil || err2 != nil {
-		h.logger.Warn(ctx, "[UserCategoryRelationHandler] - IDs inválidos para exclusão de relação", map[string]interface{}{
-			"error_user_id":     err1,
-			"error_category_id": err2,
+	if errUserID != nil || errCategoryID != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]interface{}{
+			"erro_user_id":     errUserID,
+			"erro_category_id": errCategoryID,
 		})
 		utils.ErrorResponse(w, fmt.Errorf("IDs inválidos"), http.StatusBadRequest)
 		return
 	}
 
 	if err := h.service.Delete(ctx, userID, categoryID); err != nil {
-		h.logger.Error(ctx, err, "[UserCategoryRelationHandler] - Erro ao excluir relação", map[string]interface{}{
+		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]interface{}{
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
@@ -192,7 +199,7 @@ func (h *UserCategoryRelationHandler) Delete(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	h.logger.Info(ctx, "[UserCategoryRelationHandler] - Relação excluída com sucesso", map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]interface{}{
 		"user_id":     userID,
 		"category_id": categoryID,
 	})
@@ -201,28 +208,29 @@ func (h *UserCategoryRelationHandler) Delete(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *UserCategoryRelationHandler) DeleteAll(w http.ResponseWriter, r *http.Request) {
+	ref := "[UserCategoryRelationHandler - DeleteAll] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, "[UserCategoryRelationHandler] - Iniciando exclusão de todas as relações do usuário", nil)
+	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]interface{}{})
 
 	userID, err := strconv.ParseInt(mux.Vars(r)["user_id"], 10, 64)
 	if err != nil {
-		h.logger.Warn(ctx, "[UserCategoryRelationHandler] - ID de usuário inválido para exclusão em massa", map[string]interface{}{
-			"error": err.Error(),
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]interface{}{
+			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("ID de usuário inválido"), http.StatusBadRequest)
 		return
 	}
 
 	if err := h.service.DeleteAll(ctx, userID); err != nil {
-		h.logger.Error(ctx, err, "[UserCategoryRelationHandler] - Erro ao excluir todas as relações", map[string]interface{}{
+		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]interface{}{
 			"user_id": userID,
 		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(ctx, "[UserCategoryRelationHandler] - Relações do usuário excluídas com sucesso", map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]interface{}{
 		"user_id": userID,
 	})
 

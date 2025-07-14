@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	contextutils "github.com/WagaoCarvalho/backend_store_go/internal/context_utils"
+	contextutils "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/request/context_utils"
 	"github.com/stretchr/testify/assert"
 )
 

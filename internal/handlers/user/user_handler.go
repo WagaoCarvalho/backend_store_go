@@ -26,38 +26,41 @@ func NewUserHandler(service services.UserService, logger *logger.LoggerAdapter) 
 }
 
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+	ref := "[UserHandler - Create] "
+	ctx := r.Context()
+
 	if r.Method != http.MethodPost {
-		h.logger.Warn(r.Context(), "[UserHandler] - Método não permitido", map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
 			"method": r.Method,
 		})
 		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
 		return
 	}
 
+	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{})
+
 	var requestData struct {
 		User *models.User `json:"user"`
 	}
 
-	h.logger.Info(r.Context(), "[UserHandler] - Iniciando criação de usuário", map[string]interface{}{})
-
 	if err := utils.FromJson(r.Body, &requestData); err != nil {
-		h.logger.Warn(r.Context(), "[UserHandler] - Falha ao desserializar JSON", map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	createdUser, err := h.service.Create(r.Context(), requestData.User)
+	createdUser, err := h.service.Create(ctx, requestData.User)
 	if err != nil {
-		h.logger.Error(r.Context(), err, "[UserHandler] - Erro ao criar usuário", map[string]interface{}{
+		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 			"email": requestData.User.Email,
 		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[UserHandler] - Usuário criado com sucesso", map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
 		"user_id":  createdUser.UID,
 		"username": createdUser.Username,
 		"email":    createdUser.Email,
@@ -71,16 +74,19 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	h.logger.Info(r.Context(), "[UserHandler] - Iniciando busca de todos usuários", nil)
+	ref := "[UserHandler - GetAll] "
+	ctx := r.Context()
 
-	users, err := h.service.GetAll(r.Context())
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
+
+	users, err := h.service.GetAll(ctx)
 	if err != nil {
-		h.logger.Error(r.Context(), err, "[UserHandler] - Erro ao buscar usuários", nil)
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{})
 		utils.ErrorResponse(w, fmt.Errorf("erro ao buscar usuários: %w", err), http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[UserHandler] - Usuários encontrados", map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"quantidade": len(users),
 	})
 
@@ -92,34 +98,40 @@ func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	h.logger.Info(r.Context(), "[UserHandler] - Iniciando busca de usuário por ID", nil)
+	ref := "[UserHandler - GetByID] "
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), "[UserHandler] - ID inválido na requisição", map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
 		return
 	}
 
-	user, err := h.service.GetByID(r.Context(), id)
+	user, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if err.Error() == "usuário não encontrado" {
 			status = http.StatusNotFound
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"user_id": id,
+			})
+		} else {
+			h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+				"user_id": id,
+				"status":  status,
+			})
 		}
-
-		h.logger.Error(r.Context(), err, "[UserHandler] - Erro ao buscar usuário por ID", map[string]interface{}{
-			"user_id": id,
-			"status":  status,
-		})
 
 		utils.ErrorResponse(w, err, status)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[UserHandler] - Usuário encontrado", map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id": user.UID,
 		"email":   user.Email,
 	})
@@ -132,32 +144,40 @@ func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
-	h.logger.Info(r.Context(), "[UserHandler] - Iniciando busca da versão do usuário por ID", nil)
+	ref := "[UserHandler - GetVersionByID] "
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), "[UserHandler] - ID inválido na requisição", map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
 		return
 	}
 
-	version, err := h.service.GetVersionByID(r.Context(), id)
+	version, err := h.service.GetVersionByID(ctx, id)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if errors.Is(err, repository.ErrUserNotFound) {
 			status = http.StatusNotFound
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"user_id": id,
+			})
+		} else {
+			h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+				"user_id": id,
+				"status":  status,
+			})
 		}
-		h.logger.Error(r.Context(), err, "[UserHandler] - Erro ao obter versão do usuário", map[string]interface{}{
-			"user_id": id,
-			"status":  status,
-		})
+
 		utils.ErrorResponse(w, err, status)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[UserHandler] - Versão do usuário obtida com sucesso", map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id": id,
 		"version": version,
 	})
@@ -172,28 +192,35 @@ func (h *UserHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetByEmail(w http.ResponseWriter, r *http.Request) {
+	ref := "[UserHandler - GetByEmail] "
+	ctx := r.Context()
+
 	vars := mux.Vars(r)
 	email := vars["email"]
 
-	h.logger.Info(r.Context(), "[UserHandler] - Iniciando busca de usuário por email", map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"email": email,
 	})
 
-	user, err := h.service.GetByEmail(r.Context(), email)
+	user, err := h.service.GetByEmail(ctx, email)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if err.Error() == "usuário não encontrado" {
 			status = http.StatusNotFound
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"email": email,
+			})
+		} else {
+			h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+				"email":  email,
+				"status": status,
+			})
 		}
-		h.logger.Error(r.Context(), err, "[UserHandler] - Erro ao buscar usuário por email", map[string]interface{}{
-			"email":  email,
-			"status": status,
-		})
 		utils.ErrorResponse(w, err, status)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[UserHandler] - Usuário encontrado por email", map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id": user.UID,
 		"email":   user.Email,
 	})
@@ -206,15 +233,18 @@ func (h *UserHandler) GetByEmail(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
+	ref := "[UserHandler - Update] "
+	ctx := r.Context()
+
 	if r.Method != http.MethodPut {
-		h.logger.Warn(r.Context(), "[UserHandler] - Método não permitido", map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
 			"method": r.Method,
 		})
 		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[UserHandler] - Iniciando atualização de usuário", nil)
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{})
 
 	var requestData struct {
 		User *models.User `json:"user"`
@@ -222,7 +252,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), "[UserHandler] - ID inválido na requisição", map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
@@ -230,7 +260,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := utils.FromJson(r.Body, &requestData); err != nil {
-		h.logger.Warn(r.Context(), "[UserHandler] - Falha ao desserializar JSON", map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
@@ -238,30 +268,30 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if requestData.User == nil {
-		h.logger.Warn(r.Context(), "[UserHandler] - Dados do usuário são obrigatórios", nil)
+		h.logger.Warn(ctx, ref+logger.LogMissingBodyData, map[string]any{})
 		utils.ErrorResponse(w, fmt.Errorf("dados do usuário são obrigatórios"), http.StatusBadRequest)
 		return
 	}
 
 	requestData.User.UID = id
 
-	updatedUser, err := h.service.Update(r.Context(), requestData.User)
+	updatedUser, err := h.service.Update(ctx, requestData.User)
 	if err != nil {
 		if errors.Is(err, repository.ErrVersionConflict) {
-			h.logger.Warn(r.Context(), err.Error(), map[string]interface{}{
+			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"user_id": id,
 			})
 			utils.ErrorResponse(w, err, http.StatusConflict)
 			return
 		}
-		h.logger.Error(r.Context(), err, "[UserHandler] - Erro ao atualizar usuário", map[string]interface{}{
+		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"user_id": id,
 		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[UserHandler] - Usuário atualizado com sucesso", map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
 		"user_id": updatedUser.UID,
 	})
 
@@ -273,40 +303,47 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	ref := "[UserHandler - Delete] "
+	ctx := r.Context()
+
 	if r.Method != http.MethodDelete {
-		h.logger.Warn(r.Context(), "[UserHandler] - Método não permitido", map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
 			"method": r.Method,
 		})
 		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[UserHandler] - Iniciando deleção de usuário", nil)
+	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{})
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), "[UserHandler] - ID inválido na requisição", map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
 		return
 	}
 
-	err = h.service.Delete(r.Context(), id)
+	err = h.service.Delete(ctx, id)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if err.Error() == "usuário não encontrado" {
 			status = http.StatusNotFound
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"user_id": id,
+			})
+		} else {
+			h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
+				"user_id": id,
+				"status":  status,
+			})
 		}
-		h.logger.Error(r.Context(), err, "[UserHandler] - Erro ao deletar usuário", map[string]interface{}{
-			"user_id": id,
-			"status":  status,
-		})
 		utils.ErrorResponse(w, err, status)
 		return
 	}
 
-	h.logger.Info(r.Context(), "[UserHandler] - Usuário deletado com sucesso", map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
 		"user_id": id,
 	})
 
