@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	"github.com/golang-jwt/jwt/v5"
@@ -14,6 +15,10 @@ import (
 type TokenBlacklist interface {
 	IsBlacklisted(ctx context.Context, token string) (bool, error)
 }
+
+type contextKey string
+
+const userClaimsKey = contextKey("user")
 
 func IsAuthByBearerToken(
 	blacklist TokenBlacklist,
@@ -27,22 +32,23 @@ func IsAuthByBearerToken(
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
-				http.Error(w, "Token ausente", http.StatusUnauthorized)
 				logger.Warn(r.Context(), ref+"token ausente", nil)
+				http.Error(w, "Token ausente", http.StatusUnauthorized)
 				return
 			}
 
-			parts := strings.Split(authHeader, " ")
+			parts := strings.SplitN(authHeader, " ", 2)
 			if len(parts) != 2 || parts[0] != "Bearer" {
-				http.Error(w, "Formato de token inválido", http.StatusUnauthorized)
 				logger.Warn(r.Context(), ref+"formato de token inválido", map[string]any{
 					"auth_header": authHeader,
 				})
+				http.Error(w, "Formato de token inválido", http.StatusUnauthorized)
 				return
 			}
 
 			tokenString := parts[1]
 
+			// Blacklist
 			isRevoked, err := blacklist.IsBlacklisted(r.Context(), tokenString)
 			if err != nil {
 				logger.Error(r.Context(), err, ref+"erro ao consultar blacklist", map[string]any{
@@ -59,13 +65,14 @@ func IsAuthByBearerToken(
 				return
 			}
 
-			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			// Parse do token
+			claims := jwt.MapClaims{}
+			token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					// Logamos erro de segurança e retornamos erro genérico para o handler
 					logger.Error(r.Context(), nil, ref+"método de assinatura inválido", map[string]any{
 						"alg": token.Header["alg"],
 					})
-					return nil, fmt.Errorf("Token inválido")
+					return nil, fmt.Errorf("token inválido")
 				}
 				return []byte(secretKey), nil
 			})
@@ -73,29 +80,39 @@ func IsAuthByBearerToken(
 			if err != nil {
 				switch {
 				case errors.Is(err, jwt.ErrTokenExpired):
-					http.Error(w, "Token expirado", http.StatusUnauthorized)
 					logger.Warn(r.Context(), ref+"token expirado", map[string]any{"token": tokenString})
-					return
+					http.Error(w, "Token expirado", http.StatusUnauthorized)
 				case errors.Is(err, jwt.ErrSignatureInvalid):
-					http.Error(w, "Assinatura inválida", http.StatusUnauthorized)
 					logger.Warn(r.Context(), ref+"assinatura inválida", map[string]any{"token": tokenString})
-					return
+					http.Error(w, "Assinatura inválida", http.StatusUnauthorized)
 				default:
-					http.Error(w, "Token inválido", http.StatusUnauthorized)
 					logger.Warn(r.Context(), ref+"token inválido", map[string]any{"token": tokenString})
-					return
+					http.Error(w, "Token inválido", http.StatusUnauthorized)
 				}
-			}
-
-			if !token.Valid {
-				http.Error(w, "Token inválido", http.StatusUnauthorized)
-				logger.Warn(r.Context(), ref+"token inválido", map[string]any{
-					"token": tokenString,
-				})
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), "user", token.Claims)
+			if !token.Valid {
+				logger.Warn(r.Context(), ref+"token inválido (parse ok, mas invalid)", map[string]any{"token": tokenString})
+				http.Error(w, "Token inválido", http.StatusUnauthorized)
+				return
+			}
+
+			// Verifica expiração manualmente
+			if exp, ok := claims["exp"].(float64); ok {
+				if int64(exp) < time.Now().Unix() {
+					logger.Warn(r.Context(), ref+"token expirado (manual check)", map[string]any{"token": tokenString})
+					http.Error(w, "Token expirado", http.StatusUnauthorized)
+					return
+				}
+			} else {
+				logger.Warn(r.Context(), ref+"campo exp ausente ou inválido", nil)
+				http.Error(w, "Token inválido", http.StatusUnauthorized)
+				return
+			}
+
+			// Injeta dados relevantes no contexto
+			ctx := context.WithValue(r.Context(), userClaimsKey, claims)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

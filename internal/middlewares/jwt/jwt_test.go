@@ -26,6 +26,11 @@ func (m *mockBlacklist) IsBlacklisted(ctx context.Context, token string) (bool, 
 	return args.Bool(0), args.Error(1)
 }
 
+// Copiar a mesma chave do middleware para testes
+type contextKey_test string
+
+const userClaimsKey_test = contextKey("user")
+
 func generateValidToken(t *testing.T, secret string, expiration time.Duration) string {
 	t.Helper()
 	claims := jwt.MapClaims{
@@ -47,20 +52,15 @@ func TestIsAuthByBearerToken(t *testing.T) {
 	loggerAdapter := logger.NewLoggerAdapter(log)
 	secret := "test-secret"
 
-	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		claims := r.Context().Value("user")
-		if claims == nil {
-			http.Error(w, "claims ausentes", http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-	})
-
 	t.Run("token ausente retorna 401", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rec := httptest.NewRecorder()
 
 		blacklist := new(mockBlacklist)
+		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+
 		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
 		middleware(nextHandler).ServeHTTP(rec, req)
 
@@ -74,6 +74,10 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		blacklist := new(mockBlacklist)
+		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+
 		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
 		middleware(nextHandler).ServeHTTP(rec, req)
 
@@ -89,6 +93,10 @@ func TestIsAuthByBearerToken(t *testing.T) {
 
 		blacklist := new(mockBlacklist)
 		blacklist.On("IsBlacklisted", mock.Anything, token).Return(true, nil)
+
+		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
 
 		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
 		middleware(nextHandler).ServeHTTP(rec, req)
@@ -107,6 +115,10 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		blacklist := new(mockBlacklist)
 		blacklist.On("IsBlacklisted", mock.Anything, invalidToken).Return(false, nil)
 
+		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+
 		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
 		middleware(nextHandler).ServeHTTP(rec, req)
 
@@ -123,6 +135,16 @@ func TestIsAuthByBearerToken(t *testing.T) {
 
 		blacklist := new(mockBlacklist)
 		blacklist.On("IsBlacklisted", mock.Anything, validToken).Return(false, nil)
+
+		// Handler que lê o contexto com a mesma chave usada no middleware
+		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			claims := r.Context().Value(userClaimsKey)
+			if claims == nil {
+				http.Error(w, "claims ausentes", http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+		})
 
 		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
 		middleware(nextHandler).ServeHTTP(rec, req)
@@ -156,6 +178,10 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		blacklist := new(mockBlacklist)
 		blacklist.On("IsBlacklisted", mock.Anything, tokenString).Return(false, nil)
 
+		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+
 		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
 		middleware(nextHandler).ServeHTTP(rec, req)
 
@@ -173,6 +199,10 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		blacklist := new(mockBlacklist)
 		blacklist.On("IsBlacklisted", mock.Anything, token).Return(false, assert.AnError)
 
+		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+
 		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
 		middleware(nextHandler).ServeHTTP(rec, req)
 
@@ -189,6 +219,10 @@ func TestIsAuthByBearerToken(t *testing.T) {
 
 		blacklist := new(mockBlacklist)
 		blacklist.On("IsBlacklisted", mock.Anything, expiredToken).Return(false, nil)
+
+		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
 
 		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
 		middleware(nextHandler).ServeHTTP(rec, req)
@@ -208,6 +242,10 @@ func TestIsAuthByBearerToken(t *testing.T) {
 
 		blacklist := new(mockBlacklist)
 		blacklist.On("IsBlacklisted", mock.Anything, invalidSigToken).Return(false, nil)
+
+		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
 
 		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
 		middleware(nextHandler).ServeHTTP(rec, req)
@@ -237,6 +275,10 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		blacklist := new(mockBlacklist)
 		blacklist.On("IsBlacklisted", mock.Anything, tokenString).Return(false, nil)
 
+		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+
 		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
 		middleware(nextHandler).ServeHTTP(rec, req)
 
@@ -245,4 +287,35 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		blacklist.AssertExpectations(t)
 	})
 
+	t.Run("token com exp ausente ou inválido retorna 401", func(t *testing.T) {
+		claims := jwt.MapClaims{
+			"uid":   1,
+			"email": "test@example.com",
+			// exp ausente intencionalmente
+		}
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, err := token.SignedString([]byte(secret))
+		if err != nil {
+			t.Fatalf("erro ao gerar token sem exp: %v", err)
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Set("Authorization", "Bearer "+tokenString)
+		rec := httptest.NewRecorder()
+
+		blacklist := new(mockBlacklist)
+		blacklist.On("IsBlacklisted", mock.Anything, tokenString).Return(false, nil)
+
+		// Handler que não deve ser chamado
+		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+
+		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
+		middleware(nextHandler).ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusUnauthorized, rec.Code)
+		assert.Contains(t, rec.Body.String(), "Token inválido")
+		blacklist.AssertExpectations(t)
+	})
 }
