@@ -11,12 +11,22 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
- 
+
   adminer:
     image: adminer
     restart: always
     ports:
-      - 8080:8080
- 
+      - "8080:8080"
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+
 volumes:
   pgdata:
+  redisdata:
