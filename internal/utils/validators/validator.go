@@ -38,26 +38,31 @@ func IsValidBrazilianState(state string) bool {
 	return validStates[state]
 }
 
-func IsValidPhone(phone string) bool {
-	// Ex: (11) 1234-5678
-	re := regexp.MustCompile(`^\(\d{2}\) \d{4}-\d{4}$`)
-	return re.MatchString(phone)
+func NormalizePhone(phone string) string {
+	re := regexp.MustCompile(`\D`)
+	return re.ReplaceAllString(phone, "")
 }
 
-func IsValidCell(cell string) bool {
-	// Ex: (11) 91234-5678
-	re := regexp.MustCompile(`^\(\d{2}\) 9\d{4}-\d{4}$`)
-	return re.MatchString(cell)
+func IsValidPhone(input string) bool {
+	normalized := NormalizePhone(input)
+	re := regexp.MustCompile(`^\d{10}$`)
+	return re.MatchString(normalized)
+}
+
+func IsValidCell(input string) bool {
+	normalized := NormalizePhone(input)
+	re := regexp.MustCompile(`^\d{11}$`)
+	return re.MatchString(normalized)
 }
 
 func IsValidCPF(cpf string) bool {
-	// Simplesmente verifica se tem 11 dígitos numéricos (sem pontuação)
+
 	matched, _ := regexp.MatchString(`^\d{11}$`, cpf)
 	return matched
 }
 
 func IsValidCNPJ(cnpj string) bool {
-	// Simplesmente verifica se tem 14 dígitos numéricos (sem pontuação)
+
 	matched, _ := regexp.MatchString(`^\d{14}$`, cnpj)
 	return matched
 }

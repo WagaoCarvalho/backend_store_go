@@ -16,17 +16,25 @@ func NewLoggerAdapter(base *logrus.Logger) *LoggerAdapter {
 }
 
 func (l *LoggerAdapter) WithContext(ctx context.Context) *logrus.Entry {
-	return l.base.WithField("request_id", contextutils.GetRequestID(ctx))
+	fields := logrus.Fields{
+		"request_id": contextutils.GetRequestID(ctx),
+	}
+
+	if uid := contextutils.GetUserID(ctx); uid != "" {
+		fields["user_id"] = uid
+	}
+
+	return l.base.WithFields(fields)
 }
 
-func (l *LoggerAdapter) Warn(ctx context.Context, msg string, extraFields map[string]interface{}) {
+func (l *LoggerAdapter) Warn(ctx context.Context, msg string, extraFields map[string]any) {
 	l.WithContext(ctx).WithFields(logrus.Fields(extraFields)).Warn(msg)
 }
 
-func (l *LoggerAdapter) Info(ctx context.Context, msg string, extraFields map[string]interface{}) {
+func (l *LoggerAdapter) Info(ctx context.Context, msg string, extraFields map[string]any) {
 	l.WithContext(ctx).WithFields(logrus.Fields(extraFields)).Info(msg)
 }
 
-func (l *LoggerAdapter) Error(ctx context.Context, err error, msg string, extraFields map[string]interface{}) {
+func (l *LoggerAdapter) Error(ctx context.Context, err error, msg string, extraFields map[string]any) {
 	l.WithContext(ctx).WithFields(logrus.Fields(extraFields)).WithError(err).Error(msg)
 }

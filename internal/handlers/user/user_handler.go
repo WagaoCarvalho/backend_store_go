@@ -347,9 +347,5 @@ func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		"user_id": id,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
-		Message: "Usuário deletado com sucesso",
-		Data:    nil,
-	})
+	w.WriteHeader(http.StatusNoContent)
 }

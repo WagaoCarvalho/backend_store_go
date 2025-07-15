@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -24,9 +25,9 @@ func NewJWTManager(secretKey string, duration time.Duration) *JWTManager {
 
 func (j *JWTManager) Generate(uid int64, email string) (string, error) {
 	claims := jwt.MapClaims{
-		"uid":   uid,
-		"email": email,
-		"exp":   time.Now().Add(j.TokenDuration).Unix(),
+		"user_id": strconv.FormatInt(uid, 10), // <- obrigatório como string
+		"email":   email,
+		"exp":     time.Now().Add(j.TokenDuration).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

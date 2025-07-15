@@ -28,6 +28,13 @@ func (m *mockLoggerAdapter) Info(ctx context.Context, msg string, extraFields ma
 	// Não usado aqui
 }
 
+func (m *mockLoggerAdapter) Warn(ctx context.Context, msg string, extraFields map[string]interface{}) {
+	//m.warnCalled = true
+	m.lastCtx = ctx
+	m.lastMsg = msg
+	m.lastFields = extraFields
+}
+
 func (m *mockLoggerAdapter) Error(ctx context.Context, err error, msg string, extraFields map[string]interface{}) {
 	m.errorCalled = true
 	m.lastCtx = ctx

@@ -27,6 +27,13 @@ func (m *mockLogger) Error(ctx context.Context, err error, msg string, extraFiel
 	// Pode implementar se precisar para testes futuros
 }
 
+func (m *mockLogger) Warn(ctx context.Context, msg string, extraFields map[string]interface{}) {
+	//m.warnCalled = true
+	m.lastCtx = ctx
+	m.lastMsg = msg
+	m.lastFields = extraFields
+}
+
 func TestLoggingMiddleware(t *testing.T) {
 	mockLog := &mockLogger{}
 

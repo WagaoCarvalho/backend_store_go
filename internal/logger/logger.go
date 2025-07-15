@@ -16,8 +16,9 @@ type LoggerConfig struct {
 }
 
 type Logger interface {
-	Info(ctx context.Context, msg string, extraFields map[string]interface{})
-	Error(ctx context.Context, err error, msg string, extraFields map[string]interface{})
+	Info(ctx context.Context, msg string, extraFields map[string]any)
+	Warn(ctx context.Context, msg string, extraFields map[string]any)
+	Error(ctx context.Context, err error, msg string, extraFields map[string]any)
 }
 
 func NewLogger(cfg LoggerConfig) *logrus.Logger {

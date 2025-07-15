@@ -81,7 +81,6 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 
 	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
 		"address_id": address.ID,
-		"user_id":    utils.Int64OrNil(address.UserID),
 	})
 
 	return address, nil
@@ -132,7 +131,6 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"address_id": address.ID,
-		"user_id":    utils.Int64OrNil(address.UserID),
 	})
 
 	return &address, nil
@@ -347,21 +345,18 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 		if errors.Is(err, pgx.ErrNoRows) {
 			r.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
 				"address_id": address.ID,
-				"user_id":    utils.Int64OrNil(address.UserID),
 			})
 			return ErrAddressNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"address_id": address.ID,
-			"user_id":    utils.Int64OrNil(address.UserID),
 		})
 		return fmt.Errorf("%w: %v", ErrUpdateAddress, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
 		"address_id": address.ID,
-		"user_id":    utils.Int64OrNil(address.UserID),
 	})
 
 	return nil

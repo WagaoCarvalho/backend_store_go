@@ -31,7 +31,6 @@ func (c *Contact) Validate() error {
 		}
 	}
 
-	// --- ContactName ---
 	if utils_validators.IsBlank(c.ContactName) {
 		return &utils_errors.ValidationError{Field: "ContactName", Message: "campo obrigatório"}
 	}
@@ -42,12 +41,10 @@ func (c *Contact) Validate() error {
 		return &utils_errors.ValidationError{Field: "ContactName", Message: "máximo de 100 caracteres"}
 	}
 
-	// --- ContactPosition ---
 	if len(c.ContactPosition) > 100 {
 		return &utils_errors.ValidationError{Field: "ContactPosition", Message: "máximo de 100 caracteres"}
 	}
 
-	// --- Email ---
 	if !utils_validators.IsBlank(c.Email) {
 		if !utils_validators.IsValidEmail(c.Email) {
 			return &utils_errors.ValidationError{Field: "Email", Message: "formato inválido"}
@@ -57,21 +54,18 @@ func (c *Contact) Validate() error {
 		}
 	}
 
-	// --- Phone ---
 	if !utils_validators.IsBlank(c.Phone) {
 		if !utils_validators.IsValidPhone(c.Phone) {
-			return &utils_errors.ValidationError{Field: "Phone", Message: "formato inválido (ex: (11) 1234-5678)"}
+			return &utils_errors.ValidationError{Field: "Phone", Message: "formato inválido (ex: 1112345678)"}
 		}
 	}
 
-	// --- Cell ---
 	if !utils_validators.IsBlank(c.Cell) {
 		if !utils_validators.IsValidCell(c.Cell) {
-			return &utils_errors.ValidationError{Field: "Cell", Message: "formato inválido (ex: (11) 91234-5678)"}
+			return &utils_errors.ValidationError{Field: "Cell", Message: "formato inválido (ex: 11912345678)"}
 		}
 	}
 
-	// --- ContactType (opcional, mas se informado, validar) ---
 	if !utils_validators.IsBlank(c.ContactType) {
 		validTypes := map[string]bool{
 			"principal":  true,

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -41,7 +42,7 @@ func main() {
 	appLogger := logger.NewLoggerAdapter(rawLogger)
 
 	// Log inicial (sem request_id)
-	appLogger.Info(nil, "Servidor iniciado", map[string]interface{}{
+	appLogger.Info(context.TODO(), "Servidor iniciado", map[string]interface{}{
 		"env":  configs.App.Env,
 		"port": port,
 	})

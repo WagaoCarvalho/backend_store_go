@@ -481,7 +481,8 @@ func TestUserHandler_Delete(t *testing.T) {
 
 		handler.Delete(rec, req)
 
-		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, http.StatusNoContent, rec.Code)
+		assert.Empty(t, rec.Body.String())
 		mockService.AssertExpectations(t)
 	})
 

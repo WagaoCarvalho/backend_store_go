@@ -3,12 +3,12 @@ package middlewares
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
+	middlewares "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/request/context_utils"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -22,7 +22,7 @@ const userClaimsKey = contextKey("user")
 
 func IsAuthByBearerToken(
 	blacklist TokenBlacklist,
-	logger *logger.LoggerAdapter,
+	logger_adapter *logger.LoggerAdapter,
 	secretKey string,
 ) func(http.Handler) http.Handler {
 
@@ -32,47 +32,46 @@ func IsAuthByBearerToken(
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
-				logger.Warn(r.Context(), ref+"token ausente", nil)
-				http.Error(w, "Token ausente", http.StatusUnauthorized)
+				logger_adapter.Warn(r.Context(), ref+logger.LogAuthTokenMissing, nil)
+				http.Error(w, ErrTokenMissing.Error(), http.StatusUnauthorized)
 				return
 			}
 
 			parts := strings.SplitN(authHeader, " ", 2)
 			if len(parts) != 2 || parts[0] != "Bearer" {
-				logger.Warn(r.Context(), ref+"formato de token inválido", map[string]any{
+				logger_adapter.Warn(r.Context(), ref+logger.LogAuthTokenInvalidFormat, map[string]any{
 					"auth_header": authHeader,
 				})
-				http.Error(w, "Formato de token inválido", http.StatusUnauthorized)
+				http.Error(w, ErrTokenInvalidFormat.Error(), http.StatusUnauthorized)
 				return
 			}
 
 			tokenString := parts[1]
 
-			// Blacklist
 			isRevoked, err := blacklist.IsBlacklisted(r.Context(), tokenString)
 			if err != nil {
-				logger.Error(r.Context(), err, ref+"erro ao consultar blacklist", map[string]any{
+				logger_adapter.Error(r.Context(), err, ref+logger.LogAuthBlacklistError, map[string]any{
 					"token": tokenString,
 				})
-				http.Error(w, "Erro interno de autenticação", http.StatusInternalServerError)
-				return
-			}
-			if isRevoked {
-				logger.Warn(r.Context(), ref+"token revogado", map[string]any{
-					"token": tokenString,
-				})
-				http.Error(w, "Token revogado", http.StatusUnauthorized)
+				http.Error(w, ErrInternalAuth.Error(), http.StatusInternalServerError)
 				return
 			}
 
-			// Parse do token
+			if isRevoked {
+				logger_adapter.Warn(r.Context(), ref+logger.LogAuthTokenRevoked, map[string]any{
+					"token": tokenString,
+				})
+				http.Error(w, ErrTokenRevoked.Error(), http.StatusUnauthorized)
+				return
+			}
+
 			claims := jwt.MapClaims{}
 			token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					logger.Error(r.Context(), nil, ref+"método de assinatura inválido", map[string]any{
+					logger_adapter.Error(r.Context(), nil, ref+logger.LogAuthInvalidSigningMethod, map[string]any{
 						"alg": token.Header["alg"],
 					})
-					return nil, fmt.Errorf("token inválido")
+					return nil, ErrInvalidSigningMethod
 				}
 				return []byte(secretKey), nil
 			})
@@ -80,39 +79,48 @@ func IsAuthByBearerToken(
 			if err != nil {
 				switch {
 				case errors.Is(err, jwt.ErrTokenExpired):
-					logger.Warn(r.Context(), ref+"token expirado", map[string]any{"token": tokenString})
-					http.Error(w, "Token expirado", http.StatusUnauthorized)
+					logger_adapter.Warn(r.Context(), ref+logger.LogAuthTokenExpired, map[string]any{"token": tokenString})
+					http.Error(w, ErrTokenExpired.Error(), http.StatusUnauthorized)
 				case errors.Is(err, jwt.ErrSignatureInvalid):
-					logger.Warn(r.Context(), ref+"assinatura inválida", map[string]any{"token": tokenString})
-					http.Error(w, "Assinatura inválida", http.StatusUnauthorized)
+					logger_adapter.Warn(r.Context(), ref+logger.LogAuthInvalidSignature, map[string]any{"token": tokenString})
+					http.Error(w, ErrInvalidSignature.Error(), http.StatusUnauthorized)
 				default:
-					logger.Warn(r.Context(), ref+"token inválido", map[string]any{"token": tokenString})
-					http.Error(w, "Token inválido", http.StatusUnauthorized)
+					logger_adapter.Warn(r.Context(), ref+logger.LogAuthTokenInvalid, map[string]any{"token": tokenString})
+					http.Error(w, ErrTokenInvalid.Error(), http.StatusUnauthorized)
 				}
 				return
 			}
 
 			if !token.Valid {
-				logger.Warn(r.Context(), ref+"token inválido (parse ok, mas invalid)", map[string]any{"token": tokenString})
-				http.Error(w, "Token inválido", http.StatusUnauthorized)
+				logger_adapter.Warn(r.Context(), ref+logger.LogAuthTokenInvalidParsed, map[string]any{"token": tokenString})
+				http.Error(w, ErrTokenInvalid.Error(), http.StatusUnauthorized)
 				return
 			}
 
-			// Verifica expiração manualmente
 			if exp, ok := claims["exp"].(float64); ok {
 				if int64(exp) < time.Now().Unix() {
-					logger.Warn(r.Context(), ref+"token expirado (manual check)", map[string]any{"token": tokenString})
-					http.Error(w, "Token expirado", http.StatusUnauthorized)
+					logger_adapter.Warn(r.Context(), ref+logger.LogAuthTokenExpiredManualCheck, map[string]any{"token": tokenString})
+					http.Error(w, ErrTokenExpired.Error(), http.StatusUnauthorized)
 					return
 				}
 			} else {
-				logger.Warn(r.Context(), ref+"campo exp ausente ou inválido", nil)
-				http.Error(w, "Token inválido", http.StatusUnauthorized)
+				logger_adapter.Warn(r.Context(), ref+logger.LogAuthExpClaimInvalid, nil)
+				http.Error(w, ErrInvalidExpClaim.Error(), http.StatusUnauthorized)
 				return
 			}
 
-			// Injeta dados relevantes no contexto
+			// Extrai user_id do token
+			userID, ok := claims["user_id"].(string)
+			if !ok || userID == "" {
+				logger_adapter.Warn(r.Context(), ref+"claim user_id ausente ou inválida", nil)
+				http.Error(w, ErrTokenInvalid.Error(), http.StatusUnauthorized)
+				return
+			}
+
+			// Injeta claims e user_id no contexto
 			ctx := context.WithValue(r.Context(), userClaimsKey, claims)
+			ctx = middlewares.SetUserID(ctx, userID)
+
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

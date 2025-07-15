@@ -34,9 +34,10 @@ const userClaimsKey_test = contextKey("user")
 func generateValidToken(t *testing.T, secret string, expiration time.Duration) string {
 	t.Helper()
 	claims := jwt.MapClaims{
-		"uid":   1,
-		"email": "test@example.com",
-		"exp":   time.Now().Add(expiration).Unix(),
+		"user_id": "1", // string conforme esperado
+		"email":   "test@example.com",
+		"iat":     time.Now().Unix(),
+		"exp":     time.Now().Add(expiration).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signed, err := token.SignedString([]byte(secret))
@@ -65,7 +66,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		middleware(nextHandler).ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Token ausente")
+		assert.Contains(t, rec.Body.String(), "token ausente")
 	})
 
 	t.Run("formato de token inválido retorna 401", func(t *testing.T) {
@@ -82,7 +83,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		middleware(nextHandler).ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Formato de token inválido")
+		assert.Contains(t, rec.Body.String(), "formato de token inválido")
 	})
 
 	t.Run("token revogado retorna 401", func(t *testing.T) {
@@ -102,7 +103,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		middleware(nextHandler).ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Token revogado")
+		assert.Contains(t, rec.Body.String(), "token revogado")
 		blacklist.AssertExpectations(t)
 	})
 
@@ -123,12 +124,12 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		middleware(nextHandler).ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Token inválido")
+		assert.Contains(t, rec.Body.String(), "token inválido")
 		blacklist.AssertExpectations(t)
 	})
 
 	t.Run("token válido preenche contexto e passa para next handler", func(t *testing.T) {
-		validToken := generateValidToken(t, secret, time.Minute)
+		validToken := generateValidToken(t, secret, time.Minute) // token com user_id string
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Authorization", "Bearer "+validToken)
 		rec := httptest.NewRecorder()
@@ -136,7 +137,6 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		blacklist := new(mockBlacklist)
 		blacklist.On("IsBlacklisted", mock.Anything, validToken).Return(false, nil)
 
-		// Handler que lê o contexto com a mesma chave usada no middleware
 		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			claims := r.Context().Value(userClaimsKey)
 			if claims == nil {
@@ -186,7 +186,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		middleware(nextHandler).ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Token inválido")
+		assert.Contains(t, rec.Body.String(), "token inválido")
 		blacklist.AssertExpectations(t)
 	})
 
@@ -207,7 +207,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		middleware(nextHandler).ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Erro interno de autenticação")
+		assert.Contains(t, rec.Body.String(), "erro interno de autenticação")
 		blacklist.AssertExpectations(t)
 	})
 
@@ -228,7 +228,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		middleware(nextHandler).ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Token expirado")
+		assert.Contains(t, rec.Body.String(), "token expirado")
 		blacklist.AssertExpectations(t)
 	})
 
@@ -251,7 +251,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		middleware(nextHandler).ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Assinatura inválida")
+		assert.Contains(t, rec.Body.String(), "assinatura inválida")
 		blacklist.AssertExpectations(t)
 	})
 
@@ -283,7 +283,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		middleware(nextHandler).ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Token expirado")
+		assert.Contains(t, rec.Body.String(), "token expirado")
 		blacklist.AssertExpectations(t)
 	})
 
@@ -315,7 +315,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		middleware(nextHandler).ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Token inválido")
+		assert.Contains(t, rec.Body.String(), "campo exp ausente ou inválido")
 		blacklist.AssertExpectations(t)
 	})
 }

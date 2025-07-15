@@ -66,4 +66,17 @@ const (
 	LogValidateError  = "validação falhou"
 	LogIterateError   = "erro ao iterar"
 	LogParseJsonError = "falha ao fazer parse do json"
+
+	//JWT
+	LogAuthTokenMissing            = "token ausente"
+	LogAuthTokenInvalidFormat      = "formato de token inválido"
+	LogAuthTokenRevoked            = "token revogado"
+	LogAuthTokenInvalid            = "token inválido"
+	LogAuthTokenInvalidParsed      = "token inválido (parse ok, mas inválido)"
+	LogAuthTokenExpired            = "token expirado"
+	LogAuthTokenExpiredManualCheck = "token expirado (verificação manual)"
+	LogAuthInvalidSignature        = "assinatura inválida"
+	LogAuthInvalidSigningMethod    = "método de assinatura inválido"
+	LogAuthBlacklistError          = "erro ao consultar blacklist"
+	LogAuthExpClaimInvalid         = "campo exp ausente ou inválido"
 )
