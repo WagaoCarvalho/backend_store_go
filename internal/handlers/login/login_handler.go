@@ -24,12 +24,12 @@ func NewLoginHandler(service auth.LoginService, logger *logger.LoggerAdapter) *L
 }
 
 func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
-	ref := "[LoginHandler] - Login"
+	const ref = "[LoginHandler - Login] "
 
-	h.logger.Info(r.Context(), ref+logger.LogCreateInit, map[string]any{})
+	h.logger.Info(r.Context(), ref+logger.LogLoginInit, nil)
 
 	if r.Method != http.MethodPost {
-		h.logger.Warn(r.Context(), ref+" - método HTTP inválido", map[string]any{
+		h.logger.Warn(r.Context(), ref+logger.LogMethodNotAllowed, map[string]any{
 			"method": r.Method,
 		})
 		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
@@ -54,7 +54,7 @@ func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+logger.LogCreateSuccess, map[string]any{})
+	h.logger.Info(r.Context(), ref+logger.LogLoginSuccess, nil)
 
 	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,

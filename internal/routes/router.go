@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	redis "github.com/WagaoCarvalho/backend_store_go/internal/auth/redis"
+	redis "github.com/WagaoCarvalho/backend_store_go/internal/auth/blacklist_redis"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/home"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	cors "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/cors"

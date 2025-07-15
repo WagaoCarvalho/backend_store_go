@@ -73,32 +73,32 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ContactHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	ref := "[ContactHandler - GetByID] "
+	const ref = "[ContactHandler - GetByID] "
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), ref+"ID inválido na busca por ID", map[string]any{
+		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+"Iniciando busca de contato por ID", map[string]any{
+	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{
 		"contact_id": id,
 		"path":       r.URL.Path,
 	})
 
 	contact, err := h.service.GetByID(r.Context(), id)
 	if err != nil {
-		h.logger.Error(r.Context(), err, ref+"Erro ao buscar contato por ID", map[string]any{
+		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]any{
 			"contact_id": id,
 		})
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+"Contato recuperado com sucesso", map[string]any{
+	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]any{
 		"contact_id": id,
 	})
 
@@ -106,32 +106,32 @@ func (h *ContactHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ContactHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
-	ref := "[ContactHandler - GetByUserID] "
+	const ref = "[ContactHandler - GetByUserID] "
 
 	userID, err := utils.GetIDParam(r, "userID")
 	if err != nil {
-		h.logger.Warn(r.Context(), ref+"userID inválido na requisição", map[string]any{
+		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+"Iniciando busca de contatos por usuário", map[string]any{
+	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{
 		"user_id": userID,
 		"path":    r.URL.Path,
 	})
 
 	contacts, err := h.service.GetByUserID(r.Context(), userID)
 	if err != nil {
-		h.logger.Error(r.Context(), err, ref+"Erro ao buscar contatos por usuário", map[string]any{
+		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]any{
 			"user_id": userID,
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+"Contatos recuperados com sucesso", map[string]any{
+	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]any{
 		"user_id": userID,
 		"count":   len(contacts),
 	})
@@ -144,32 +144,32 @@ func (h *ContactHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ContactHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
-	ref := "[ContactHandler - GetByClientID] "
+	const ref = "[ContactHandler - GetByClientID] "
 
 	clientID, err := utils.GetIDParam(r, "clientID")
 	if err != nil {
-		h.logger.Warn(r.Context(), ref+"clientID inválido na requisição", map[string]any{
+		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+"Iniciando busca de contatos por clientID", map[string]any{
+	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{
 		"client_id": clientID,
 		"path":      r.URL.Path,
 	})
 
 	contacts, err := h.service.GetByClientID(r.Context(), clientID)
 	if err != nil {
-		h.logger.Error(r.Context(), err, ref+"Erro ao buscar contatos por clientID", map[string]any{
+		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]any{
 			"client_id": clientID,
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+"Contatos recuperados com sucesso", map[string]any{
+	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]any{
 		"client_id": clientID,
 		"count":     len(contacts),
 	})
@@ -182,32 +182,32 @@ func (h *ContactHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ContactHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
-	ref := "[ContactHandler - GetBySupplierID] "
+	const ref = "[ContactHandler - GetBySupplierID] "
 
 	supplierID, err := utils.GetIDParam(r, "supplierID")
 	if err != nil {
-		h.logger.Warn(r.Context(), ref+"supplierID inválido na requisição", map[string]any{
+		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+"Iniciando busca de contatos por supplierID", map[string]any{
+	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{
 		"supplier_id": supplierID,
 		"path":        r.URL.Path,
 	})
 
 	contacts, err := h.service.GetBySupplierID(r.Context(), supplierID)
 	if err != nil {
-		h.logger.Error(r.Context(), err, ref+"Erro ao buscar contatos por supplierID", map[string]any{
+		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]any{
 			"supplier_id": supplierID,
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+"Contatos recuperados com sucesso", map[string]any{
+	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]any{
 		"supplier_id": supplierID,
 		"count":       len(contacts),
 	})
@@ -220,11 +220,11 @@ func (h *ContactHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
-	ref := "[ContactHandler - Update] "
+	const ref = "[ContactHandler - Update] "
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), ref+"ID inválido para atualização", map[string]any{
+		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -233,7 +233,7 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	var contact models.Contact
 	if err := json.NewDecoder(r.Body).Decode(&contact); err != nil {
-		h.logger.Warn(r.Context(), ref+"JSON inválido no update", map[string]any{
+		h.logger.Warn(r.Context(), ref+logger.LogParseJsonError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -242,20 +242,20 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	contact.ID = id
 
-	h.logger.Info(r.Context(), ref+"Iniciando atualização de contato", map[string]any{
+	h.logger.Info(r.Context(), ref+logger.LogUpdateInit, map[string]any{
 		"contact_id": id,
 		"path":       r.URL.Path,
 	})
 
 	if err := h.service.Update(r.Context(), &contact); err != nil {
-		h.logger.Error(r.Context(), err, ref+"Erro ao atualizar contato", map[string]any{
+		h.logger.Error(r.Context(), err, ref+logger.LogUpdateError, map[string]any{
 			"contact_id": id,
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+"Contato atualizado com sucesso", map[string]any{
+	h.logger.Info(r.Context(), ref+logger.LogUpdateSuccess, map[string]any{
 		"contact_id": id,
 	})
 
@@ -267,31 +267,31 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ContactHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	ref := "[ContactHandler - Delete] "
+	const ref = "[ContactHandler - Delete] "
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), ref+"ID inválido para exclusão", map[string]any{
+		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+"Iniciando exclusão de contato", map[string]any{
+	h.logger.Info(r.Context(), ref+logger.LogDeleteInit, map[string]any{
 		"contact_id": id,
 		"path":       r.URL.Path,
 	})
 
 	if err := h.service.Delete(r.Context(), id); err != nil {
-		h.logger.Error(r.Context(), err, ref+"Erro ao excluir contato", map[string]any{
+		h.logger.Error(r.Context(), err, ref+logger.LogDeleteError, map[string]any{
 			"contact_id": id,
 		})
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+"Contato excluído com sucesso", map[string]any{
+	h.logger.Info(r.Context(), ref+logger.LogDeleteSuccess, map[string]any{
 		"contact_id": id,
 	})
 
