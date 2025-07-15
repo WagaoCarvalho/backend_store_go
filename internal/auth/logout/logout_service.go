@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
@@ -35,55 +34,59 @@ func NewLogoutService(blacklist TokenBlacklist, logger *logger.LoggerAdapter, se
 func (s *logoutService) Logout(ctx context.Context, tokenString string) error {
 	const ref = "[logoutService - Logout] - "
 
+	s.logger.Info(ctx, ref+logger.LogLogoutInit, map[string]any{
+		"token": tokenString,
+	})
+
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			// Logamos diretamente aqui, pois é erro de segurança
-			s.logger.Error(ctx, nil, ref+"método de assinatura inválido", map[string]any{
+			s.logger.Error(ctx, nil, ref+logger.LogInvalidSigningMethod, map[string]any{
 				"alg": token.Header["alg"],
 			})
-			return nil, fmt.Errorf("método de assinatura inválido")
+			return nil, ErrInvalidSigningMethod
 		}
 		return []byte(s.secretKey), nil
 	})
 	if err != nil {
-		s.logger.Error(ctx, err, ref+"falha ao validar token", nil)
-		return fmt.Errorf("erro ao validar token: %w", err)
+		s.logger.Error(ctx, err, ref+logger.LogTokenValidationFail, nil)
+		return ErrTokenValidation
 	}
+
 	if !token.Valid {
-		s.logger.Warn(ctx, ref+"token inválido", nil)
-		return fmt.Errorf("token inválido")
+		s.logger.Warn(ctx, ref+logger.LogTokenInvalid, nil)
+		return ErrInvalidToken
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		s.logger.Error(ctx, nil, ref+"não foi possível converter claims", nil)
-		return fmt.Errorf("não foi possível obter claims")
+		s.logger.Error(ctx, nil, ref+logger.LogClaimsConversionFail, nil)
+		return ErrClaimConversion
 	}
 
 	expUnix, ok := claims["exp"].(float64)
 	if !ok {
-		s.logger.Error(ctx, nil, ref+"claim 'exp' ausente ou inválida", map[string]any{
+		s.logger.Error(ctx, nil, ref+logger.LogClaimExpInvalid, map[string]any{
 			"claims": claims,
 		})
-		return fmt.Errorf("claim 'exp' ausente ou inválida")
+		return ErrClaimExpInvalid
 	}
 
 	expiration := time.Until(time.Unix(int64(expUnix), 0))
 	if expiration <= 0 {
-		s.logger.Warn(ctx, ref+"token já expirado", nil)
-		return fmt.Errorf("token já expirado")
+		s.logger.Warn(ctx, ref+logger.LogTokenAlreadyExpired, nil)
+		return ErrTokenExpired
 	}
 
-	err = s.blacklist.Add(ctx, tokenString, expiration)
-	if err != nil {
-		s.logger.Error(ctx, err, ref+"erro ao adicionar token à blacklist", map[string]any{
+	if err := s.blacklist.Add(ctx, tokenString, expiration); err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogBlacklistAddFail, map[string]any{
 			"token": tokenString,
 		})
-		return fmt.Errorf("erro ao realizar logout: %w", err)
+		return ErrBlacklistAdd
 	}
 
-	s.logger.Info(ctx, ref+"logout realizado com sucesso", map[string]any{
+	s.logger.Info(ctx, ref+logger.LogLogoutSuccess, map[string]any{
 		"token": tokenString,
 	})
+
 	return nil
 }

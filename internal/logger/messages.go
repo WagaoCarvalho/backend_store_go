@@ -1,56 +1,69 @@
 package logger
 
 const (
-	//Create
-	LogCreateInit       = "Iniciando criação"
-	LogCreateError      = "Erro ao criar"
-	LogCreateSuccess    = "Sucesso ao criar"
-	LogMethodNotAllowed = "Método nao permitido"
+	// Login
+	LogLoginInit            = "iniciando login"
+	LogNotFound             = "não encontrado ou erro ao buscar"
+	LogPasswordInvalid      = "senha inválida"
+	LogAccountDisabled      = "conta desativada"
+	LogTokenGenerationError = "erro ao gerar token"
+	LogLoginSuccess         = "login realizado com sucesso"
+	LogEmailInvalid         = "email inválido"
 
-	//Get
-	LogGetInit      = "Iniciando busca"
-	LogGetError     = "Erro ao buscar"
-	LogGetSuccess   = "Sucesso ao buscar"
-	LogGetErrorScan = "Erro ao fazer scan"
-	LogInvalidID    = "ID inválido"
+	// Logout
+	LogLogoutInit           = "iniciando logout"
+	LogLogoutSuccess        = "logout realizado com sucesso"
+	LogInvalidSigningMethod = "método de assinatura inválido"
+	LogTokenValidationFail  = "falha ao validar token"
+	LogTokenInvalid         = "token inválido"
+	LogClaimsConversionFail = "não foi possível converter claims"
+	LogClaimExpInvalid      = "claim 'exp' ausente ou inválida"
+	LogTokenAlreadyExpired  = "token já expirado"
+	LogBlacklistAddFail     = "erro ao adicionar token à blacklist"
 
-	//Update
-	LogUpdateInit            = "Iniciando Atualização"
-	LogUpdateError           = "Erro ao atualizar"
-	LogUpdateSuccess         = "Sucesso ao atualizar"
-	LogUpdateVersionConflict = "Conflito de versão"
-	LogMissingBodyData       = "Dados do usuário são obrigatórios"
+	// Create
+	LogCreateInit       = "iniciando criação"
+	LogCreateError      = "erro ao criar"
+	LogCreateSuccess    = "sucesso ao criar"
+	LogMethodNotAllowed = "método não permitido"
 
-	//Delete
-	LogDeleteInit    = "Iniciando exclusão"
-	LogDeleteError   = "Erro ao deletar"
-	LogDeleteSuccess = "Sucesso ao deletar"
+	// Get
+	LogGetInit      = "iniciando busca"
+	LogGetError     = "erro ao buscar"
+	LogGetSuccess   = "sucesso ao buscar"
+	LogGetErrorScan = "erro ao fazer scan"
+	LogInvalidID    = "id inválido"
 
-	//HasRelation
-	LogVerificationInit    = "Iniciando verificação"
-	LogAlreadyExists       = "Relação já existe"
-	LogVerificationError   = "Erro ao verificar relação"
-	LogVerificationSuccess = "Verificação concluída com sucesso"
+	// Update
+	LogUpdateInit            = "iniciando atualização"
+	LogUpdateError           = "erro ao atualizar"
+	LogUpdateSuccess         = "sucesso ao atualizar"
+	LogUpdateVersionConflict = "conflito de versão"
+	LogMissingBodyData       = "dados do usuário são obrigatórios"
 
-	//Email
-	LogEmailInvalid = "email inválido"
+	// Delete
+	LogDeleteInit    = "iniciando exclusão"
+	LogDeleteError   = "erro ao deletar"
+	LogDeleteSuccess = "sucesso ao deletar"
 
-	//Password
-	LogPasswordInvalid = "erro ao hashear senha"
+	// HasRelation
+	LogVerificationInit    = "iniciando verificação"
+	LogAlreadyExists       = "relação já existe"
+	LogVerificationError   = "erro ao verificar relação"
+	LogVerificationSuccess = "verificação concluída com sucesso"
 
-	//ForeignKey
-	LogForeignKeyViolation = "Violação de chave estrangeira"
-	LogForeignKeyHasExists = "Relação já existe"
+	// ForeignKey
+	LogForeignKeyViolation = "violação de chave estrangeira"
+	LogForeignKeyHasExists = "relação já existe"
 
-	//HasUserCategoryRelation
-	LogCheckInit     = "Iniciando verificação de relação entre usuário e categoria"
-	LogCheckNotFound = "Relação entre usuário e categoria não encontrada"
-	LogCheckError    = "Erro ao verificar existência de relação entre usuário e categoria"
-	LogCheckSuccess  = "Relação entre usuário e categoria encontrada"
+	// HasUserCategoryRelation
+	LogCheckInit     = "iniciando verificação de relação entre usuário e categoria"
+	LogCheckNotFound = "relação entre usuário e categoria não encontrada"
+	LogCheckError    = "erro ao verificar existência de relação entre usuário e categoria"
+	LogCheckSuccess  = "relação entre usuário e categoria encontrada"
 
-	LogValidateError = "Validação falhou"
-	LogIterateError  = "Erro ao Iterar"
-	LogNotFound      = "Não encontrado"
-
-	LogParseJsonError = "Falha ao fazer parse do JSON"
+	// Utilitários
+	LogValidateError  = "validação falhou"
+	LogIterateError   = "erro ao iterar"
+	LogParseJsonError = "falha ao fazer parse do json"
 )

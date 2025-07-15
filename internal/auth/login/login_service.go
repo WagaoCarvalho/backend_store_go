@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	pass "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
@@ -10,14 +9,6 @@ import (
 	models_login "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
-)
-
-var (
-	ErrInvalidEmailFormat = errors.New("formato de email inválido")
-	ErrInvalidCredentials = errors.New("credenciais inválidas")
-	ErrUserFetchFailed    = errors.New("erro ao buscar usuário")
-	ErrTokenGeneration    = errors.New("erro ao gerar token de acesso")
-	ErrAccountDisabled    = errors.New("conta desativada")
 )
 
 type LoginService interface {
@@ -45,8 +36,9 @@ func NewLoginService(repo repositories.UserRepository, logger *logger.LoggerAdap
 }
 
 func (s *loginService) Login(ctx context.Context, credentials models_login.LoginCredentials) (string, error) {
-	ref := "[loginService - Login] - "
-	s.logger.Info(ctx, ref+"iniciando login", map[string]any{
+	const ref = "[loginService - Login] - "
+
+	s.logger.Info(ctx, ref+logger.LogLoginInit, map[string]any{
 		"email": credentials.Email,
 	})
 
@@ -60,14 +52,14 @@ func (s *loginService) Login(ctx context.Context, credentials models_login.Login
 	user, err := s.userRepo.GetByEmail(ctx, credentials.Email)
 	if err != nil {
 		time.Sleep(time.Second) // mitigação timing attack
-		s.logger.Warn(ctx, ref+"usuário não encontrado ou erro ao buscar", map[string]any{
+		s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 			"email": credentials.Email,
 		})
 		return "", ErrInvalidCredentials
 	}
 
 	if err := s.hasher.Compare(user.Password, credentials.Password); err != nil {
-		s.logger.Warn(ctx, ref+"senha inválida", map[string]any{
+		s.logger.Warn(ctx, ref+logger.LogPasswordInvalid, map[string]any{
 			"user_id": user.UID,
 			"email":   credentials.Email,
 		})
@@ -75,7 +67,7 @@ func (s *loginService) Login(ctx context.Context, credentials models_login.Login
 	}
 
 	if !user.Status {
-		s.logger.Warn(ctx, ref+"conta desativada", map[string]any{
+		s.logger.Warn(ctx, ref+logger.LogAccountDisabled, map[string]any{
 			"user_id": user.UID,
 			"email":   user.Email,
 		})
@@ -84,14 +76,14 @@ func (s *loginService) Login(ctx context.Context, credentials models_login.Login
 
 	token, err := s.jwtManager.Generate(user.UID, user.Email)
 	if err != nil {
-		s.logger.Error(ctx, err, ref+"erro ao gerar token", map[string]any{
+		s.logger.Error(ctx, err, ref+logger.LogTokenGenerationError, map[string]any{
 			"user_id": user.UID,
 			"email":   user.Email,
 		})
 		return "", ErrTokenGeneration
 	}
 
-	s.logger.Info(ctx, ref+"login realizado com sucesso", map[string]any{
+	s.logger.Info(ctx, ref+logger.LogLoginSuccess, map[string]any{
 		"user_id": user.UID,
 		"email":   user.Email,
 	})
