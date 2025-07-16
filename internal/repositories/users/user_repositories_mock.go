@@ -23,22 +23,6 @@ func (m *MockUserRepository) Create(
 	return nil, args.Error(1) // Retornar nil em caso de erro
 }
 
-func (m *MockUserRepository) Update(ctx context.Context, user *models_user.User) (*models_user.User, error) {
-	args := m.Called(ctx, user)
-
-	var usr *models_user.User
-	if val := args.Get(0); val != nil {
-		usr = val.(*models_user.User)
-	}
-
-	return usr, args.Error(1)
-}
-
-func (m *MockUserRepository) Delete(ctx context.Context, uid int64) error {
-	args := m.Called(ctx, uid)
-	return args.Error(0)
-}
-
 func (m *MockUserRepository) GetAll(ctx context.Context) ([]*models_user.User, error) {
 	args := m.Called(ctx)
 	if users, ok := args.Get(0).([]*models_user.User); ok {
@@ -72,4 +56,30 @@ func (m *MockUserRepository) GetByEmail(ctx context.Context, email string) (*mod
 		return user, args.Error(1)
 	}
 	return &models_user.User{}, args.Error(1)
+}
+
+func (m *MockUserRepository) Update(ctx context.Context, user *models_user.User) (*models_user.User, error) {
+	args := m.Called(ctx, user)
+
+	var usr *models_user.User
+	if val := args.Get(0); val != nil {
+		usr = val.(*models_user.User)
+	}
+
+	return usr, args.Error(1)
+}
+
+func (m *MockUserRepository) Disable(ctx context.Context, id int64) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
+
+func (m *MockUserRepository) Enable(ctx context.Context, id int64) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
+
+func (m *MockUserRepository) Delete(ctx context.Context, uid int64) error {
+	args := m.Called(ctx, uid)
+	return args.Error(0)
 }

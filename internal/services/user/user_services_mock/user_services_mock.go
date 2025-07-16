@@ -49,15 +49,25 @@ func (m *MockUserService) GetByEmail(ctx context.Context, email string) (*models
 	return args.Get(0).(*models_user.User), args.Error(1)
 }
 
-func (m *MockUserService) Delete(ctx context.Context, uid int64) error {
-	args := m.Called(ctx, uid)
-	return args.Error(0)
-}
-
 func (m *MockUserService) Update(ctx context.Context, user *models_user.User) (*models_user.User, error) {
 	args := m.Called(ctx, user)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*models_user.User), args.Error(1)
+}
+
+func (m *MockUserService) Disable(ctx context.Context, uid int64) error {
+	args := m.Called(ctx, uid)
+	return args.Error(0)
+}
+
+func (m *MockUserService) Enable(ctx context.Context, uid int64) error {
+	args := m.Called(ctx, uid)
+	return args.Error(0)
+}
+
+func (m *MockUserService) Delete(ctx context.Context, uid int64) error {
+	args := m.Called(ctx, uid)
+	return args.Error(0)
 }

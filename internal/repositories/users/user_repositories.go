@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
@@ -18,6 +19,8 @@ type UserRepository interface {
 	GetVersionByID(ctx context.Context, id int64) (int64, error)
 	GetByEmail(ctx context.Context, email string) (*models.User, error)
 	Update(ctx context.Context, user *models.User) (*models.User, error)
+	Disable(ctx context.Context, uid int64) error
+	Enable(ctx context.Context, uid int64) error
 	Delete(ctx context.Context, id int64) error
 }
 
@@ -294,6 +297,82 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) (*models
 	})
 
 	return user, nil
+}
+
+func (r *userRepository) Disable(ctx context.Context, uid int64) error {
+	ref := "[userRepository - Disable] - "
+	r.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"user_id": uid,
+	})
+
+	const query = `
+		UPDATE users
+		SET status = FALSE, updated_at = NOW(), version = version + 1
+		WHERE id = $1
+		RETURNING version, updated_at;
+	`
+
+	var version int
+	var updatedAt time.Time
+	err := r.db.QueryRow(ctx, query, uid).Scan(&version, &updatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"user_id": uid,
+			})
+			return ErrUserNotFound
+		}
+
+		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"user_id": uid,
+		})
+		return fmt.Errorf("%w: %v", ErrUpdateUser, err)
+	}
+
+	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"user_id":    uid,
+		"new_status": false,
+	})
+
+	return nil
+}
+
+func (r *userRepository) Enable(ctx context.Context, uid int64) error {
+	ref := "[userRepository - Enable] - "
+	r.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"user_id": uid,
+	})
+
+	const query = `
+		UPDATE users
+		SET status = TRUE, updated_at = NOW(), version = version + 1
+		WHERE id = $1
+		RETURNING version, updated_at;
+	`
+
+	var version int
+	var updatedAt time.Time
+	err := r.db.QueryRow(ctx, query, uid).Scan(&version, &updatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"user_id": uid,
+			})
+			return ErrUserNotFound
+		}
+
+		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"user_id": uid,
+		})
+		return fmt.Errorf("%w: %v", ErrUpdateUser, err)
+	}
+
+	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"user_id":    uid,
+		"new_status": true,
+	})
+
+	return nil
 }
 
 func (r *userRepository) Delete(ctx context.Context, uid int64) error {

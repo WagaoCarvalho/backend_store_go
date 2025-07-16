@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
@@ -300,6 +302,160 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Message: "Usuário atualizado com sucesso",
 		Data:    updatedUser,
 	})
+}
+
+func (h *UserHandler) Disable(w http.ResponseWriter, r *http.Request) {
+	ref := "[UserHandler - Disable] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	var payload struct {
+		Version int `json:"version"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Version <= 0 {
+		h.logger.Warn(ctx, ref+"versão inválida", map[string]any{
+			"erro": err,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("versão inválida"), http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.service.GetByID(ctx, id)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if err.Error() == "usuário não encontrado" {
+			status = http.StatusNotFound
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"user_id": id,
+			})
+		} else {
+			h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+				"user_id": id,
+			})
+		}
+		utils.ErrorResponse(w, err, status)
+		return
+	}
+
+	user.Status = false
+	user.Version = payload.Version
+
+	_, err = h.service.Update(ctx, user)
+	if err != nil {
+		if errors.Is(err, repositories.ErrVersionConflict) {
+			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
+				"user_id": id,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
+			return
+		}
+		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"user_id": id,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("erro ao desabilitar usuário: %w", err), http.StatusInternalServerError)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"user_id": id,
+	})
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *UserHandler) Enable(w http.ResponseWriter, r *http.Request) {
+	ref := "[UserHandler - Enable] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	var payload struct {
+		Version int `json:"version"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Version <= 0 {
+		h.logger.Warn(ctx, ref+"versão inválida", map[string]any{
+			"erro": err,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("versão inválida"), http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.service.GetByID(ctx, id)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if err.Error() == "usuário não encontrado" {
+			status = http.StatusNotFound
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"user_id": id,
+			})
+		} else {
+			h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+				"user_id": id,
+			})
+		}
+		utils.ErrorResponse(w, err, status)
+		return
+	}
+
+	user.Status = true
+	user.Version = payload.Version
+
+	_, err = h.service.Update(ctx, user)
+	if err != nil {
+		if errors.Is(err, repositories.ErrVersionConflict) {
+			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
+				"user_id": id,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
+			return
+		}
+		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"user_id": id,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("erro ao habilitar usuário: %w", err), http.StatusInternalServerError)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"user_id": id,
+	})
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {

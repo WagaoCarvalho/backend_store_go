@@ -21,7 +21,7 @@ func (l *LoggerAdapter) WithContext(ctx context.Context) *logrus.Entry {
 	}
 
 	if uid := contextutils.GetUserID(ctx); uid != "" {
-		fields["user_id"] = uid
+		fields["system_user_id"] = uid
 	}
 
 	return l.base.WithFields(fields)

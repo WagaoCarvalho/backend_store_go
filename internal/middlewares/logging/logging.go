@@ -18,7 +18,7 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-func LoggingMiddleware(log logger.Logger) func(http.Handler) http.Handler { // note Logger interface aqui
+func LoggingMiddleware(log logger.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
@@ -28,7 +28,7 @@ func LoggingMiddleware(log logger.Logger) func(http.Handler) http.Handler { // n
 
 			duration := time.Since(start)
 
-			log.Info(r.Context(), "Request concluída", map[string]interface{}{
+			log.Info(r.Context(), "[*** - Request concluída - ***", map[string]any{
 				"method":   r.Method,
 				"path":     r.URL.Path,
 				"status":   rw.statusCode,

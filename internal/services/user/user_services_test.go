@@ -8,6 +8,7 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -479,6 +480,154 @@ func TestUserService_Update(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, expected, updatedUser)
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestUserService_Disable(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
+
+	setup := func() (
+		*repositories.MockUserRepository,
+		*userService,
+	) {
+		mockRepo := new(repositories.MockUserRepository)
+
+		service := NewUserService(
+			mockRepo,
+			logger,
+			nil, // hasher não necessário
+		)
+
+		return mockRepo, service
+	}
+
+	t.Run("Deve desativar usuário com sucesso", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		original := &models_user.User{
+			UID:     1,
+			Email:   "test@example.com",
+			Status:  true,
+			Version: 1,
+		}
+		updated := *original
+		updated.Status = false
+
+		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(original, nil).Once()
+		mockRepo.On("Update", mock.Anything, &updated).Return(&updated, nil).Once()
+
+		err := service.Disable(context.Background(), 1)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar erro ao buscar usuário", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		mockRepo.On("GetByID", mock.Anything, int64(2)).
+			Return(nil, fmt.Errorf("erro ao buscar")).Once()
+
+		err := service.Disable(context.Background(), 2)
+
+		assert.ErrorContains(t, err, "erro ao buscar usuário")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar erro ao atualizar status para falso", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		original := &models.User{
+			UID:     3,
+			Email:   "fail@example.com",
+			Status:  true,
+			Version: 2,
+		}
+		updated := *original
+		updated.Status = false
+
+		mockRepo.On("GetByID", mock.Anything, int64(3)).Return(original, nil).Once()
+		mockRepo.On("Update", mock.Anything, &updated).
+			Return(nil, fmt.Errorf("falha ao atualizar")).Once()
+
+		err := service.Disable(context.Background(), 3)
+
+		assert.ErrorContains(t, err, "erro ao desabilitar usuário")
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestUserService_Enable(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
+
+	setup := func() (
+		*repositories.MockUserRepository,
+		*userService,
+	) {
+		mockRepo := new(repositories.MockUserRepository)
+
+		service := NewUserService(
+			mockRepo,
+			logger,
+			nil, // hasher não necessário
+		)
+
+		return mockRepo, service
+	}
+
+	t.Run("Deve ativar usuário com sucesso", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		original := &models_user.User{
+			UID:     1,
+			Email:   "test@example.com",
+			Status:  false,
+			Version: 1,
+		}
+		updated := *original
+		updated.Status = true
+
+		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(original, nil).Once()
+		mockRepo.On("Update", mock.Anything, &updated).Return(&updated, nil).Once()
+
+		err := service.Enable(context.Background(), 1)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar erro ao buscar usuário", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		mockRepo.On("GetByID", mock.Anything, int64(2)).
+			Return(nil, fmt.Errorf("erro ao buscar")).Once()
+
+		err := service.Enable(context.Background(), 2)
+
+		assert.ErrorContains(t, err, "erro ao buscar usuário")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar erro ao atualizar status para true", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		original := &models_user.User{
+			UID:     3,
+			Email:   "fail@example.com",
+			Status:  false,
+			Version: 2,
+		}
+		updated := *original
+		updated.Status = true
+
+		mockRepo.On("GetByID", mock.Anything, int64(3)).Return(original, nil).Once()
+		mockRepo.On("Update", mock.Anything, &updated).
+			Return(nil, fmt.Errorf("falha ao atualizar")).Once()
+
+		err := service.Enable(context.Background(), 3)
+
+		assert.ErrorContains(t, err, "erro ao habilitar usuário")
 		mockRepo.AssertExpectations(t)
 	})
 }

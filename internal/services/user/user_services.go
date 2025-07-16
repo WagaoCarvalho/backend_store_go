@@ -19,6 +19,8 @@ type UserService interface {
 	GetVersionByID(ctx context.Context, uid int64) (int64, error)
 	GetByEmail(ctx context.Context, email string) (*models_user.User, error)
 	Delete(ctx context.Context, uid int64) error
+	Disable(ctx context.Context, uid int64) error
+	Enable(ctx context.Context, uid int64) error
 	Update(ctx context.Context, user *models_user.User) (*models_user.User, error)
 }
 
@@ -235,6 +237,70 @@ func (s *userService) Update(ctx context.Context, user *models_user.User) (*mode
 	})
 
 	return updatedUser, nil
+}
+
+func (s *userService) Disable(ctx context.Context, uid int64) error {
+	ref := "[userService - Disable] - "
+	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"user_id": uid,
+	})
+
+	user, err := s.repo.GetByID(ctx, uid)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"user_id": uid,
+		})
+		return fmt.Errorf("%w: %v", ErrGetUser, err)
+	}
+
+	user.Status = false
+
+	_, err = s.repo.Update(ctx, user)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"user_id": uid,
+		})
+		return fmt.Errorf("%w: %v", ErrDisableUser, err)
+	}
+
+	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"user_id": uid,
+		"status":  user.Status,
+	})
+
+	return nil
+}
+
+func (s *userService) Enable(ctx context.Context, uid int64) error {
+	ref := "[userService - Enable] - "
+	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"user_id": uid,
+	})
+
+	user, err := s.repo.GetByID(ctx, uid)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"user_id": uid,
+		})
+		return fmt.Errorf("%w: %v", ErrGetUser, err)
+	}
+
+	user.Status = true
+
+	_, err = s.repo.Update(ctx, user)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"user_id": uid,
+		})
+		return fmt.Errorf("%w: %v", ErrEnableUser, err)
+	}
+
+	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"user_id": uid,
+		"status":  user.Status,
+	})
+
+	return nil
 }
 
 func (s *userService) Delete(ctx context.Context, uid int64) error {
