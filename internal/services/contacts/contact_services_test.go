@@ -91,7 +91,7 @@ func TestCreate(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "UserID/ClientID/SupplierID")
-		assert.ErrorContains(t, err, "pelo menos um deve ser informado")
+		assert.ErrorContains(t, err, "exatamente um deve ser informado")
 		mockRepo.AssertNotCalled(t, "Create")
 	})
 

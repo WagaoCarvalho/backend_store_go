@@ -9,24 +9,48 @@ import (
 )
 
 func TestContact_Validate(t *testing.T) {
-	userID := int64(1)
+	id := int64(1)
 
 	tests := []struct {
 		name    string
 		contact Contact
 		wantErr bool
-		errType interface{}
+		errType any
 		errMsg  string
 	}{
 		{
-			name: "Valid contact",
+			name: "Valid contact with UserID",
 			contact: Contact{
-				UserID:      &userID,
+				UserID:      &id,
 				ContactName: "João Silva",
 				Email:       "joao@email.com",
 				Phone:       "(11) 1234-5678",
 				Cell:        "(11) 91234-5678",
 				ContactType: "financeiro",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Valid contact with ClientID",
+			contact: Contact{
+				ClientID:    &id,
+				ContactName: "João Silva",
+				Email:       "joao@email.com",
+				Phone:       "(11) 1234-5678",
+				Cell:        "(11) 91234-5678",
+				ContactType: "suporte",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Valid contact with SupplierID",
+			contact: Contact{
+				SupplierID:  &id,
+				ContactName: "João Silva",
+				Email:       "joao@email.com",
+				Phone:       "(11) 1234-5678",
+				Cell:        "(11) 91234-5678",
+				ContactType: "comercial",
 			},
 			wantErr: false,
 		},
@@ -37,12 +61,45 @@ func TestContact_Validate(t *testing.T) {
 			},
 			wantErr: true,
 			errType: &utils_errors.ValidationError{},
-			errMsg:  "pelo menos um",
+			errMsg:  "exatamente um deve ser informado",
+		},
+		{
+			name: "More than one ID provided (UserID + ClientID)",
+			contact: Contact{
+				UserID:      &id,
+				ClientID:    &id,
+				ContactName: "Contato",
+			},
+			wantErr: true,
+			errType: &utils_errors.ValidationError{},
+			errMsg:  "exatamente um deve ser informado",
+		},
+		{
+			name: "More than one ID provided (UserID + SupplierID)",
+			contact: Contact{
+				UserID:      &id,
+				SupplierID:  &id,
+				ContactName: "Contato",
+			},
+			wantErr: true,
+			errType: &utils_errors.ValidationError{},
+			errMsg:  "exatamente um deve ser informado",
+		},
+		{
+			name: "More than one ID provided (ClientID + SupplierID)",
+			contact: Contact{
+				ClientID:    &id,
+				SupplierID:  &id,
+				ContactName: "Contato",
+			},
+			wantErr: true,
+			errType: &utils_errors.ValidationError{},
+			errMsg:  "exatamente um deve ser informado",
 		},
 		{
 			name: "Blank ContactName",
 			contact: Contact{
-				UserID:      &userID,
+				UserID:      &id,
 				ContactName: " ",
 			},
 			wantErr: true,
@@ -52,7 +109,7 @@ func TestContact_Validate(t *testing.T) {
 		{
 			name: "Short ContactName",
 			contact: Contact{
-				UserID:      &userID,
+				UserID:      &id,
 				ContactName: "AB",
 			},
 			wantErr: true,
@@ -62,7 +119,7 @@ func TestContact_Validate(t *testing.T) {
 		{
 			name: "Long ContactName",
 			contact: Contact{
-				UserID:      &userID,
+				UserID:      &id,
 				ContactName: strings.Repeat("A", 101),
 			},
 			wantErr: true,
@@ -72,7 +129,7 @@ func TestContact_Validate(t *testing.T) {
 		{
 			name: "Long ContactPosition",
 			contact: Contact{
-				UserID:          &userID,
+				UserID:          &id,
 				ContactName:     "Fulano",
 				ContactPosition: strings.Repeat("X", 101),
 			},
@@ -83,7 +140,7 @@ func TestContact_Validate(t *testing.T) {
 		{
 			name: "Invalid email format",
 			contact: Contact{
-				UserID:      &userID,
+				UserID:      &id,
 				ContactName: "Fulano",
 				Email:       "email@invalido",
 			},
@@ -94,7 +151,7 @@ func TestContact_Validate(t *testing.T) {
 		{
 			name: "Email exceeds max length",
 			contact: Contact{
-				UserID:      &userID,
+				UserID:      &id,
 				ContactName: "Fulano",
 				Email:       strings.Repeat("a", 95) + "@x.com",
 			},
@@ -105,7 +162,7 @@ func TestContact_Validate(t *testing.T) {
 		{
 			name: "Invalid phone format",
 			contact: Contact{
-				UserID:      &userID,
+				UserID:      &id,
 				ContactName: "Fulano",
 				Phone:       "11987654321",
 			},
@@ -116,9 +173,9 @@ func TestContact_Validate(t *testing.T) {
 		{
 			name: "Invalid cell format",
 			contact: Contact{
-				UserID:      &userID,
+				UserID:      &id,
 				ContactName: "Fulano",
-				Cell:        "(11) 1234-5678", // fixo no lugar do celular
+				Cell:        "(11) 1234-5678", // fixo no lugar de celular
 			},
 			wantErr: true,
 			errType: &utils_errors.ValidationError{},
@@ -127,7 +184,7 @@ func TestContact_Validate(t *testing.T) {
 		{
 			name: "Invalid contact type",
 			contact: Contact{
-				UserID:      &userID,
+				UserID:      &id,
 				ContactName: "Fulano",
 				ContactType: "RH",
 			},

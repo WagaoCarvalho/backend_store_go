@@ -45,6 +45,28 @@ func TestAddressService_Create(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("erro inesperado ao buscar endereço", func(t *testing.T) {
+		mockRepo := new(repositories.MockAddressRepository)
+		logger := logger.NewLoggerAdapter(logrus.New())
+		service := NewAddressService(mockRepo, logger)
+
+		addressID := int64(1)
+		expectedErr := errors.New("erro de banco de dados")
+
+		mockRepo.
+			On("GetByID", mock.Anything, addressID).
+			Return((*models.Address)(nil), expectedErr)
+
+		result, err := service.GetByID(context.Background(), addressID)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), ErrCheckAddress.Error())
+		assert.Contains(t, err.Error(), expectedErr.Error())
+
+		mockRepo.AssertExpectations(t)
+	})
+
 	t.Run("falha na validação do endereço - UserID/ClientID/SupplierID obrigatório", func(t *testing.T) {
 		mockRepo := new(repositories.MockAddressRepository)
 		logger := logger.NewLoggerAdapter(logrus.New())
