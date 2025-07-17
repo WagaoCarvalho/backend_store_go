@@ -42,7 +42,7 @@ func main() {
 	appLogger := logger.NewLoggerAdapter(rawLogger)
 
 	// Log inicial (sem request_id)
-	appLogger.Info(context.TODO(), "[*** - Servidor iniciado - ***]", map[string]interface{}{
+	appLogger.Info(context.TODO(), "[*** - Servidor iniciado - ***]", map[string]any{
 		"env":  configs.App.Env,
 		"port": port,
 	})

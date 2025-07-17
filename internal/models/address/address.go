@@ -24,10 +24,10 @@ type Address struct {
 
 func (a *Address) Validate() error {
 
-	if a.UserID == nil && a.ClientID == nil && a.SupplierID == nil {
+	if !utils_validators.ValidateSingleNonNil(a.UserID, a.ClientID, a.SupplierID) {
 		return &utils_errors.ValidationError{
 			Field:   "UserID/ClientID/SupplierID",
-			Message: "pelo menos um deve ser informado",
+			Message: "exatamente um deve ser informado",
 		}
 	}
 

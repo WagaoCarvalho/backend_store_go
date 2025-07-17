@@ -24,7 +24,7 @@ func NewAddressHandler(service services.AddressService, logger *logger.LoggerAda
 }
 
 func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
-	ref := "[AddressHandler - Create] "
+	ref := "[addressHandler - Create] "
 	var address models.Address
 
 	h.logger.Info(r.Context(), ref+logger.LogCreateInit, map[string]any{})
@@ -64,7 +64,7 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	ref := "[AddressHandler - GetByID] "
+	ref := "[addressHandler - GetByID] "
 	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{})
 
 	id, err := utils.GetIDParam(r, "id")
@@ -97,7 +97,7 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
-	ref := "[AddressHandler - GetByUserID] "
+	ref := "[addressHandler - GetByUserID] "
 	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{})
 
 	id, err := utils.GetIDParam(r, "id")
@@ -131,7 +131,7 @@ func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
-	ref := "[AddressHandler - GetByClientID] "
+	ref := "[addressHandler - GetByClientID] "
 	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{})
 
 	id, err := utils.GetIDParam(r, "id")
@@ -165,7 +165,7 @@ func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
-	ref := "[AddressHandler - GetBySupplierID] "
+	ref := "[addressHandler - GetBySupplierID] "
 	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{})
 
 	id, err := utils.GetIDParam(r, "id")
@@ -199,7 +199,7 @@ func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
-	ref := "[AddressHandler - Update] "
+	ref := "[addressHandler - Update] "
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
@@ -253,7 +253,7 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	ref := "[AddressHandler - Delete] "
+	ref := "[addressHandler - Delete] "
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {

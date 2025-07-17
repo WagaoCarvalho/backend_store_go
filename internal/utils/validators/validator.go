@@ -66,3 +66,13 @@ func IsValidCNPJ(cnpj string) bool {
 	matched, _ := regexp.MatchString(`^\d{14}$`, cnpj)
 	return matched
 }
+
+func ValidateSingleNonNil(fields ...*int64) bool {
+	count := 0
+	for _, f := range fields {
+		if f != nil {
+			count++
+		}
+	}
+	return count == 1
+}

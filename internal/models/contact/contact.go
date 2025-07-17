@@ -24,10 +24,10 @@ type Contact struct {
 }
 
 func (c *Contact) Validate() error {
-	if c.UserID == nil && c.ClientID == nil && c.SupplierID == nil {
+	if !utils_validators.ValidateSingleNonNil(c.UserID, c.ClientID, c.SupplierID) {
 		return &utils_errors.ValidationError{
 			Field:   "UserID/ClientID/SupplierID",
-			Message: "pelo menos um deve ser informado",
+			Message: "exatamente um deve ser informado",
 		}
 	}
 
