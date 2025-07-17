@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	contextutils "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/request/context_utils"
+	context "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/context_utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +14,7 @@ func TestRequestIDMiddleware_GeraENaoSobrescreve(t *testing.T) {
 		var capturedRequestID string
 
 		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			capturedRequestID = contextutils.GetRequestID(r.Context())
+			capturedRequestID = context.GetRequestID(r.Context())
 			w.WriteHeader(http.StatusOK)
 		})
 
@@ -36,7 +36,7 @@ func TestRequestIDMiddleware_GeraENaoSobrescreve(t *testing.T) {
 		var capturedRequestID string
 
 		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			capturedRequestID = contextutils.GetRequestID(r.Context())
+			capturedRequestID = context.GetRequestID(r.Context())
 			w.WriteHeader(http.StatusOK)
 		})
 

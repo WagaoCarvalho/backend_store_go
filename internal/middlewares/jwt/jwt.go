@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
-	middlewares "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/request/context_utils"
+	middlewares "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/context_utils"
 	"github.com/golang-jwt/jwt/v5"
 )
 

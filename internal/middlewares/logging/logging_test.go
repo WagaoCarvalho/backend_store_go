@@ -49,7 +49,7 @@ func TestLoggingMiddleware(t *testing.T) {
 
 	assert.True(t, mockLog.infoCalled, "Logger.Info deveria ser chamado")
 	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Equal(t, "Request concluída", mockLog.lastMsg)
+	assert.Equal(t, "[*** - Request concluída - ***]", mockLog.lastMsg)
 	assert.Equal(t, "/test", mockLog.lastFields["path"])
 	assert.Equal(t, http.MethodGet, mockLog.lastFields["method"])
 	assert.Equal(t, http.StatusOK, mockLog.lastFields["status"])

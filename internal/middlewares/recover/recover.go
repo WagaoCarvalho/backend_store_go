@@ -13,7 +13,7 @@ func RecoverMiddleware(log logger.Logger) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			defer func() {
 				if err := recover(); err != nil {
-					log.Error(r.Context(), fmt.Errorf("%v", err), "Panic capturado", map[string]interface{}{
+					log.Error(r.Context(), fmt.Errorf("%v", err), "Panic capturado", map[string]any{
 						"error":  err,
 						"stack":  string(debug.Stack()),
 						"path":   r.URL.Path,

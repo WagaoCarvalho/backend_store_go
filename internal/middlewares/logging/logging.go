@@ -28,7 +28,7 @@ func LoggingMiddleware(log logger.Logger) func(http.Handler) http.Handler {
 
 			duration := time.Since(start)
 
-			log.Info(r.Context(), "[*** - Request concluída - ***", map[string]any{
+			log.Info(r.Context(), "[*** - Request concluída - ***]", map[string]any{
 				"method":   r.Method,
 				"path":     r.URL.Path,
 				"status":   rw.statusCode,

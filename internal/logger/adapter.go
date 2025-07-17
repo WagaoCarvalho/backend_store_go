@@ -3,7 +3,7 @@ package logger
 import (
 	"context"
 
-	contextutils "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/request/context_utils"
+	contextutils "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/context_utils"
 	"github.com/sirupsen/logrus"
 )
 
