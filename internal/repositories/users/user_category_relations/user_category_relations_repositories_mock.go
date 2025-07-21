@@ -4,6 +4,7 @@ import (
 	"context"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -12,6 +13,15 @@ type MockUserCategoryRelationRepo struct {
 }
 
 func (m *MockUserCategoryRelationRepo) Create(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
+	args := m.Called(ctx, relation)
+	result := args.Get(0)
+	if result == nil {
+		return nil, args.Error(1)
+	}
+	return result.(*models.UserCategoryRelations), args.Error(1)
+}
+
+func (m *MockUserCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
 	args := m.Called(ctx, relation)
 	result := args.Get(0)
 	if result == nil {

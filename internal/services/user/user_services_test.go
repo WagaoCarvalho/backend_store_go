@@ -35,7 +35,7 @@ func TestUserService_Create(t *testing.T) {
 	setup := func() (
 		*repositories.MockUserRepository,
 		*MockHasher,
-		*userService,
+		UserService,
 	) {
 		mockUserRepo := new(repositories.MockUserRepository)
 		mockHasher := new(MockHasher)
@@ -148,7 +148,7 @@ func TestUserService_GetAll(t *testing.T) {
 
 	setup := func() (
 		*repositories.MockUserRepository,
-		*userService,
+		UserService,
 	) {
 		mockUserRepo := new(repositories.MockUserRepository)
 
@@ -196,7 +196,7 @@ func TestUserService_GetByID(t *testing.T) {
 
 	setup := func() (
 		*repositories.MockUserRepository,
-		*userService,
+		UserService,
 	) {
 		mockUserRepo := new(repositories.MockUserRepository)
 
@@ -246,7 +246,7 @@ func TestUserService_GetVersionByID(t *testing.T) {
 
 	setup := func() (
 		*repositories.MockUserRepository,
-		*userService,
+		UserService,
 	) {
 		mockUserRepo := new(repositories.MockUserRepository)
 
@@ -307,7 +307,7 @@ func TestUserService_GetByEmail(t *testing.T) {
 
 	setup := func() (
 		*repositories.MockUserRepository,
-		*userService,
+		UserService,
 	) {
 		mockUserRepo := new(repositories.MockUserRepository)
 
@@ -360,7 +360,7 @@ func TestUserService_Update(t *testing.T) {
 
 	setup := func() (
 		*repositories.MockUserRepository,
-		*userService,
+		UserService,
 	) {
 		mockRepo := new(repositories.MockUserRepository)
 
@@ -489,7 +489,7 @@ func TestUserService_Disable(t *testing.T) {
 
 	setup := func() (
 		*repositories.MockUserRepository,
-		*userService,
+		UserService,
 	) {
 		mockRepo := new(repositories.MockUserRepository)
 
@@ -563,7 +563,7 @@ func TestUserService_Enable(t *testing.T) {
 
 	setup := func() (
 		*repositories.MockUserRepository,
-		*userService,
+		UserService,
 	) {
 		mockRepo := new(repositories.MockUserRepository)
 
@@ -637,7 +637,7 @@ func TestUserService_Delete(t *testing.T) {
 
 	setup := func() (
 		*repositories.MockUserRepository,
-		*userService,
+		UserService,
 	) {
 		mockRepo := new(repositories.MockUserRepository)
 

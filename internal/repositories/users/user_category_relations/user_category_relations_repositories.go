@@ -74,6 +74,52 @@ func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation 
 	return relation, nil
 }
 
+func (r *userCategoryRelationRepositories) CreateTx(ctx context.Context, tx pgx.Tx, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
+	ref := "[userCategoryRelationRepositories - CreateTx] - "
+	r.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
+		"user_id":     relation.UserID,
+		"category_id": relation.CategoryID,
+	})
+
+	const query = `
+		INSERT INTO user_category_relations (user_id, category_id, created_at)
+		VALUES ($1, $2, NOW());
+	`
+
+	_, err := tx.Exec(ctx, query, relation.UserID, relation.CategoryID)
+	if err != nil {
+		switch {
+		case IsDuplicateKey(err):
+			r.logger.Warn(ctx, ref+logger.LogForeignKeyHasExists, map[string]any{
+				"user_id":     relation.UserID,
+				"category_id": relation.CategoryID,
+			})
+			return nil, ErrRelationExists
+
+		case IsForeignKeyViolation(err):
+			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
+				"user_id":     relation.UserID,
+				"category_id": relation.CategoryID,
+			})
+			return nil, ErrInvalidForeignKey
+
+		default:
+			r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
+				"user_id":     relation.UserID,
+				"category_id": relation.CategoryID,
+			})
+			return nil, fmt.Errorf("%w: %v", ErrCreateRelation, err)
+		}
+	}
+
+	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
+		"user_id":     relation.UserID,
+		"category_id": relation.CategoryID,
+	})
+
+	return relation, nil
+}
+
 func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
 	ref := "[userCategoryRelationRepositories - GetAllRelationsByUserID] - "
 	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{

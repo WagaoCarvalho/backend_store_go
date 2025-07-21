@@ -14,6 +14,7 @@ import (
 
 type AddressRepository interface {
 	Create(ctx context.Context, address *models.Address) (*models.Address, error)
+	CreateTx(ctx context.Context, tx pgx.Tx, address *models.Address) (*models.Address, error)
 	GetByID(ctx context.Context, id int64) (*models.Address, error)
 	GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error)
 	GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error)
@@ -50,6 +51,62 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 	`
 
 	err := r.db.QueryRow(ctx, query,
+		address.UserID,
+		address.ClientID,
+		address.SupplierID,
+		address.Street,
+		address.City,
+		address.State,
+		address.Country,
+		address.PostalCode,
+	).Scan(&address.ID, &address.CreatedAt, &address.UpdatedAt)
+
+	if err != nil {
+		if IsForeignKeyViolation(err) {
+			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
+				"user_id":     utils.Int64OrNil(address.UserID),
+				"client_id":   utils.Int64OrNil(address.ClientID),
+				"supplier_id": utils.Int64OrNil(address.SupplierID),
+			})
+			return nil, ErrInvalidForeignKey
+		}
+
+		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
+			"user_id":     utils.Int64OrNil(address.UserID),
+			"client_id":   utils.Int64OrNil(address.ClientID),
+			"supplier_id": utils.Int64OrNil(address.SupplierID),
+			"street":      address.Street,
+		})
+		return nil, fmt.Errorf("%w: %v", ErrCreateAddress, err)
+	}
+
+	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
+		"address_id": address.ID,
+	})
+
+	return address, nil
+}
+
+func (r *addressRepository) CreateTx(ctx context.Context, tx pgx.Tx, address *models.Address) (*models.Address, error) {
+	ref := "[addressRepository - CreateTx] - "
+	r.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
+		"user_id":     utils.Int64OrNil(address.UserID),
+		"client_id":   utils.Int64OrNil(address.ClientID),
+		"supplier_id": utils.Int64OrNil(address.SupplierID),
+		"street":      address.Street,
+	})
+
+	const query = `
+		INSERT INTO addresses (
+			user_id, client_id, supplier_id,
+			street, city, state, country, postal_code,
+			created_at, updated_at
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+		RETURNING id, created_at, updated_at;
+	`
+
+	err := tx.QueryRow(ctx, query,
 		address.UserID,
 		address.ClientID,
 		address.SupplierID,

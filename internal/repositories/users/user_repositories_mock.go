@@ -3,7 +3,8 @@ package repositories
 import (
 	"context"
 
-	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -12,31 +13,36 @@ type MockUserRepository struct {
 }
 
 // MockUserRepository
-func (m *MockUserRepository) Create(
-	ctx context.Context,
-	user *models_user.User,
-) (*models_user.User, error) {
+func (m *MockUserRepository) Create(ctx context.Context, user *models.User) (*models.User, error) {
 	args := m.Called(ctx, user)
-	if createdUser, ok := args.Get(0).(*models_user.User); ok { // Mudar para ponteiro
+	if createdUser, ok := args.Get(0).(*models.User); ok { // Mudar para ponteiro
 		return createdUser, args.Error(1)
 	}
 	return nil, args.Error(1) // Retornar nil em caso de erro
 }
 
-func (m *MockUserRepository) GetAll(ctx context.Context) ([]*models_user.User, error) {
+func (m *MockUserRepository) CreateTx(ctx context.Context, tx pgx.Tx, user *models.User) (*models.User, error) {
+	args := m.Called(ctx, user)
+	if createdUser, ok := args.Get(0).(*models.User); ok { // Mudar para ponteiro
+		return createdUser, args.Error(1)
+	}
+	return nil, args.Error(1) // Retornar nil em caso de erro
+}
+
+func (m *MockUserRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 	args := m.Called(ctx)
-	if users, ok := args.Get(0).([]*models_user.User); ok {
+	if users, ok := args.Get(0).([]*models.User); ok {
 		return users, args.Error(1)
 	}
 	return nil, args.Error(1)
 }
 
-func (m *MockUserRepository) GetByID(ctx context.Context, uid int64) (*models_user.User, error) {
+func (m *MockUserRepository) GetByID(ctx context.Context, uid int64) (*models.User, error) {
 	args := m.Called(ctx, uid)
-	if user, ok := args.Get(0).(*models_user.User); ok {
+	if user, ok := args.Get(0).(*models.User); ok {
 		return user, args.Error(1)
 	}
-	return &models_user.User{}, args.Error(1)
+	return &models.User{}, args.Error(1)
 }
 
 func (m *MockUserRepository) GetVersionByID(ctx context.Context, uid int64) (int64, error) {
@@ -50,20 +56,20 @@ func (m *MockUserRepository) GetVersionByID(ctx context.Context, uid int64) (int
 	return 0, args.Error(1)
 }
 
-func (m *MockUserRepository) GetByEmail(ctx context.Context, email string) (*models_user.User, error) {
+func (m *MockUserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	args := m.Called(ctx, email)
-	if user, ok := args.Get(0).(*models_user.User); ok {
+	if user, ok := args.Get(0).(*models.User); ok {
 		return user, args.Error(1)
 	}
-	return &models_user.User{}, args.Error(1)
+	return &models.User{}, args.Error(1)
 }
 
-func (m *MockUserRepository) Update(ctx context.Context, user *models_user.User) (*models_user.User, error) {
+func (m *MockUserRepository) Update(ctx context.Context, user *models.User) (*models.User, error) {
 	args := m.Called(ctx, user)
 
-	var usr *models_user.User
+	var usr *models.User
 	if val := args.Get(0); val != nil {
-		usr = val.(*models_user.User)
+		usr = val.(*models.User)
 	}
 
 	return usr, args.Error(1)

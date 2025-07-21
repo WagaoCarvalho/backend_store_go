@@ -4,6 +4,7 @@ import (
 	"context"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -12,6 +13,11 @@ type MockAddressRepository struct {
 }
 
 func (m *MockAddressRepository) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
+	args := m.Called(ctx, address)
+	return args.Get(0).(*models.Address), args.Error(1)
+}
+
+func (m *MockAddressRepository) CreateTx(ctx context.Context, tx pgx.Tx, address *models.Address) (*models.Address, error) {
 	args := m.Called(ctx, address)
 	return args.Get(0).(*models.Address), args.Error(1)
 }

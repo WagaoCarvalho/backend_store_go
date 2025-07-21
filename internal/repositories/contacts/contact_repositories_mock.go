@@ -4,6 +4,7 @@ import (
 	"context"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -12,6 +13,11 @@ type MockContactRepository struct {
 }
 
 func (m *MockContactRepository) Create(ctx context.Context, c *models.Contact) (*models.Contact, error) {
+	args := m.Called(ctx, c)
+	return args.Get(0).(*models.Contact), args.Error(1)
+}
+
+func (m *MockContactRepository) CreateTx(ctx context.Context, tx pgx.Tx, c *models.Contact) (*models.Contact, error) {
 	args := m.Called(ctx, c)
 	return args.Get(0).(*models.Contact), args.Error(1)
 }

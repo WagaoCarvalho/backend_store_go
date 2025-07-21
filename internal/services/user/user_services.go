@@ -30,7 +30,7 @@ type userService struct {
 	hasher auth.PasswordHasher
 }
 
-func NewUserService(repo repositories_user.UserRepository, logger *logger.LoggerAdapter, hasher auth.PasswordHasher) *userService {
+func NewUserService(repo repositories_user.UserRepository, logger *logger.LoggerAdapter, hasher auth.PasswordHasher) UserService {
 	return &userService{
 		repo:   repo,
 		logger: logger,

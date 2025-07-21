@@ -15,6 +15,7 @@ import (
 
 type ContactRepository interface {
 	Create(ctx context.Context, contact *models.Contact) (*models.Contact, error)
+	CreateTx(ctx context.Context, tx pgx.Tx, contact *models.Contact) (*models.Contact, error)
 	GetByID(ctx context.Context, id int64) (*models.Contact, error)
 	GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error)
 	GetByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error)
@@ -51,6 +52,67 @@ func (r *contactRepository) Create(ctx context.Context, contact *models.Contact)
 	`
 
 	err := r.db.QueryRow(ctx, query,
+		contact.UserID,
+		contact.ClientID,
+		contact.SupplierID,
+		contact.ContactName,
+		contact.ContactPosition,
+		contact.Email,
+		contact.Phone,
+		contact.Cell,
+		contact.ContactType,
+	).Scan(&contact.ID, &contact.CreatedAt, &contact.UpdatedAt)
+
+	if err != nil {
+		if IsForeignKeyViolation(err) {
+			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
+				"user_id":     utils.Int64OrNil(contact.UserID),
+				"client_id":   utils.Int64OrNil(contact.ClientID),
+				"supplier_id": utils.Int64OrNil(contact.SupplierID),
+			})
+			return nil, ErrInvalidForeignKey
+		}
+
+		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
+			"user_id":      utils.Int64OrNil(contact.UserID),
+			"client_id":    utils.Int64OrNil(contact.ClientID),
+			"supplier_id":  utils.Int64OrNil(contact.SupplierID),
+			"contact_name": contact.ContactName,
+			"email":        contact.Email,
+		})
+		return nil, fmt.Errorf("%w: %v", ErrCreateContact, err)
+	}
+
+	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
+		"contact_id":  contact.ID,
+		"user_id":     utils.Int64OrNil(contact.UserID),
+		"client_id":   utils.Int64OrNil(contact.ClientID),
+		"supplier_id": utils.Int64OrNil(contact.SupplierID),
+		"email":       contact.Email,
+	})
+
+	return contact, nil
+}
+
+func (r *contactRepository) CreateTx(ctx context.Context, tx pgx.Tx, contact *models.Contact) (*models.Contact, error) {
+	ref := "[contactRepository - CreateTx] - "
+
+	r.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
+		"contact_name": contact.ContactName,
+		"user_id":      utils.Int64OrNil(contact.UserID),
+		"client_id":    utils.Int64OrNil(contact.ClientID),
+		"supplier_id":  utils.Int64OrNil(contact.SupplierID),
+	})
+
+	const query = `
+		INSERT INTO contacts (
+			user_id, client_id, supplier_id, contact_name, contact_position,
+			email, phone, cell, contact_type, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+		RETURNING id, created_at, updated_at
+	`
+
+	err := tx.QueryRow(ctx, query,
 		contact.UserID,
 		contact.ClientID,
 		contact.SupplierID,
