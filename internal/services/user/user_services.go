@@ -8,12 +8,18 @@ import (
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
-	repositories_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
+	models_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
+	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
+	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
+	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
+	repo_relation "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
 )
 
 type UserService interface {
 	Create(ctx context.Context, user *models_user.User) (*models_user.User, error)
+	CreateFull(ctx context.Context, user *models_user.User) (*models_user.User, error)
 	GetAll(ctx context.Context) ([]*models_user.User, error)
 	GetByID(ctx context.Context, uid int64) (*models_user.User, error)
 	GetVersionByID(ctx context.Context, uid int64) (int64, error)
@@ -25,16 +31,24 @@ type UserService interface {
 }
 
 type userService struct {
-	repo   repositories_user.UserRepository
-	logger *logger.LoggerAdapter
-	hasher auth.PasswordHasher
+	repo_user         repo_user.UserRepository
+	repo_address      repo_address.AddressRepository
+	repo_contact      repo_contact.ContactRepository
+	repo_user_cat_rel repo_relation.UserCategoryRelationRepository
+	logger            *logger.LoggerAdapter
+	hasher            auth.PasswordHasher
 }
 
-func NewUserService(repo repositories_user.UserRepository, logger *logger.LoggerAdapter, hasher auth.PasswordHasher) UserService {
+func NewUserService(repo_user repo_user.UserRepository, repo_address repo_address.AddressRepository,
+	repo_contact repo_contact.ContactRepository, repo_user_cat_rel repo_relation.UserCategoryRelationRepository,
+	logger *logger.LoggerAdapter, hasher auth.PasswordHasher) UserService {
 	return &userService{
-		repo:   repo,
-		logger: logger,
-		hasher: hasher,
+		repo_user:         repo_user,
+		repo_address:      repo_address,
+		repo_contact:      repo_contact,
+		repo_user_cat_rel: repo_user_cat_rel,
+		logger:            logger,
+		hasher:            hasher,
 	}
 }
 
@@ -64,7 +78,7 @@ func (s *userService) Create(ctx context.Context, user *models_user.User) (*mode
 		user.Password = hashed
 	}
 
-	createdUser, err := s.repo.Create(ctx, user)
+	createdUser, err := s.repo_user.Create(ctx, user)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 			"email": user.Email,
@@ -88,11 +102,120 @@ func (s *userService) Create(ctx context.Context, user *models_user.User) (*mode
 	return createdUser, nil
 }
 
+func (s *userService) CreateFull(ctx context.Context, user *models_user.User) (*models_user.User, error) {
+	ref := "[userService - CreateFull] - "
+	s.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
+		"username": user.Username,
+		"email":    user.Email,
+	})
+
+	if !utils_validators.IsValidEmail(user.Email) {
+		s.logger.Error(ctx, ErrInvalidEmail, ref+logger.LogEmailInvalid, map[string]any{
+			"email": user.Email,
+		})
+		return nil, ErrInvalidEmail
+	}
+
+	if user.Password != "" {
+		hashed, err := s.hasher.Hash(user.Password)
+		if err != nil {
+			s.logger.Error(ctx, err, ref+logger.LogPasswordInvalid, map[string]any{
+				"email": user.Email,
+			})
+			return nil, fmt.Errorf("erro ao hashear senha: %w", err)
+		}
+		user.Password = hashed
+	}
+
+	tx, err := s.repo_user.BeginTx(ctx)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+"erro ao iniciar transação", nil)
+		return nil, fmt.Errorf("erro ao iniciar transação: %w", err)
+	}
+	if tx == nil {
+		s.logger.Error(ctx, errors.New("transação nula"), ref+"transação retornada é nil", nil)
+		return nil, errors.New("transação inválida")
+	}
+
+	// Tratar panic para rollback (caso tx != nil)
+	defer func() {
+		if p := recover(); p != nil {
+			if tx != nil {
+				_ = tx.Rollback(ctx)
+			}
+			panic(p)
+		}
+	}()
+
+	// Função auxiliar para commit/rollback
+	commitOrRollback := func(err error) error {
+		if err != nil {
+			if tx != nil {
+				rbErr := tx.Rollback(ctx)
+				if rbErr != nil {
+					s.logger.Error(ctx, rbErr, ref+"erro ao fazer rollback", nil)
+					return fmt.Errorf("%v; rollback error: %w", err, rbErr)
+				}
+			}
+			return err
+		}
+		if tx != nil {
+			if cErr := tx.Commit(ctx); cErr != nil {
+				s.logger.Error(ctx, cErr, ref+"erro ao commitar transação", nil)
+				return fmt.Errorf("erro ao commitar transação: %w", cErr)
+			}
+		}
+		return nil
+	}
+
+	createdUser, err := s.repo_user.CreateTx(ctx, tx, user)
+	if err != nil {
+		return nil, commitOrRollback(err)
+	}
+
+	if user.Address != nil {
+		user.Address.UserID = utils.ToPointer(createdUser.UID)
+		createdAddress, err := s.repo_address.CreateTx(ctx, tx, user.Address)
+		if err != nil {
+			return nil, commitOrRollback(err)
+		}
+		createdUser.Address = createdAddress
+	}
+
+	if user.Contact != nil {
+		user.Contact.UserID = utils.ToPointer(createdUser.UID)
+		createdContact, err := s.repo_contact.CreateTx(ctx, tx, user.Contact)
+		if err != nil {
+			return nil, commitOrRollback(err)
+		}
+		createdUser.Contact = createdContact
+	}
+
+	for _, category := range user.Categories {
+		relation := &models_user_cat_rel.UserCategoryRelations{
+			UserID:     createdUser.UID,
+			CategoryID: int64(category.ID),
+		}
+		_, err := s.repo_user_cat_rel.CreateTx(ctx, tx, relation)
+		if err != nil {
+			return nil, commitOrRollback(err)
+		}
+	}
+
+	s.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
+		"user_id":  createdUser.UID,
+		"username": createdUser.Username,
+		"email":    createdUser.Email,
+	})
+
+	return createdUser, commitOrRollback(nil)
+}
+
 func (s *userService) GetAll(ctx context.Context) ([]*models_user.User, error) {
 	ref := "[userService - GetAll] - "
 	s.logger.Info(ctx, ref+logger.LogGetInit, nil)
 
-	users, err := s.repo.GetAll(ctx)
+	users, err := s.repo_user.GetAll(ctx)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, nil)
 		return nil, fmt.Errorf("%w: %v", ErrGetAllUsers, err)
@@ -111,7 +234,7 @@ func (s *userService) GetByID(ctx context.Context, uid int64) (*models_user.User
 		"user_id": uid,
 	})
 
-	user, err := s.repo.GetByID(ctx, uid)
+	user, err := s.repo_user.GetByID(ctx, uid)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]interface{}{
 			"user_id": uid,
@@ -134,13 +257,13 @@ func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, err
 		"user_id": uid,
 	})
 
-	version, err := s.repo.GetVersionByID(ctx, uid)
+	version, err := s.repo_user.GetVersionByID(ctx, uid)
 	if err != nil {
-		if errors.Is(err, repositories_user.ErrUserNotFound) {
+		if errors.Is(err, repo_user.ErrUserNotFound) {
 			s.logger.Error(ctx, err, ref+logger.LogNotFound, map[string]interface{}{
 				"user_id": uid,
 			})
-			return 0, repositories_user.ErrUserNotFound
+			return 0, repo_user.ErrUserNotFound
 		}
 
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]interface{}{
@@ -163,7 +286,7 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*models_use
 		"email": email,
 	})
 
-	user, err := s.repo.GetByEmail(ctx, email)
+	user, err := s.repo_user.GetByEmail(ctx, email)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]interface{}{
 			"email": email,
@@ -205,21 +328,21 @@ func (s *userService) Update(ctx context.Context, user *models_user.User) (*mode
 		return nil, ErrInvalidVersion
 	}
 
-	updatedUser, err := s.repo.Update(ctx, user)
+	updatedUser, err := s.repo_user.Update(ctx, user)
 	if err != nil {
 		switch {
-		case errors.Is(err, repositories_user.ErrUserNotFound):
+		case errors.Is(err, repo_user.ErrUserNotFound):
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]interface{}{
 				"user_id": user.UID,
 			})
-			return nil, repositories_user.ErrUserNotFound
+			return nil, repo_user.ErrUserNotFound
 
-		case errors.Is(err, repositories_user.ErrVersionConflict):
+		case errors.Is(err, repo_user.ErrVersionConflict):
 			s.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]interface{}{
 				"user_id": user.UID,
 				"version": user.Version,
 			})
-			return nil, repositories_user.ErrVersionConflict
+			return nil, repo_user.ErrVersionConflict
 
 		default:
 			s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]interface{}{
@@ -245,7 +368,7 @@ func (s *userService) Disable(ctx context.Context, uid int64) error {
 		"user_id": uid,
 	})
 
-	user, err := s.repo.GetByID(ctx, uid)
+	user, err := s.repo_user.GetByID(ctx, uid)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": uid,
@@ -255,7 +378,7 @@ func (s *userService) Disable(ctx context.Context, uid int64) error {
 
 	user.Status = false
 
-	_, err = s.repo.Update(ctx, user)
+	_, err = s.repo_user.Update(ctx, user)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"user_id": uid,
@@ -277,7 +400,7 @@ func (s *userService) Enable(ctx context.Context, uid int64) error {
 		"user_id": uid,
 	})
 
-	user, err := s.repo.GetByID(ctx, uid)
+	user, err := s.repo_user.GetByID(ctx, uid)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": uid,
@@ -287,7 +410,7 @@ func (s *userService) Enable(ctx context.Context, uid int64) error {
 
 	user.Status = true
 
-	_, err = s.repo.Update(ctx, user)
+	_, err = s.repo_user.Update(ctx, user)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"user_id": uid,
@@ -310,7 +433,7 @@ func (s *userService) Delete(ctx context.Context, uid int64) error {
 		"user_id": uid,
 	})
 
-	err := s.repo.Delete(ctx, uid)
+	err := s.repo_user.Delete(ctx, uid)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]interface{}{
 			"user_id": uid,

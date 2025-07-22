@@ -13,6 +13,22 @@ type MockUserRepository struct {
 }
 
 // MockUserRepository
+
+func (m *MockUserRepository) BeginTx(ctx context.Context) (pgx.Tx, error) {
+	args := m.Called(ctx)
+	// Safely check if the returned value is a pgx.Tx and handle nil gracefully
+	if tx, ok := args.Get(0).(pgx.Tx); ok {
+		return tx, args.Error(1)
+	}
+	return nil, args.Error(1) // Return nil pgx.Tx if the mock was set to return nil
+}
+
+func (m *MockTx) Begin(ctx context.Context) (pgx.Tx, error) {
+	args := m.Called(ctx)
+	tx, _ := args.Get(0).(pgx.Tx)
+	return tx, args.Error(1)
+}
+
 func (m *MockUserRepository) Create(ctx context.Context, user *models.User) (*models.User, error) {
 	args := m.Called(ctx, user)
 	if createdUser, ok := args.Get(0).(*models.User); ok { // Mudar para ponteiro
@@ -22,11 +38,11 @@ func (m *MockUserRepository) Create(ctx context.Context, user *models.User) (*mo
 }
 
 func (m *MockUserRepository) CreateTx(ctx context.Context, tx pgx.Tx, user *models.User) (*models.User, error) {
-	args := m.Called(ctx, user)
-	if createdUser, ok := args.Get(0).(*models.User); ok { // Mudar para ponteiro
-		return createdUser, args.Error(1)
+	args := m.Called(ctx, tx, user)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
 	}
-	return nil, args.Error(1) // Retornar nil em caso de erro
+	return args.Get(0).(*models.User), args.Error(1)
 }
 
 func (m *MockUserRepository) GetAll(ctx context.Context) ([]*models.User, error) {

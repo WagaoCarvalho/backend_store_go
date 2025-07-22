@@ -18,8 +18,15 @@ func (m *MockAddressRepository) Create(ctx context.Context, address *models.Addr
 }
 
 func (m *MockAddressRepository) CreateTx(ctx context.Context, tx pgx.Tx, address *models.Address) (*models.Address, error) {
-	args := m.Called(ctx, address)
-	return args.Get(0).(*models.Address), args.Error(1)
+	args := m.Called(ctx, tx, address)
+
+	// Protege contra retorno nil em testes
+	var result *models.Address
+	if args.Get(0) != nil {
+		result = args.Get(0).(*models.Address)
+	}
+
+	return result, args.Error(1)
 }
 
 func (m *MockAddressRepository) GetByID(ctx context.Context, id int64) (*models.Address, error) {

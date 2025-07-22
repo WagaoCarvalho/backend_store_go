@@ -22,7 +22,7 @@ func (m *MockUserCategoryRelationRepo) Create(ctx context.Context, relation *mod
 }
 
 func (m *MockUserCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
-	args := m.Called(ctx, relation)
+	args := m.Called(ctx, tx, relation) // <-- aqui passa os 3 argumentos
 	result := args.Get(0)
 	if result == nil {
 		return nil, args.Error(1)

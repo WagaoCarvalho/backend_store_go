@@ -6,3 +6,7 @@ func Int64OrNil(ptr *int64) interface{} {
 	}
 	return *ptr
 }
+
+func ToPointer[T any](v T) *T {
+	return &v
+}

@@ -15,6 +15,7 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user *models.User) (*models.User, error)
 	CreateTx(ctx context.Context, tx pgx.Tx, user *models.User) (*models.User, error)
+	BeginTx(ctx context.Context) (pgx.Tx, error)
 	GetAll(ctx context.Context) ([]*models.User, error)
 	GetByID(ctx context.Context, id int64) (*models.User, error)
 	GetVersionByID(ctx context.Context, id int64) (int64, error)
@@ -35,6 +36,10 @@ func NewUserRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) UserRepos
 		db:     db,
 		logger: logger,
 	}
+}
+
+func (r *userRepository) BeginTx(ctx context.Context) (pgx.Tx, error) {
+	return r.db.BeginTx(ctx, pgx.TxOptions{})
 }
 
 func (r *userRepository) Create(ctx context.Context, user *models.User) (*models.User, error) {

@@ -13,6 +13,7 @@ import (
 
 type UserCategoryRelationRepository interface {
 	Create(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error)
+	CreateTx(ctx context.Context, tx pgx.Tx, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error)
 	HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error)
 	GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error)
 	Delete(ctx context.Context, userID, categoryID int64) error

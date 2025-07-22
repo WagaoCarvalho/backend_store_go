@@ -20,6 +20,14 @@ func (m *MockUserService) Create(ctx context.Context, user *models_user.User) (*
 	return args.Get(0).(*models_user.User), args.Error(1)
 }
 
+func (m *MockUserService) CreateFull(ctx context.Context, user *models_user.User) (*models_user.User, error) {
+	args := m.Called(ctx, user)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models_user.User), args.Error(1)
+}
+
 func (m *MockUserService) GetAll(ctx context.Context) ([]*models_user.User, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {

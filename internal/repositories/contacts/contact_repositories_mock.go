@@ -17,9 +17,15 @@ func (m *MockContactRepository) Create(ctx context.Context, c *models.Contact) (
 	return args.Get(0).(*models.Contact), args.Error(1)
 }
 
-func (m *MockContactRepository) CreateTx(ctx context.Context, tx pgx.Tx, c *models.Contact) (*models.Contact, error) {
-	args := m.Called(ctx, c)
-	return args.Get(0).(*models.Contact), args.Error(1)
+func (m *MockContactRepository) CreateTx(ctx context.Context, tx pgx.Tx, contact *models.Contact) (*models.Contact, error) {
+	args := m.Called(ctx, tx, contact)
+
+	var result *models.Contact
+	if args.Get(0) != nil {
+		result = args.Get(0).(*models.Contact)
+	}
+
+	return result, args.Error(1)
 }
 
 func (m *MockContactRepository) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
