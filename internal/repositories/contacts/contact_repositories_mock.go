@@ -18,7 +18,7 @@ func (m *MockContactRepository) Create(ctx context.Context, c *models.Contact) (
 }
 
 func (m *MockContactRepository) CreateTx(ctx context.Context, tx pgx.Tx, contact *models.Contact) (*models.Contact, error) {
-	args := m.Called(ctx, tx, contact)
+	args := m.Called(ctx, tx, contact) // Isso aciona o .Run() definido no teste
 
 	var result *models.Contact
 	if args.Get(0) != nil {

@@ -175,6 +175,11 @@ func (s *userService) CreateFull(ctx context.Context, user *models_user.User) (*
 
 	if user.Address != nil {
 		user.Address.UserID = utils.ToPointer(createdUser.UID)
+
+		if err := user.Address.Validate(); err != nil {
+			return nil, commitOrRollback(fmt.Errorf("endereço inválido: %w", err))
+		}
+
 		createdAddress, err := s.repo_address.CreateTx(ctx, tx, user.Address)
 		if err != nil {
 			return nil, commitOrRollback(err)
@@ -184,6 +189,11 @@ func (s *userService) CreateFull(ctx context.Context, user *models_user.User) (*
 
 	if user.Contact != nil {
 		user.Contact.UserID = utils.ToPointer(createdUser.UID)
+
+		if err := user.Contact.Validate(); err != nil {
+			return nil, commitOrRollback(fmt.Errorf("contato inválido: %w", err))
+		}
+
 		createdContact, err := s.repo_contact.CreateTx(ctx, tx, user.Contact)
 		if err != nil {
 			return nil, commitOrRollback(err)
@@ -196,6 +206,11 @@ func (s *userService) CreateFull(ctx context.Context, user *models_user.User) (*
 			UserID:     createdUser.UID,
 			CategoryID: int64(category.ID),
 		}
+
+		if err := relation.Validate(); err != nil {
+			return nil, commitOrRollback(fmt.Errorf("relação usuário-categoria inválida: %w", err))
+		}
+
 		_, err := s.repo_user_cat_rel.CreateTx(ctx, tx, relation)
 		if err != nil {
 			return nil, commitOrRollback(err)

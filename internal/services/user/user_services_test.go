@@ -284,50 +284,6 @@ func TestUserService_CreateFull(t *testing.T) {
 		mockTx.AssertExpectations(t)
 	})
 
-	t.Run("panic_faz_rollback", func(t *testing.T) {
-		mockUserRepo, _, mockContactRepo, mockRelationRepo, mockTx, mockHasher, userService := setup()
-
-		mockHasher.On("Hash", "senha123").Return("senha-hash", nil)
-		mockUserRepo.On("BeginTx", mock.Anything).Return(mockTx, nil)
-		mockUserRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_user.User{
-				UID:      1,
-				Username: "teste",
-				Email:    "teste@example.com",
-				Password: "senha-hash",
-			}, nil)
-		mockRelationRepo.On("CreateTx", mock.Anything, mockTx, mock.AnythingOfType("*models.UserCategoryRelations")).
-			Return(&model_user_cat_rel.UserCategoryRelations{UserID: 1, CategoryID: 1}, nil).
-			Maybe()
-
-		mockTx.On("Rollback", mock.Anything).Return(nil)
-
-		user := &model_user.User{
-			Username: "teste",
-			Email:    "teste@example.com",
-			Password: "senha123",
-			Categories: []model_categories.UserCategory{
-				{ID: 1},
-			},
-			Contact: &model_contact.Contact{},
-		}
-
-		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Run(func(args mock.Arguments) {
-				panic("panic simulado")
-			})
-
-		assert.PanicsWithValue(t, "panic simulado", func() {
-			userService.CreateFull(context.Background(), user)
-		})
-
-		mockHasher.AssertExpectations(t)
-		mockUserRepo.AssertExpectations(t)
-		mockRelationRepo.AssertExpectations(t)
-		mockTx.AssertExpectations(t)
-		mockContactRepo.AssertExpectations(t)
-	})
-
 	t.Run("erro_ao_commitar_transacao", func(t *testing.T) {
 		mockUserRepo, _, _, mockRelationRepo, mockTx, mockHasher, userService := setup()
 
@@ -398,8 +354,11 @@ func TestUserService_CreateFull(t *testing.T) {
 				{ID: 1},
 			},
 			Address: &model_address.Address{
-				Street: "Rua A",
-				City:   "Cidade B",
+				Street:     "Rua A",
+				City:       "Cidade B",
+				State:      "SP",
+				Country:    "Brasil",
+				PostalCode: "99999999",
 			},
 		}
 
@@ -446,8 +405,9 @@ func TestUserService_CreateFull(t *testing.T) {
 				{ID: 1},
 			},
 			Contact: &model_contact.Contact{
-				Phone: "123456789",
-				Email: "contato@example.com",
+				ContactName: "Ari",
+				Phone:       "1234567895",
+				Email:       "contato@example.com",
 			},
 		}
 
@@ -491,45 +451,64 @@ func TestUserService_CreateFull(t *testing.T) {
 			Password: "senha123",
 			Username: "teste",
 			Address: &model_address.Address{
-				City: "São Paulo",
+				Street:     "Rua A",
+				City:       "Cidade B",
+				State:      "SP",
+				Country:    "Brasil",
+				PostalCode: "99999999",
 			},
 			Contact: &model_contact.Contact{
-				Phone: "123456789",
+				ContactName: "Ari",
+				Phone:       "1234567895",
+				Email:       "contato@example.com",
 			},
 			Categories: []model_categories.UserCategory{{ID: 1}},
 		}
 
-		mockHasher.On("Hash", "senha123").Return("hashed", nil).Once()
-		mockUserRepo.On("BeginTx", mock.Anything).Return(mockTx, nil).Once()
+		expectedUser := &model_user.User{
+			UID:      1,
+			Email:    "test@example.com",
+			Username: "teste",
+		}
 
-		expectedUser := &model_user.User{UID: 1, Email: "test@example.com", Username: "teste"}
+		mockHasher.On("Hash", "senha123").
+			Return("hashed", nil).
+			Once()
+
+		mockUserRepo.On("BeginTx", mock.Anything).
+			Return(mockTx, nil).
+			Once()
+
 		mockUserRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(expectedUser, nil).Once()
+			Return(expectedUser, nil).
+			Once()
 
 		mockAddressRepo.
 			On("CreateTx", mock.Anything, mockTx, mock.MatchedBy(func(addr *model_address.Address) bool {
-				return addr.City == "São Paulo"
+				return addr.City == "Cidade B" && addr.PostalCode == "99999999"
 			})).
 			Return(&model_address.Address{ID: 1}, nil).
 			Once()
 
 		mockContactRepo.
 			On("CreateTx", mock.Anything, mockTx, mock.MatchedBy(func(c *model_contact.Contact) bool {
-				return c.Phone == "123456789"
+				return c.Phone == "1234567895" && c.ContactName == "Ari"
 			})).
 			Return(&model_contact.Contact{ID: 1}, nil).
 			Once()
 
 		mockRelationRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_user_cat_rel.UserCategoryRelations{UserID: 1, CategoryID: 1}, nil).Once()
+			Return(&model_user_cat_rel.UserCategoryRelations{UserID: 1, CategoryID: 1}, nil).
+			Once()
 
 		mockTx.On("Commit", mock.Anything).Return(nil).Once()
-		mockTx.On("Rollback", mock.Anything).Return(nil).Maybe()
 
 		result, err := userService.CreateFull(context.Background(), user)
+
 		assert.NoError(t, err)
 		assert.Equal(t, expectedUser.UID, result.UID)
 		assert.Equal(t, expectedUser.Email, result.Email)
+		assert.Equal(t, expectedUser.Username, result.Username)
 
 		mockUserRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)
@@ -537,6 +516,156 @@ func TestUserService_CreateFull(t *testing.T) {
 		mockAddressRepo.AssertExpectations(t)
 		mockContactRepo.AssertExpectations(t)
 		mockRelationRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha validação do endereço faz rollback", func(t *testing.T) {
+		mockUserRepo, _, _, _, mockTx, mockHasher, userService := setup()
+
+		user := &model_user.User{
+			Email:    "test@example.com",
+			Password: "senha123",
+			Username: "teste",
+			Address: &model_address.Address{
+				Street: "", // força falha de validação
+			},
+		}
+
+		mockHasher.On("Hash", "senha123").Return("hashed", nil).Once()
+		mockUserRepo.On("BeginTx", mock.Anything).Return(mockTx, nil).Once()
+		mockUserRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
+			Return(&model_user.User{UID: 1, Email: "test@example.com", Username: "teste"}, nil).Once()
+
+		mockTx.On("Rollback", mock.Anything).Return(nil).Once()
+
+		_, err := userService.CreateFull(context.Background(), user)
+		assert.ErrorContains(t, err, "endereço inválido")
+
+		mockTx.AssertExpectations(t)
+	})
+
+	t.Run("falha validação do contato faz rollback", func(t *testing.T) {
+		mockUserRepo, mockAddressRepo, _, _, mockTx, mockHasher, userService := setup()
+
+		user := &model_user.User{
+			Email:    "test@example.com",
+			Password: "senha123",
+			Username: "teste",
+			Address: &model_address.Address{
+				Street:     "Rua A",
+				City:       "Cidade B",
+				State:      "SP",
+				Country:    "Brasil",
+				PostalCode: "99999999",
+			},
+			Contact: &model_contact.Contact{
+				Phone: "invalido", // força erro de validação
+			},
+			Categories: []model_categories.UserCategory{{ID: 1}},
+		}
+
+		mockHasher.On("Hash", "senha123").Return("hashed", nil).Once()
+		mockUserRepo.On("BeginTx", mock.Anything).Return(mockTx, nil).Once()
+		mockUserRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
+			Return(&model_user.User{UID: 1, Email: "test@example.com", Username: "teste"}, nil).Once()
+
+		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
+			Return(&model_address.Address{ID: 1}, nil).Once()
+
+		mockTx.On("Rollback", mock.Anything).Return(nil).Once()
+
+		_, err := userService.CreateFull(context.Background(), user)
+		assert.ErrorContains(t, err, "contato inválido")
+
+		mockTx.AssertExpectations(t)
+	})
+
+	t.Run("falha validação da relação usuário-categoria faz rollback", func(t *testing.T) {
+		mockUserRepo, mockAddressRepo, mockContactRepo, _, mockTx, mockHasher, userService := setup()
+
+		user := &model_user.User{
+			Email:    "test@example.com",
+			Password: "senha123",
+			Username: "teste",
+			Address: &model_address.Address{
+				Street:     "Rua A",
+				City:       "Cidade B",
+				State:      "SP",
+				Country:    "Brasil",
+				PostalCode: "99999999",
+			},
+			Contact: &model_contact.Contact{
+				ContactName: "João",
+				Phone:       "1234567890",
+				Email:       "joao@example.com",
+			},
+			Categories: []model_categories.UserCategory{
+				{ID: 0}, // ID inválido → força falha de validação
+			},
+		}
+
+		mockHasher.On("Hash", "senha123").Return("hashed", nil).Once()
+		mockUserRepo.On("BeginTx", mock.Anything).Return(mockTx, nil).Once()
+		mockUserRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
+			Return(&model_user.User{UID: 1, Email: "test@example.com", Username: "teste"}, nil).Once()
+
+		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
+			Return(&model_address.Address{ID: 1}, nil).Once()
+
+		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
+			Return(&model_contact.Contact{ID: 1}, nil).Once()
+
+		mockTx.On("Rollback", mock.Anything).Return(nil).Once()
+
+		_, err := userService.CreateFull(context.Background(), user)
+		assert.ErrorContains(t, err, "relação usuário-categoria inválida")
+
+		mockTx.AssertExpectations(t)
+	})
+
+	t.Run("panic faz rollback", func(t *testing.T) {
+		mockUserRepo, mockAddressRepo, mockContactRepo, _, mockTx, mockHasher, userService := setup()
+
+		user := &model_user.User{
+			Email:    "test@example.com",
+			Password: "senha123",
+			Username: "teste",
+			Address: &model_address.Address{
+				Street:     "Rua A",
+				City:       "Cidade B",
+				State:      "SP",
+				Country:    "Brasil",
+				PostalCode: "99999999",
+			},
+			Contact: &model_contact.Contact{
+				ContactName: "Ari",
+				Phone:       "1234567895",
+				Email:       "contato@example.com",
+			},
+			Categories: []model_categories.UserCategory{
+				{ID: 1},
+			},
+		}
+
+		mockHasher.On("Hash", "senha123").Return("hashed", nil).Once()
+		mockUserRepo.On("BeginTx", mock.Anything).Return(mockTx, nil).Once()
+		mockUserRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
+			Return(&model_user.User{UID: 1, Email: "test@example.com", Username: "teste"}, nil).Once()
+
+		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
+			Return(&model_address.Address{ID: 1}, nil).Once()
+
+		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
+			Run(func(args mock.Arguments) {
+				panic("panic simulado")
+			}).Once()
+
+		mockTx.On("Rollback", mock.Anything).Return(nil).Once()
+
+		assert.Panics(t, func() {
+			_, _ = userService.CreateFull(context.Background(), user)
+		})
+
+		mockTx.AssertExpectations(t)
 	})
 
 }
