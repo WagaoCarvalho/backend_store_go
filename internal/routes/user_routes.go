@@ -35,6 +35,7 @@ func RegisterUserRoutes(
 
 	// Rota pública
 	r.HandleFunc("/user", handler.Create).Methods(http.MethodPost)
+	r.HandleFunc("/user-full", handler.CreateFull).Methods(http.MethodPost)
 
 	// Rotas protegidas
 	s := r.PathPrefix("/").Subrouter()

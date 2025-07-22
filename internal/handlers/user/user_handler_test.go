@@ -10,7 +10,10 @@ import (
 	"testing"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	model_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
+	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
+	model_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	model_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_services_mock"
@@ -28,7 +31,7 @@ func TestUserHandler_Create(t *testing.T) {
 	t.Run("Sucesso ao criar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		expectedUser := &models.User{
+		expectedUser := &model_user.User{
 			UID:      1,
 			Username: "testuser",
 			Email:    "test@example.com",
@@ -45,7 +48,7 @@ func TestUserHandler_Create(t *testing.T) {
 
 		mockService.On("Create",
 			mock.Anything,
-			mock.MatchedBy(func(u *models.User) bool {
+			mock.MatchedBy(func(u *model_user.User) bool {
 				return u.Username == "testuser" && u.Email == "test@example.com"
 			}),
 		).Return(expectedUser, nil).Once()
@@ -80,7 +83,7 @@ func TestUserHandler_Create(t *testing.T) {
 	t.Run("Erro ao criar usuário no service", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		userData := &models.User{
+		userData := &model_user.User{
 			Username: "failuser",
 			Email:    "fail@example.com",
 		}
@@ -90,7 +93,7 @@ func TestUserHandler_Create(t *testing.T) {
 		}
 		body, _ := json.Marshal(requestBody)
 
-		mockService.On("Create", mock.Anything, mock.MatchedBy(func(u *models.User) bool {
+		mockService.On("Create", mock.Anything, mock.MatchedBy(func(u *model_user.User) bool {
 			return u.Username == userData.Username && u.Email == userData.Email
 		})).Return(nil, errors.New("erro ao criar usuário")).Once()
 
@@ -98,6 +101,112 @@ func TestUserHandler_Create(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+}
+
+func TestUserHandler_CreateFull(t *testing.T) {
+	mockService := new(services.MockUserService)
+	logger := logger.NewLoggerAdapter(logrus.New())
+	handler := NewUserHandler(mockService, logger)
+
+	t.Run("Sucesso ao criar usuário completo", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+
+		expectedUser := &model_user.User{
+			UID:      1,
+			Username: "testuser",
+			Email:    "test@example.com",
+			Address: &model_address.Address{
+				Street: "Rua A",
+				City:   "Cidade B",
+			},
+			Contact: &model_contact.Contact{
+				Phone: "123456789",
+			},
+			Categories: []model_categories.UserCategory{
+				{ID: 1},
+			},
+		}
+
+		requestBody := map[string]interface{}{
+			"user": map[string]interface{}{
+				"username": "testuser",
+				"email":    "test@example.com",
+				"password": "senha123",
+				"address": map[string]interface{}{
+					"street": "Rua A",
+					"city":   "Cidade B",
+				},
+				"contact": map[string]interface{}{
+					"phone": "123456789",
+				},
+				"categories": []map[string]interface{}{
+					{"id": 1},
+				},
+			},
+		}
+
+		body, _ := json.Marshal(requestBody)
+
+		mockService.On("CreateFull",
+			mock.Anything,
+			mock.MatchedBy(func(u *model_user.User) bool {
+				return u.Username == "testuser" && u.Email == "test@example.com" &&
+					u.Address != nil && u.Contact != nil && len(u.Categories) == 1
+			}),
+		).Return(expectedUser, nil).Once()
+
+		req := httptest.NewRequest(http.MethodPost, "/users/full", bytes.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		handler.CreateFull(rec, req)
+
+		assert.Equal(t, http.StatusCreated, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro método não permitido", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/users/full", nil)
+		rec := httptest.NewRecorder()
+
+		handler.CreateFull(rec, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, rec.Code)
+	})
+
+	t.Run("Erro ao decodificar JSON inválido", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/users/full", bytes.NewReader([]byte("{invalid json")))
+		rec := httptest.NewRecorder()
+
+		handler.CreateFull(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+	})
+
+	t.Run("Erro ao criar usuário completo no service", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+
+		userData := &model_user.User{
+			Username: "failuser",
+			Email:    "fail@example.com",
+		}
+
+		requestBody := map[string]interface{}{
+			"user": userData,
+		}
+		body, _ := json.Marshal(requestBody)
+
+		mockService.On("CreateFull", mock.Anything, mock.MatchedBy(func(u *model_user.User) bool {
+			return u.Username == userData.Username && u.Email == userData.Email
+		})).Return(nil, errors.New("erro ao criar usuário completo")).Once()
+
+		req := httptest.NewRequest(http.MethodPost, "/users/full", bytes.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		handler.CreateFull(rec, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
 		mockService.AssertExpectations(t)
@@ -112,7 +221,7 @@ func TestUserHandler_GetAll(t *testing.T) {
 	t.Run("Sucesso ao buscar todos usuários", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		users := []*models.User{
+		users := []*model_user.User{
 			{UID: 1, Username: "user1", Email: "user1@example.com"},
 			{UID: 2, Username: "user2", Email: "user2@example.com"},
 		}
@@ -151,7 +260,7 @@ func TestUserHandler_GetByID(t *testing.T) {
 	t.Run("Sucesso ao buscar usuário por ID", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		user := &models.User{
+		user := &model_user.User{
 			UID:      1,
 			Username: "user1",
 			Email:    "user1@example.com",
@@ -279,7 +388,7 @@ func TestUserHandler_GetByEmail(t *testing.T) {
 	t.Run("Sucesso ao buscar usuário por email", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		user := &models.User{
+		user := &model_user.User{
 			UID:      1,
 			Username: "user1",
 			Email:    "user1@example.com",
@@ -337,7 +446,7 @@ func TestUserHandler_Update(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		userID := int64(1)
-		userToUpdate := &models.User{
+		userToUpdate := &model_user.User{
 			UID:      userID,
 			Username: "updatedUser",
 			Email:    "updated@example.com",
@@ -354,7 +463,7 @@ func TestUserHandler_Update(t *testing.T) {
 
 		body, _ := json.Marshal(requestBody)
 
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *models.User) bool {
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model_user.User) bool {
 			return u.UID == userID && u.Username == "updatedUser" && u.Version == 2
 		})).Return(userToUpdate, nil).Once()
 
@@ -425,7 +534,7 @@ func TestUserHandler_Update(t *testing.T) {
 
 		body, _ := json.Marshal(requestBody)
 
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *models.User) bool {
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model_user.User) bool {
 			return u.UID == userID && u.Version == 2
 		})).Return(nil, repository.ErrVersionConflict).Once()
 
@@ -452,7 +561,7 @@ func TestUserHandler_Update(t *testing.T) {
 
 		body, _ := json.Marshal(requestBody)
 
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *models.User) bool {
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model_user.User) bool {
 			return u.UID == userID && u.Version == 2
 		})).Return(nil, errors.New("erro interno")).Once()
 
@@ -476,16 +585,16 @@ func TestUserHandler_Disable(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		// Mock do GetByID para buscar o usuário antes de atualizar
-		mockService.On("GetByID", mock.Anything, int64(1)).Return(&models.User{
+		mockService.On("GetByID", mock.Anything, int64(1)).Return(&model_user.User{
 			UID:     1,
 			Status:  true,
 			Version: 5,
 		}, nil).Once()
 
 		// Mock do Update com usuário atualizado
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(user *models.User) bool {
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(user *model_user.User) bool {
 			return user.UID == 1 && user.Status == false && user.Version == 10
-		})).Return(&models.User{
+		})).Return(&model_user.User{
 			UID:     1,
 			Status:  false,
 			Version: 10,
@@ -553,7 +662,7 @@ func TestUserHandler_Disable(t *testing.T) {
 	t.Run("Erro conflito de versão ao desabilitar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetByID", mock.Anything, int64(4)).Return(&models.User{
+		mockService.On("GetByID", mock.Anything, int64(4)).Return(&model_user.User{
 			UID:     4,
 			Status:  true,
 			Version: 2,
@@ -575,7 +684,7 @@ func TestUserHandler_Disable(t *testing.T) {
 	t.Run("Erro genérico ao desabilitar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetByID", mock.Anything, int64(2)).Return(&models.User{
+		mockService.On("GetByID", mock.Anything, int64(2)).Return(&model_user.User{
 			UID:     2,
 			Status:  true,
 			Version: 1,
@@ -620,16 +729,16 @@ func TestUserHandler_Enable(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		// Mock GetByID para buscar usuário atual
-		mockService.On("GetByID", mock.Anything, int64(1)).Return(&models.User{
+		mockService.On("GetByID", mock.Anything, int64(1)).Return(&model_user.User{
 			UID:     1,
 			Status:  false,
 			Version: 3,
 		}, nil).Once()
 
 		// Mock Update com usuário atualizado
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(user *models.User) bool {
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(user *model_user.User) bool {
 			return user.UID == 1 && user.Status == true && user.Version == 4
-		})).Return(&models.User{
+		})).Return(&model_user.User{
 			UID:     1,
 			Status:  true,
 			Version: 4,
@@ -671,7 +780,7 @@ func TestUserHandler_Enable(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		// GetByID retorna usuário válido
-		mockService.On("GetByID", mock.Anything, int64(3)).Return(&models.User{
+		mockService.On("GetByID", mock.Anything, int64(3)).Return(&model_user.User{
 			UID:     3,
 			Status:  false,
 			Version: 5,
@@ -721,7 +830,7 @@ func TestUserHandler_Enable(t *testing.T) {
 	t.Run("Erro genérico ao habilitar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetByID", mock.Anything, int64(2)).Return(&models.User{
+		mockService.On("GetByID", mock.Anything, int64(2)).Return(&model_user.User{
 			UID:     2,
 			Status:  false,
 			Version: 1,

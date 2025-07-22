@@ -11,7 +11,7 @@ type Database struct {
 	ConnURL string
 }
 
-func LoadDatabaseConfig() Database {
+var LoadDatabaseConfig = func() Database {
 	// Carrega .env apenas se não estiver rodando no GitHub Actions
 	if os.Getenv("GITHUB_ACTIONS") == "" {
 		err := godotenv.Load()
