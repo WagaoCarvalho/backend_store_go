@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
-	services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories/user_categories_services_mock"
+	services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_categories/user_categories_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"

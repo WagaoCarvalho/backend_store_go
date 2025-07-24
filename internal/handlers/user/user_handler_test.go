@@ -10,13 +10,10 @@ import (
 	"testing"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
-	model_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
-	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	model_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
-	model_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_services_mock"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_services_mock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -101,112 +98,6 @@ func TestUserHandler_Create(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		handler.Create(rec, req)
-
-		assert.Equal(t, http.StatusInternalServerError, rec.Code)
-		mockService.AssertExpectations(t)
-	})
-}
-
-func TestUserHandler_CreateFull(t *testing.T) {
-	mockService := new(services.MockUserService)
-	logger := logger.NewLoggerAdapter(logrus.New())
-	handler := NewUserHandler(mockService, logger)
-
-	t.Run("Sucesso ao criar usuário completo", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
-
-		expectedUser := &model_user.User{
-			UID:      1,
-			Username: "testuser",
-			Email:    "test@example.com",
-			Address: &model_address.Address{
-				Street: "Rua A",
-				City:   "Cidade B",
-			},
-			Contact: &model_contact.Contact{
-				Phone: "123456789",
-			},
-			Categories: []model_categories.UserCategory{
-				{ID: 1},
-			},
-		}
-
-		requestBody := map[string]interface{}{
-			"user": map[string]interface{}{
-				"username": "testuser",
-				"email":    "test@example.com",
-				"password": "senha123",
-				"address": map[string]interface{}{
-					"street": "Rua A",
-					"city":   "Cidade B",
-				},
-				"contact": map[string]interface{}{
-					"phone": "123456789",
-				},
-				"categories": []map[string]interface{}{
-					{"id": 1},
-				},
-			},
-		}
-
-		body, _ := json.Marshal(requestBody)
-
-		mockService.On("CreateFull",
-			mock.Anything,
-			mock.MatchedBy(func(u *model_user.User) bool {
-				return u.Username == "testuser" && u.Email == "test@example.com" &&
-					u.Address != nil && u.Contact != nil && len(u.Categories) == 1
-			}),
-		).Return(expectedUser, nil).Once()
-
-		req := httptest.NewRequest(http.MethodPost, "/users/full", bytes.NewReader(body))
-		rec := httptest.NewRecorder()
-
-		handler.CreateFull(rec, req)
-
-		assert.Equal(t, http.StatusCreated, rec.Code)
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("Erro método não permitido", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/users/full", nil)
-		rec := httptest.NewRecorder()
-
-		handler.CreateFull(rec, req)
-
-		assert.Equal(t, http.StatusMethodNotAllowed, rec.Code)
-	})
-
-	t.Run("Erro ao decodificar JSON inválido", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPost, "/users/full", bytes.NewReader([]byte("{invalid json")))
-		rec := httptest.NewRecorder()
-
-		handler.CreateFull(rec, req)
-
-		assert.Equal(t, http.StatusBadRequest, rec.Code)
-	})
-
-	t.Run("Erro ao criar usuário completo no service", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
-
-		userData := &model_user.User{
-			Username: "failuser",
-			Email:    "fail@example.com",
-		}
-
-		requestBody := map[string]interface{}{
-			"user": userData,
-		}
-		body, _ := json.Marshal(requestBody)
-
-		mockService.On("CreateFull", mock.Anything, mock.MatchedBy(func(u *model_user.User) bool {
-			return u.Username == userData.Username && u.Email == userData.Email
-		})).Return(nil, errors.New("erro ao criar usuário completo")).Once()
-
-		req := httptest.NewRequest(http.MethodPost, "/users/full", bytes.NewReader(body))
-		rec := httptest.NewRecorder()
-
-		handler.CreateFull(rec, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
 		mockService.AssertExpectations(t)

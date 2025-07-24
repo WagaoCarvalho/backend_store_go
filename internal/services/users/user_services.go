@@ -8,18 +8,12 @@ import (
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
-	models_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
-	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
-	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
 	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
-	repo_relation "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
-	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
 )
 
 type UserService interface {
 	Create(ctx context.Context, user *models_user.User) (*models_user.User, error)
-	CreateFull(ctx context.Context, user *models_user.User) (*models_user.User, error)
 	GetAll(ctx context.Context) ([]*models_user.User, error)
 	GetByID(ctx context.Context, uid int64) (*models_user.User, error)
 	GetVersionByID(ctx context.Context, uid int64) (int64, error)
@@ -31,24 +25,16 @@ type UserService interface {
 }
 
 type userService struct {
-	repo_user         repo_user.UserRepository
-	repo_address      repo_address.AddressRepository
-	repo_contact      repo_contact.ContactRepository
-	repo_user_cat_rel repo_relation.UserCategoryRelationRepository
-	logger            *logger.LoggerAdapter
-	hasher            auth.PasswordHasher
+	repo_user repo_user.UserRepository
+	logger    *logger.LoggerAdapter
+	hasher    auth.PasswordHasher
 }
 
-func NewUserService(repo_user repo_user.UserRepository, repo_address repo_address.AddressRepository,
-	repo_contact repo_contact.ContactRepository, repo_user_cat_rel repo_relation.UserCategoryRelationRepository,
-	logger *logger.LoggerAdapter, hasher auth.PasswordHasher) UserService {
+func NewUserService(repo_user repo_user.UserRepository, logger *logger.LoggerAdapter, hasher auth.PasswordHasher) UserService {
 	return &userService{
-		repo_user:         repo_user,
-		repo_address:      repo_address,
-		repo_contact:      repo_contact,
-		repo_user_cat_rel: repo_user_cat_rel,
-		logger:            logger,
-		hasher:            hasher,
+		repo_user: repo_user,
+		logger:    logger,
+		hasher:    hasher,
 	}
 }
 
@@ -100,130 +86,6 @@ func (s *userService) Create(ctx context.Context, user *models_user.User) (*mode
 	})
 
 	return createdUser, nil
-}
-
-func (s *userService) CreateFull(ctx context.Context, user *models_user.User) (*models_user.User, error) {
-	ref := "[userService - CreateFull] - "
-	s.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
-		"username": user.Username,
-		"email":    user.Email,
-	})
-
-	if !utils_validators.IsValidEmail(user.Email) {
-		s.logger.Error(ctx, ErrInvalidEmail, ref+logger.LogEmailInvalid, map[string]any{
-			"email": user.Email,
-		})
-		return nil, ErrInvalidEmail
-	}
-
-	if user.Password != "" {
-		hashed, err := s.hasher.Hash(user.Password)
-		if err != nil {
-			s.logger.Error(ctx, err, ref+logger.LogPasswordInvalid, map[string]any{
-				"email": user.Email,
-			})
-			return nil, fmt.Errorf("erro ao hashear senha: %w", err)
-		}
-		user.Password = hashed
-	}
-
-	tx, err := s.repo_user.BeginTx(ctx)
-	if err != nil {
-		s.logger.Error(ctx, err, ref+"erro ao iniciar transação", nil)
-		return nil, fmt.Errorf("erro ao iniciar transação: %w", err)
-	}
-	if tx == nil {
-		s.logger.Error(ctx, errors.New("transação nula"), ref+"transação retornada é nil", nil)
-		return nil, errors.New("transação inválida")
-	}
-
-	// Tratar panic para rollback (caso tx != nil)
-	defer func() {
-		if p := recover(); p != nil {
-			if tx != nil {
-				_ = tx.Rollback(ctx)
-			}
-			panic(p)
-		}
-	}()
-
-	// Função auxiliar para commit/rollback
-	commitOrRollback := func(err error) error {
-		if err != nil {
-			if tx != nil {
-				rbErr := tx.Rollback(ctx)
-				if rbErr != nil {
-					s.logger.Error(ctx, rbErr, ref+"erro ao fazer rollback", nil)
-					return fmt.Errorf("%v; rollback error: %w", err, rbErr)
-				}
-			}
-			return err
-		}
-		if tx != nil {
-			if cErr := tx.Commit(ctx); cErr != nil {
-				s.logger.Error(ctx, cErr, ref+"erro ao commitar transação", nil)
-				return fmt.Errorf("erro ao commitar transação: %w", cErr)
-			}
-		}
-		return nil
-	}
-
-	createdUser, err := s.repo_user.CreateTx(ctx, tx, user)
-	if err != nil {
-		return nil, commitOrRollback(err)
-	}
-
-	if user.Address != nil {
-		user.Address.UserID = utils.ToPointer(createdUser.UID)
-
-		if err := user.Address.Validate(); err != nil {
-			return nil, commitOrRollback(fmt.Errorf("endereço inválido: %w", err))
-		}
-
-		createdAddress, err := s.repo_address.CreateTx(ctx, tx, user.Address)
-		if err != nil {
-			return nil, commitOrRollback(err)
-		}
-		createdUser.Address = createdAddress
-	}
-
-	if user.Contact != nil {
-		user.Contact.UserID = utils.ToPointer(createdUser.UID)
-
-		if err := user.Contact.Validate(); err != nil {
-			return nil, commitOrRollback(fmt.Errorf("contato inválido: %w", err))
-		}
-
-		createdContact, err := s.repo_contact.CreateTx(ctx, tx, user.Contact)
-		if err != nil {
-			return nil, commitOrRollback(err)
-		}
-		createdUser.Contact = createdContact
-	}
-
-	for _, category := range user.Categories {
-		relation := &models_user_cat_rel.UserCategoryRelations{
-			UserID:     createdUser.UID,
-			CategoryID: int64(category.ID),
-		}
-
-		if err := relation.Validate(); err != nil {
-			return nil, commitOrRollback(fmt.Errorf("relação usuário-categoria inválida: %w", err))
-		}
-
-		_, err := s.repo_user_cat_rel.CreateTx(ctx, tx, relation)
-		if err != nil {
-			return nil, commitOrRollback(err)
-		}
-	}
-
-	s.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
-		"user_id":  createdUser.UID,
-		"username": createdUser.Username,
-		"email":    createdUser.Email,
-	})
-
-	return createdUser, commitOrRollback(nil)
 }
 
 func (s *userService) GetAll(ctx context.Context) ([]*models_user.User, error) {

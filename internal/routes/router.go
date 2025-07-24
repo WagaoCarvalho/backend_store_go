@@ -35,9 +35,12 @@ func NewRouter(log *logger.LoggerAdapter) *mux.Router {
 	r.HandleFunc("/", handlers.GetHome).Methods(http.MethodGet)
 
 	RegisterLoginRoutes(r, db, log, blacklist)
+
 	RegisterUserRoutes(r, db, log, blacklist)
+	RegisterUserFullRoutes(r, db, log, blacklist)
 	RegisterUserCategoryRoutes(r, db, log, blacklist)
 	RegisterUserCategoryRelationRoutes(r, db, log, blacklist)
+
 	RegisterAddressRoutes(r, db, log, blacklist)
 	RegisterContactRoutes(r, db, log, blacklist)
 

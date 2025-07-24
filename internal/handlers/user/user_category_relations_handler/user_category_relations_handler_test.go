@@ -13,7 +13,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	user_category_relations_models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
-	user_category_relations_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_category_relations/user_category_relations_services_mock"
+	user_category_relations_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_category_relations/user_category_relations_services_mock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"

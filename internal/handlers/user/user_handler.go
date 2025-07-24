@@ -10,7 +10,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
 )
@@ -54,54 +54,6 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	createdUser, err := h.service.Create(ctx, requestData.User)
-	if err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"email": requestData.User.Email,
-		})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
-		"user_id":  createdUser.UID,
-		"username": createdUser.Username,
-		"email":    createdUser.Email,
-	})
-
-	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
-		Status:  http.StatusCreated,
-		Message: "Usuário criado com sucesso",
-		Data:    createdUser,
-	})
-}
-
-func (h *UserHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserHandler - CreateFull] "
-	ctx := r.Context()
-
-	if r.Method != http.MethodPost {
-		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
-			"method": r.Method,
-		})
-		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
-		return
-	}
-
-	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{})
-
-	var requestData struct {
-		User *models.User `json:"user"`
-	}
-
-	if err := utils.FromJson(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{
-			"erro": err.Error(),
-		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
-		return
-	}
-
-	createdUser, err := h.service.CreateFull(ctx, requestData.User)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 			"email": requestData.User.Email,

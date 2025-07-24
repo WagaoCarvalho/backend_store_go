@@ -8,7 +8,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_category_relations"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_category_relations"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

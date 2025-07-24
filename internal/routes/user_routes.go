@@ -8,11 +8,8 @@ import (
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
-	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
-	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
 	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
-	repo_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -25,17 +22,13 @@ func RegisterUserRoutes(
 	blacklist jwt.TokenBlacklist,
 ) {
 	repo_user := repo_user.NewUserRepository(db, log)
-	repo_address := repo_address.NewAddressRepository(db, log)
-	repo_contact := repo_contact.NewContactRepository(db, log)
-	repo_user_cat_rel := repo_user_cat_rel.NewUserCategoryRelationRepositories(db, log)
 	hasher := auth.BcryptHasher{}
 
-	userService := services.NewUserService(repo_user, repo_address, repo_contact, repo_user_cat_rel, log, hasher)
+	userService := services.NewUserService(repo_user, log, hasher)
 	handler := handlers.NewUserHandler(userService, log)
 
 	// Rota pública
 	r.HandleFunc("/user", handler.Create).Methods(http.MethodPost)
-	r.HandleFunc("/user-full", handler.CreateFull).Methods(http.MethodPost)
 
 	// Rotas protegidas
 	s := r.PathPrefix("/").Subrouter()

@@ -3,10 +3,6 @@ package models
 import (
 	"time"
 
-	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
-	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
-	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
-
 	"unicode"
 
 	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/utils"
@@ -14,17 +10,14 @@ import (
 )
 
 type User struct {
-	UID        int64                                 `json:"uid"`
-	Username   string                                `json:"username"`
-	Email      string                                `json:"email"`
-	Password   string                                `json:"password"`
-	Status     bool                                  `json:"status"`
-	Version    int                                   `json:"version"`
-	CreatedAt  time.Time                             `json:"created_at"`
-	UpdatedAt  time.Time                             `json:"updated_at"`
-	Categories []models_user_categories.UserCategory `json:"categories,omitempty"`
-	Address    *models_address.Address               `json:"address,omitempty"`
-	Contact    *models_contact.Contact               `json:"contact,omitempty"`
+	UID       int64     `json:"uid"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	Password  string    `json:"password"`
+	Status    bool      `json:"status"`
+	Version   int       `json:"version"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func (u *User) Validate() error {
@@ -57,20 +50,6 @@ func (u *User) Validate() error {
 
 	if !hasPasswordComplexity(u.Password) {
 		return &utils_errors.ValidationError{Field: "Password", Message: "deve conter letras maiúsculas, minúsculas e números"}
-	}
-
-	// Validar Address se existir
-	if u.Address != nil {
-		if err := u.Address.Validate(); err != nil {
-			return err
-		}
-	}
-
-	// Validar Contact se existir
-	if u.Contact != nil {
-		if err := u.Contact.Validate(); err != nil {
-			return err
-		}
 	}
 
 	return nil

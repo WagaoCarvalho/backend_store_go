@@ -9,7 +9,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_category_relations"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_category_relations"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
 )
