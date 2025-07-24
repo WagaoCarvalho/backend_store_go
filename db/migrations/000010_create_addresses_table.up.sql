@@ -1,8 +1,8 @@
 CREATE TABLE addresses (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    client_id INTEGER REFERENCES clients(id) ON DELETE SET NULL,
-    supplier_id INTEGER REFERENCES suppliers(id) ON DELETE SET NULL,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
+    supplier_id INTEGER REFERENCES suppliers(id) ON DELETE CASCADE,
     street VARCHAR(255) NOT NULL,
     city VARCHAR(100) NOT NULL,
     state VARCHAR(50) NOT NULL,

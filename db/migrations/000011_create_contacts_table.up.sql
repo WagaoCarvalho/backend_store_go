@@ -1,8 +1,8 @@
 CREATE TABLE contacts (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    client_id INTEGER REFERENCES clients(id) ON DELETE SET NULL,
-    supplier_id INTEGER REFERENCES suppliers(id) ON DELETE SET NULL,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
+    supplier_id INTEGER REFERENCES suppliers(id) ON DELETE CASCADE,
     contact_name VARCHAR(255),
     contact_position VARCHAR(100),
     email VARCHAR(255),
