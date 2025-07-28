@@ -61,7 +61,7 @@ func (s *userFullService) CreateFull(ctx context.Context, user_full *models_user
 
 	// Validação estrutural completa (User, Address, Contact, Categories)
 	if err := user_full.Validate(); err != nil {
-		s.logger.Error(ctx, err, ref+"validação de entrada falhou", logFields)
+		s.logger.Error(ctx, err, ref+logger.LogValidateError, logFields)
 		return nil, err
 	}
 
@@ -80,11 +80,11 @@ func (s *userFullService) CreateFull(ctx context.Context, user_full *models_user
 	// Inicia transação
 	tx, err := s.repo_user.BeginTx(ctx)
 	if err != nil {
-		s.logger.Error(ctx, err, ref+"erro ao iniciar transação", nil)
+		s.logger.Error(ctx, err, ref+logger.LogTransactionInitError, nil)
 		return nil, fmt.Errorf("erro ao iniciar transação: %w", err)
 	}
 	if tx == nil {
-		s.logger.Error(ctx, errors.New("transação nula"), ref+"transação retornada é nil", nil)
+		s.logger.Error(ctx, errors.New("transação nula"), ref+logger.LogTransactionNull, nil)
 		return nil, errors.New("transação inválida")
 	}
 
@@ -99,16 +99,16 @@ func (s *userFullService) CreateFull(ctx context.Context, user_full *models_user
 	commitOrRollback := func(err error) error {
 		if err != nil {
 			if rbErr := tx.Rollback(ctx); rbErr != nil {
-				s.logger.Error(ctx, rbErr, ref+"erro ao fazer rollback", nil)
+				s.logger.Error(ctx, rbErr, ref+logger.LogRollbackError, nil)
 				return fmt.Errorf("%v; rollback error: %w", err, rbErr)
 			}
 			return err
 		}
 		if cErr := tx.Commit(ctx); cErr != nil {
-			s.logger.Error(ctx, cErr, ref+"erro ao commitar transação", nil)
+			s.logger.Error(ctx, cErr, ref+logger.LogCommitError, nil)
 			// 🔽 rollback também após falha no commit
 			if rbErr := tx.Rollback(ctx); rbErr != nil {
-				s.logger.Error(ctx, rbErr, ref+"erro ao fazer rollback após commit falhar", nil)
+				s.logger.Error(ctx, rbErr, ref+logger.LogRollbackErrorAfterCommitFail, nil)
 				return fmt.Errorf("erro ao commitar transação: %v; rollback error: %w", cErr, rbErr)
 			}
 			return fmt.Errorf("erro ao commitar transação: %w", cErr)

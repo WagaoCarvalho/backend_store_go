@@ -62,6 +62,13 @@ const (
 	LogCheckError    = "erro ao verificar existência de relação entre usuário e categoria"
 	LogCheckSuccess  = "relação entre usuário e categoria encontrada"
 
+	// Transactions
+	LogTransactionInitError         = "erro ao iniciar transação"
+	LogTransactionNull              = "transação retornada é nil"
+	LogRollbackError                = "erro ao fazer rollback"
+	LogCommitError                  = "erro ao commitar transação"
+	LogRollbackErrorAfterCommitFail = "erro ao fazer rollback após commit falhar"
+
 	// Utilitários
 	LogValidateError  = "validação falhou"
 	LogIterateError   = "erro ao iterar"

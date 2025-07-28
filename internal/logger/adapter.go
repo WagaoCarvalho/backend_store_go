@@ -12,6 +12,9 @@ type LoggerAdapter struct {
 }
 
 func NewLoggerAdapter(base *logrus.Logger) *LoggerAdapter {
+	if base == nil {
+		panic("logrus.Logger não pode ser nil")
+	}
 	return &LoggerAdapter{base: base}
 }
 
