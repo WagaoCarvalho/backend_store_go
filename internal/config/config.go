@@ -14,13 +14,12 @@ type Config struct {
 }
 
 type App struct {
-	Env      string // dev, prod, staging
-	LogLevel string // debug, info, warn, error
+	Env      string
+	LogLevel string
 }
 
 func LoadConfig() Config {
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Println("⚠️ Aviso: Nenhum arquivo .env encontrado. Usando variáveis de ambiente do sistema.")
 	}
 
