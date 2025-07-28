@@ -9,8 +9,16 @@ CREATE TABLE addresses (
     country VARCHAR(100) NOT NULL,
     postal_code VARCHAR(20) NOT NULL,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+
+    -- Garante que só uma FK esteja preenchida
+    CONSTRAINT chk_only_one_entity CHECK (
+        (user_id IS NOT NULL)::int +
+        (client_id IS NOT NULL)::int +
+        (supplier_id IS NOT NULL)::int = 1
+    )
 );
+
 
 CREATE INDEX idx_addresses_city_state ON addresses (city, state);
 CREATE INDEX idx_addresses_postal_code ON addresses (postal_code);
