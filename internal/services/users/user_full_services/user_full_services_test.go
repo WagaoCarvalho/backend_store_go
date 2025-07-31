@@ -14,6 +14,7 @@ import (
 	model_user_full "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_full"
 	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
+	repo_tx "github.com/WagaoCarvalho/backend_store_go/internal/repositories/mocks"
 	repo_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
 	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_full_repositories"
 	"github.com/sirupsen/logrus"
@@ -168,7 +169,7 @@ func TestUserService_CreateFull(t *testing.T) {
 		*repo_address.MockAddressRepository,
 		*repo_contact.MockContactRepository,
 		*repo_user_cat_rel.MockUserCategoryRelationRepo,
-		*repo_user.MockTx,
+		*repo_tx.MockTx,
 		*MockHasher,
 		UserFullService,
 	) {
@@ -177,7 +178,7 @@ func TestUserService_CreateFull(t *testing.T) {
 		mockContactRepo := new(repo_contact.MockContactRepository)
 		mockRelationRepo := new(repo_user_cat_rel.MockUserCategoryRelationRepo)
 		mockHasher := new(MockHasher)
-		mockTx := new(repo_user.MockTx)
+		mockTx := new(repo_tx.MockTx)
 
 		userService := NewUserFullService(
 			mockUserRepo,
