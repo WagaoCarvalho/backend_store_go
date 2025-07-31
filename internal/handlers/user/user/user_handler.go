@@ -8,9 +8,9 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
-	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
+	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/users"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
 )

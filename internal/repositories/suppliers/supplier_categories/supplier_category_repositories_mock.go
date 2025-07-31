@@ -12,9 +12,10 @@ type MockSupplierCategoryRepo struct {
 	mock.Mock
 }
 
-func (m *MockSupplierCategoryRepo) Create(ctx context.Context, category *models.SupplierCategory) (int64, error) {
+func (m *MockSupplierCategoryRepo) Create(ctx context.Context, category *models.SupplierCategory) (*models.SupplierCategory, error) {
 	args := m.Called(ctx, category)
-	return args.Get(0).(int64), args.Error(1)
+	result, _ := args.Get(0).(*models.SupplierCategory)
+	return result, args.Error(1)
 }
 
 func (m *MockSupplierCategoryRepo) GetByID(ctx context.Context, id int64) (*models.SupplierCategory, error) {

@@ -11,9 +11,12 @@ type MockSupplierCategoryService struct {
 	mock.Mock
 }
 
-func (m *MockSupplierCategoryService) Create(ctx context.Context, category *supplier_categories.SupplierCategory) (int64, error) {
+func (m *MockSupplierCategoryService) Create(ctx context.Context, category *supplier_categories.SupplierCategory) (*supplier_categories.SupplierCategory, error) {
 	args := m.Called(ctx, category)
-	return args.Get(0).(int64), args.Error(1)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*supplier_categories.SupplierCategory), args.Error(1)
 }
 
 func (m *MockSupplierCategoryService) GetByID(ctx context.Context, id int64) (*supplier_categories.SupplierCategory, error) {
@@ -26,6 +29,9 @@ func (m *MockSupplierCategoryService) GetByID(ctx context.Context, id int64) (*s
 
 func (m *MockSupplierCategoryService) GetAll(ctx context.Context) ([]*supplier_categories.SupplierCategory, error) {
 	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).([]*supplier_categories.SupplierCategory), args.Error(1)
 }
 

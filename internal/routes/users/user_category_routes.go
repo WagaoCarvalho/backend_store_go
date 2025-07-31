@@ -3,8 +3,9 @@ package routes
 import (
 	"net/http"
 
+	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
-	handler "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user/user_categories_handler"
+	handler "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
@@ -17,14 +18,25 @@ func RegisterUserCategoryRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
 	log *logger.LoggerAdapter,
-	blacklist jwt.TokenBlacklist, // <- injeta blacklist
+	blacklist jwt.TokenBlacklist,
 ) {
 	userCategoryRepo := repositories.NewUserCategoryRepository(db, log)
 	userCategoryService := service.NewUserCategoryService(userCategoryRepo, log)
 	userCategoryHandler := handler.NewUserCategoryHandler(userCategoryService, log)
 
+	// Carregar config JWT
+	jwtCfg := config.LoadJwtConfig()
+
+	// Criar jwtManager que implementa JWTService
+	jwtManager := jwt_auth.NewJWTManager(
+		jwtCfg.SecretKey,
+		jwtCfg.TokenDuration,
+		jwtCfg.Issuer,
+		jwtCfg.Audience,
+	)
+
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(jwt.IsAuthByBearerToken(blacklist, log, config.LoadConfig().Jwt.SecretKey)) // <- aplica middleware com logger e blacklist
+	s.Use(jwt.IsAuthByBearerToken(blacklist, log, jwtManager)) // <- passe o jwtManager, não a string SecretKey
 
 	s.HandleFunc("/user-category", userCategoryHandler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/user-category/{id:[0-9]+}", userCategoryHandler.GetById).Methods(http.MethodGet)

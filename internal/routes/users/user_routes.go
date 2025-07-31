@@ -3,13 +3,14 @@ package routes
 import (
 	"net/http"
 
+	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
-	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user"
+	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user/user"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
-	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users"
+	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/users"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -30,9 +31,18 @@ func RegisterUserRoutes(
 	// Rota pública
 	r.HandleFunc("/user", handler.Create).Methods(http.MethodPost)
 
+	// Config JWT
+	jwtCfg := config.LoadJwtConfig()
+	jwtManager := jwt_auth.NewJWTManager(
+		jwtCfg.SecretKey,
+		jwtCfg.TokenDuration,
+		jwtCfg.Issuer,
+		jwtCfg.Audience,
+	)
+
 	// Rotas protegidas
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(jwt.IsAuthByBearerToken(blacklist, log, config.LoadConfig().Jwt.SecretKey)) // <- uso correto do middleware
+	s.Use(jwt.IsAuthByBearerToken(blacklist, log, jwtManager))
 
 	s.HandleFunc("/users", handler.GetAll).Methods(http.MethodGet)
 	s.HandleFunc("/user/id/{id}", handler.GetByID).Methods(http.MethodGet)

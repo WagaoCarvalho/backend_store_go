@@ -12,8 +12,8 @@ import (
 )
 
 type DefaultResponse struct {
-	Data    interface{} `json:"data"`
-	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+	Message string      `json:"message,omitempty"` // <- Usado tanto para sucesso quanto erro
 	Status  int         `json:"status"`
 }
 
@@ -28,7 +28,7 @@ func ErrorResponse(w http.ResponseWriter, err error, statusCode int) {
 
 	response := DefaultResponse{
 		Status:  statusCode,
-		Message: message,
+		Message: message, // <- Correção aqui
 		Data:    nil,
 	}
 

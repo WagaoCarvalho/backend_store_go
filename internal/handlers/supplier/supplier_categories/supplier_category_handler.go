@@ -1,127 +1,186 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
-	supplier_models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_categories"
-	supplier_categories "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_categories"
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_categories"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_categories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 )
 
-type SupplierCategoryHandler interface {
-	Create(w http.ResponseWriter, r *http.Request)
-	GetByID(w http.ResponseWriter, r *http.Request)
-	GetAll(w http.ResponseWriter, r *http.Request)
-	Update(w http.ResponseWriter, r *http.Request)
-	Delete(w http.ResponseWriter, r *http.Request)
+type SupplierCategoryHandler struct {
+	service services.SupplierCategoryService
+	logger  *logger.LoggerAdapter
 }
 
-type supplierCategoryHandler struct {
-	service supplier_categories.SupplierCategoryService
-}
-
-func NewSupplierCategoryHandler(service supplier_categories.SupplierCategoryService) SupplierCategoryHandler {
-	return &supplierCategoryHandler{
+func NewSupplierCategoryHandler(service services.SupplierCategoryService, logger *logger.LoggerAdapter) *SupplierCategoryHandler {
+	return &SupplierCategoryHandler{
 		service: service,
+		logger:  logger,
 	}
 }
 
-func (h *supplierCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var category supplier_models.SupplierCategory
+func (h *SupplierCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
+	ref := "[SupplierCategoryHandler - Create] "
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
+
+	var category *models.SupplierCategory
 	if err := utils.FromJson(r.Body, &category); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	id, err := h.service.Create(r.Context(), &category)
+	createdCategory, err := h.service.Create(ctx, category)
 	if err != nil {
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	category.ID = id
+	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{"category_id": createdCategory.ID})
 	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
-		Status:  http.StatusCreated,
+		Data:    createdCategory,
 		Message: "Categoria de fornecedor criada com sucesso",
-		Data:    category,
+		Status:  http.StatusCreated,
 	})
 }
 
-func (h *supplierCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *SupplierCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	ref := "[SupplierCategoryHandler - GetByID] "
+	ctx := r.Context()
+
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
+		h.logger.Warn(ctx, ref+"ID inválido no path", map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	category, err := h.service.GetByID(r.Context(), id)
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{"category_id": id})
+
+	category, err := h.service.GetByID(ctx, id)
 	if err != nil {
-		utils.ErrorResponse(w, err, http.StatusNotFound)
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"category_id": id})
+
+		statusCode := http.StatusInternalServerError
+		if errors.Is(err, repo.ErrSupplierCategoryNotFound) {
+			statusCode = http.StatusNotFound
+		}
+
+		utils.ErrorResponse(w, err, statusCode)
 		return
 	}
 
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{"category_id": category.ID})
 	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
-		Message: "Categoria encontrada",
 		Data:    category,
+		Message: "Categoria encontrada com sucesso",
+		Status:  http.StatusOK,
 	})
 }
+func (h *SupplierCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	ref := "[SupplierCategoryHandler - GetAll] "
+	ctx := r.Context()
 
-func (h *supplierCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	categories, err := h.service.GetAll(r.Context())
+	h.logger.Info(ctx, ref+logger.LogGetInit, nil)
+
+	categories, err := h.service.GetAll(ctx)
 	if err != nil {
+		h.logger.Error(ctx, err, ref+logger.LogGetError, nil)
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{"total": len(categories)})
 	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
-		Message: "Categorias listadas com sucesso",
 		Data:    categories,
+		Message: "Categorias encontradas com sucesso",
+		Status:  http.StatusOK,
 	})
 }
 
-func (h *supplierCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *SupplierCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
+	ref := "[SupplierCategoryHandler - Update] "
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
+		h.logger.Warn(ctx, ref+"ID inválido no path", map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	var category supplier_models.SupplierCategory
+	var category *models.SupplierCategory
 	if err := utils.FromJson(r.Body, &category); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	category.ID = id
 
-	if err := h.service.Update(r.Context(), &category); err != nil {
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+	err = h.service.Update(ctx, category)
+	if err != nil {
+		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{"category_id": category.ID})
+
+		statusCode := http.StatusInternalServerError
+		if errors.Is(err, repo.ErrSupplierCategoryNotFound) {
+			statusCode = http.StatusNotFound
+		}
+
+		utils.ErrorResponse(w, err, statusCode)
 		return
 	}
 
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{"category_id": category.ID})
 	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
 		Message: "Categoria atualizada com sucesso",
-		Data:    category,
+		Status:  http.StatusOK,
 	})
 }
 
-func (h *supplierCategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *SupplierCategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	const ref = "[SupplierCategoryHandler - Delete] "
+	ctx := r.Context()
+
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	if err := h.service.Delete(r.Context(), id); err != nil {
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
+		"category_id": id,
+		"path":        r.URL.Path,
+	})
+
+	if err := h.service.Delete(ctx, id); err != nil {
+		statusCode := http.StatusInternalServerError
+		if errors.Is(err, repo.ErrSupplierCategoryNotFound) {
+			statusCode = http.StatusNotFound
+		}
+
+		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
+			"category_id": id,
+		})
+		utils.ErrorResponse(w, err, statusCode)
 		return
 	}
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
-		Message: "Categoria deletada com sucesso",
+	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
+		"category_id": id,
 	})
+
+	w.WriteHeader(http.StatusNoContent)
 }

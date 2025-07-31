@@ -8,7 +8,7 @@ import (
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
-	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
+	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
 )
 

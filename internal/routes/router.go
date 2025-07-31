@@ -13,6 +13,8 @@ import (
 	recover "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/recover"
 	request "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/request"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/db_postgres"
+	routes_supplier "github.com/WagaoCarvalho/backend_store_go/internal/routes/suppliers"
+	routes_user "github.com/WagaoCarvalho/backend_store_go/internal/routes/users"
 	"github.com/gorilla/mux"
 )
 
@@ -36,10 +38,16 @@ func NewRouter(log *logger.LoggerAdapter) *mux.Router {
 
 	RegisterLoginRoutes(r, db, log, blacklist)
 
-	RegisterUserRoutes(r, db, log, blacklist)
-	RegisterUserFullRoutes(r, db, log, blacklist)
-	RegisterUserCategoryRoutes(r, db, log, blacklist)
-	RegisterUserCategoryRelationRoutes(r, db, log, blacklist)
+	//Suupliers
+	routes_supplier.RegisterSupplierRoutes(r, db, log, blacklist)
+	routes_supplier.RegisterSupplierCategoryRoutes(r, db, log, blacklist)
+	routes_supplier.RegisterSupplierCategoryRelationRoutes(r, db, log, blacklist)
+
+	//Users
+	routes_user.RegisterUserRoutes(r, db, log, blacklist)
+	routes_user.RegisterUserFullRoutes(r, db, log, blacklist)
+	routes_user.RegisterUserCategoryRoutes(r, db, log, blacklist)
+	routes_user.RegisterUserCategoryRelationRoutes(r, db, log, blacklist)
 
 	RegisterAddressRoutes(r, db, log, blacklist)
 	RegisterContactRoutes(r, db, log, blacklist)

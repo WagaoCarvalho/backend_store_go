@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -199,7 +200,7 @@ func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
-	ref := "[addressHandler - Update] "
+	const ref = "[AddressHandler - Update] "
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
@@ -211,7 +212,7 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var address models.Address
-	if err := utils.FromJson(r.Body, &address); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&address); err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogParseJsonError, map[string]any{
 			"erro": err.Error(),
 		})
@@ -248,24 +249,25 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Endereço atualizado com sucesso",
-		Data:    nil,
+		Data:    address,
 	})
 }
 
 func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	ref := "[addressHandler - Delete] "
+	const ref = "[AddressHandler - Delete] "
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, errors.New("ID inválido (esperado número inteiro)"), http.StatusBadRequest)
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	h.logger.Info(r.Context(), ref+logger.LogDeleteInit, map[string]any{
 		"address_id": id,
+		"path":       r.URL.Path,
 	})
 
 	err = h.service.Delete(r.Context(), id)

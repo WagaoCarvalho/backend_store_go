@@ -12,5 +12,7 @@ var (
 	ErrFetchUser        = errors.New("erro ao buscar usuário")
 	ErrUpdateUser       = errors.New("erro ao atualizar usuário")
 	ErrDeleteUser       = errors.New("erro ao deletar usuário")
+	ErrDisableUser      = errors.New("erro ao desabilitar usuário")
+	ErrEnableUser       = errors.New("erro ao ativar usuário")
 	ErrFetchUserVersion = errors.New("erro ao buscar versão do usuário")
 )

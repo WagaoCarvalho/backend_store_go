@@ -21,10 +21,10 @@ type UserCategoryRepository interface {
 
 type userCategoryRepository struct {
 	db     *pgxpool.Pool
-	logger *logger.LoggerAdapter
+	logger logger.LoggerAdapterInterface
 }
 
-func NewUserCategoryRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) UserCategoryRepository {
+func NewUserCategoryRepository(db *pgxpool.Pool, logger logger.LoggerAdapterInterface) UserCategoryRepository {
 	return &userCategoryRepository{db: db, logger: logger}
 }
 

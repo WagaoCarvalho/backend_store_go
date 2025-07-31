@@ -22,10 +22,10 @@ type UserCategoryRelationRepository interface {
 
 type userCategoryRelationRepositories struct {
 	db     *pgxpool.Pool
-	logger *logger.LoggerAdapter
+	logger logger.LoggerAdapterInterface
 }
 
-func NewUserCategoryRelationRepositories(db *pgxpool.Pool, logger *logger.LoggerAdapter) UserCategoryRelationRepository {
+func NewUserCategoryRelationRepositories(db *pgxpool.Pool, logger logger.LoggerAdapterInterface) UserCategoryRelationRepository {
 	return &userCategoryRelationRepositories{db: db, logger: logger}
 }
 

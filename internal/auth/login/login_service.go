@@ -7,7 +7,7 @@ import (
 	pass "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	logger "github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models_login "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
 )
 

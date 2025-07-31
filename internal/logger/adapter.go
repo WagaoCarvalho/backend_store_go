@@ -11,6 +11,14 @@ type LoggerAdapter struct {
 	base *logrus.Logger
 }
 
+var _ LoggerAdapterInterface = (*LoggerAdapter)(nil)
+
+type LoggerAdapterInterface interface {
+	Warn(ctx context.Context, msg string, extraFields map[string]any)
+	Info(ctx context.Context, msg string, extraFields map[string]any)
+	Error(ctx context.Context, err error, msg string, extraFields map[string]any)
+}
+
 func NewLoggerAdapter(base *logrus.Logger) *LoggerAdapter {
 	if base == nil {
 		panic("logrus.Logger não pode ser nil")

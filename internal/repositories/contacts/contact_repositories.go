@@ -26,10 +26,10 @@ type ContactRepository interface {
 
 type contactRepository struct {
 	db     *pgxpool.Pool
-	logger *logger.LoggerAdapter
+	logger logger.LoggerAdapterInterface
 }
 
-func NewContactRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) ContactRepository {
+func NewContactRepository(db *pgxpool.Pool, logger logger.LoggerAdapterInterface) ContactRepository {
 	return &contactRepository{db: db, logger: logger}
 }
 

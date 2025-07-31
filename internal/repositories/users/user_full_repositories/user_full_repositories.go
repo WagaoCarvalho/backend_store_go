@@ -17,10 +17,10 @@ type UserFullRepository interface {
 
 type userFullRepository struct {
 	db     *pgxpool.Pool
-	logger *logger.LoggerAdapter
+	logger logger.LoggerAdapterInterface
 }
 
-func NewUserRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) UserFullRepository {
+func NewUserRepository(db *pgxpool.Pool, logger logger.LoggerAdapterInterface) UserFullRepository {
 	return &userFullRepository{
 		db:     db,
 		logger: logger,

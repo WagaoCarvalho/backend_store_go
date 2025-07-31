@@ -3,10 +3,11 @@ package routes
 import (
 	"net/http"
 
+	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/address"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
-	middlewares "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
+	jwt_middlewares "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
 
@@ -18,14 +19,25 @@ func RegisterAddressRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
 	log *logger.LoggerAdapter,
-	blacklist middlewares.TokenBlacklist, // <- injetar blacklist aqui
+	blacklist jwt_middlewares.TokenBlacklist,
 ) {
 	repo := repositories.NewAddressRepository(db, log)
 	service := services.NewAddressService(repo, log)
 	handler := handlers.NewAddressHandler(service, log)
 
+	// Carregar config JWT
+	jwtCfg := config.LoadJwtConfig()
+
+	// Instanciar JWTManager que implementa JWTService
+	jwtManager := jwt_auth.NewJWTManager(
+		jwtCfg.SecretKey,
+		jwtCfg.TokenDuration,
+		jwtCfg.Issuer,
+		jwtCfg.Audience,
+	)
+
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(middlewares.IsAuthByBearerToken(blacklist, log, config.LoadConfig().Jwt.SecretKey)) // <- uso atualizado do middleware
+	s.Use(jwt_middlewares.IsAuthByBearerToken(blacklist, log, jwtManager))
 
 	s.HandleFunc("/addresses", handler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/address/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)

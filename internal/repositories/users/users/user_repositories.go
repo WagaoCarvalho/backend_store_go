@@ -26,10 +26,10 @@ type UserRepository interface {
 
 type userRepository struct {
 	db     *pgxpool.Pool
-	logger *logger.LoggerAdapter
+	logger logger.LoggerAdapterInterface
 }
 
-func NewUserRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) UserRepository {
+func NewUserRepository(db *pgxpool.Pool, logger logger.LoggerAdapterInterface) UserRepository {
 	return &userRepository{
 		db:     db,
 		logger: logger,
@@ -301,7 +301,7 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) (*models
 
 func (r *userRepository) Disable(ctx context.Context, uid int64) error {
 	ref := "[userRepository - Disable] - "
-	r.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+	r.logger.Info(ctx, ref+logger.LogDisableInit, map[string]any{
 		"user_id": uid,
 	})
 
@@ -323,13 +323,13 @@ func (r *userRepository) Disable(ctx context.Context, uid int64) error {
 			return ErrUserNotFound
 		}
 
-		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+		r.logger.Error(ctx, err, ref+logger.LogDisableError, map[string]any{
 			"user_id": uid,
 		})
-		return fmt.Errorf("%w: %v", ErrUpdateUser, err)
+		return fmt.Errorf("%w: %v", ErrDisableUser, err)
 	}
 
-	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+	r.logger.Info(ctx, ref+logger.LogDisableSuccess, map[string]any{
 		"user_id":    uid,
 		"new_status": false,
 	})
@@ -339,7 +339,7 @@ func (r *userRepository) Disable(ctx context.Context, uid int64) error {
 
 func (r *userRepository) Enable(ctx context.Context, uid int64) error {
 	ref := "[userRepository - Enable] - "
-	r.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+	r.logger.Info(ctx, ref+logger.LogEnableInit, map[string]any{
 		"user_id": uid,
 	})
 
@@ -361,13 +361,13 @@ func (r *userRepository) Enable(ctx context.Context, uid int64) error {
 			return ErrUserNotFound
 		}
 
-		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+		r.logger.Error(ctx, err, ref+logger.LogEnableError, map[string]any{
 			"user_id": uid,
 		})
-		return fmt.Errorf("%w: %v", ErrUpdateUser, err)
+		return fmt.Errorf("%w: %v", ErrEnableUser, err)
 	}
 
-	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+	r.logger.Info(ctx, ref+logger.LogEnableSuccess, map[string]any{
 		"user_id":    uid,
 		"new_status": true,
 	})

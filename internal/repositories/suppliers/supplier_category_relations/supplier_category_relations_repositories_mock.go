@@ -40,7 +40,7 @@ func (m *MockSupplierCategoryRelationRepo) DeleteAllBySupplierId(ctx context.Con
 	return args.Error(0)
 }
 
-func (m *MockSupplierCategoryRelationRepo) HasSupplierCategoryRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {
+func (m *MockSupplierCategoryRelationRepo) HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {
 	args := m.Called(ctx, supplierID, categoryID)
 	return args.Bool(0), args.Error(1)
 }

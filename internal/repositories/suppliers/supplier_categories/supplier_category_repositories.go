@@ -12,7 +12,7 @@ import (
 )
 
 type SupplierCategoryRepository interface {
-	Create(ctx context.Context, category *models.SupplierCategory) (int64, error)
+	Create(ctx context.Context, category *models.SupplierCategory) (*models.SupplierCategory, error)
 	GetByID(ctx context.Context, id int64) (*models.SupplierCategory, error)
 	GetAll(ctx context.Context) ([]*models.SupplierCategory, error)
 	Update(ctx context.Context, category *models.SupplierCategory) error
@@ -21,43 +21,57 @@ type SupplierCategoryRepository interface {
 
 type supplierCategoryRepository struct {
 	db     *pgxpool.Pool
-	logger *logger.LoggerAdapter
+	logger logger.LoggerAdapterInterface
 }
 
-func NewSupplierCategoryRepository(db *pgxpool.Pool, logger *logger.LoggerAdapter) SupplierCategoryRepository {
+func NewSupplierCategoryRepository(db *pgxpool.Pool, logger logger.LoggerAdapterInterface) SupplierCategoryRepository {
 	return &supplierCategoryRepository{db: db, logger: logger}
 }
 
-func (r *supplierCategoryRepository) Create(ctx context.Context, category *models.SupplierCategory) (int64, error) {
-	query := `
-		INSERT INTO supplier_categories (name, description, created_at, updated_at)
-		VALUES ($1, $2, NOW(), NOW())
-		RETURNING id
-	`
+func (r *supplierCategoryRepository) Create(ctx context.Context, category *models.SupplierCategory) (*models.SupplierCategory, error) {
+	ref := "[supplierCategoryRepository - Create] - "
 
-	err := r.db.QueryRow(ctx, query, category.Name, category.Description).Scan(&category.ID)
-	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao criar categoria de fornecedor", map[string]interface{}{
-			"name":        category.Name,
-			"description": category.Description,
-		})
-		return 0, fmt.Errorf("%w: %v", ErrSupplierCategoryCreate, err)
-	}
-
-	r.logger.Info(ctx, "Categoria de fornecedor criada com sucesso", map[string]interface{}{
-		"category_id": category.ID,
+	r.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
 		"name":        category.Name,
 		"description": category.Description,
 	})
 
-	return category.ID, nil
+	const query = `
+		INSERT INTO supplier_categories (name, description, created_at, updated_at)
+		VALUES ($1, $2, NOW(), NOW())
+		RETURNING id, created_at, updated_at;
+	`
+
+	err := r.db.QueryRow(ctx, query, category.Name, category.Description).
+		Scan(&category.ID, &category.CreatedAt, &category.UpdatedAt)
+
+	if err != nil {
+		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
+			"name":        category.Name,
+			"description": category.Description,
+		})
+		return nil, fmt.Errorf("%w: %v", ErrSupplierCategoryCreate, err)
+	}
+
+	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
+		"category_id": category.ID,
+		"name":        category.Name,
+	})
+
+	return category, nil
 }
 
 func (r *supplierCategoryRepository) GetByID(ctx context.Context, id int64) (*models.SupplierCategory, error) {
-	query := `
+	ref := "[supplierCategoryRepository - GetByID] - "
+
+	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
+		"category_id": id,
+	})
+
+	const query = `
 		SELECT id, name, description, created_at, updated_at
 		FROM supplier_categories
-		WHERE id = $1
+		WHERE id = $1;
 	`
 
 	var category models.SupplierCategory
@@ -69,13 +83,19 @@ func (r *supplierCategoryRepository) GetByID(ctx context.Context, id int64) (*mo
 		&category.UpdatedAt,
 	)
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao buscar categoria de fornecedor por ID", map[string]interface{}{
+		if errors.Is(err, pgx.ErrNoRows) {
+			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"category_id": id,
+			})
+			return nil, ErrSupplierCategoryNotFound
+		}
+
+		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"category_id": id,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrSupplierCategoryNotFound, err)
+		return nil, fmt.Errorf("%w: %v", ErrGetCategoryByID, err)
 	}
-
-	r.logger.Info(ctx, "Categoria de fornecedor encontrada com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"category_id": category.ID,
 		"name":        category.Name,
 	})
@@ -84,35 +104,45 @@ func (r *supplierCategoryRepository) GetByID(ctx context.Context, id int64) (*mo
 }
 
 func (r *supplierCategoryRepository) GetAll(ctx context.Context) ([]*models.SupplierCategory, error) {
-	query := `
+	ref := "[supplierCategoryRepository - GetAll] - "
+
+	r.logger.Info(ctx, ref+logger.LogGetInit, nil)
+
+	const query = `
 		SELECT id, name, description, created_at, updated_at
 		FROM supplier_categories
-		ORDER BY name
+		ORDER BY name;
 	`
 
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao buscar todas as categorias de fornecedores", nil)
+		r.logger.Error(ctx, err, ref+logger.LogGetError, nil)
 		return nil, fmt.Errorf("%w: %v", ErrSupplierCategoryGetAll, err)
 	}
 	defer rows.Close()
 
 	var categories []*models.SupplierCategory
 	for rows.Next() {
-		var cat models.SupplierCategory
-		if err := rows.Scan(&cat.ID, &cat.Name, &cat.Description, &cat.CreatedAt, &cat.UpdatedAt); err != nil {
-			r.logger.Error(ctx, err, "Erro ao escanear categoria de fornecedor", nil)
+		category := new(models.SupplierCategory)
+		if err := rows.Scan(
+			&category.ID,
+			&category.Name,
+			&category.Description,
+			&category.CreatedAt,
+			&category.UpdatedAt,
+		); err != nil {
+			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, nil)
 			return nil, fmt.Errorf("%w: %v", ErrSupplierCategoryScanRow, err)
 		}
-		categories = append(categories, &cat)
+		categories = append(categories, category)
 	}
 
 	if err := rows.Err(); err != nil {
-		r.logger.Error(ctx, err, "Erro durante iteração das categorias de fornecedores", nil)
-		return nil, fmt.Errorf("%w: %v", ErrSupplierCategoryGetAll, err)
+		r.logger.Error(ctx, err, ref+logger.LogIterateError, nil)
+		return nil, fmt.Errorf("%w: %v", ErrSupplierCategoryIterate, err)
 	}
 
-	r.logger.Info(ctx, "Categorias de fornecedores recuperadas com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"total": len(categories),
 	})
 
@@ -120,6 +150,13 @@ func (r *supplierCategoryRepository) GetAll(ctx context.Context) ([]*models.Supp
 }
 
 func (r *supplierCategoryRepository) Update(ctx context.Context, category *models.SupplierCategory) error {
+	ref := "[supplierCategoryRepository - Update] - "
+
+	r.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"category_id": category.ID,
+		"name":        category.Name,
+	})
+
 	const query = `
 		UPDATE supplier_categories
 		SET
@@ -140,19 +177,20 @@ func (r *supplierCategoryRepository) Update(ctx context.Context, category *model
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Warn(ctx, "Categoria de fornecedor não encontrada para atualização", map[string]interface{}{
+			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"category_id": category.ID,
 			})
 			return ErrSupplierCategoryNotFound
 		}
 
-		r.logger.Error(ctx, err, "Erro ao atualizar categoria de fornecedor", map[string]interface{}{
+		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"category_id": category.ID,
+			"name":        category.Name,
 		})
 		return fmt.Errorf("%w: %v", ErrSupplierCategoryUpdate, err)
 	}
 
-	r.logger.Info(ctx, "Categoria de fornecedor atualizada com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
 		"category_id": category.ID,
 	})
 
@@ -160,24 +198,30 @@ func (r *supplierCategoryRepository) Update(ctx context.Context, category *model
 }
 
 func (r *supplierCategoryRepository) Delete(ctx context.Context, id int64) error {
-	query := `DELETE FROM supplier_categories WHERE id = $1`
+	ref := "[supplierCategoryRepository - Delete] - "
 
-	cmdTag, err := r.db.Exec(ctx, query, id)
+	r.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
+		"category_id": id,
+	})
+
+	const query = `DELETE FROM supplier_categories WHERE id = $1`
+
+	result, err := r.db.Exec(ctx, query, id)
 	if err != nil {
-		r.logger.Error(ctx, err, "Erro ao excluir categoria de fornecedor", map[string]interface{}{
+		r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"category_id": id,
 		})
 		return fmt.Errorf("%w: %v", ErrSupplierCategoryDelete, err)
 	}
 
-	if cmdTag.RowsAffected() == 0 {
-		r.logger.Warn(ctx, "Categoria de fornecedor não encontrada para exclusão", map[string]interface{}{
+	if result.RowsAffected() == 0 {
+		r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 			"category_id": id,
 		})
 		return ErrSupplierCategoryNotFound
 	}
 
-	r.logger.Info(ctx, "Categoria de fornecedor excluída com sucesso", map[string]interface{}{
+	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
 		"category_id": id,
 	})
 

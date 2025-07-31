@@ -3,9 +3,10 @@ package routes
 import (
 	"net/http"
 
+	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
-	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user/user_full_handler"
+	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user/user_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
@@ -36,9 +37,18 @@ func RegisterUserFullRoutes(
 	// Rota pública
 	r.HandleFunc("/user", handler.CreateFull).Methods(http.MethodPost)
 
+	// Config JWT
+	jwtCfg := config.LoadJwtConfig()
+	jwtManager := jwt_auth.NewJWTManager(
+		jwtCfg.SecretKey,
+		jwtCfg.TokenDuration,
+		jwtCfg.Issuer,
+		jwtCfg.Audience,
+	)
+
 	// Rotas protegidas
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(jwt.IsAuthByBearerToken(blacklist, log, config.LoadConfig().Jwt.SecretKey)) // <- uso correto do middleware
+	s.Use(jwt.IsAuthByBearerToken(blacklist, log, jwtManager)) // <- passa jwtManager, não string SecretKey
 
 	s.HandleFunc("/user-full", handler.CreateFull).Methods(http.MethodPost)
 }

@@ -1,16 +1,16 @@
-package middlewares
+package middlewares_test
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
-	"io"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
+	mw "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -26,296 +26,232 @@ func (m *mockBlacklist) IsBlacklisted(ctx context.Context, token string) (bool, 
 	return args.Bool(0), args.Error(1)
 }
 
-// Copiar a mesma chave do middleware para testes
-type contextKey_test string
+type mockJWTService struct {
+	mock.Mock
+}
 
-const userClaimsKey_test = contextKey("user")
+func (m *mockJWTService) ValidateToken(tokenString string) (jwt.MapClaims, error) {
+	args := m.Called(tokenString)
+	return args.Get(0).(jwt.MapClaims), args.Error(1)
+}
 
-func generateValidToken(t *testing.T, secret string, expiration time.Duration) string {
-	t.Helper()
-	claims := jwt.MapClaims{
-		"user_id": "1", // string conforme esperado
-		"email":   "test@example.com",
-		"iat":     time.Now().Unix(),
-		"exp":     time.Now().Add(expiration).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signed, err := token.SignedString([]byte(secret))
-	if err != nil {
-		t.Fatalf("erro ao gerar token: %v", err)
-	}
-	return signed
+func (m *mockJWTService) Generate(uid int64, email string) (string, error) {
+	args := m.Called(uid, email)
+	return args.String(0), args.Error(1)
+}
+
+func buildJWT(t *testing.T, manager *auth.JWTManager, duration time.Duration) string {
+	manager.TokenDuration = duration
+	token, err := manager.Generate(1, "test@example.com")
+	assert.NoError(t, err)
+	return token
 }
 
 func TestIsAuthByBearerToken(t *testing.T) {
-	log := logrus.New()
-	log.SetOutput(io.Discard)
-	loggerAdapter := logger.NewLoggerAdapter(log)
-	secret := "test-secret"
+	loggerAdapter := logger.NewLoggerAdapter(logrus.New())
 
-	t.Run("token ausente retorna 401", func(t *testing.T) {
+	t.Run("sem header Authorization", func(t *testing.T) {
+		mockJWT := new(mockJWTService)
+		mockBL := new(mockBlacklist)
+
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("ok"))
+		})
+
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rec := httptest.NewRecorder()
 
-		blacklist := new(mockBlacklist)
-		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		})
+		middleware := mw.IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
+		middleware(handler).ServeHTTP(rec, req)
 
-		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
-		middleware(nextHandler).ServeHTTP(rec, req)
+		res := rec.Result()
+		defer res.Body.Close()
 
-		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "token ausente")
+		assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
+		assert.Contains(t, rec.Body.String(), auth.ErrTokenMissing.Error())
 	})
 
-	t.Run("formato de token inválido retorna 401", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.Header.Set("Authorization", "TokenSemBearer")
-		rec := httptest.NewRecorder()
-
-		blacklist := new(mockBlacklist)
-		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		})
-
-		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
-		middleware(nextHandler).ServeHTTP(rec, req)
-
-		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "formato de token inválido")
-	})
-
-	t.Run("token revogado retorna 401", func(t *testing.T) {
-		token := generateValidToken(t, secret, time.Minute)
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.Header.Set("Authorization", "Bearer "+token)
-		rec := httptest.NewRecorder()
-
-		blacklist := new(mockBlacklist)
-		blacklist.On("IsBlacklisted", mock.Anything, token).Return(true, nil)
-
-		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		})
-
-		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
-		middleware(nextHandler).ServeHTTP(rec, req)
-
-		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "token revogado")
-		blacklist.AssertExpectations(t)
-	})
-
-	t.Run("token inválido retorna 401", func(t *testing.T) {
-		invalidToken := "invalid.token.value"
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.Header.Set("Authorization", "Bearer "+invalidToken)
-		rec := httptest.NewRecorder()
-
-		blacklist := new(mockBlacklist)
-		blacklist.On("IsBlacklisted", mock.Anything, invalidToken).Return(false, nil)
-
-		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		})
-
-		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
-		middleware(nextHandler).ServeHTTP(rec, req)
-
-		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "token inválido")
-		blacklist.AssertExpectations(t)
-	})
-
-	t.Run("token válido preenche contexto e passa para next handler", func(t *testing.T) {
-		validToken := generateValidToken(t, secret, time.Minute) // token com user_id string
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.Header.Set("Authorization", "Bearer "+validToken)
-		rec := httptest.NewRecorder()
-
-		blacklist := new(mockBlacklist)
-		blacklist.On("IsBlacklisted", mock.Anything, validToken).Return(false, nil)
-
-		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			claims := r.Context().Value(userClaimsKey)
-			if claims == nil {
-				http.Error(w, "claims ausentes", http.StatusInternalServerError)
-				return
-			}
-			w.WriteHeader(http.StatusOK)
-		})
-
-		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
-		middleware(nextHandler).ServeHTTP(rec, req)
-
-		assert.Equal(t, http.StatusOK, rec.Code)
-		blacklist.AssertExpectations(t)
-	})
-
-	t.Run("token com método de assinatura inválido retorna 401", func(t *testing.T) {
-		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-		if err != nil {
-			t.Fatalf("erro ao gerar chave RSA: %v", err)
-		}
-
-		claims := jwt.MapClaims{
-			"uid":   1,
-			"email": "test@example.com",
-			"exp":   time.Now().Add(time.Minute).Unix(),
-		}
-		token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-
-		tokenString, err := token.SignedString(privateKey)
-		if err != nil {
-			t.Fatalf("erro ao assinar token RS256: %v", err)
-		}
+	t.Run("formato inválido do header", func(t *testing.T) {
+		mockJWT := new(mockJWTService)
+		mockBL := new(mockBlacklist)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.Header.Set("Authorization", "Bearer "+tokenString)
+		req.Header.Set("Authorization", "InvalidFormatToken")
 		rec := httptest.NewRecorder()
 
-		blacklist := new(mockBlacklist)
-		blacklist.On("IsBlacklisted", mock.Anything, tokenString).Return(false, nil)
-
-		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("ok"))
 		})
 
-		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
-		middleware(nextHandler).ServeHTTP(rec, req)
+		middleware := mw.IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
+		middleware(handler).ServeHTTP(rec, req)
 
-		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "token inválido")
-		blacklist.AssertExpectations(t)
+		res := rec.Result()
+		defer res.Body.Close()
+
+		assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
+		assert.Contains(t, rec.Body.String(), auth.ErrTokenInvalidFormat.Error())
 	})
 
-	t.Run("erro ao consultar blacklist retorna 500", func(t *testing.T) {
-		token := generateValidToken(t, secret, time.Minute)
+	t.Run("token revogado", func(t *testing.T) {
+		mockJWT := new(mockJWTService)
+		mockBL := new(mockBlacklist)
+
+		token := "fake-token"
+		mockBL.On("IsBlacklisted", mock.Anything, token).Return(true, nil)
+
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		rec := httptest.NewRecorder()
 
-		blacklist := new(mockBlacklist)
-		blacklist.On("IsBlacklisted", mock.Anything, token).Return(false, assert.AnError)
-
-		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("ok"))
 		})
 
-		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
-		middleware(nextHandler).ServeHTTP(rec, req)
+		middleware := mw.IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
+		middleware(handler).ServeHTTP(rec, req)
 
-		assert.Equal(t, http.StatusInternalServerError, rec.Code)
-		assert.Contains(t, rec.Body.String(), "erro interno de autenticação")
-		blacklist.AssertExpectations(t)
+		res := rec.Result()
+		defer res.Body.Close()
+
+		assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
+		assert.Contains(t, rec.Body.String(), auth.ErrTokenRevoked.Error())
 	})
 
-	t.Run("token expirado retorna 401", func(t *testing.T) {
-		expiredToken := generateValidToken(t, secret, -time.Minute)
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.Header.Set("Authorization", "Bearer "+expiredToken)
-		rec := httptest.NewRecorder()
+	t.Run("erro interno na blacklist", func(t *testing.T) {
+		mockJWT := new(mockJWTService)
+		mockBL := new(mockBlacklist)
 
-		blacklist := new(mockBlacklist)
-		blacklist.On("IsBlacklisted", mock.Anything, expiredToken).Return(false, nil)
-
-		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		})
-
-		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
-		middleware(nextHandler).ServeHTTP(rec, req)
-
-		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "token expirado")
-		blacklist.AssertExpectations(t)
-	})
-
-	t.Run("assinatura inválida retorna 401", func(t *testing.T) {
-		otherSecret := "wrong-secret"
-		invalidSigToken := generateValidToken(t, otherSecret, time.Minute)
+		token := "fake-token"
+		mockBL.On("IsBlacklisted", mock.Anything, token).Return(false, errors.New("internal"))
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.Header.Set("Authorization", "Bearer "+invalidSigToken)
+		req.Header.Set("Authorization", "Bearer "+token)
 		rec := httptest.NewRecorder()
 
-		blacklist := new(mockBlacklist)
-		blacklist.On("IsBlacklisted", mock.Anything, invalidSigToken).Return(false, nil)
-
-		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("ok"))
 		})
 
-		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
-		middleware(nextHandler).ServeHTTP(rec, req)
+		middleware := mw.IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
+		middleware(handler).ServeHTTP(rec, req)
 
-		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "assinatura inválida")
-		blacklist.AssertExpectations(t)
+		res := rec.Result()
+		defer res.Body.Close()
+
+		assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+		assert.Contains(t, rec.Body.String(), auth.ErrInternalAuth.Error())
 	})
 
-	t.Run("token expirado com parse válido retorna 401", func(t *testing.T) {
-		expiredClaims := jwt.MapClaims{
-			"uid":   1,
+	t.Run("token expirado", func(t *testing.T) {
+		duration := -1 * time.Minute
+		jwtManager := auth.NewJWTManager("test-key", duration, "auth-service", "store-client")
+		token := buildJWT(t, jwtManager, duration)
+
+		mockJWT := new(mockJWTService)
+		mockBL := new(mockBlacklist)
+		mockBL.On("IsBlacklisted", mock.Anything, token).Return(false, nil)
+
+		// Forçar retorno de erro de expiração com ValidationError correto
+		mockJWT.On("ValidateToken", token).
+			Return(jwt.MapClaims{}, auth.ErrTokenExpired)
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		rec := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("ok"))
+		})
+
+		middleware := mw.IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
+		middleware(handler).ServeHTTP(rec, req)
+
+		res := rec.Result()
+		defer res.Body.Close()
+
+		assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
+		assert.Contains(t, rec.Body.String(), auth.ErrTokenExpired.Error())
+	})
+
+	t.Run("claim user_id ausente ou inválida", func(t *testing.T) {
+		duration := 5 * time.Minute
+		jwtManager := auth.NewJWTManager("test-key", duration, "auth-service", "store-client")
+		token := buildJWT(t, jwtManager, duration)
+
+		mockJWT := new(mockJWTService)
+		mockBL := new(mockBlacklist)
+
+		mockBL.On("IsBlacklisted", mock.Anything, token).Return(false, nil)
+
+		// Retorna claims sem "user_id" ou com valor inválido
+		mockJWT.On("ValidateToken", token).Return(jwt.MapClaims{
 			"email": "test@example.com",
-			"exp":   time.Now().Add(-time.Hour).Unix(),
-		}
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, expiredClaims)
-
-		tokenString, err := token.SignedString([]byte(secret))
-		if err != nil {
-			t.Fatalf("erro ao assinar token expirado: %v", err)
-		}
+			"exp":   float64(time.Now().Add(duration).Unix()),
+			// "user_id" omitido de propósito
+		}, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.Header.Set("Authorization", "Bearer "+tokenString)
+		req.Header.Set("Authorization", "Bearer "+token)
 		rec := httptest.NewRecorder()
 
-		blacklist := new(mockBlacklist)
-		blacklist.On("IsBlacklisted", mock.Anything, tokenString).Return(false, nil)
-
-		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("ok"))
 		})
 
-		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
-		middleware(nextHandler).ServeHTTP(rec, req)
+		loggerAdapter := logger.NewLoggerAdapter(logrus.New())
 
-		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "token expirado")
-		blacklist.AssertExpectations(t)
+		middleware := mw.IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
+		middleware(handler).ServeHTTP(rec, req)
+
+		res := rec.Result()
+		defer res.Body.Close()
+
+		assert.Equal(t, http.StatusUnauthorized, res.StatusCode)
+		assert.Contains(t, rec.Body.String(), auth.ErrTokenInvalid.Error())
 	})
 
-	t.Run("token com exp ausente ou inválido retorna 401", func(t *testing.T) {
-		claims := jwt.MapClaims{
-			"uid":   1,
-			"email": "test@example.com",
-			// exp ausente intencionalmente
-		}
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		tokenString, err := token.SignedString([]byte(secret))
-		if err != nil {
-			t.Fatalf("erro ao gerar token sem exp: %v", err)
-		}
+	t.Run("token válido", func(t *testing.T) {
+		duration := 5 * time.Minute
+		jwtManager := auth.NewJWTManager("test-key", duration, "auth-service", "store-client")
+		token := buildJWT(t, jwtManager, duration)
+
+		mockJWT := new(mockJWTService)
+		mockBL := new(mockBlacklist)
+
+		mockBL.On("IsBlacklisted", mock.Anything, token).Return(false, nil)
+
+		mockJWT.On("ValidateToken", token).Return(jwt.MapClaims{
+			"user_id": "1", // string, conforme esperado pelo middleware
+			"email":   "test@example.com",
+			"exp":     float64(time.Now().Add(duration).Unix()),
+		}, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req.Header.Set("Authorization", "Bearer "+tokenString)
+		req.Header.Set("Authorization", "Bearer "+token)
 		rec := httptest.NewRecorder()
 
-		blacklist := new(mockBlacklist)
-		blacklist.On("IsBlacklisted", mock.Anything, tokenString).Return(false, nil)
-
-		// Handler que não deve ser chamado
-		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("ok"))
 		})
 
-		middleware := IsAuthByBearerToken(blacklist, loggerAdapter, secret)
-		middleware(nextHandler).ServeHTTP(rec, req)
+		loggerAdapter := logger.NewLoggerAdapter(logrus.New())
 
-		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		assert.Contains(t, rec.Body.String(), "campo exp ausente ou inválido")
-		blacklist.AssertExpectations(t)
+		middleware := mw.IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
+		middleware(handler).ServeHTTP(rec, req)
+
+		res := rec.Result()
+		defer res.Body.Close()
+
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Contains(t, rec.Body.String(), "ok")
 	})
+
 }

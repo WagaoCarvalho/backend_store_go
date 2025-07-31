@@ -15,7 +15,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models_login "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 )
 
 type mockUserRepo struct{ mock.Mock }

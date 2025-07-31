@@ -2,254 +2,425 @@ package handlers
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_categories"
+	mock_service "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_categories/mocks"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-// Mock Service
-type MockSupplierCategoryService struct {
-	mock.Mock
+func TestSupplierCategoryHandler_Create(t *testing.T) {
+	mockSvc := new(mock_service.MockSupplierCategoryService)
+	logger := logger.NewLoggerAdapter(logrus.New())
+	handler := NewSupplierCategoryHandler(mockSvc, logger)
+
+	t.Run("Sucesso", func(t *testing.T) {
+		category := &models.SupplierCategory{Name: "Alimentos"}
+		mockSvc.On("Create", mock.Anything, category).Return(category, nil)
+
+		body, _ := json.Marshal(category)
+		req := httptest.NewRequest(http.MethodPost, "/supplier-categories", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
+
+		handler.Create(w, req)
+
+		assert.Equal(t, http.StatusCreated, w.Code)
+
+		var response utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+
+		itemBytes, _ := json.Marshal(response.Data)
+		var result models.SupplierCategory
+		_ = json.Unmarshal(itemBytes, &result)
+
+		assert.Equal(t, category.Name, result.Name)
+		assert.Equal(t, "Categoria de fornecedor criada com sucesso", response.Message)
+
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("Erro parse JSON", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/supplier-categories", bytes.NewBuffer([]byte("invalid")))
+		w := httptest.NewRecorder()
+
+		handler.Create(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var response utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, response.Status)
+	})
+
+	t.Run("Erro ao criar categoria", func(t *testing.T) {
+		category := &models.SupplierCategory{Name: "Equipamentos"}
+		mockSvc.On("Create", mock.Anything, category).Return(nil, errors.New("erro interno")).Once()
+
+		body, _ := json.Marshal(category)
+		req := httptest.NewRequest(http.MethodPost, "/supplier-categories", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
+
+		handler.Create(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var response utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusInternalServerError, response.Status)
+
+		mockSvc.AssertExpectations(t)
+	})
 }
 
-func (m *MockSupplierCategoryService) Create(ctx context.Context, category *models.SupplierCategory) (int64, error) {
-	args := m.Called(ctx, category)
-	return args.Get(0).(int64), args.Error(1)
+func TestSupplierCategoryHandler_GetByID(t *testing.T) {
+	mockSvc := new(mock_service.MockSupplierCategoryService)
+	log := logger.NewLoggerAdapter(logrus.New())
+	handler := NewSupplierCategoryHandler(mockSvc, log)
+
+	t.Run("Sucesso ao buscar por ID", func(t *testing.T) {
+		expected := &models.SupplierCategory{ID: 1, Name: "Fornecedor X"}
+
+		mockSvc.On("GetByID", mock.Anything, int64(1)).Return(expected, nil)
+
+		req := httptest.NewRequest("GET", "/supplier-categories/1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.GetByID(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+
+		itemBytes, _ := json.Marshal(resp.Data)
+		var result models.SupplierCategory
+		json.Unmarshal(itemBytes, &result)
+
+		assert.Equal(t, expected.ID, result.ID)
+		assert.Equal(t, expected.Name, result.Name)
+		assert.Equal(t, "Categoria encontrada com sucesso", resp.Message)
+
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("ID inválido (não numérico)", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/supplier-categories/abc", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
+
+		handler.GetByID(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Erro ao buscar categoria", func(t *testing.T) {
+		mockSvc.On("GetByID", mock.Anything, int64(2)).Return(nil, errors.New("categoria não encontrada"))
+
+		req := httptest.NewRequest("GET", "/supplier-categories/2", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "2"})
+		w := httptest.NewRecorder()
+
+		handler.GetByID(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("GetByID_NotFound", func(t *testing.T) {
+		mockSvc := new(mock_service.MockSupplierCategoryService)
+		handler := NewSupplierCategoryHandler(mockSvc, log)
+
+		req := mux.SetURLVars(httptest.NewRequest("GET", "/supplier-categories/999", nil), map[string]string{"id": "999"})
+		w := httptest.NewRecorder()
+
+		mockSvc.On("GetByID", mock.Anything, int64(999)).Return(nil, repo.ErrSupplierCategoryNotFound)
+
+		handler.GetByID(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Contains(t, resp.Message, "categoria de fornecedor não encontrada")
+
+		mockSvc.AssertExpectations(t)
+	})
 }
 
-func (m *MockSupplierCategoryService) GetByID(ctx context.Context, id int64) (*models.SupplierCategory, error) {
-	args := m.Called(ctx, id)
-	return args.Get(0).(*models.SupplierCategory), args.Error(1)
+func TestSupplierCategoryHandler_GetAll(t *testing.T) {
+	mockSvc := new(mock_service.MockSupplierCategoryService)
+	log := logger.NewLoggerAdapter(logrus.New())
+	handler := NewSupplierCategoryHandler(mockSvc, log)
+
+	t.Run("Sucesso ao buscar todas as categorias", func(t *testing.T) {
+		expected := []*models.SupplierCategory{
+			{ID: 1, Name: "Cat A"},
+			{ID: 2, Name: "Cat B"},
+		}
+
+		mockSvc.On("GetAll", mock.Anything).Return(expected, nil)
+
+		req := httptest.NewRequest("GET", "/supplier-categories", nil)
+		w := httptest.NewRecorder()
+
+		handler.GetAll(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+
+		itemBytes, _ := json.Marshal(resp.Data)
+		var result []*models.SupplierCategory
+		json.Unmarshal(itemBytes, &result)
+
+		assert.Len(t, result, 2)
+		assert.Equal(t, expected[0].ID, result[0].ID)
+		assert.Equal(t, "Categorias encontradas com sucesso", resp.Message)
+
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("Erro ao buscar categorias", func(t *testing.T) {
+		mockSvc := new(mock_service.MockSupplierCategoryService)
+		mockSvc.On("GetAll", mock.Anything).Return(nil, errors.New("erro inesperado"))
+
+		logger := logger.NewLoggerAdapter(logrus.New())
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
+
+		req := httptest.NewRequest("GET", "/supplier-categories", nil)
+		w := httptest.NewRecorder()
+
+		handler.GetAll(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "erro inesperado", resp.Message)
+
+		mockSvc.AssertExpectations(t)
+	})
 }
 
-func (m *MockSupplierCategoryService) GetAll(ctx context.Context) ([]*models.SupplierCategory, error) {
-	args := m.Called(ctx)
-	return args.Get(0).([]*models.SupplierCategory), args.Error(1)
+func TestSupplierCategoryHandler_Update(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
+
+	t.Run("Success", func(t *testing.T) {
+		mockSvc := new(mock_service.MockSupplierCategoryService)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
+
+		category := &models.SupplierCategory{
+			ID:   123,
+			Name: "Categoria Atualizada",
+		}
+		body, _ := json.Marshal(category)
+
+		req := mux.SetURLVars(httptest.NewRequest("PUT", "/supplier-categories/123", bytes.NewBuffer(body)), map[string]string{"id": "123"})
+		w := httptest.NewRecorder()
+
+		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(c *models.SupplierCategory) bool {
+			return c.ID == 123 && c.Name == category.Name
+		})).Return(nil)
+
+		handler.Update(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.Status)
+		assert.Equal(t, "Categoria atualizada com sucesso", resp.Message)
+
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("InvalidID", func(t *testing.T) {
+		mockSvc := new(mock_service.MockSupplierCategoryService)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
+
+		category := &models.SupplierCategory{
+			Name: "Categoria Inválida",
+		}
+		body, _ := json.Marshal(category)
+
+		req := mux.SetURLVars(httptest.NewRequest("PUT", "/supplier-categories/abc", bytes.NewBuffer(body)), map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.NotEmpty(t, resp.Message)
+
+		mockSvc.AssertExpectations(t) // deve ter zero chamadas
+	})
+
+	t.Run("InvalidJSON", func(t *testing.T) {
+		mockSvc := new(mock_service.MockSupplierCategoryService)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
+
+		req := mux.SetURLVars(httptest.NewRequest("PUT", "/supplier-categories/123", bytes.NewBuffer([]byte(`{invalid-json}`))), map[string]string{"id": "123"})
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.NotEmpty(t, resp.Message)
+
+		mockSvc.AssertExpectations(t) // deve ter zero chamadas
+	})
+
+	t.Run("NotFound", func(t *testing.T) {
+		mockSvc := new(mock_service.MockSupplierCategoryService)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
+
+		category := &models.SupplierCategory{
+			ID:   999,
+			Name: "Não Existe",
+		}
+		body, _ := json.Marshal(category)
+
+		req := mux.SetURLVars(httptest.NewRequest("PUT", "/supplier-categories/999", bytes.NewBuffer(body)), map[string]string{"id": "999"})
+		w := httptest.NewRecorder()
+
+		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(c *models.SupplierCategory) bool {
+			return c.ID == 999
+		})).Return(repo.ErrSupplierCategoryNotFound)
+
+		handler.Update(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusNotFound, resp.Status)
+		assert.Contains(t, resp.Message, "não encontrada")
+
+		mockSvc.AssertExpectations(t)
+	})
 }
 
-func (m *MockSupplierCategoryService) Update(ctx context.Context, category *models.SupplierCategory) error {
-	args := m.Called(ctx, category)
-	return args.Error(0)
-}
+func TestSupplierCategoryHandler_Delete(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
 
-func (m *MockSupplierCategoryService) Delete(ctx context.Context, id int64) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
+	t.Run("Success", func(t *testing.T) {
+		mockSvc := new(mock_service.MockSupplierCategoryService)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
-func TestCreateCategory_Success(t *testing.T) {
-	mockSvc := new(MockSupplierCategoryService)
-	handler := NewSupplierCategoryHandler(mockSvc)
+		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/supplier-categories/123", nil), map[string]string{"id": "123"})
+		w := httptest.NewRecorder()
 
-	input := models.SupplierCategory{Name: "Eletrônicos"}
-	mockSvc.On("Create", mock.Anything, &input).Return(int64(1), nil)
+		mockSvc.On("Delete", mock.Anything, int64(123)).Return(nil)
 
-	body, _ := json.Marshal(input)
-	req := httptest.NewRequest(http.MethodPost, "/categories", bytes.NewBuffer(body))
-	w := httptest.NewRecorder()
+		handler.Delete(w, req)
 
-	handler.Create(w, req)
+		assert.Equal(t, http.StatusNoContent, w.Code)
+		assert.Empty(t, w.Body.String())
 
-	assert.Equal(t, http.StatusCreated, w.Code)
-	mockSvc.AssertExpectations(t)
-}
+		mockSvc.AssertExpectations(t)
+	})
 
-func TestCreateCategory_InvalidJSON(t *testing.T) {
-	handler := NewSupplierCategoryHandler(new(MockSupplierCategoryService))
-	req := httptest.NewRequest(http.MethodPost, "/categories", bytes.NewBuffer([]byte(`{invalid`)))
-	w := httptest.NewRecorder()
+	t.Run("InvalidID", func(t *testing.T) {
+		mockSvc := new(mock_service.MockSupplierCategoryService)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
-	handler.Create(w, req)
+		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/supplier-categories/abc", nil), map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
 
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
+		handler.Delete(w, req)
 
-func TestCreateCategory_ErrorFromService(t *testing.T) {
-	mockSvc := new(MockSupplierCategoryService)
-	handler := NewSupplierCategoryHandler(mockSvc)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-	input := models.SupplierCategory{Name: ""}
-	mockSvc.On("Create", mock.Anything, &input).Return(int64(0), errors.New("nome da categoria é obrigatório"))
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.NotEmpty(t, resp.Message)
 
-	body, _ := json.Marshal(input)
-	req := httptest.NewRequest(http.MethodPost, "/categories", bytes.NewBuffer(body))
-	w := httptest.NewRecorder()
+		mockSvc.AssertExpectations(t) // Delete não deve ser chamado
+	})
 
-	handler.Create(w, req)
+	t.Run("ServiceError", func(t *testing.T) {
+		mockSvc := new(mock_service.MockSupplierCategoryService)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
+		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/supplier-categories/456", nil), map[string]string{"id": "456"})
+		w := httptest.NewRecorder()
 
-func TestGetByID_Success(t *testing.T) {
-	mockSvc := new(MockSupplierCategoryService)
-	handler := NewSupplierCategoryHandler(mockSvc)
+		mockSvc.On("Delete", mock.Anything, int64(456)).Return(errors.New("erro inesperado"))
 
-	expected := &models.SupplierCategory{ID: 1, Name: "Informática"}
-	mockSvc.On("GetByID", mock.Anything, int64(1)).Return(expected, nil)
+		handler.Delete(w, req)
 
-	req := mux.SetURLVars(httptest.NewRequest(http.MethodGet, "/categories/1", nil), map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-	handler.GetByID(w, req)
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusInternalServerError, resp.Status)
+		assert.NotEmpty(t, resp.Message)
 
-	assert.Equal(t, http.StatusOK, w.Code)
-	mockSvc.AssertExpectations(t)
-}
+		mockSvc.AssertExpectations(t)
+	})
 
-func TestGetByID_InvalidID(t *testing.T) {
-	handler := NewSupplierCategoryHandler(new(MockSupplierCategoryService))
-	req := mux.SetURLVars(httptest.NewRequest(http.MethodGet, "/categories/abc", nil), map[string]string{"id": "abc"})
-	w := httptest.NewRecorder()
+	t.Run("Delete_NotFound", func(t *testing.T) {
+		mockSvc := new(mock_service.MockSupplierCategoryService)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
-	handler.GetByID(w, req)
+		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/supplier-categories/999", nil), map[string]string{"id": "999"})
+		w := httptest.NewRecorder()
 
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
+		mockSvc.On("Delete", mock.Anything, int64(999)).Return(repo.ErrSupplierCategoryNotFound)
 
-func TestGetByID_NotFound(t *testing.T) {
-	mockSvc := new(MockSupplierCategoryService)
-	handler := NewSupplierCategoryHandler(mockSvc)
+		handler.Delete(w, req)
 
-	mockSvc.On("GetByID", mock.Anything, int64(999)).Return((*models.SupplierCategory)(nil), errors.New("não encontrada"))
+		assert.Equal(t, http.StatusNotFound, w.Code)
 
-	req := mux.SetURLVars(httptest.NewRequest(http.MethodGet, "/categories/999", nil), map[string]string{"id": "999"})
-	w := httptest.NewRecorder()
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusNotFound, resp.Status)
+		assert.Contains(t, resp.Message, "categoria de fornecedor não encontrada")
 
-	handler.GetByID(w, req)
-
-	assert.Equal(t, http.StatusNotFound, w.Code)
-}
-
-func TestGetAll_Success(t *testing.T) {
-	mockSvc := new(MockSupplierCategoryService)
-	handler := NewSupplierCategoryHandler(mockSvc)
-
-	mockSvc.On("GetAll", mock.Anything).Return([]*models.SupplierCategory{
-		{ID: 1, Name: "Insumos"},
-	}, nil)
-
-	req := httptest.NewRequest(http.MethodGet, "/categories", nil)
-	w := httptest.NewRecorder()
-
-	handler.GetAll(w, req)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	mockSvc.AssertExpectations(t)
-}
-
-func TestGetAll_Error(t *testing.T) {
-	mockSvc := new(MockSupplierCategoryService)
-	handler := NewSupplierCategoryHandler(mockSvc)
-
-	mockSvc.On("GetAll", mock.Anything).Return(([]*models.SupplierCategory)(nil), errors.New("falha ao buscar"))
-
-	req := httptest.NewRequest(http.MethodGet, "/categories", nil)
-	w := httptest.NewRecorder()
-
-	handler.GetAll(w, req)
-
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
-}
-
-func TestUpdateCategory_Success(t *testing.T) {
-	mockSvc := new(MockSupplierCategoryService)
-	handler := NewSupplierCategoryHandler(mockSvc)
-
-	input := models.SupplierCategory{ID: 1, Name: "Atualizado"}
-	mockSvc.On("Update", mock.Anything, &input).Return(nil)
-
-	body, _ := json.Marshal(input)
-	req := mux.SetURLVars(httptest.NewRequest(http.MethodPut, "/categories/1", bytes.NewBuffer(body)), map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
-
-	handler.Update(w, req)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	mockSvc.AssertExpectations(t)
-}
-
-func TestUpdateCategory_InvalidID(t *testing.T) {
-	handler := NewSupplierCategoryHandler(new(MockSupplierCategoryService))
-
-	req := mux.SetURLVars(httptest.NewRequest(http.MethodPut, "/categories/abc", bytes.NewBuffer([]byte(`{}`))), map[string]string{"id": "abc"})
-	w := httptest.NewRecorder()
-
-	handler.Update(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestUpdateCategory_InvalidJSON(t *testing.T) {
-	handler := NewSupplierCategoryHandler(new(MockSupplierCategoryService))
-
-	req := mux.SetURLVars(httptest.NewRequest(http.MethodPut, "/categories/1", bytes.NewBuffer([]byte(`{invalid`))), map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
-
-	handler.Update(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestUpdateCategory_ServiceError(t *testing.T) {
-	mockSvc := new(MockSupplierCategoryService)
-	handler := NewSupplierCategoryHandler(mockSvc)
-
-	input := models.SupplierCategory{ID: 1, Name: ""}
-	mockSvc.On("Update", mock.Anything, &input).Return(errors.New("nome da categoria é obrigatório"))
-
-	body, _ := json.Marshal(input)
-	req := mux.SetURLVars(httptest.NewRequest(http.MethodPut, "/categories/1", bytes.NewBuffer(body)), map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
-
-	handler.Update(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestDeleteCategory_Success(t *testing.T) {
-	mockSvc := new(MockSupplierCategoryService)
-	handler := NewSupplierCategoryHandler(mockSvc)
-
-	mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil)
-
-	req := mux.SetURLVars(httptest.NewRequest(http.MethodDelete, "/categories/1", nil), map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
-
-	handler.Delete(w, req)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	mockSvc.AssertExpectations(t)
-}
-
-func TestDeleteCategory_InvalidID(t *testing.T) {
-	handler := NewSupplierCategoryHandler(new(MockSupplierCategoryService))
-
-	req := mux.SetURLVars(httptest.NewRequest(http.MethodDelete, "/categories/abc", nil), map[string]string{"id": "abc"})
-	w := httptest.NewRecorder()
-
-	handler.Delete(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-func TestDeleteCategory_ServiceError(t *testing.T) {
-	mockSvc := new(MockSupplierCategoryService)
-	handler := NewSupplierCategoryHandler(mockSvc)
-
-	mockSvc.On("Delete", mock.Anything, int64(1)).Return(errors.New("erro ao deletar"))
-
-	req := mux.SetURLVars(httptest.NewRequest(http.MethodDelete, "/categories/1", nil), map[string]string{"id": "1"})
-	w := httptest.NewRecorder()
-
-	handler.Delete(w, req)
-
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
 }

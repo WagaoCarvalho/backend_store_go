@@ -11,8 +11,7 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	model_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
-	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_services_mock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -243,7 +242,7 @@ func TestUserHandler_GetVersionByID(t *testing.T) {
 	t.Run("Erro usuário não encontrado", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetVersionByID", mock.Anything, int64(999)).Return(int64(0), repository.ErrUserNotFound).Once()
+		mockService.On("GetVersionByID", mock.Anything, int64(999)).Return(int64(0), repositories.ErrUserNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/users/999/version", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "999"})
@@ -427,7 +426,7 @@ func TestUserHandler_Update(t *testing.T) {
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model_user.User) bool {
 			return u.UID == userID && u.Version == 2
-		})).Return(nil, repository.ErrVersionConflict).Once()
+		})).Return(nil, repositories.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})

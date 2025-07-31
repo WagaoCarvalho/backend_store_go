@@ -17,17 +17,26 @@ type TokenBlacklist interface {
 	IsBlacklisted(ctx context.Context, token string) (bool, error)
 }
 
-type logoutService struct {
-	blacklist TokenBlacklist
-	logger    *logger.LoggerAdapter
-	secretKey string
+type JWTService interface {
+	Parse(tokenString string) (*jwt.Token, error)
+	GetExpiration(token *jwt.Token) (time.Duration, error)
 }
 
-func NewLogoutService(blacklist TokenBlacklist, logger *logger.LoggerAdapter, secretKey string) *logoutService {
+type logoutService struct {
+	blacklist  TokenBlacklist
+	logger     *logger.LoggerAdapter
+	jwtService JWTService
+}
+
+func NewLogoutService(
+	blacklist TokenBlacklist,
+	logger *logger.LoggerAdapter,
+	jwtService JWTService,
+) *logoutService {
 	return &logoutService{
-		blacklist: blacklist,
-		logger:    logger,
-		secretKey: secretKey,
+		blacklist:  blacklist,
+		logger:     logger,
+		jwtService: jwtService,
 	}
 }
 
@@ -38,15 +47,7 @@ func (s *logoutService) Logout(ctx context.Context, tokenString string) error {
 		"token": tokenString,
 	})
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			s.logger.Error(ctx, nil, ref+logger.LogInvalidSigningMethod, map[string]any{
-				"alg": token.Header["alg"],
-			})
-			return nil, ErrInvalidSigningMethod
-		}
-		return []byte(s.secretKey), nil
-	})
+	token, err := s.jwtService.Parse(tokenString)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogTokenValidationFail, nil)
 		return ErrTokenValidation
@@ -57,21 +58,12 @@ func (s *logoutService) Logout(ctx context.Context, tokenString string) error {
 		return ErrInvalidToken
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		s.logger.Error(ctx, nil, ref+logger.LogClaimsConversionFail, nil)
-		return ErrClaimConversion
-	}
-
-	expUnix, ok := claims["exp"].(float64)
-	if !ok {
-		s.logger.Error(ctx, nil, ref+logger.LogClaimExpInvalid, map[string]any{
-			"claims": claims,
-		})
+	expiration, err := s.jwtService.GetExpiration(token)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogClaimExpInvalid, nil)
 		return ErrClaimExpInvalid
 	}
 
-	expiration := time.Until(time.Unix(int64(expUnix), 0))
 	if expiration <= 0 {
 		s.logger.Warn(ctx, ref+logger.LogTokenAlreadyExpired, nil)
 		return ErrTokenExpired

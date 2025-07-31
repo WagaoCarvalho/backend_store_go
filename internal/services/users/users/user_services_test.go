@@ -8,7 +8,7 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	model_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
-	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users"
+	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

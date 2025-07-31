@@ -46,6 +46,16 @@ const (
 	LogDeleteError   = "erro ao deletar"
 	LogDeleteSuccess = "sucesso ao deletar"
 
+	// Disable
+	LogDisableInit    = "iniciando a desativação"
+	LogDisableError   = "erro ao desativar"
+	LogDisableSuccess = "sucesso ao desativar"
+
+	// Enable
+	LogEnableInit    = "iniciando a desativação"
+	LogEnableError   = "erro ao desativar"
+	LogEnableSuccess = "sucesso ao desativar"
+
 	// HasRelation
 	LogVerificationInit    = "iniciando verificação"
 	LogAlreadyExists       = "relação já existe"
