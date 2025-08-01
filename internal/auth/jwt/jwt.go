@@ -77,14 +77,13 @@ func (j *JWTManager) ValidateToken(tokenString string) (jwt.MapClaims, error) {
 		if errors.Is(err, jwt.ErrTokenExpired) {
 			return nil, ErrTokenExpired
 		}
-		return nil, err // mantém original p/ outros tipos
+		return nil, err
 	}
 
 	if !token.Valid {
 		return nil, ErrTokenInvalid
 	}
 
-	// Validação manual de expiração, opcional se usar jwt.ErrTokenExpired
 	if exp, ok := claims["exp"].(float64); !ok || int64(exp) < time.Now().Unix() {
 		return nil, ErrTokenExpired
 	}
@@ -118,7 +117,7 @@ func (j *JWTManager) GetExpiration(token *jwt.Token) (time.Duration, error) {
 
 func (j *JWTManager) Parse(tokenString string) (*jwt.Token, error) {
 	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Garante que seja HMAC E que seja o algoritmo específico esperado (HS256)
+
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok || token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
 			return nil, ErrInvalidSigningMethod
 		}

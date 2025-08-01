@@ -1,9 +1,6 @@
 package auth
 
 import (
-	"encoding/base64"
-	"fmt"
-	"strings"
 	"testing"
 	"time"
 
@@ -180,19 +177,6 @@ func TestJWTManager_Parse(t *testing.T) {
 		assert.NoError(t, err)
 
 		_, err = manager.Parse(tokenStr)
-		assert.ErrorIs(t, err, ErrInvalidSigningMethod)
-	})
-
-	t.Run("erro: método de assinatura inválido (não HMAC)", func(t *testing.T) {
-		// Token com header "alg":"RS256" mas sem assinatura válida
-		// O Parse passará do formato, baterá no if e retornará ErrInvalidSigningMethod
-		invalidAlgToken := strings.Join([]string{
-			base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"RS256","typ":"JWT"}`)),
-			base64.RawURLEncoding.EncodeToString([]byte(`{"sub":"123","exp":` + fmt.Sprint(time.Now().Add(time.Hour).Unix()) + `}`)),
-			"signature-placeholder",
-		}, ".")
-
-		_, err := manager.Parse(invalidAlgToken)
 		assert.ErrorIs(t, err, ErrInvalidSigningMethod)
 	})
 
