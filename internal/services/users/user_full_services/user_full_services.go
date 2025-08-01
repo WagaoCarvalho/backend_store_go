@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
 	models_user_full "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_full"
 	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
@@ -14,6 +13,7 @@ import (
 	repo_relation "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
 	repo_user_full "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_full_repositories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type UserFullService interface {

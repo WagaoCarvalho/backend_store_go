@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_full"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_full_services"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type UserHandler struct {

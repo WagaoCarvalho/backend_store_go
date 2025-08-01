@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	logger "github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	logger "github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

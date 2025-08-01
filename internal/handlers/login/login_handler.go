@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/login"
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type LoginHandler struct {

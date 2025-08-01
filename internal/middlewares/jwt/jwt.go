@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	middlewares "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/context_utils"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type TokenBlacklist interface {

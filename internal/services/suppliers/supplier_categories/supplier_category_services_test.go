@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_categories"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_categories"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 func TestSupplierCategoryService_Create(t *testing.T) {

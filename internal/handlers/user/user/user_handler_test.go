@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	model_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_services_mock"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"

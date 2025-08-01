@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
 )
 

@@ -8,10 +8,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	contact_services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts/contact_services_mock"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"

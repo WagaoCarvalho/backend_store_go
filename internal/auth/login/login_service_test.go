@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/login"
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models_login "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type mockUserRepo struct{ mock.Mock }

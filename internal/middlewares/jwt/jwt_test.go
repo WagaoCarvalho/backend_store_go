@@ -9,8 +9,8 @@ import (
 	"time"
 
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	mw "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"

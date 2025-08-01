@@ -1,6 +1,9 @@
 package auth
 
 import (
+	"encoding/base64"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -97,4 +100,104 @@ func TestJWTManager_ValidateToken_InvalidSignature(t *testing.T) {
 
 	_, err = manager.ValidateToken(tokenStr)
 	assert.Error(t, err) // assinatura inválida
+
+}
+
+func TestJWTManager_GetExpiration(t *testing.T) {
+	manager := &JWTManager{}
+
+	t.Run("retorna duração corretamente", func(t *testing.T) {
+		exp := time.Now().Add(2 * time.Hour).Unix()
+		claims := jwt.MapClaims{"exp": float64(exp)}
+		token := &jwt.Token{Claims: claims}
+
+		duration, err := manager.GetExpiration(token)
+
+		assert.NoError(t, err)
+		assert.GreaterOrEqual(t, duration.Hours(), 1.9)
+
+	})
+
+	t.Run("erro claims inválidas", func(t *testing.T) {
+		token := &jwt.Token{Claims: jwt.RegisteredClaims{}}
+
+		duration, err := manager.GetExpiration(token)
+
+		assert.Error(t, err)
+		assert.Equal(t, "claims inválidas", err.Error())
+		assert.Equal(t, time.Duration(0), duration)
+	})
+
+	t.Run("erro exp ausente", func(t *testing.T) {
+		claims := jwt.MapClaims{"sub": "123"}
+		token := &jwt.Token{Claims: claims}
+
+		duration, err := manager.GetExpiration(token)
+
+		assert.Error(t, err)
+		assert.Equal(t, "claim 'exp' ausente ou inválida", err.Error())
+		assert.Equal(t, time.Duration(0), duration)
+	})
+
+	t.Run("erro exp tipo inválido", func(t *testing.T) {
+		claims := jwt.MapClaims{"exp": "not-a-float"}
+		token := &jwt.Token{Claims: claims}
+
+		duration, err := manager.GetExpiration(token)
+
+		assert.Error(t, err)
+		assert.Equal(t, "claim 'exp' ausente ou inválida", err.Error())
+		assert.Equal(t, time.Duration(0), duration)
+	})
+}
+
+func TestJWTManager_Parse(t *testing.T) {
+	secret := "test_secret"
+	manager := &JWTManager{SecretKey: secret}
+
+	t.Run("parse com sucesso", func(t *testing.T) {
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"sub": "123",
+			"exp": time.Now().Add(time.Hour).Unix(),
+		})
+		tokenStr, err := token.SignedString([]byte(secret))
+		assert.NoError(t, err)
+
+		parsed, err := manager.Parse(tokenStr)
+		assert.NoError(t, err)
+		assert.NotNil(t, parsed)
+		assert.True(t, parsed.Valid)
+	})
+
+	t.Run("erro método de assinatura inválido", func(t *testing.T) {
+		// Cria token com método HS512 (esperado: HS256)
+		token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
+			"sub": "123",
+			"exp": time.Now().Add(time.Hour).Unix(),
+		})
+
+		tokenStr, err := token.SignedString([]byte(secret))
+		assert.NoError(t, err)
+
+		_, err = manager.Parse(tokenStr)
+		assert.ErrorIs(t, err, ErrInvalidSigningMethod)
+	})
+
+	t.Run("erro: método de assinatura inválido (não HMAC)", func(t *testing.T) {
+		// Token com header "alg":"RS256" mas sem assinatura válida
+		// O Parse passará do formato, baterá no if e retornará ErrInvalidSigningMethod
+		invalidAlgToken := strings.Join([]string{
+			base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"RS256","typ":"JWT"}`)),
+			base64.RawURLEncoding.EncodeToString([]byte(`{"sub":"123","exp":` + fmt.Sprint(time.Now().Add(time.Hour).Unix()) + `}`)),
+			"signature-placeholder",
+		}, ".")
+
+		_, err := manager.Parse(invalidAlgToken)
+		assert.ErrorIs(t, err, ErrInvalidSigningMethod)
+	})
+
+	t.Run("token inválido", func(t *testing.T) {
+		_, err := manager.Parse("token_invalido")
+		assert.Error(t, err)
+	})
 }

@@ -6,10 +6,10 @@ import (
 	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/supplier/supplier"
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	repo_supplier "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/suppliers"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/suppliers"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"

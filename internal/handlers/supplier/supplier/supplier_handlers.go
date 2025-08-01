@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/suppliers"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/suppliers"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/suppliers"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
 )
 

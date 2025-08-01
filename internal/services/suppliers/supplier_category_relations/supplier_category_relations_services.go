@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_category_relations"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type SupplierCategoryRelationService interface {

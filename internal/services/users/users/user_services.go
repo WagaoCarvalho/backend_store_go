@@ -6,10 +6,10 @@ import (
 	"fmt"
 
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type UserService interface {

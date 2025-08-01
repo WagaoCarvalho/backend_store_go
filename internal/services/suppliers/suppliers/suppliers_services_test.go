@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/suppliers"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

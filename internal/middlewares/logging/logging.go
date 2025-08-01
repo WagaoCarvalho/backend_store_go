@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type responseWriter struct {

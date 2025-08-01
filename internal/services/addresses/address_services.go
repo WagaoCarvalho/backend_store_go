@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type AddressService interface {

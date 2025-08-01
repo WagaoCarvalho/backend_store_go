@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

@@ -6,7 +6,6 @@ import (
 
 	redis "github.com/WagaoCarvalho/backend_store_go/internal/auth/blacklist_redis"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/home"
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	cors "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/cors"
 	logging "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/logging"
 	rate_limiter "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/rate_limiter"
@@ -15,6 +14,7 @@ import (
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/db_postgres"
 	routes_supplier "github.com/WagaoCarvalho/backend_store_go/internal/routes/suppliers"
 	routes_user "github.com/WagaoCarvalho/backend_store_go/internal/routes/users"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
 )
 

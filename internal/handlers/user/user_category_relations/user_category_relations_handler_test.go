@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	user_category_relations_models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	user_category_relations_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_category_relations/user_category_relations_services_mock"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"

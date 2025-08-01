@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type UserCategoryRelationServices interface {

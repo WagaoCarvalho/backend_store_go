@@ -118,7 +118,8 @@ func (j *JWTManager) GetExpiration(token *jwt.Token) (time.Duration, error) {
 
 func (j *JWTManager) Parse(tokenString string) (*jwt.Token, error) {
 	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		// Garante que seja HMAC E que seja o algoritmo específico esperado (HS256)
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok || token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
 			return nil, ErrInvalidSigningMethod
 		}
 		return []byte(j.SecretKey), nil
