@@ -7,30 +7,31 @@ import (
 
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/logger"
-	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
-	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
 )
 
 type UserService interface {
-	Create(ctx context.Context, user *models_user.User) (*models_user.User, error)
-	GetAll(ctx context.Context) ([]*models_user.User, error)
-	GetByID(ctx context.Context, uid int64) (*models_user.User, error)
+	Create(ctx context.Context, user *models.User) (*models.User, error)
+	GetAll(ctx context.Context) ([]*models.User, error)
+	GetByID(ctx context.Context, uid int64) (*models.User, error)
 	GetVersionByID(ctx context.Context, uid int64) (int64, error)
-	GetByEmail(ctx context.Context, email string) (*models_user.User, error)
+	GetByEmail(ctx context.Context, email string) (*models.User, error)
+	GetByName(ctx context.Context, name string) ([]*models.User, error)
 	Delete(ctx context.Context, uid int64) error
 	Disable(ctx context.Context, uid int64) error
 	Enable(ctx context.Context, uid int64) error
-	Update(ctx context.Context, user *models_user.User) (*models_user.User, error)
+	Update(ctx context.Context, user *models.User) (*models.User, error)
 }
 
 type userService struct {
-	repo_user repo_user.UserRepository
+	repo_user repo.UserRepository
 	logger    *logger.LoggerAdapter
 	hasher    auth.PasswordHasher
 }
 
-func NewUserService(repo_user repo_user.UserRepository, logger *logger.LoggerAdapter, hasher auth.PasswordHasher) UserService {
+func NewUserService(repo_user repo.UserRepository, logger *logger.LoggerAdapter, hasher auth.PasswordHasher) UserService {
 	return &userService{
 		repo_user: repo_user,
 		logger:    logger,
@@ -38,7 +39,7 @@ func NewUserService(repo_user repo_user.UserRepository, logger *logger.LoggerAda
 	}
 }
 
-func (s *userService) Create(ctx context.Context, user *models_user.User) (*models_user.User, error) {
+func (s *userService) Create(ctx context.Context, user *models.User) (*models.User, error) {
 	ref := "[userService - Create] - "
 	s.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
 		"username": user.Username,
@@ -88,7 +89,7 @@ func (s *userService) Create(ctx context.Context, user *models_user.User) (*mode
 	return createdUser, nil
 }
 
-func (s *userService) GetAll(ctx context.Context) ([]*models_user.User, error) {
+func (s *userService) GetAll(ctx context.Context) ([]*models.User, error) {
 	ref := "[userService - GetAll] - "
 	s.logger.Info(ctx, ref+logger.LogGetInit, nil)
 
@@ -105,7 +106,7 @@ func (s *userService) GetAll(ctx context.Context) ([]*models_user.User, error) {
 	return users, nil
 }
 
-func (s *userService) GetByID(ctx context.Context, uid int64) (*models_user.User, error) {
+func (s *userService) GetByID(ctx context.Context, uid int64) (*models.User, error) {
 	ref := "[userService - GetByID] - "
 	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]interface{}{
 		"user_id": uid,
@@ -136,11 +137,11 @@ func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, err
 
 	version, err := s.repo_user.GetVersionByID(ctx, uid)
 	if err != nil {
-		if errors.Is(err, repo_user.ErrUserNotFound) {
+		if errors.Is(err, repo.ErrUserNotFound) {
 			s.logger.Error(ctx, err, ref+logger.LogNotFound, map[string]interface{}{
 				"user_id": uid,
 			})
-			return 0, repo_user.ErrUserNotFound
+			return 0, repo.ErrUserNotFound
 		}
 
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]interface{}{
@@ -157,7 +158,7 @@ func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, err
 	return version, nil
 }
 
-func (s *userService) GetByEmail(ctx context.Context, email string) (*models_user.User, error) {
+func (s *userService) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	ref := "[userService - GetByEmail] - "
 	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]interface{}{
 		"email": email,
@@ -180,7 +181,28 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*models_use
 	return user, nil
 }
 
-func (s *userService) Update(ctx context.Context, user *models_user.User) (*models_user.User, error) {
+func (s *userService) GetByName(ctx context.Context, name string) ([]*models.User, error) {
+	ref := "[userService - GetByName] - "
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]interface{}{
+		"username_partial": name,
+	})
+
+	users, err := s.repo_user.GetByName(ctx, name)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]interface{}{
+			"username_partial": name,
+		})
+		return nil, fmt.Errorf("%w: %v", ErrGetUser, err)
+	}
+
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]interface{}{
+		"count": len(users),
+	})
+
+	return users, nil
+}
+
+func (s *userService) Update(ctx context.Context, user *models.User) (*models.User, error) {
 	ref := "[userService - Update] - "
 
 	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]interface{}{
@@ -208,18 +230,18 @@ func (s *userService) Update(ctx context.Context, user *models_user.User) (*mode
 	updatedUser, err := s.repo_user.Update(ctx, user)
 	if err != nil {
 		switch {
-		case errors.Is(err, repo_user.ErrUserNotFound):
+		case errors.Is(err, repo.ErrUserNotFound):
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]interface{}{
 				"user_id": user.UID,
 			})
-			return nil, repo_user.ErrUserNotFound
+			return nil, repo.ErrUserNotFound
 
-		case errors.Is(err, repo_user.ErrVersionConflict):
+		case errors.Is(err, repo.ErrVersionConflict):
 			s.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]interface{}{
 				"user_id": user.UID,
 				"version": user.Version,
 			})
-			return nil, repo_user.ErrVersionConflict
+			return nil, repo.ErrVersionConflict
 
 		default:
 			s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]interface{}{

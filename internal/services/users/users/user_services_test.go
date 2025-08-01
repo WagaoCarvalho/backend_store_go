@@ -362,6 +362,69 @@ func TestUserService_GetByEmail(t *testing.T) {
 	})
 }
 
+func TestUserService_GetByName(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
+
+	setup := func() (
+		*repo_user.MockUserRepository,
+		*MockHasher,
+		UserService,
+	) {
+		mockUserRepo := new(repo_user.MockUserRepository)
+		mockHasher := new(MockHasher)
+
+		userService := NewUserService(
+			mockUserRepo,
+			logger,
+			mockHasher,
+		)
+
+		return mockUserRepo, mockHasher, userService
+	}
+
+	t.Run("Deve retornar lista de usuários quando encontrados por nome parcial", func(t *testing.T) {
+		mockRepo, _, service := setup()
+
+		expectedUsers := []*model_user.User{
+			{
+				UID:      1,
+				Username: "user1",
+				Email:    "user1@example.com",
+				Status:   true,
+			},
+			{
+				UID:      2,
+				Username: "user123",
+				Email:    "user123@example.com",
+				Status:   true,
+			},
+		}
+
+		mockRepo.On("GetByName", mock.Anything, "user").Return(expectedUsers, nil)
+
+		users, err := service.GetByName(context.Background(), "user")
+
+		assert.NoError(t, err)
+		assert.Equal(t, expectedUsers, users)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar erro quando repositório falha ao buscar por nome", func(t *testing.T) {
+		mockRepo, _, service := setup()
+
+		mockRepo.On("GetByName", mock.Anything, "inexistente").Return(
+			nil,
+			fmt.Errorf("usuário não encontrado"),
+		)
+
+		users, err := service.GetByName(context.Background(), "inexistente")
+
+		assert.ErrorContains(t, err, "usuário não encontrado")
+		assert.Nil(t, users)
+		mockRepo.AssertExpectations(t)
+	})
+}
+
 func TestUserService_Update(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 

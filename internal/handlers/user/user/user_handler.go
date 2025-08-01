@@ -234,6 +234,46 @@ func (h *UserHandler) GetByEmail(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (h *UserHandler) GetByName(w http.ResponseWriter, r *http.Request) {
+	ref := "[UserHandler - GetByName] "
+	ctx := r.Context()
+
+	vars := mux.Vars(r)
+	name := vars["username"]
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
+		"name": name,
+	})
+
+	users, err := h.service.GetByName(ctx, name)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if err.Error() == "usuário não encontrado" {
+			status = http.StatusNotFound
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"name": name,
+			})
+		} else {
+			h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+				"name":   name,
+				"status": status,
+			})
+		}
+		utils.ErrorResponse(w, err, status)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"count": len(users),
+	})
+
+	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Usuários encontrados",
+		Data:    users,
+	})
+}
+
 func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ref := "[UserHandler - Update] "
 	ctx := r.Context()

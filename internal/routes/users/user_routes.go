@@ -48,6 +48,7 @@ func RegisterUserRoutes(
 	s.HandleFunc("/user/id/{id}", handler.GetByID).Methods(http.MethodGet)
 	s.HandleFunc("/user/version/{id:[0-9]+}", handler.GetVersionByID).Methods(http.MethodGet)
 	s.HandleFunc("/user/email/{email}", handler.GetByEmail).Methods(http.MethodGet)
+	s.HandleFunc("/user/name/{username}", handler.GetByName).Methods(http.MethodGet)
 	s.HandleFunc("/user/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
 	s.HandleFunc("/user/enable/{id:[0-9]+}", handler.Enable).Methods(http.MethodPatch)
 	s.HandleFunc("/user/disable/{id:[0-9]+}", handler.Disable).Methods(http.MethodPatch)

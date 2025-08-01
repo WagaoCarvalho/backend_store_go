@@ -327,6 +327,70 @@ func TestUserHandler_GetByEmail(t *testing.T) {
 	})
 }
 
+func TestUserHandler_GetByName(t *testing.T) {
+	mockService := new(services.MockUserService)
+	logger := logger.NewLoggerAdapter(logrus.New())
+	handler := NewUserHandler(mockService, logger)
+
+	t.Run("Sucesso ao buscar usuários por nome parcial", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+
+		users := []*model_user.User{
+			{
+				UID:      1,
+				Username: "user1",
+				Email:    "user1@example.com",
+			},
+			{
+				UID:      2,
+				Username: "user123",
+				Email:    "user123@example.com",
+			},
+		}
+
+		mockService.On("GetByName", mock.Anything, "user1").Return(users, nil).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/users/name/user1", nil)
+		req = mux.SetURLVars(req, map[string]string{"username": "user1"})
+		rec := httptest.NewRecorder()
+
+		handler.GetByName(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro usuário não encontrado", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+
+		mockService.On("GetByName", mock.Anything, "notfound").Return(nil, errors.New("usuário não encontrado")).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/users/name/notfound", nil)
+		req = mux.SetURLVars(req, map[string]string{"username": "notfound"})
+		rec := httptest.NewRecorder()
+
+		handler.GetByName(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro genérico ao buscar usuário por nome", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+
+		mockService.On("GetByName", mock.Anything, "error").Return(nil, errors.New("erro interno")).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/users/name/error", nil)
+		req = mux.SetURLVars(req, map[string]string{"username": "error"})
+		rec := httptest.NewRecorder()
+
+		handler.GetByName(rec, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+}
+
 func TestUserHandler_Update(t *testing.T) {
 	mockService := new(services.MockUserService)
 	logger := logger.NewLoggerAdapter(logrus.New())

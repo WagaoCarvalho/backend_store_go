@@ -18,6 +18,7 @@ type UserRepository interface {
 	GetByID(ctx context.Context, id int64) (*models.User, error)
 	GetVersionByID(ctx context.Context, id int64) (int64, error)
 	GetByEmail(ctx context.Context, email string) (*models.User, error)
+	GetByName(ctx context.Context, name string) ([]*models.User, error)
 	Update(ctx context.Context, user *models.User) (*models.User, error)
 	Disable(ctx context.Context, uid int64) error
 	Enable(ctx context.Context, uid int64) error
@@ -237,6 +238,62 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.
 	})
 
 	return user, nil
+}
+
+func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.User, error) {
+	ref := "[userRepository - GetByName] - "
+	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
+		"username_partial": name,
+	})
+
+	const query = `
+		SELECT id, username, email, password_hash, status, created_at, updated_at
+		FROM users
+		WHERE username ILIKE $1
+		ORDER BY username ASC
+	`
+
+	rows, err := r.db.Query(ctx, query, "%"+name+"%")
+	if err != nil {
+		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"username_partial": name,
+		})
+		return nil, fmt.Errorf("%w: %v", ErrFetchUser, err)
+	}
+	defer rows.Close()
+
+	var users []*models.User
+	for rows.Next() {
+		user := new(models.User)
+		if err := rows.Scan(
+			&user.UID,
+			&user.Username,
+			&user.Email,
+			&user.Password,
+			&user.Status,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err != nil {
+			r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+				"username_partial": name,
+			})
+			return nil, fmt.Errorf("%w: %v", ErrFetchUser, err)
+		}
+		users = append(users, user)
+	}
+
+	if len(users) == 0 {
+		r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+			"username_partial": name,
+		})
+		return nil, ErrUserNotFound
+	}
+
+	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"count": len(users),
+	})
+
+	return users, nil
 }
 
 func (r *userRepository) Update(ctx context.Context, user *models.User) (*models.User, error) {
