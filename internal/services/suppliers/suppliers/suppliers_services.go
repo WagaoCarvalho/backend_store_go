@@ -14,6 +14,7 @@ type SupplierService interface {
 	Create(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error)
 	GetAll(ctx context.Context) ([]*models.Supplier, error)
 	GetByID(ctx context.Context, id int64) (*models.Supplier, error)
+	GetByName(ctx context.Context, name string) ([]*models.Supplier, error)
 	GetVersionByID(ctx context.Context, id int64) (int64, error)
 	Update(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error)
 	Delete(ctx context.Context, id int64) error
@@ -113,6 +114,41 @@ func (s *supplierService) GetByID(ctx context.Context, id int64) (*models.Suppli
 		"name":        supplier.Name,
 	})
 	return supplier, nil
+}
+
+func (s *supplierService) GetByName(ctx context.Context, name string) ([]*models.Supplier, error) {
+	ref := "[supplierService - GetByName] - "
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
+		"supplier_name": name,
+	})
+
+	if name == "" {
+		s.logger.Error(ctx, ErrInvalidSupplierName, ref+"Nome inválido", map[string]any{
+			"supplier_name": name,
+		})
+		return nil, ErrInvalidSupplierName
+	}
+
+	suppliers, err := s.repo.GetByName(ctx, name)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"supplier_name": name,
+		})
+		return nil, fmt.Errorf("%w: %v", ErrGetSupplier, err)
+	}
+
+	if len(suppliers) == 0 {
+		s.logger.Warn(ctx, ref+"fornecedor não encontrado", map[string]any{
+			"supplier_name": name,
+		})
+		return nil, ErrSupplierNotFound
+	}
+
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"count": len(suppliers),
+	})
+
+	return suppliers, nil
 }
 
 func (s *supplierService) GetVersionByID(ctx context.Context, id int64) (int64, error) {

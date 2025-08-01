@@ -12,6 +12,7 @@ import (
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/suppliers"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/suppliers"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	"github.com/gorilla/mux"
 )
 
 type SupplierHandler struct {
@@ -195,6 +196,39 @@ func (h *SupplierHandler) GetVersionByID(w http.ResponseWriter, r *http.Request)
 		Data: map[string]int64{
 			"version": version,
 		},
+	})
+}
+
+func (h *SupplierHandler) GetByName(w http.ResponseWriter, r *http.Request) {
+	ref := "[SupplierHandler - GetByName] "
+	ctx := r.Context()
+
+	vars := mux.Vars(r)
+	name := vars["name"]
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{"name": name})
+
+	suppliers, err := h.service.GetByName(ctx, name)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if errors.Is(err, repository.ErrSupplierNotFound) {
+			status = http.StatusNotFound
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"name": name})
+		} else {
+			h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"name": name, "status": status})
+		}
+		utils.ErrorResponse(w, err, status)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"count": len(suppliers),
+	})
+
+	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Fornecedores encontrados com sucesso",
+		Data:    suppliers,
 	})
 }
 

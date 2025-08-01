@@ -182,6 +182,77 @@ func TestSupplierService_GetByID(t *testing.T) {
 	})
 }
 
+func TestSupplierService_GetByName(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
+
+	setup := func() (*repo.MockSupplierRepository, SupplierService) {
+		mockRepo := new(repo.MockSupplierRepository)
+		service := NewSupplierService(mockRepo, logger)
+		return mockRepo, service
+	}
+
+	t.Run("sucesso ao buscar por nome", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		expected := []*models.Supplier{
+			{
+				ID:   1,
+				Name: "Fornecedor A",
+				CNPJ: strPtr("111"),
+			},
+			{
+				ID:   2,
+				Name: "Fornecedor AB",
+				CNPJ: strPtr("222"),
+			},
+		}
+
+		mockRepo.On("GetByName", mock.Anything, "Fornecedor").Return(expected, nil).Once()
+
+		result, err := service.GetByName(context.Background(), "Fornecedor")
+
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro ao buscar por nome inválido (vazio)", func(t *testing.T) {
+		_, service := setup()
+
+		result, err := service.GetByName(context.Background(), "")
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Equal(t, ErrInvalidSupplierName, err)
+	})
+
+	t.Run("erro do repositório ao buscar por nome", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		mockRepo.On("GetByName", mock.Anything, "Fornecedor").Return(nil, errors.New("db down")).Once()
+
+		result, err := service.GetByName(context.Background(), "Fornecedor")
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.True(t, errors.Is(err, ErrGetSupplier))
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("fornecedor não encontrado", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		mockRepo.On("GetByName", mock.Anything, "Inexistente").Return(nil, nil).Once()
+
+		result, err := service.GetByName(context.Background(), "Inexistente")
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Equal(t, ErrSupplierNotFound, err)
+		mockRepo.AssertExpectations(t)
+	})
+}
+
 func TestSupplierService_GetVersionByID(t *testing.T) {
 	type args struct {
 		id int64

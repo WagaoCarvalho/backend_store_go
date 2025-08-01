@@ -30,6 +30,14 @@ func (m *MockSupplierRepository) GetByID(ctx context.Context, id int64) (*models
 	return result, args.Error(1)
 }
 
+func (m *MockSupplierRepository) GetByName(ctx context.Context, name string) ([]*models.Supplier, error) {
+	args := m.Called(ctx, name)
+	if args.Get(0) != nil {
+		return args.Get(0).([]*models.Supplier), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
 func (m *MockSupplierRepository) GetAll(ctx context.Context) ([]*models.Supplier, error) {
 	args := m.Called(ctx)
 	return args.Get(0).([]*models.Supplier), args.Error(1)

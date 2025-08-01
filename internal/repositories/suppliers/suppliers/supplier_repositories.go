@@ -14,6 +14,7 @@ import (
 type SupplierRepository interface {
 	Create(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error)
 	GetByID(ctx context.Context, id int64) (*models.Supplier, error)
+	GetByName(ctx context.Context, name string) ([]*models.Supplier, error)
 	GetVersionByID(ctx context.Context, id int64) (int64, error)
 	GetAll(ctx context.Context) ([]*models.Supplier, error)
 	Update(ctx context.Context, supplier *models.Supplier) error
@@ -110,6 +111,62 @@ func (r *supplierRepository) GetByID(ctx context.Context, id int64) (*models.Sup
 	})
 
 	return &supplier, nil
+}
+
+func (r *supplierRepository) GetByName(ctx context.Context, name string) ([]*models.Supplier, error) {
+	ref := "[supplierRepository - GetByName] - "
+	r.logger.Info(ctx, ref+"início da busca", map[string]any{
+		"name_partial": name,
+	})
+
+	const query = `
+		SELECT id, name, cnpj, cpf, status, created_at, updated_at
+		FROM suppliers
+		WHERE name ILIKE $1
+		ORDER BY name ASC
+	`
+
+	rows, err := r.db.Query(ctx, query, "%"+name+"%")
+	if err != nil {
+		r.logger.Error(ctx, err, ref+"erro na busca", map[string]any{
+			"name_partial": name,
+		})
+		return nil, fmt.Errorf("falha ao buscar fornecedores: %w", err)
+	}
+	defer rows.Close()
+
+	var suppliers []*models.Supplier
+	for rows.Next() {
+		supplier := new(models.Supplier)
+		if err := rows.Scan(
+			&supplier.ID,
+			&supplier.Name,
+			&supplier.CNPJ,
+			&supplier.CPF,
+			&supplier.Status,
+			&supplier.CreatedAt,
+			&supplier.UpdatedAt,
+		); err != nil {
+			r.logger.Error(ctx, err, ref+"erro no scan", map[string]any{
+				"name_partial": name,
+			})
+			return nil, fmt.Errorf("falha ao ler dados do fornecedor: %w", err)
+		}
+		suppliers = append(suppliers, supplier)
+	}
+
+	if len(suppliers) == 0 {
+		r.logger.Warn(ctx, ref+"não encontrado", map[string]any{
+			"name_partial": name,
+		})
+		return nil, ErrSupplierNotFound
+	}
+
+	r.logger.Info(ctx, ref+"sucesso na busca", map[string]any{
+		"count": len(suppliers),
+	})
+
+	return suppliers, nil
 }
 
 func (r *supplierRepository) GetAll(ctx context.Context) ([]*models.Supplier, error) {

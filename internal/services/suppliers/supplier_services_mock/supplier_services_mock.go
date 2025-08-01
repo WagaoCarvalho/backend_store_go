@@ -35,6 +35,14 @@ func (m *MockSupplierService) GetByID(ctx context.Context, id int64) (*models.Su
 	return nil, args.Error(1)
 }
 
+func (m *MockSupplierService) GetByName(ctx context.Context, name string) ([]*models.Supplier, error) {
+	args := m.Called(ctx, name)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.Supplier), args.Error(1)
+}
+
 func (m *MockSupplierService) GetVersionByID(ctx context.Context, id int64) (int64, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(int64), args.Error(1)

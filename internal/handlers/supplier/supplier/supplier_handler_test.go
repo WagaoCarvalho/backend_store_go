@@ -278,6 +278,70 @@ func TestSupplierHandler_GetByID(t *testing.T) {
 	})
 }
 
+func TestSupplierHandler_GetByName(t *testing.T) {
+	mockService := new(service_mock.MockSupplierService)
+	logger := logger.NewLoggerAdapter(logrus.New())
+	handler := NewSupplierHandler(mockService, logger)
+
+	t.Run("Sucesso ao buscar fornecedores por nome parcial", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+
+		suppliers := []*models.Supplier{
+			{
+				ID:   1,
+				Name: "Fornecedor A",
+				CNPJ: strPtr("111"),
+			},
+			{
+				ID:   2,
+				Name: "Fornecedor AB",
+				CNPJ: strPtr("222"),
+			},
+		}
+
+		mockService.On("GetByName", mock.Anything, "fornecedor").Return(suppliers, nil).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/suppliers/name/fornecedor", nil)
+		req = mux.SetURLVars(req, map[string]string{"name": "fornecedor"})
+		rec := httptest.NewRecorder()
+
+		handler.GetByName(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro fornecedor não encontrado", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+
+		mockService.On("GetByName", mock.Anything, "notfound").Return(nil, repositories.ErrSupplierNotFound).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/suppliers/name/notfound", nil)
+		req = mux.SetURLVars(req, map[string]string{"name": "notfound"})
+		rec := httptest.NewRecorder()
+
+		handler.GetByName(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro genérico ao buscar fornecedor por nome", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+
+		mockService.On("GetByName", mock.Anything, "error").Return(nil, errors.New("erro interno")).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/suppliers/name/error", nil)
+		req = mux.SetURLVars(req, map[string]string{"name": "error"})
+		rec := httptest.NewRecorder()
+
+		handler.GetByName(rec, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+}
+
 func TestSupplierHandler_GetVersionByID(t *testing.T) {
 	mockService := new(service_mock.MockSupplierService)
 	logger := logger.NewLoggerAdapter(logrus.New())

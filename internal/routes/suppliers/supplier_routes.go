@@ -41,7 +41,8 @@ func RegisterSupplierRoutes(
 
 	s.HandleFunc("/supplier", handler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/suppliers", handler.GetAll).Methods(http.MethodGet)
-	s.HandleFunc("/supplier/{id}", handler.GetByID).Methods(http.MethodGet)
+	s.HandleFunc("/supplier/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)
+	s.HandleFunc("/supplier/name/{name}", handler.GetByName).Methods(http.MethodGet)
 	s.HandleFunc("/supplier/version/{id:[0-9]+}", handler.GetVersionByID).Methods(http.MethodGet)
 	s.HandleFunc("/supplier/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
 	s.HandleFunc("/supplier/enable/{id:[0-9]+}", handler.Enable).Methods(http.MethodPatch)
