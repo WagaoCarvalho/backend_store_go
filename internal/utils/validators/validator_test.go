@@ -44,7 +44,7 @@ func TestUtilsFunctions(t *testing.T) {
 	})
 
 	t.Run("IsValidPostalCode", func(t *testing.T) {
-		validCodes := []string{"12345-678", "12345678"}
+		validCodes := []string{"12345678"}
 		invalidCodes := []string{"1234-567", "1234567", "abcde-fgh"}
 
 		for _, code := range validCodes {
@@ -129,10 +129,10 @@ func TestUtilsFunctions(t *testing.T) {
 	t.Run("IsValidCPF", func(t *testing.T) {
 		validCPFs := []string{
 			"12345678901",
-			"00000000000",
 			"98765432109",
 		}
 		invalidCPFs := []string{
+			"00000000000",
 			"1234567890",     // 10 dígitos
 			"123456789012",   // 12 dígitos
 			"123.456.789-01", // com pontuação
@@ -151,10 +151,10 @@ func TestUtilsFunctions(t *testing.T) {
 	t.Run("IsValidCNPJ", func(t *testing.T) {
 		validCNPJs := []string{
 			"12345678000199",
-			"00000000000000",
 			"11222333000181",
 		}
 		invalidCNPJs := []string{
+			"00000000000000",
 			"1234567800019",      // 13 dígitos
 			"123456780001999",    // 15 dígitos
 			"12.345.678/0001-99", // com pontuação
@@ -170,4 +170,50 @@ func TestUtilsFunctions(t *testing.T) {
 		}
 	})
 
+}
+
+func TestValidateSingleNonNil(t *testing.T) {
+	var (
+		a int64 = 1
+		b int64 = 2
+	)
+
+	tests := []struct {
+		name     string
+		input    []*int64
+		expected bool
+	}{
+		{
+			name:     "nenhum valor",
+			input:    []*int64{},
+			expected: false,
+		},
+		{
+			name:     "todos nil",
+			input:    []*int64{nil, nil},
+			expected: false,
+		},
+		{
+			name:     "um valor não-nil",
+			input:    []*int64{&a, nil, nil},
+			expected: true,
+		},
+		{
+			name:     "dois valores não-nil",
+			input:    []*int64{&a, &b},
+			expected: false,
+		},
+		{
+			name:     "três valores não-nil",
+			input:    []*int64{&a, &b, &a},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := ValidateSingleNonNil(tt.input...)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }

@@ -16,13 +16,21 @@ func IsValidEmail(email string) bool {
 	return re.MatchString(email)
 }
 
-var postalCodeRegex = regexp.MustCompile(`^\d{5}-?\d{3}$`)
+var postalCodeRegex = regexp.MustCompile(`^\d{8}$`)
 
 func IsValidPostalCode(code string) bool {
-	if code == "00000-000" || code == "00000000" {
+	if !postalCodeRegex.MatchString(code) {
 		return false
 	}
-	return postalCodeRegex.MatchString(code)
+
+	firstChar := code[0]
+	for i := 1; i < len(code); i++ {
+		if code[i] != firstChar {
+			return true
+		}
+	}
+
+	return false
 }
 
 var validStates = map[string]bool{
@@ -56,15 +64,31 @@ func IsValidCell(input string) bool {
 }
 
 func IsValidCPF(cpf string) bool {
+	if match := regexp.MustCompile(`^\d{11}$`).MatchString(cpf); !match {
+		return false
+	}
 
-	matched, _ := regexp.MatchString(`^\d{11}$`, cpf)
-	return matched
+	firstChar := cpf[0]
+	for i := 1; i < len(cpf); i++ {
+		if cpf[i] != firstChar {
+			return true
+		}
+	}
+	return false
 }
 
 func IsValidCNPJ(cnpj string) bool {
+	if match := regexp.MustCompile(`^\d{14}$`).MatchString(cnpj); !match {
+		return false
+	}
 
-	matched, _ := regexp.MatchString(`^\d{14}$`, cnpj)
-	return matched
+	firstChar := cnpj[0]
+	for i := 1; i < len(cnpj); i++ {
+		if cnpj[i] != firstChar {
+			return true
+		}
+	}
+	return false
 }
 
 func ValidateSingleNonNil(fields ...*int64) bool {

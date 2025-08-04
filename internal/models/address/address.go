@@ -71,7 +71,7 @@ func (a *Address) Validate() error {
 		return &utils_errors.ValidationError{Field: "PostalCode", Message: "campo obrigatório"}
 	}
 	if !utils_validators.IsValidPostalCode(a.PostalCode) {
-		return &utils_errors.ValidationError{Field: "PostalCode", Message: "formato inválido (ex: 99999-999 ou 99999999)"}
+		return &utils_errors.ValidationError{Field: "PostalCode", Message: "formato inválido (ex: 12345678)"}
 	}
 
 	return nil

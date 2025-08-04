@@ -544,7 +544,7 @@ func TestUserService_CreateFull(t *testing.T) {
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
-				PostalCode: "99999999",
+				PostalCode: "12345678",
 			},
 		}
 
@@ -580,7 +580,7 @@ func TestUserService_CreateFull(t *testing.T) {
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
-				PostalCode: "99999999",
+				PostalCode: "12345678",
 			}, nil)
 
 		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
@@ -606,7 +606,7 @@ func TestUserService_CreateFull(t *testing.T) {
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
-				PostalCode: "99999999",
+				PostalCode: "12345678",
 			},
 			Contact: &model_contact.Contact{
 				ContactName: "Ari",
@@ -657,7 +657,7 @@ func TestUserService_CreateFull(t *testing.T) {
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
-				PostalCode: "99999999",
+				PostalCode: "12345678",
 			},
 		}
 
@@ -684,7 +684,7 @@ func TestUserService_CreateFull(t *testing.T) {
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
-				PostalCode: "99999999",
+				PostalCode: "12345678",
 			},
 			Contact: &model_contact.Contact{
 				ContactName: "Ari",
@@ -713,7 +713,7 @@ func TestUserService_CreateFull(t *testing.T) {
 		})).Return(expectedUser, nil).Once()
 
 		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.MatchedBy(func(addr *model_address.Address) bool {
-			return addr.City == "Cidade B" && addr.PostalCode == "99999999"
+			return addr.City == "Cidade B" && addr.PostalCode == "12345678"
 		})).Return(&model_address.Address{ID: 1}, nil).Once()
 
 		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.MatchedBy(func(c *model_contact.Contact) bool {
@@ -794,7 +794,7 @@ func TestUserService_CreateFull(t *testing.T) {
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
-				PostalCode: "99999999",
+				PostalCode: "12345678",
 			},
 			Contact: &model_contact.Contact{
 				Phone: "invalido", // força erro de validação
@@ -837,7 +837,7 @@ func TestUserService_CreateFull(t *testing.T) {
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
-				PostalCode: "99999999",
+				PostalCode: "12345678",
 			},
 			Contact: &model_contact.Contact{
 				ContactName: "João",
@@ -886,7 +886,7 @@ func TestUserService_CreateFull(t *testing.T) {
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
-				PostalCode: "99999999",
+				PostalCode: "12345678",
 			},
 			Contact: &model_contact.Contact{
 				ContactName: "Ari",

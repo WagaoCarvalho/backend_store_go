@@ -33,7 +33,7 @@ func TestAddressService_Create(t *testing.T) {
 			City:       "Cidade Teste",
 			State:      "SP",
 			Country:    "Brasil",
-			PostalCode: "12345-678",
+			PostalCode: "12345678",
 		}
 
 		mockRepo.On("Create", mock.Anything, address).Return(address, nil)
@@ -67,7 +67,7 @@ func TestAddressService_Create(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("falha na validação do endereço - UserID/ClientID/SupplierID obrigatório", func(t *testing.T) {
+	t.Run("falha na validação do endereço  UserID/ClientID/SupplierID obrigatório", func(t *testing.T) {
 		mockRepo := new(repositories.MockAddressRepository)
 		logger := logger.NewLoggerAdapter(logrus.New())
 
@@ -78,7 +78,7 @@ func TestAddressService_Create(t *testing.T) {
 			City:       "Cidade Teste",
 			State:      "SP",
 			Country:    "Brasil",
-			PostalCode: "12345-678",
+			PostalCode: "12345678",
 		}
 
 		createdAddress, err := service.Create(context.Background(), address)
@@ -102,7 +102,7 @@ func TestAddressService_Create(t *testing.T) {
 			City:       "Cidade Teste",
 			State:      "SP",
 			Country:    "Brasil",
-			PostalCode: "12345-678",
+			PostalCode: "12345678",
 		}
 
 		expectedErr := errors.New("erro no banco")
@@ -129,7 +129,7 @@ func TestAddressService_GetByID(t *testing.T) {
 			City:       "Cidade Teste",
 			State:      "Estado Teste",
 			Country:    "Brasil",
-			PostalCode: "12345-678",
+			PostalCode: "12345678",
 		}
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(address, nil)
@@ -176,7 +176,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 				City:       "Cidade Teste",
 				State:      "Estado Teste",
 				Country:    "Brasil",
-				PostalCode: "12345-678",
+				PostalCode: "12345678",
 			},
 		}
 
@@ -230,7 +230,7 @@ func TestAddressService_GetByClientID(t *testing.T) {
 				City:       "Cidade Cliente",
 				State:      "Estado Cliente",
 				Country:    "Brasil",
-				PostalCode: "98765-432",
+				PostalCode: "98765432",
 			},
 		}
 
@@ -283,7 +283,7 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 				City:       "Cidade Fornecedor",
 				State:      "Estado Fornecedor",
 				Country:    "Brasil",
-				PostalCode: "54321-000",
+				PostalCode: "54321000",
 			},
 		}
 
@@ -329,7 +329,7 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 			City:       "Nova Cidade",
 			State:      "SP",
 			Country:    "Brasil",
-			PostalCode: "99999-999",
+			PostalCode: "12345678",
 		}
 	}
 
@@ -361,7 +361,7 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 			City:       "Cidade Teste",
 			State:      "SP",
 			Country:    "Brasil",
-			PostalCode: "12345-678",
+			PostalCode: "12345678",
 		}
 
 		err := service.Update(context.Background(), &address)
@@ -398,7 +398,7 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 			City:       "Cidade Teste",
 			State:      "SP",
 			Country:    "Brasil",
-			PostalCode: "00456-000",
+			PostalCode: "00456000",
 		}
 
 		mockRepo.On("Update", mock.Anything, address).Return(fmt.Errorf("erro inesperado no banco"))
