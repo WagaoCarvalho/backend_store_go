@@ -34,9 +34,6 @@ func RegisterUserFullRoutes(
 	userService := services.NewUserFullService(repo_user, repo_address, repo_contact, repo_user_cat_rel, log, hasher)
 	handler := handlers.NewUserFullHandler(userService, log)
 
-	// Rota pública
-	r.HandleFunc("/user", handler.CreateFull).Methods(http.MethodPost)
-
 	// Config JWT
 	jwtCfg := config.LoadJwtConfig()
 	jwtManager := jwt_auth.NewJWTManager(

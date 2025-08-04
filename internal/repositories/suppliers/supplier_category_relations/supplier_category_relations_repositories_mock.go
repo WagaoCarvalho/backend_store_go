@@ -4,6 +4,7 @@ import (
 	"context"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -18,6 +19,15 @@ func (m *MockSupplierCategoryRelationRepo) Create(ctx context.Context, relation 
 		return rel, args.Error(1)
 	}
 	return nil, args.Error(1)
+}
+
+func (m *MockSupplierCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, relation *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error) {
+	args := m.Called(ctx, tx, relation)
+	result := args.Get(0)
+	if result == nil {
+		return nil, args.Error(1)
+	}
+	return result.(*models.SupplierCategoryRelations), args.Error(1)
 }
 
 func (m *MockSupplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {

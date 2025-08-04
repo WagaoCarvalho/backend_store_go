@@ -50,7 +50,6 @@ func NewUserFullService(
 func (s *userFullService) CreateFull(ctx context.Context, user_full *models_user_full.UserFull) (*models_user_full.UserFull, error) {
 	ref := "[userService - CreateFull] - "
 
-	// Preparar campos do log com proteção contra nil
 	logFields := map[string]any{}
 	if user_full != nil && user_full.User != nil {
 		logFields["username"] = user_full.User.Username
@@ -59,13 +58,11 @@ func (s *userFullService) CreateFull(ctx context.Context, user_full *models_user
 
 	s.logger.Info(ctx, ref+logger.LogCreateInit, logFields)
 
-	// Validação estrutural completa (User, Address, Contact, Categories)
 	if err := user_full.Validate(); err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogValidateError, logFields)
 		return nil, err
 	}
 
-	// Hash da senha
 	if user_full.User.Password != "" {
 		hashed, err := s.hasher.Hash(user_full.User.Password)
 		if err != nil {
@@ -77,7 +74,6 @@ func (s *userFullService) CreateFull(ctx context.Context, user_full *models_user
 		user_full.User.Password = hashed
 	}
 
-	// Inicia transação
 	tx, err := s.repo_user.BeginTx(ctx)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogTransactionInitError, nil)
@@ -88,7 +84,6 @@ func (s *userFullService) CreateFull(ctx context.Context, user_full *models_user
 		return nil, errors.New("transação inválida")
 	}
 
-	// Garante rollback em caso de panic
 	defer func() {
 		if p := recover(); p != nil {
 			_ = tx.Rollback(ctx)
@@ -106,7 +101,7 @@ func (s *userFullService) CreateFull(ctx context.Context, user_full *models_user
 		}
 		if cErr := tx.Commit(ctx); cErr != nil {
 			s.logger.Error(ctx, cErr, ref+logger.LogCommitError, nil)
-			// 🔽 rollback também após falha no commit
+
 			if rbErr := tx.Rollback(ctx); rbErr != nil {
 				s.logger.Error(ctx, rbErr, ref+logger.LogRollbackErrorAfterCommitFail, nil)
 				return fmt.Errorf("erro ao commitar transação: %v; rollback error: %w", cErr, rbErr)
@@ -116,13 +111,11 @@ func (s *userFullService) CreateFull(ctx context.Context, user_full *models_user
 		return nil
 	}
 
-	// Criação do usuário
 	createdUser, err := s.repo_user.CreateTx(ctx, tx, user_full.User)
 	if err != nil {
 		return nil, commitOrRollback(err)
 	}
 
-	// Criação do endereço
 	user_full.Address.UserID = utils.ToPointer(createdUser.UID)
 
 	if err := user_full.Address.Validate(); err != nil {
@@ -134,7 +127,6 @@ func (s *userFullService) CreateFull(ctx context.Context, user_full *models_user
 		return nil, commitOrRollback(err)
 	}
 
-	// Criação do contato
 	user_full.Contact.UserID = utils.ToPointer(createdUser.UID)
 
 	if err := user_full.Contact.Validate(); err != nil {
@@ -146,7 +138,6 @@ func (s *userFullService) CreateFull(ctx context.Context, user_full *models_user
 		return nil, commitOrRollback(err)
 	}
 
-	// Criação das relações com categorias
 	for _, category := range user_full.Categories {
 		relation := &models_user_cat_rel.UserCategoryRelations{
 			UserID:     createdUser.UID,
@@ -168,12 +159,11 @@ func (s *userFullService) CreateFull(ctx context.Context, user_full *models_user
 		"email":    createdUser.Email,
 	})
 
-	// Retorno final
 	result := &models_user_full.UserFull{
 		User:       createdUser,
 		Address:    createdAddress,
 		Contact:    createdContact,
-		Categories: user_full.Categories, // pode ser retornado direto, sem reconsulta
+		Categories: user_full.Categories,
 	}
 
 	return result, commitOrRollback(nil)

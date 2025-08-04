@@ -13,6 +13,7 @@ import (
 
 type SupplierCategoryRelationRepository interface {
 	Create(ctx context.Context, relation *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error)
+	CreateTx(ctx context.Context, tx pgx.Tx, relation *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error)
 	GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error)
 	GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error)
 	Delete(ctx context.Context, supplierID, categoryID int64) error
@@ -50,6 +51,56 @@ func (r *supplierCategoryRelationRepo) Create(ctx context.Context, rel *models.S
 		"category_id": rel.CategoryID,
 	})
 	return rel, nil
+}
+
+func (r *supplierCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, relation *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error) {
+	const ref = "[supplierCategoryRelationRepository - CreateTx] - "
+
+	r.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
+		"supplier_id": relation.SupplierID,
+		"category_id": relation.CategoryID,
+	})
+
+	const query = `
+		INSERT INTO supplier_category_relations (supplier_id, category_id, created_at)
+		VALUES ($1, $2, NOW())
+		RETURNING created_at
+	`
+
+	err := tx.QueryRow(ctx, query, relation.SupplierID, relation.CategoryID).
+		Scan(&relation.CreatedAt)
+
+	if err != nil {
+		switch {
+		case IsDuplicateKey(err):
+			r.logger.Warn(ctx, ref+logger.LogForeignKeyHasExists, map[string]any{
+				"supplier_id": relation.SupplierID,
+				"category_id": relation.CategoryID,
+			})
+			return nil, ErrRelationExists
+
+		case IsForeignKeyViolation(err):
+			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
+				"supplier_id": relation.SupplierID,
+				"category_id": relation.CategoryID,
+			})
+			return nil, ErrInvalidForeignKey
+
+		default:
+			r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
+				"supplier_id": relation.SupplierID,
+				"category_id": relation.CategoryID,
+			})
+			return nil, fmt.Errorf("%w: %v", ErrCreateRelation, err)
+		}
+	}
+
+	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
+		"supplier_id": relation.SupplierID,
+		"category_id": relation.CategoryID,
+	})
+
+	return relation, nil
 }
 
 func (r *supplierCategoryRelationRepo) HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {

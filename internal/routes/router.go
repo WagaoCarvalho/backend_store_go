@@ -40,6 +40,7 @@ func NewRouter(log *logger.LoggerAdapter) *mux.Router {
 
 	//Suupliers
 	routes_supplier.RegisterSupplierRoutes(r, db, log, blacklist)
+	routes_supplier.RegisterSupplierFullRoutes(r, db, log, blacklist)
 	routes_supplier.RegisterSupplierCategoryRoutes(r, db, log, blacklist)
 	routes_supplier.RegisterSupplierCategoryRelationRoutes(r, db, log, blacklist)
 
