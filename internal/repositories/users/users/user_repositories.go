@@ -77,7 +77,7 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 	r.logger.Info(ctx, ref+logger.LogGetInit, nil)
 
 	const query = `
-		SELECT id, username, email, password_hash, status, created_at, updated_at
+		SELECT id, username, email, password_hash, status, version, created_at, updated_at
 		FROM users
 	`
 
@@ -97,6 +97,7 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 			&user.Email,
 			&user.Password,
 			&user.Status,
+			&user.Version,
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		); err != nil {

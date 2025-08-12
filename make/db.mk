@@ -1,4 +1,4 @@
-.PHONY: db db_test stop_db clean_db
+.PHONY: db db_test stop_db clean_db migrate_up	
 
 db:
 	@echo "Subindo o banco de dados com Docker..."
@@ -16,10 +16,14 @@ clean_db:
 	@echo "Limpando containers e volumes..."
 	@docker-compose down --volumes
 
-migrate_up:
-	@echo "Aplicando migrações..."
-	@migrate -database ${DB_CONN_URL} -path db/migrations up
+migrate_up: migrate_up_user migrate_up_supplier migrate_up_client migrate_up_contact migrate_up_product migrate_up_address
+	@echo "Todas as migrações foram aplicadas com sucesso."
 
-migrate_down:
-	@echo "Revertendo migrações..."
-	@migrate -database ${DB_CONN_URL} -path db/migrations down
+migrate_down: migrate_down_user migrate_down_supplier migrate_down_client migrate_down_contact migrate_down_product migrate_down_address
+	@echo "Todas as migrações foram aplicadas com sucesso."
+
+
+
+
+
+

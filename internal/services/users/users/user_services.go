@@ -108,19 +108,26 @@ func (s *userService) GetAll(ctx context.Context) ([]*models.User, error) {
 
 func (s *userService) GetByID(ctx context.Context, uid int64) (*models.User, error) {
 	ref := "[userService - GetByID] - "
-	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"user_id": uid,
 	})
 
+	if uid <= 0 {
+		s.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"product_id": uid,
+		})
+		return nil, errors.New("ID inválido")
+	}
+
 	user, err := s.repo_user.GetByID(ctx, uid)
 	if err != nil {
-		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": uid,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrGetUser, err)
 	}
 
-	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id":  user.UID,
 		"username": user.Username,
 		"email":    user.Email,
@@ -131,26 +138,26 @@ func (s *userService) GetByID(ctx context.Context, uid int64) (*models.User, err
 
 func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, error) {
 	ref := "[userService - GetVersionByID] - "
-	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"user_id": uid,
 	})
 
 	version, err := s.repo_user.GetVersionByID(ctx, uid)
 	if err != nil {
 		if errors.Is(err, repo.ErrUserNotFound) {
-			s.logger.Error(ctx, err, ref+logger.LogNotFound, map[string]interface{}{
+			s.logger.Error(ctx, err, ref+logger.LogNotFound, map[string]any{
 				"user_id": uid,
 			})
 			return 0, repo.ErrUserNotFound
 		}
 
-		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": uid,
 		})
 		return 0, fmt.Errorf("%w: %v", ErrInvalidVersion, err)
 	}
 
-	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id": uid,
 		"version": version,
 	})
@@ -160,19 +167,19 @@ func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, err
 
 func (s *userService) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	ref := "[userService - GetByEmail] - "
-	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"email": email,
 	})
 
 	user, err := s.repo_user.GetByEmail(ctx, email)
 	if err != nil {
-		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"email": email,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrGetUser, err)
 	}
 
-	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id":  user.UID,
 		"username": user.Username,
 		"email":    user.Email,
@@ -183,19 +190,19 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*models.Use
 
 func (s *userService) GetByName(ctx context.Context, name string) ([]*models.User, error) {
 	ref := "[userService - GetByName] - "
-	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"username_partial": name,
 	})
 
 	users, err := s.repo_user.GetByName(ctx, name)
 	if err != nil {
-		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"username_partial": name,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrGetUser, err)
 	}
 
-	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"count": len(users),
 	})
 
@@ -205,7 +212,7 @@ func (s *userService) GetByName(ctx context.Context, name string) ([]*models.Use
 func (s *userService) Update(ctx context.Context, user *models.User) (*models.User, error) {
 	ref := "[userService - Update] - "
 
-	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
 		"user_id":  user.UID,
 		"email":    user.Email,
 		"version":  user.Version,
@@ -213,14 +220,14 @@ func (s *userService) Update(ctx context.Context, user *models.User) (*models.Us
 	})
 
 	if !utils_validators.IsValidEmail(user.Email) {
-		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"email": user.Email,
 		})
 		return nil, ErrInvalidEmail
 	}
 
 	if user.Version <= 0 {
-		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]interface{}{
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"user_id": user.UID,
 			"version": user.Version,
 		})
@@ -231,27 +238,27 @@ func (s *userService) Update(ctx context.Context, user *models.User) (*models.Us
 	if err != nil {
 		switch {
 		case errors.Is(err, repo.ErrUserNotFound):
-			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]interface{}{
+			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id": user.UID,
 			})
 			return nil, repo.ErrUserNotFound
 
 		case errors.Is(err, repo.ErrVersionConflict):
-			s.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]interface{}{
+			s.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"user_id": user.UID,
 				"version": user.Version,
 			})
 			return nil, repo.ErrVersionConflict
 
 		default:
-			s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]interface{}{
+			s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 				"user_id": user.UID,
 			})
 			return nil, fmt.Errorf("%w: %v", ErrUpdateUser, err)
 		}
 	}
 
-	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
 		"user_id":  updatedUser.UID,
 		"email":    updatedUser.Email,
 		"username": updatedUser.Username,
@@ -263,31 +270,20 @@ func (s *userService) Update(ctx context.Context, user *models.User) (*models.Us
 
 func (s *userService) Disable(ctx context.Context, uid int64) error {
 	ref := "[userService - Disable] - "
-	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+	s.logger.Info(ctx, ref+logger.LogDisableInit, map[string]any{
 		"user_id": uid,
 	})
 
-	user, err := s.repo_user.GetByID(ctx, uid)
+	err := s.repo_user.Disable(ctx, uid)
 	if err != nil {
-		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"user_id": uid,
-		})
-		return fmt.Errorf("%w: %v", ErrGetUser, err)
-	}
-
-	user.Status = false
-
-	_, err = s.repo_user.Update(ctx, user)
-	if err != nil {
-		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+		s.logger.Error(ctx, err, ref+logger.LogDisableError, map[string]any{
 			"user_id": uid,
 		})
 		return fmt.Errorf("%w: %v", ErrDisableUser, err)
 	}
 
-	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+	s.logger.Info(ctx, ref+logger.LogDisableSuccess, map[string]any{
 		"user_id": uid,
-		"status":  user.Status,
 	})
 
 	return nil
@@ -295,31 +291,30 @@ func (s *userService) Disable(ctx context.Context, uid int64) error {
 
 func (s *userService) Enable(ctx context.Context, uid int64) error {
 	ref := "[userService - Enable] - "
-	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+
+	s.logger.Info(ctx, ref+logger.LogEnableInit, map[string]any{
 		"user_id": uid,
 	})
 
-	user, err := s.repo_user.GetByID(ctx, uid)
+	err := s.repo_user.Enable(ctx, uid)
 	if err != nil {
-		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"user_id": uid,
-		})
-		return fmt.Errorf("%w: %v", ErrGetUser, err)
+		switch {
+		case errors.Is(err, repo.ErrUserNotFound):
+			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"user_id": uid,
+			})
+			return err
+		default:
+			s.logger.Error(ctx, err, ref+logger.LogEnableError, map[string]any{
+				"user_id": uid,
+			})
+			return err
+		}
 	}
 
-	user.Status = true
-
-	_, err = s.repo_user.Update(ctx, user)
-	if err != nil {
-		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-			"user_id": uid,
-		})
-		return fmt.Errorf("%w: %v", ErrEnableUser, err)
-	}
-
-	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+	s.logger.Info(ctx, ref+logger.LogEnableSuccess, map[string]any{
 		"user_id": uid,
-		"status":  user.Status,
+		"status":  true,
 	})
 
 	return nil
@@ -328,19 +323,19 @@ func (s *userService) Enable(ctx context.Context, uid int64) error {
 func (s *userService) Delete(ctx context.Context, uid int64) error {
 	ref := "[userService - Delete] - "
 
-	s.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
 		"user_id": uid,
 	})
 
 	err := s.repo_user.Delete(ctx, uid)
 	if err != nil {
-		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]interface{}{
+		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"user_id": uid,
 		})
 		return fmt.Errorf("%w: %v", ErrDeleteUser, err)
 	}
 
-	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]interface{}{
+	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
 		"user_id": uid,
 	})
 

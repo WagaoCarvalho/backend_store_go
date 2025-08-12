@@ -1,1 +1,0 @@
-DROP TABLE IF EXISTS purchase_product_relations;

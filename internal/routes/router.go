@@ -12,6 +12,7 @@ import (
 	recover "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/recover"
 	request "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/request"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/db_postgres"
+	routes_product "github.com/WagaoCarvalho/backend_store_go/internal/routes/products"
 	routes_supplier "github.com/WagaoCarvalho/backend_store_go/internal/routes/suppliers"
 	routes_user "github.com/WagaoCarvalho/backend_store_go/internal/routes/users"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
@@ -50,7 +51,13 @@ func NewRouter(log *logger.LoggerAdapter) *mux.Router {
 	routes_user.RegisterUserCategoryRoutes(r, db, log, blacklist)
 	routes_user.RegisterUserCategoryRelationRoutes(r, db, log, blacklist)
 
+	//Products
+	routes_product.RegisterProductRoutes(r, db, log, blacklist)
+
+	//Adressess
 	RegisterAddressRoutes(r, db, log, blacklist)
+
+	//Contacts
 	RegisterContactRoutes(r, db, log, blacklist)
 
 	return r

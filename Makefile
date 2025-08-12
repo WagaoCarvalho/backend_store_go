@@ -1,22 +1,24 @@
-# Carrega variáveis do .env
-include .env
-export $(shell sed 's/=.*//' .env)
+ifneq (,$(wildcard .env))
+  include .env
+  export
+endif
+
 
 # Inclui os módulos
 include make/db.mk
+include make/server.mk
+include make/migrate_reset.mk
 include make/migrate_users.mk
 include make/migrate_clients.mk
 include make/migrate_suppliers.mk
 include make/migrate_addresses.mk
 include make/migrate_contacts.mk
 include make/migrate_products.mk
-include make/migrate_services.mk
-include make/migrate_sales.mk
-include make/migrate_purchases.mk
-include make/migrate_misc.mk
 
-.PHONY: server db db_test stop_db clean_db migrate_up migrate_down
-
-server:
-	@echo "Iniciando servidor Go..."
-	@go run cmd/http/*.go
+.PHONY: print-env
+print-env:
+	@echo DB_HOST=$(DB_HOST)
+	@echo DB_PORT=$(DB_PORT)
+	@echo DB_USER=$(DB_USER)
+	@echo DB_PASSWORD=$(DB_PASSWORD)
+	@echo DB_NAME=$(DB_NAME)

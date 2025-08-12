@@ -78,6 +78,8 @@ const (
 	LogRollbackError                = "erro ao fazer rollback"
 	LogCommitError                  = "erro ao commitar transação"
 	LogRollbackErrorAfterCommitFail = "erro ao fazer rollback após commit falhar"
+	LogQueryError                   = "erro ao executar query"
+	LogScanError                    = "erro ao escanear resultado"
 
 	// Utilitários
 	LogValidateError  = "validação falhou"

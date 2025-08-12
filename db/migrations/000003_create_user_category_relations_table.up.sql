@@ -1,4 +1,4 @@
-CREATE TABLE user_category_relations (
+CREATE TABLE IF NOT EXISTS user_category_relations (
     user_id INTEGER NOT NULL,
     category_id INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),

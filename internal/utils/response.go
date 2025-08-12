@@ -28,8 +28,7 @@ func ErrorResponse(w http.ResponseWriter, err error, statusCode int) {
 
 	response := DefaultResponse{
 		Status:  statusCode,
-		Message: message, // <- Correção aqui
-		Data:    nil,
+		Message: message,
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {

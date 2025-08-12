@@ -3,338 +3,603 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/product"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	models "github.com/WagaoCarvalho/backend_store_go/internal/models/product"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
+	repo_mock "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
-type MockProductRepository struct {
-	mock.Mock
+func newTestLogger() *logger.LoggerAdapter {
+	logrusLogger := logrus.New()
+	logrusLogger.SetLevel(logrus.FatalLevel) // Silencia logs durante testes
+	return logger.NewLoggerAdapter(logrusLogger)
 }
 
-func (m *MockProductRepository) GetAll(ctx context.Context) ([]models.Product, error) {
-	args := m.Called(ctx)
-	return args.Get(0).([]models.Product), args.Error(1)
-}
-
-func (m *MockProductRepository) GetById(ctx context.Context, id int64) (models.Product, error) {
-	args := m.Called(ctx, id)
-	return args.Get(0).(models.Product), args.Error(1)
-}
-
-func (m *MockProductRepository) GetByName(ctx context.Context, name string) ([]models.Product, error) {
-	args := m.Called(ctx, name)
-	return args.Get(0).([]models.Product), args.Error(1)
-}
-
-func (m *MockProductRepository) GetByManufacturer(ctx context.Context, manufacturer string) ([]models.Product, error) {
-	args := m.Called(ctx, manufacturer)
-	return args.Get(0).([]models.Product), args.Error(1)
-}
-
-func (m *MockProductRepository) Create(ctx context.Context, product models.Product) (models.Product, error) {
-	args := m.Called(ctx, product)
-	return args.Get(0).(models.Product), args.Error(1)
-}
-
-func (m *MockProductRepository) Update(ctx context.Context, product models.Product) (models.Product, error) {
-	args := m.Called(ctx, product)
-	return args.Get(0).(models.Product), args.Error(1)
-}
-
-func (m *MockProductRepository) DeleteById(ctx context.Context, id int64) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
-
-func (m *MockProductRepository) GetByCostPriceRange(ctx context.Context, min, max float64) ([]models.Product, error) {
-	args := m.Called(ctx, min, max)
-	return args.Get(0).([]models.Product), args.Error(1)
-}
-
-func (m *MockProductRepository) GetBySalePriceRange(ctx context.Context, min, max float64) ([]models.Product, error) {
-	args := m.Called(ctx, min, max)
-	return args.Get(0).([]models.Product), args.Error(1)
-}
-
-func (m *MockProductRepository) GetLowInStock(ctx context.Context, threshold int) ([]models.Product, error) {
-	args := m.Called(ctx, threshold)
-	return args.Get(0).([]models.Product), args.Error(1)
-}
-
-func TestGetProductById_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	svc := NewProductService(mockRepo)
+func TestProductService_Create(t *testing.T) {
 	ctx := context.Background()
 
-	expectedProduct := models.Product{ID: 1, ProductName: "Produto A"}
-	mockRepo.On("GetById", ctx, int64(1)).Return(expectedProduct, nil)
-
-	product, err := svc.GetById(ctx, 1)
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedProduct, product)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestGetProductsByName_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	svc := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	expectedProducts := []models.Product{
-		{ID: 1, ProductName: "Produto A"},
-		{ID: 2, ProductName: "Produto AA"},
-	}
-	mockRepo.On("GetByName", ctx, "Produto").Return(expectedProducts, nil)
-
-	products, err := svc.GetByName(ctx, "Produto")
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedProducts, products)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestGetProductsByName_Error(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	svc := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	mockRepo.On("GetByName", ctx, "Produto").Return([]models.Product{}, errors.New("erro no banco de dados"))
-
-	_, err := svc.GetByName(ctx, "Produto")
-
-	assert.Error(t, err)
-	// Atualizado para "erro ao obter" para corresponder à implementação
-	assert.Equal(t, "erro ao obter produtos por nome", err.Error())
-	mockRepo.AssertExpectations(t)
-}
-
-func TestGetProductsByManufacturer_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	svc := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	expectedProducts := []models.Product{
-		{ID: 1, Manufacturer: "Fabricante A"},
-		{ID: 2, Manufacturer: "Fabricante A"},
-	}
-	mockRepo.On("GetByManufacturer", ctx, "Fabricante A").Return(expectedProducts, nil)
-
-	products, err := svc.GetByManufacturer(ctx, "Fabricante A")
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedProducts, products)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestUpdateProduct_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	svc := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	updatedProduct := models.Product{
-		ID:           1,
-		ProductName:  "Produto Atualizado",
-		Manufacturer: "Fabricante A",
-		CostPrice:    100.0,
-		SalePrice:    150.0,
+	// Produto válido base para o teste
+	validProduct := func() *models.Product {
+		return &models.Product{
+			ProductName:   "Produto Teste",
+			Manufacturer:  "Fabricante X",
+			SupplierID:    utils.Int64Ptr(1),
+			CostPrice:     10.0,
+			SalePrice:     15.0,
+			StockQuantity: 5,
+			Status:        true,
+		}
 	}
 
-	mockRepo.On("Update", ctx, updatedProduct).Return(updatedProduct, nil)
+	t.Run("sucesso", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
 
-	result, err := svc.Update(ctx, updatedProduct)
+		input := validProduct()
 
-	assert.NoError(t, err)
-	assert.Equal(t, updatedProduct, result)
-	mockRepo.AssertExpectations(t)
+		mockRepo.On("Create", ctx, input).Return(&models.Product{
+			ID:            1,
+			ProductName:   input.ProductName,
+			Manufacturer:  input.Manufacturer,
+			SupplierID:    input.SupplierID,
+			CostPrice:     input.CostPrice,
+			SalePrice:     input.SalePrice,
+			StockQuantity: input.StockQuantity,
+			Status:        input.Status,
+		}, nil).Once()
+
+		created, err := service.Create(ctx, input)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, created)
+		assert.Equal(t, int64(1), created.ID)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("produto inválido", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		input := &models.Product{} // faltam todos os campos obrigatórios
+
+		created, err := service.Create(ctx, input)
+
+		assert.Nil(t, created)
+		assert.Error(t, err)
+		assert.True(t, errors.Is(err, models.ErrInvalidProductName))
+		mockRepo.AssertNotCalled(t, "Create")
+	})
+
+	t.Run("erro no repositório", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		input := validProduct()
+
+		mockErr := errors.New("erro no repositório")
+		mockRepo.On("Create", ctx, input).Return(nil, mockErr).Once()
+
+		created, err := service.Create(ctx, input)
+
+		assert.Nil(t, created)
+		assert.EqualError(t, err, mockErr.Error())
+		mockRepo.AssertExpectations(t)
+	})
 }
 
-func TestUpdateProduct_Error(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	svc := NewProductService(mockRepo)
+func TestProductService_GetAll(t *testing.T) {
 	ctx := context.Background()
 
-	updatedProduct := models.Product{ID: 1}
-	mockRepo.On("Update", ctx, updatedProduct).Return(models.Product{}, errors.New("erro ao atualizar"))
+	t.Run("sucesso", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
 
-	_, err := svc.Update(ctx, updatedProduct)
+		limit := 10
+		offset := 0
 
-	assert.Error(t, err)
-	assert.Equal(t, "erro ao atualizar produto", err.Error())
-	mockRepo.AssertExpectations(t)
+		expectedProducts := []*models.Product{
+			{ID: 1, ProductName: "Produto 1"},
+			{ID: 2, ProductName: "Produto 2"},
+		}
+
+		mockRepo.
+			On("GetAll", ctx, limit, offset).
+			Return(expectedProducts, nil)
+
+		result, err := service.GetAll(ctx, limit, offset)
+
+		assert.NoError(t, err)
+		assert.Len(t, result, len(expectedProducts))
+		assert.Equal(t, expectedProducts, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro do repositório", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		limit := 10
+		offset := 0
+
+		mockErr := errors.New("erro ao buscar produtos")
+		mockRepo.
+			On("GetAll", ctx, limit, offset).
+			Return(nil, mockErr)
+
+		result, err := service.GetAll(ctx, limit, offset)
+
+		assert.Nil(t, result)
+		assert.EqualError(t, err, mockErr.Error())
+		mockRepo.AssertExpectations(t)
+	})
 }
 
-func TestDeleteProductById_Error(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	svc := NewProductService(mockRepo)
+func TestProductService_GetById(t *testing.T) {
 	ctx := context.Background()
 
-	mockRepo.On("DeleteById", ctx, int64(1)).Return(errors.New("erro ao deletar"))
+	t.Run("sucesso", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
 
-	err := svc.Delete(ctx, 1)
+		id := int64(1)
+		expectedProduct := &models.Product{
+			ID:          id,
+			ProductName: "Produto 1",
+		}
 
-	assert.Error(t, err)
-	assert.Equal(t, "erro ao deletar produto", err.Error())
-	mockRepo.AssertExpectations(t)
+		mockRepo.
+			On("GetById", ctx, id).
+			Return(expectedProduct, nil)
+
+		result, err := service.GetById(ctx, id)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, expectedProduct, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("id inválido", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		id := int64(0)
+
+		result, err := service.GetById(ctx, id)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "ID inválido")
+		mockRepo.AssertNotCalled(t, "GetById")
+	})
+
+	t.Run("erro do repositório", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		id := int64(99)
+		mockErr := errors.New("erro ao buscar produto")
+
+		mockRepo.
+			On("GetById", ctx, id).
+			Return(nil, mockErr)
+
+		result, err := service.GetById(ctx, id)
+
+		assert.Nil(t, result)
+		assert.EqualError(t, err, mockErr.Error())
+		mockRepo.AssertExpectations(t)
+	})
 }
 
-func TestGetProductsByCostPriceRange_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	svc := NewProductService(mockRepo)
+func TestProductService_GetByName(t *testing.T) {
 	ctx := context.Background()
 
-	expectedProducts := []models.Product{
-		{ID: 1, CostPrice: 50.0},
-		{ID: 2, CostPrice: 80.0},
+	t.Run("sucesso", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		name := "Produto X"
+		expectedProducts := []*models.Product{
+			{ID: 1, ProductName: name},
+			{ID: 2, ProductName: name},
+		}
+
+		mockRepo.
+			On("GetByName", ctx, name).
+			Return(expectedProducts, nil)
+
+		result, err := service.GetByName(ctx, name)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Len(t, result, 2)
+		assert.Equal(t, expectedProducts, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("nome inválido (string vazia)", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		name := "   "
+
+		result, err := service.GetByName(ctx, name)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "nome inválido")
+		mockRepo.AssertNotCalled(t, "GetByName")
+	})
+
+	t.Run("erro no repositório", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		name := "Produto X"
+		mockErr := errors.New("erro no banco")
+
+		mockRepo.
+			On("GetByName", ctx, name).
+			Return(nil, mockErr)
+
+		result, err := service.GetByName(ctx, name)
+
+		assert.Nil(t, result)
+		assert.EqualError(t, err, mockErr.Error())
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestProductService_GetByManufacturer(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("sucesso", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		manufacturer := "Fabricante X"
+		expectedProducts := []*models.Product{
+			{ID: 1, Manufacturer: manufacturer},
+			{ID: 2, Manufacturer: manufacturer},
+		}
+
+		mockRepo.
+			On("GetByManufacturer", ctx, manufacturer).
+			Return(expectedProducts, nil)
+
+		result, err := service.GetByManufacturer(ctx, manufacturer)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Len(t, result, 2)
+		assert.Equal(t, expectedProducts, result)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("fabricante inválido (string vazia)", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		manufacturer := "   "
+
+		result, err := service.GetByManufacturer(ctx, manufacturer)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "fabricante inválido")
+		mockRepo.AssertNotCalled(t, "GetByManufacturer")
+	})
+
+	t.Run("erro no repositório", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		manufacturer := "Fabricante X"
+		mockErr := errors.New("erro no banco")
+
+		mockRepo.
+			On("GetByManufacturer", ctx, manufacturer).
+			Return(nil, mockErr)
+
+		result, err := service.GetByManufacturer(ctx, manufacturer)
+
+		assert.Nil(t, result)
+		assert.EqualError(t, err, mockErr.Error())
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestProductService_Update(t *testing.T) {
+	ctx := context.Background()
+
+	validProduct := func() *models.Product {
+		return &models.Product{
+			ID:            1,
+			ProductName:   "Produto Atualizado",
+			Manufacturer:  "Fabricante X",
+			SupplierID:    utils.Int64Ptr(1),
+			CostPrice:     10.0,
+			SalePrice:     15.0,
+			StockQuantity: 5,
+			Status:        true,
+			Version:       1, // já inicializa versão aqui
+		}
 	}
-	mockRepo.On("GetByCostPriceRange", ctx, 40.0, 100.0).Return(expectedProducts, nil)
 
-	products, err := svc.GetByCostPriceRange(ctx, 40.0, 100.0)
+	t.Run("sucesso", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
 
-	assert.NoError(t, err)
-	assert.Equal(t, expectedProducts, products)
-	mockRepo.AssertExpectations(t)
+		input := validProduct()
+
+		mockRepo.
+			On("Update", ctx, input).
+			Return(input, nil).Once()
+
+		updated, err := service.Update(ctx, input)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, updated)
+		assert.Equal(t, int64(1), updated.ID)
+		assert.Equal(t, "Produto Atualizado", updated.ProductName)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro de validação: nome inválido", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		input := validProduct()
+		input.ProductName = "" // invalida nome
+
+		updated, err := service.Update(ctx, input)
+
+		assert.Nil(t, updated)
+		assert.ErrorIs(t, err, ErrInvalidProduct)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("erro de validação: versão inválida", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		input := validProduct()
+		input.Version = 0 // versão inválida
+
+		updated, err := service.Update(ctx, input)
+
+		assert.Nil(t, updated)
+		assert.ErrorIs(t, err, ErrInvalidVersion)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("erro do repositório: produto não encontrado", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		input := validProduct()
+
+		mockRepo.
+			On("Update", ctx, input).
+			Return(nil, repo.ErrProductNotFound).Once()
+
+		updated, err := service.Update(ctx, input)
+
+		assert.Nil(t, updated)
+		assert.ErrorIs(t, err, repo.ErrProductNotFound)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro do repositório: conflito de versão", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		input := validProduct()
+
+		mockRepo.
+			On("Update", ctx, input).
+			Return(nil, repo.ErrVersionConflict).Once()
+
+		updated, err := service.Update(ctx, input)
+
+		assert.Nil(t, updated)
+		assert.ErrorIs(t, err, repo.ErrVersionConflict)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro do repositório genérico", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		input := validProduct()
+		mockErr := errors.New("erro no repositório")
+
+		mockRepo.
+			On("Update", ctx, input).
+			Return(nil, mockErr).Once()
+
+		updated, err := service.Update(ctx, input)
+
+		assert.Nil(t, updated)
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "erro ao atualizar produto")
+		mockRepo.AssertExpectations(t)
+	})
 }
 
-func TestGetProductsByCostPriceRange_Error(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	svc := NewProductService(mockRepo)
-	ctx := context.Background()
+func TestProductService_Disable(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
 
-	mockRepo.On("GetByCostPriceRange", ctx, 40.0, 100.0).Return([]models.Product{}, errors.New("erro no banco"))
-
-	_, err := svc.GetByCostPriceRange(ctx, 40.0, 100.0)
-
-	assert.Error(t, err)
-	assert.Equal(t, "erro ao obter produtos por faixa de preço de custo", err.Error())
-	mockRepo.AssertExpectations(t)
-}
-
-func TestGetProductsBySalePriceRange_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	svc := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	expectedProducts := []models.Product{
-		{ID: 3, SalePrice: 300.0},
-		{ID: 4, SalePrice: 400.0},
-	}
-	mockRepo.On("GetBySalePriceRange", ctx, 250.0, 450.0).Return(expectedProducts, nil)
-
-	products, err := svc.GetBySalePriceRange(ctx, 250.0, 450.0)
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedProducts, products)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestGetProductsBySalePriceRange_Error(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	svc := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	mockRepo.On("GetBySalePriceRange", ctx, 250.0, 450.0).Return([]models.Product{}, errors.New("erro no banco"))
-
-	_, err := svc.GetBySalePriceRange(ctx, 250.0, 450.0)
-
-	assert.Error(t, err)
-	assert.Equal(t, "erro ao obter produtos por faixa de preço de venda", err.Error())
-	mockRepo.AssertExpectations(t)
-}
-func TestGetProductsLowInStock_Success(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	svc := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	expectedProducts := []models.Product{
-		{ID: 1, StockQuantity: 5},
-		{ID: 2, StockQuantity: 10},
-	}
-	mockRepo.On("GetLowInStock", ctx, 10).Return(expectedProducts, nil)
-
-	products, err := svc.GetLowInStock(ctx, 10)
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedProducts, products)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestGetProductsLowInStock_Error(t *testing.T) {
-	mockRepo := new(MockProductRepository)
-	svc := NewProductService(mockRepo)
-	ctx := context.Background()
-
-	mockRepo.On("GetLowInStock", ctx, 10).Return([]models.Product{}, errors.New("erro no banco"))
-
-	_, err := svc.GetLowInStock(ctx, 10)
-
-	assert.Error(t, err)
-	assert.Equal(t, "erro ao buscar produtos com estoque baixo", err.Error())
-	mockRepo.AssertExpectations(t)
-}
-
-func TestCreateProduct_ValidationError(t *testing.T) {
-	tests := []struct {
-		name          string
-		product       models.Product
-		expectedError string
-	}{
-		{
-			name: "Nome vazio",
-			product: models.Product{
-				ProductName:  "",
-				Manufacturer: "Fabricante",
-				CostPrice:    10.0,
-				SalePrice:    15.0,
-			},
-			expectedError: "nome do produto é obrigatório",
-		},
-		{
-			name: "Preço de custo negativo",
-			product: models.Product{
-				ProductName:  "Produto",
-				Manufacturer: "Fabricante",
-				CostPrice:    -10.0,
-				SalePrice:    15.0,
-			},
-			expectedError: "preço de custo deve ser positivo",
-		},
-		{
-			name: "Fabricante vazio",
-			product: models.Product{
-				ProductName:  "Produto",
-				Manufacturer: "",
-				CostPrice:    10.0,
-				SalePrice:    15.0,
-			},
-			expectedError: "fabricante é obrigatório",
-		},
-		{
-			name: "Preço de venda inválido",
-			product: models.Product{
-				ProductName:  "Produto",
-				Manufacturer: "Fabricante",
-				CostPrice:    10.0,
-				SalePrice:    5.0,
-			},
-			expectedError: "preço de venda deve ser maior que o preço de custo",
-		},
+	setup := func() (*repo.ProductRepositoryMock, ProductService) {
+		mockRepo := new(repo.ProductRepositoryMock)
+		service := NewProductService(mockRepo, logger)
+		return mockRepo, service
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockRepo := new(MockProductRepository)
-			svc := NewProductService(mockRepo)
-			ctx := context.Background()
+	t.Run("Deve desabilitar produto com sucesso", func(t *testing.T) {
+		mockRepo, service := setup()
 
-			_, err := svc.Create(ctx, tt.product)
+		mockRepo.On("Disable", mock.Anything, int64(1)).Return(nil).Once()
 
-			assert.Error(t, err)
-			assert.Contains(t, err.Error(), tt.expectedError)
-			mockRepo.AssertNotCalled(t, "Create")
-		})
+		err := service.Disable(context.Background(), 1)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar erro ao desabilitar produto", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		mockRepo.On("Disable", mock.Anything, int64(2)).Return(fmt.Errorf("erro banco")).Once()
+
+		err := service.Disable(context.Background(), 2)
+
+		assert.ErrorContains(t, err, "erro ao desativar produto")
+		assert.ErrorContains(t, err, "erro banco")
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestProductService_Enable(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
+
+	setup := func() (*repo.ProductRepositoryMock, ProductService) {
+		mockRepo := new(repo.ProductRepositoryMock)
+		service := NewProductService(mockRepo, logger)
+		return mockRepo, service
 	}
+
+	t.Run("Deve habilitar produto com sucesso", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		mockRepo.On("Enable", mock.Anything, int64(1)).Return(nil).Once()
+
+		err := service.Enable(context.Background(), 1)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar erro ao habilitar produto", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		mockRepo.On("Enable", mock.Anything, int64(2)).Return(fmt.Errorf("erro banco")).Once()
+
+		err := service.Enable(context.Background(), 2)
+
+		assert.ErrorContains(t, err, "erro ao ativar produto")
+		assert.ErrorContains(t, err, "erro banco")
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestProductService_Delete(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("sucesso", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		id := int64(1)
+
+		mockRepo.On("Delete", ctx, id).Return(nil)
+
+		err := service.Delete(ctx, id)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro do repositório", func(t *testing.T) {
+		mockRepo := new(repo_mock.ProductRepositoryMock)
+		log := newTestLogger()
+		service := NewProductService(mockRepo, log)
+
+		id := int64(1)
+		mockErr := errors.New("erro no repositório")
+
+		mockRepo.On("Delete", ctx, id).Return(mockErr)
+
+		err := service.Delete(ctx, id)
+
+		assert.Error(t, err)
+		assert.EqualError(t, err, mockErr.Error())
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestProductService_GetVersionByID(t *testing.T) {
+	t.Parallel()
+
+	mockRepo := new(repo_mock.ProductRepositoryMock)
+	log := newTestLogger()
+	service := NewProductService(mockRepo, log)
+
+	t.Run("Success", func(t *testing.T) {
+		t.Parallel()
+
+		mockRepo.On("GetVersionByID", mock.Anything, int64(1)).Return(int64(5), nil)
+
+		version, err := service.GetVersionByID(context.Background(), 1)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(5), version)
+
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("ProductNotFound", func(t *testing.T) {
+		t.Parallel()
+
+		mockRepo.On("GetVersionByID", mock.Anything, int64(2)).Return(int64(0), repo.ErrProductNotFound)
+
+		version, err := service.GetVersionByID(context.Background(), 2)
+		assert.ErrorIs(t, err, repo.ErrProductNotFound)
+		assert.Equal(t, int64(0), version)
+
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("RepositoryError", func(t *testing.T) {
+		t.Parallel()
+
+		mockRepo.On("GetVersionByID", mock.Anything, int64(3)).Return(int64(0), errors.New("db failure"))
+
+		version, err := service.GetVersionByID(context.Background(), 3)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "db failure")
+		assert.True(t, errors.Is(err, ErrInvalidVersion))
+		assert.Equal(t, int64(0), version)
+
+		mockRepo.AssertExpectations(t)
+	})
 }

@@ -3,131 +3,324 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/models/product"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
-)
-
-var (
-	ErrProductFetch               = errors.New("erro ao obter produtos")
-	ErrProductFetchByID           = errors.New("erro ao obter produto")
-	ErrProductFetchByName         = errors.New("erro ao obter produtos por nome")
-	ErrProductFetchByManufacturer = errors.New("erro ao obter produtos por fabricante")
-	ErrProductCreateNameRequired  = errors.New("validação falhou: nome do produto é obrigatório")
-	ErrProductCreateCostPrice     = errors.New("validação falhou: preço de custo deve ser positivo")
-	ErrProductCreateManufacturer  = errors.New("validação falhou: fabricante é obrigatório")
-	ErrProductCreatePriceLogic    = errors.New("validação falhou: preço de venda deve ser maior que o preço de custo")
-	ErrProductUpdate              = errors.New("erro ao atualizar produto")
-	ErrProductDelete              = errors.New("erro ao deletar produto")
-	ErrProductFetchByCostPrice    = errors.New("erro ao obter produtos por faixa de preço de custo")
-	ErrProductFetchBySalePrice    = errors.New("erro ao obter produtos por faixa de preço de venda")
-	ErrProductLowStock            = errors.New("erro ao buscar produtos com estoque baixo")
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
+	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type ProductService interface {
-	GetAll(ctx context.Context) ([]models.Product, error)
-	GetById(ctx context.Context, id int64) (models.Product, error)
-	GetByName(ctx context.Context, name string) ([]models.Product, error)
-	GetByManufacturer(ctx context.Context, manufacturer string) ([]models.Product, error)
-	Create(ctx context.Context, product models.Product) (models.Product, error)
-	Update(ctx context.Context, product models.Product) (models.Product, error)
+	Create(ctx context.Context, product *models.Product) (*models.Product, error)
+	GetAll(ctx context.Context, limit, offset int) ([]*models.Product, error)
+	GetById(ctx context.Context, id int64) (*models.Product, error)
+	GetByName(ctx context.Context, name string) ([]*models.Product, error)
+	GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error)
+	GetVersionByID(ctx context.Context, uid int64) (int64, error)
+	Disable(ctx context.Context, uid int64) error
+	Enable(ctx context.Context, uid int64) error
+	Update(ctx context.Context, product *models.Product) (*models.Product, error)
 	Delete(ctx context.Context, id int64) error
-	GetBySalePriceRange(ctx context.Context, min, max float64) ([]models.Product, error)
-	GetByCostPriceRange(ctx context.Context, min, max float64) ([]models.Product, error)
-	GetLowInStock(ctx context.Context, threshold int) ([]models.Product, error)
 }
 
 type productService struct {
-	productRepo repositories.ProductRepository
+	repo   repo.ProductRepository
+	logger logger.LoggerAdapterInterface
 }
 
-func NewProductService(productRepo repositories.ProductRepository) ProductService {
-	return &productService{productRepo: productRepo}
-}
-
-func (s *productService) GetAll(ctx context.Context) ([]models.Product, error) {
-	products, err := s.productRepo.GetAll(ctx)
-	if err != nil {
-		return nil, ErrProductFetch
+func NewProductService(repo repo.ProductRepository, logger logger.LoggerAdapterInterface) ProductService {
+	return &productService{
+		repo:   repo,
+		logger: logger,
 	}
+}
+
+func (s *productService) Create(ctx context.Context, product *models.Product) (*models.Product, error) {
+	ref := "[productService - Create] - "
+	s.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
+		"name":         product.ProductName,
+		"manufacturer": product.Manufacturer,
+		"supplier_id":  utils.Int64OrNil(product.SupplierID),
+	})
+
+	if err := product.Validate(); err != nil {
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
+			"erro": err.Error(),
+		})
+		return nil, err
+	}
+
+	createdProduct, err := s.repo.Create(ctx, product)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
+			"name": product.ProductName,
+		})
+		return nil, err
+	}
+
+	s.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
+		"product_id": createdProduct.ID,
+	})
+
+	return createdProduct, nil
+}
+
+func (s *productService) GetAll(ctx context.Context, limit, offset int) ([]*models.Product, error) {
+	ref := "[productService - GetAll] - "
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
+		"limit":  limit,
+		"offset": offset,
+	})
+
+	products, err := s.repo.GetAll(ctx, limit, offset)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"limit":  limit,
+			"offset": offset,
+		})
+		return nil, err
+	}
+
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"total_encontrados": len(products),
+	})
+
 	return products, nil
 }
 
-func (s *productService) GetById(ctx context.Context, id int64) (models.Product, error) {
-	product, err := s.productRepo.GetById(ctx, id)
-	if err != nil {
-		return models.Product{}, ErrProductFetchByID
+func (s *productService) GetById(ctx context.Context, id int64) (*models.Product, error) {
+	ref := "[productService - GetById] - "
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
+		"product_id": id,
+	})
+
+	if id <= 0 {
+		s.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"product_id": id,
+		})
+		return nil, errors.New("ID inválido")
 	}
+
+	product, err := s.repo.GetById(ctx, id)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"product_id": id,
+		})
+		return nil, err
+	}
+
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"product_id": product.ID,
+	})
+
 	return product, nil
 }
 
-func (s *productService) GetByName(ctx context.Context, name string) ([]models.Product, error) {
-	products, err := s.productRepo.GetByName(ctx, name)
-	if err != nil {
-		return nil, ErrProductFetchByName
+func (s *productService) GetByName(ctx context.Context, name string) ([]*models.Product, error) {
+	ref := "[productService - GetByName] - "
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
+		"name": name,
+	})
+
+	if strings.TrimSpace(name) == "" {
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
+			"name": name,
+		})
+		return nil, errors.New("nome inválido")
 	}
+
+	products, err := s.repo.GetByName(ctx, name)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"name": name,
+		})
+		return nil, err
+	}
+
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"results": len(products),
+	})
+
 	return products, nil
 }
 
-func (s *productService) GetByManufacturer(ctx context.Context, manufacturer string) ([]models.Product, error) {
-	products, err := s.productRepo.GetByManufacturer(ctx, manufacturer)
-	if err != nil {
-		return nil, ErrProductFetchByManufacturer
+func (s *productService) GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error) {
+	ref := "[productService - GetByManufacturer] - "
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
+		"manufacturer": manufacturer,
+	})
+
+	if strings.TrimSpace(manufacturer) == "" {
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
+			"manufacturer": manufacturer,
+		})
+		return nil, errors.New("fabricante inválido")
 	}
+
+	products, err := s.repo.GetByManufacturer(ctx, manufacturer)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"manufacturer": manufacturer,
+		})
+		return nil, err
+	}
+
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"results": len(products),
+	})
+
 	return products, nil
 }
 
-func (s *productService) Create(ctx context.Context, product models.Product) (models.Product, error) {
-	if product.ProductName == "" {
-		return models.Product{}, ErrProductCreateNameRequired
+func (s *productService) GetVersionByID(ctx context.Context, pid int64) (int64, error) {
+	ref := "[productService - GetVersionByID] - "
+	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
+		"product_id": pid,
+	})
+
+	version, err := s.repo.GetVersionByID(ctx, pid)
+	if err != nil {
+		if errors.Is(err, repo.ErrProductNotFound) {
+			s.logger.Error(ctx, err, ref+logger.LogNotFound, map[string]any{
+				"product_id": pid,
+			})
+			return 0, repo.ErrProductNotFound
+		}
+
+		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"product_id": pid,
+		})
+		return 0, fmt.Errorf("%w: %v", ErrInvalidVersion, err)
 	}
-	if product.CostPrice <= 0 {
-		return models.Product{}, ErrProductCreateCostPrice
-	}
-	if product.Manufacturer == "" {
-		return models.Product{}, ErrProductCreateManufacturer
-	}
-	if product.SalePrice <= product.CostPrice {
-		return models.Product{}, ErrProductCreatePriceLogic
-	}
-	return s.productRepo.Create(ctx, product)
+
+	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"product_id": pid,
+		"version":    version,
+	})
+
+	return version, nil
 }
 
-func (s *productService) Update(ctx context.Context, product models.Product) (models.Product, error) {
-	updatedProduct, err := s.productRepo.Update(ctx, product)
+func (s *productService) Disable(ctx context.Context, uid int64) error {
+	ref := "[productService - Disable] - "
+	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"product_id": uid,
+	})
+
+	err := s.repo.Disable(ctx, uid)
 	if err != nil {
-		return models.Product{}, ErrProductUpdate
+		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"product_id": uid,
+		})
+		return fmt.Errorf("%w: %v", ErrDisableProduct, err)
 	}
+
+	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id": uid,
+		"status":     false,
+	})
+
+	return nil
+}
+
+func (s *productService) Enable(ctx context.Context, uid int64) error {
+	ref := "[productService - Enable] - "
+	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"product_id": uid,
+	})
+
+	err := s.repo.Enable(ctx, uid)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"product_id": uid,
+		})
+		return fmt.Errorf("%w: %v", ErrEnableProduct, err)
+	}
+
+	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id": uid,
+		"status":     true,
+	})
+
+	return nil
+}
+
+func (s *productService) Update(ctx context.Context, product *models.Product) (*models.Product, error) {
+	ref := "[productService - Update] - "
+
+	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"product_id":   product.ID,
+		"product_name": product.ProductName,
+		"version":      product.Version,
+	})
+
+	if err := product.Validate(); err != nil {
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
+			"erro": err.Error(),
+		})
+		return nil, ErrInvalidProduct
+	}
+
+	if product.Version <= 0 {
+		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
+			"product_id": product.ID,
+			"version":    product.Version,
+		})
+		return nil, ErrInvalidVersion
+	}
+
+	updatedProduct, err := s.repo.Update(ctx, product)
+	if err != nil {
+		switch {
+		case errors.Is(err, repo.ErrProductNotFound):
+			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": product.ID,
+			})
+			return nil, repo.ErrProductNotFound
+
+		case errors.Is(err, repo.ErrVersionConflict):
+			s.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
+				"product_id": product.ID,
+				"version":    product.Version,
+			})
+			return nil, repo.ErrVersionConflict
+
+		default:
+			s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"product_id": product.ID,
+			})
+			return nil, fmt.Errorf("%w: %v", ErrProductUpdate, err)
+		}
+	}
+
+	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id":   updatedProduct.ID,
+		"product_name": updatedProduct.ProductName,
+		"version":      updatedProduct.Version,
+	})
+
 	return updatedProduct, nil
 }
 
 func (s *productService) Delete(ctx context.Context, id int64) error {
-	if err := s.productRepo.DeleteById(ctx, id); err != nil {
-		return ErrProductDelete
+	ref := "[productService - Delete] - "
+	s.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
+		"product_id": id,
+	})
+
+	err := s.repo.Delete(ctx, id)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
+			"product_id": id,
+		})
+		return err
 	}
+
+	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
+		"product_id": id,
+	})
+
 	return nil
-}
-
-func (s *productService) GetByCostPriceRange(ctx context.Context, min, max float64) ([]models.Product, error) {
-	products, err := s.productRepo.GetByCostPriceRange(ctx, min, max)
-	if err != nil {
-		return nil, ErrProductFetchByCostPrice
-	}
-	return products, nil
-}
-
-func (s *productService) GetBySalePriceRange(ctx context.Context, min, max float64) ([]models.Product, error) {
-	products, err := s.productRepo.GetBySalePriceRange(ctx, min, max)
-	if err != nil {
-		return nil, ErrProductFetchBySalePrice
-	}
-	return products, nil
-}
-
-func (s *productService) GetLowInStock(ctx context.Context, threshold int) ([]models.Product, error) {
-	products, err := s.productRepo.GetLowInStock(ctx, threshold)
-	if err != nil {
-		return nil, ErrProductLowStock
-	}
-	return products, nil
 }
