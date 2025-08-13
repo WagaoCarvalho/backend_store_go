@@ -1,12 +1,10 @@
-package handlers_test
+package handler
 
 import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/home"
 )
 
 type response struct {
@@ -17,8 +15,8 @@ func TestGetHome(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
 	rr := httptest.NewRecorder()
 
-	handler := http.HandlerFunc(handlers.GetHome)
-	handler.ServeHTTP(rr, req)
+	h := http.HandlerFunc(GetHome)
+	h.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusOK {
 		t.Errorf("Esperado status %d, mas recebeu %d", http.StatusOK, rr.Code)
