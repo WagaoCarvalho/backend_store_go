@@ -5,7 +5,7 @@ import (
 
 	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
-	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/product"
+	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/product"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	repo_product "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/products"

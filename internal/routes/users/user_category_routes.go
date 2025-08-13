@@ -5,7 +5,7 @@ import (
 
 	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
-	handler "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user/user_categories"
+	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user_categories"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_categories"

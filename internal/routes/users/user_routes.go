@@ -6,7 +6,7 @@ import (
 	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
-	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/user/user"
+	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/users"

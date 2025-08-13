@@ -7,8 +7,8 @@ import (
 	login "github.com/WagaoCarvalho/backend_store_go/internal/auth/login"
 	logout "github.com/WagaoCarvalho/backend_store_go/internal/auth/logout"
 	pass "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
-	login_handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/login"
-	logout_handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/logout"
+	login_handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/login"
+	logout_handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/logout"
 	user_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 

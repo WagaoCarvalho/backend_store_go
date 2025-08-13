@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	redis "github.com/WagaoCarvalho/backend_store_go/internal/auth/blacklist_redis"
-	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handlers/home"
+	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/home"
 	cors "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/cors"
 	logging "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/logging"
 	rate_limiter "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/rate_limiter"
