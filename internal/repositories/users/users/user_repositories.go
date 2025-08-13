@@ -77,7 +77,7 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 	r.logger.Info(ctx, ref+logger.LogGetInit, nil)
 
 	const query = `
-		SELECT id, username, email, password_hash, status, version, created_at, updated_at
+		SELECT id, username, email, status, created_at, updated_at
 		FROM users
 	`
 
@@ -95,9 +95,7 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 			&user.UID,
 			&user.Username,
 			&user.Email,
-			&user.Password,
 			&user.Status,
-			&user.Version,
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		); err != nil {
@@ -128,7 +126,7 @@ func (r *userRepository) GetByID(ctx context.Context, uid int64) (*models.User, 
 	user := &models.User{}
 
 	const query = `
-		SELECT id, username, email, password_hash, status, created_at, updated_at
+		SELECT id, username, email, status, created_at, updated_at
 		FROM users
 		WHERE id = $1
 	`
@@ -137,7 +135,6 @@ func (r *userRepository) GetByID(ctx context.Context, uid int64) (*models.User, 
 		&user.UID,
 		&user.Username,
 		&user.Email,
-		&user.Password,
 		&user.Status,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -203,7 +200,7 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.
 	})
 
 	const query = `
-		SELECT id, username, email, password_hash, status, created_at, updated_at
+		SELECT id, username, email, password_hash, status, version, created_at, updated_at
 		FROM users
 		WHERE email = $1
 	`
@@ -215,6 +212,7 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.
 		&user.Email,
 		&user.Password,
 		&user.Status,
+		&user.Version,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -248,7 +246,7 @@ func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.
 	})
 
 	const query = `
-		SELECT id, username, email, password_hash, status, created_at, updated_at
+		SELECT id, username, email, status, created_at, updated_at
 		FROM users
 		WHERE username ILIKE $1
 		ORDER BY username ASC
@@ -270,7 +268,6 @@ func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.
 			&user.UID,
 			&user.Username,
 			&user.Email,
-			&user.Password,
 			&user.Status,
 			&user.CreatedAt,
 			&user.UpdatedAt,
