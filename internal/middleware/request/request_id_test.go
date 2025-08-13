@@ -1,11 +1,11 @@
-package middlewares
+package middleware
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	context "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/context_utils"
+	context "github.com/WagaoCarvalho/backend_store_go/internal/middleware/context_utils"
 	"github.com/stretchr/testify/assert"
 )
 

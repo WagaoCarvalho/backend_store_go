@@ -1,9 +1,9 @@
-package middlewares
+package middleware
 
 import (
 	"net/http"
 
-	contextutils "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/context_utils"
+	contextutils "github.com/WagaoCarvalho/backend_store_go/internal/middleware/context_utils"
 	"github.com/google/uuid"
 )
 

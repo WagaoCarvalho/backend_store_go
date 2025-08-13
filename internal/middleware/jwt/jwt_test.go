@@ -1,4 +1,4 @@
-package middlewares_test
+package middleware
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"time"
 
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
-	mw "github.com/WagaoCarvalho/backend_store_go/internal/middlewares/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
@@ -62,7 +61,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rec := httptest.NewRecorder()
 
-		middleware := mw.IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
+		middleware := IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
 		middleware(handler).ServeHTTP(rec, req)
 
 		res := rec.Result()
@@ -85,7 +84,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 			_, _ = w.Write([]byte("ok"))
 		})
 
-		middleware := mw.IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
+		middleware := IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
 		middleware(handler).ServeHTTP(rec, req)
 
 		res := rec.Result()
@@ -111,7 +110,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 			_, _ = w.Write([]byte("ok"))
 		})
 
-		middleware := mw.IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
+		middleware := IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
 		middleware(handler).ServeHTTP(rec, req)
 
 		res := rec.Result()
@@ -137,7 +136,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 			_, _ = w.Write([]byte("ok"))
 		})
 
-		middleware := mw.IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
+		middleware := IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
 		middleware(handler).ServeHTTP(rec, req)
 
 		res := rec.Result()
@@ -169,7 +168,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 			_, _ = w.Write([]byte("ok"))
 		})
 
-		middleware := mw.IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
+		middleware := IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
 		middleware(handler).ServeHTTP(rec, req)
 
 		res := rec.Result()
@@ -207,7 +206,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 
 		loggerAdapter := logger.NewLoggerAdapter(logrus.New())
 
-		middleware := mw.IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
+		middleware := IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
 		middleware(handler).ServeHTTP(rec, req)
 
 		res := rec.Result()
@@ -244,7 +243,7 @@ func TestIsAuthByBearerToken(t *testing.T) {
 
 		loggerAdapter := logger.NewLoggerAdapter(logrus.New())
 
-		middleware := mw.IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
+		middleware := IsAuthByBearerToken(mockBL, loggerAdapter, mockJWT)
 		middleware(handler).ServeHTTP(rec, req)
 
 		res := rec.Result()

@@ -1,4 +1,4 @@
-package auth_test
+package auth
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/login"
 	models_login "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
@@ -60,7 +59,7 @@ func TestLoginService_Login(t *testing.T) {
 	mockHasher := new(mockHasher)
 	mockToken := new(mockTokenGen)
 
-	service := auth.NewLoginService(mockRepo, adapter, mockToken, mockHasher)
+	service := NewLoginService(mockRepo, adapter, mockToken, mockHasher)
 
 	t.Run("sucesso", func(t *testing.T) {
 		ctx := context.Background()
@@ -86,7 +85,7 @@ func TestLoginService_Login(t *testing.T) {
 			Email:    "invalid",
 			Password: "123",
 		})
-		assert.ErrorIs(t, err, auth.ErrInvalidEmailFormat)
+		assert.ErrorIs(t, err, ErrInvalidEmailFormat)
 		assert.Empty(t, token)
 	})
 
@@ -99,7 +98,7 @@ func TestLoginService_Login(t *testing.T) {
 		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "123"})
 		elapsed := time.Since(start)
 
-		assert.ErrorIs(t, err, auth.ErrInvalidCredentials)
+		assert.ErrorIs(t, err, ErrInvalidCredentials)
 		assert.Empty(t, token)
 		assert.GreaterOrEqual(t, elapsed.Milliseconds(), int64(1000))
 		mockRepo.AssertExpectations(t)
@@ -115,7 +114,7 @@ func TestLoginService_Login(t *testing.T) {
 
 		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "wrong"})
 
-		assert.ErrorIs(t, err, auth.ErrInvalidCredentials)
+		assert.ErrorIs(t, err, ErrInvalidCredentials)
 		assert.Empty(t, token)
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)
@@ -131,7 +130,7 @@ func TestLoginService_Login(t *testing.T) {
 
 		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "123"})
 
-		assert.ErrorIs(t, err, auth.ErrAccountDisabled)
+		assert.ErrorIs(t, err, ErrAccountDisabled)
 		assert.Empty(t, token)
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)
@@ -148,7 +147,7 @@ func TestLoginService_Login(t *testing.T) {
 
 		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "123"})
 
-		assert.ErrorIs(t, err, auth.ErrTokenGeneration)
+		assert.ErrorIs(t, err, ErrTokenGeneration)
 		assert.Empty(t, token)
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)
