@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_category_relations"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_category_relations"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"

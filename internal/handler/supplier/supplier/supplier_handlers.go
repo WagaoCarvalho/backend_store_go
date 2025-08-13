@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/suppliers"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/suppliers"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/suppliers"

@@ -5,10 +5,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	models_address "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
-	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
-	models_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
-	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
+	models_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
+	models_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 )
 
 func TestUserFull_Validate(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/suppliers"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )

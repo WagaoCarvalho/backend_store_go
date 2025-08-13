@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
-	supplier "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
+	supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/suppliers"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"

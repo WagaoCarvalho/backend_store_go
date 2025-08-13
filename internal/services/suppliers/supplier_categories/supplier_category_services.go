@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_categories"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_categories"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )

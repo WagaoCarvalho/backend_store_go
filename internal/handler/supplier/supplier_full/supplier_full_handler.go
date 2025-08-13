@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_full"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_full_services"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"

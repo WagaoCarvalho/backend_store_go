@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	model_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/logger"

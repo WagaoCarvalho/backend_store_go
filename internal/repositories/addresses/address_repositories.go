@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	logger "github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/jackc/pgx/v5"

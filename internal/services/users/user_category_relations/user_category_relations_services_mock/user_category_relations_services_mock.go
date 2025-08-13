@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	user_category_relations "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_category_relations"
+	user_category_relations "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
 	"github.com/stretchr/testify/mock"
 )
 

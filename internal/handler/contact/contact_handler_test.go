@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
+	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	contact_services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts/contact_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/logger"

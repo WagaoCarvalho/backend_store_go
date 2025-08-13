@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"

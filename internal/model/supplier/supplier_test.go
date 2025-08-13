@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	models_supplier "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier"
+	models_supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
 	"github.com/stretchr/testify/assert"
 )
 

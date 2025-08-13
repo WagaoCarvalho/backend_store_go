@@ -3,7 +3,7 @@ package models_test
 import (
 	"testing"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
 	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/utils"
 
 	"github.com/stretchr/testify/assert"

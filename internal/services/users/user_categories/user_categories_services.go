@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )

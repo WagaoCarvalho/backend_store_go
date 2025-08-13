@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"

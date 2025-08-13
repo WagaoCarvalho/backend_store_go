@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
 	services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_categories/user_categories_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"

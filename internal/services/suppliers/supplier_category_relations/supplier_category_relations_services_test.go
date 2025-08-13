@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/supplier/supplier_category_relations"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_category_relations"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_category_relations"
 	"github.com/WagaoCarvalho/backend_store_go/logger"

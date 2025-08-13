@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/product"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/products"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/models/user/user_categories"
+	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"

@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/login"
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/login"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )

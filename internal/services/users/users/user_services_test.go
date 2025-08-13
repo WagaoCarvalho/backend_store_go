@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	model_user "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 	"github.com/WagaoCarvalho/backend_store_go/logger"

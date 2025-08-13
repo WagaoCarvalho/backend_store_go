@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"

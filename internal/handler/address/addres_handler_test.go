@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/address"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
 	addresses_services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses/address_services_mock"

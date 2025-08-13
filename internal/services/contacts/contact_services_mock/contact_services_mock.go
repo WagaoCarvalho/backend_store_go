@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/models/contact"
+	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	"github.com/stretchr/testify/mock"
 )
 

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/models/user"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/users"
