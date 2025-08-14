@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
-	login "github.com/WagaoCarvalho/backend_store_go/internal/auth/login"
-	logout "github.com/WagaoCarvalho/backend_store_go/internal/auth/logout"
 	pass "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	login_handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/login"
 	logout_handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/logout"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
+	login "github.com/WagaoCarvalho/backend_store_go/internal/service/login"
+	logout "github.com/WagaoCarvalho/backend_store_go/internal/service/logout"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"

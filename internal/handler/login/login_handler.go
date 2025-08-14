@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"net/http"
 
-	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/login"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/login"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type LoginHandler struct {
-	service auth.LoginService
+	service service.LoginService
 	logger  *logger.LoggerAdapter
 }
 
-func NewLoginHandler(service auth.LoginService, logger *logger.LoggerAdapter) *LoginHandler {
+func NewLoginHandler(service service.LoginService, logger *logger.LoggerAdapter) *LoginHandler {
 	return &LoginHandler{
 		service: service,
 		logger:  logger,
