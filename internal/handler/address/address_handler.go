@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/address"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
@@ -40,7 +40,7 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	createdAddress, err := h.service.Create(r.Context(), &address)
 	if err != nil {
-		if errors.Is(err, repositories.ErrInvalidForeignKey) {
+		if errors.Is(err, repo.ErrInvalidForeignKey) {
 			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
 				"erro": err.Error(),
 			})

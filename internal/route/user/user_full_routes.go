@@ -8,7 +8,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user_full"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
-	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
+	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/address"
 	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
 	repo_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
 	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_full_repositories"

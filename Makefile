@@ -14,6 +14,7 @@ include make/migrate_suppliers.mk
 include make/migrate_addresses.mk
 include make/migrate_contacts.mk
 include make/migrate_products.mk
+#include make/migrate_services_antt.mk
 
 .PHONY: print-env
 print-env:

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/address"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +21,7 @@ func int64Ptr(i int64) *int64 {
 
 func TestAddressService_Create(t *testing.T) {
 	t.Run("sucesso na criação do endereço", func(t *testing.T) {
-		mockRepo := new(repositories.MockAddressRepository)
+		mockRepo := new(repo.MockAddressRepository)
 		logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mockado se preferir
 
 		service := NewAddressService(mockRepo, logger)
@@ -46,7 +46,7 @@ func TestAddressService_Create(t *testing.T) {
 	})
 
 	t.Run("erro inesperado ao buscar endereço", func(t *testing.T) {
-		mockRepo := new(repositories.MockAddressRepository)
+		mockRepo := new(repo.MockAddressRepository)
 		logger := logger.NewLoggerAdapter(logrus.New())
 		service := NewAddressService(mockRepo, logger)
 
@@ -68,7 +68,7 @@ func TestAddressService_Create(t *testing.T) {
 	})
 
 	t.Run("falha na validação do endereço  UserID/ClientID/SupplierID obrigatório", func(t *testing.T) {
-		mockRepo := new(repositories.MockAddressRepository)
+		mockRepo := new(repo.MockAddressRepository)
 		logger := logger.NewLoggerAdapter(logrus.New())
 
 		service := NewAddressService(mockRepo, logger)
@@ -90,7 +90,7 @@ func TestAddressService_Create(t *testing.T) {
 	})
 
 	t.Run("falha no repositório ao criar endereço", func(t *testing.T) {
-		mockRepo := new(repositories.MockAddressRepository)
+		mockRepo := new(repo.MockAddressRepository)
 		logger := logger.NewLoggerAdapter(logrus.New())
 
 		service := NewAddressService(mockRepo, logger)
@@ -117,7 +117,7 @@ func TestAddressService_Create(t *testing.T) {
 }
 
 func TestAddressService_GetByID(t *testing.T) {
-	mockRepo := new(repositories.MockAddressRepository)
+	mockRepo := new(repo.MockAddressRepository)
 	mockLogger := logger.NewLoggerAdapter(logrus.New())
 	service := NewAddressService(mockRepo, mockLogger)
 
@@ -151,7 +151,7 @@ func TestAddressService_GetByID(t *testing.T) {
 
 	t.Run("endereço não encontrado", func(t *testing.T) {
 		mockRepo.On("GetByID", mock.Anything, int64(2)).
-			Return((*models.Address)(nil), repositories.ErrAddressNotFound).Once() // Correção aqui
+			Return((*models.Address)(nil), repo.ErrAddressNotFound).Once() // Correção aqui
 
 		result, err := service.GetByID(context.Background(), 2)
 
@@ -164,7 +164,7 @@ func TestAddressService_GetByID(t *testing.T) {
 
 func TestAddressService_GetByUserID(t *testing.T) {
 	mockLogger := logger.NewLoggerAdapter(logrus.New())
-	mockRepo := new(repositories.MockAddressRepository)
+	mockRepo := new(repo.MockAddressRepository)
 	service := NewAddressService(mockRepo, mockLogger)
 
 	t.Run("sucesso ao buscar endereços por UserID", func(t *testing.T) {
@@ -216,7 +216,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 }
 
 func TestAddressService_GetByClientID(t *testing.T) {
-	mockRepo := new(repositories.MockAddressRepository)
+	mockRepo := new(repo.MockAddressRepository)
 	logger := logger.NewLoggerAdapter(logrus.New()) // ou use um logger mock, se preferir
 	service := NewAddressService(mockRepo, logger)
 
@@ -269,7 +269,7 @@ func TestAddressService_GetByClientID(t *testing.T) {
 }
 
 func TestAddressService_GetBySupplierID(t *testing.T) {
-	mockRepo := new(repositories.MockAddressRepository)
+	mockRepo := new(repo.MockAddressRepository)
 	logger := logger.NewLoggerAdapter(logrus.New())
 	service := NewAddressService(mockRepo, logger)
 
@@ -334,7 +334,7 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 	}
 
 	t.Run("sucesso na atualização do endereço", func(t *testing.T) {
-		mockRepo := new(repositories.MockAddressRepository)
+		mockRepo := new(repo.MockAddressRepository)
 		logger := logger.NewLoggerAdapter(logrus.New())
 		service := NewAddressService(mockRepo, logger)
 
@@ -350,7 +350,7 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 	})
 
 	t.Run("erro ao atualizar endereço com ID inválido", func(t *testing.T) {
-		mockRepo := new(repositories.MockAddressRepository)
+		mockRepo := new(repo.MockAddressRepository)
 		logger := logger.NewLoggerAdapter(logrus.New())
 		service := NewAddressService(mockRepo, logger)
 
@@ -369,7 +369,7 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 	})
 
 	t.Run("falha na validação do endereço no update", func(t *testing.T) {
-		mockRepo := new(repositories.MockAddressRepository)
+		mockRepo := new(repo.MockAddressRepository)
 		logger := logger.NewLoggerAdapter(logrus.New())
 		service := NewAddressService(mockRepo, logger)
 
@@ -386,7 +386,7 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 	})
 
 	t.Run("erro genérico ao atualizar endereço", func(t *testing.T) {
-		mockRepo := new(repositories.MockAddressRepository)
+		mockRepo := new(repo.MockAddressRepository)
 		logger := logger.NewLoggerAdapter(logrus.New())
 		service := NewAddressService(mockRepo, logger)
 
@@ -413,7 +413,7 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 }
 
 func TestAddressService_DeleteAddress(t *testing.T) {
-	mockRepo := new(repositories.MockAddressRepository)
+	mockRepo := new(repo.MockAddressRepository)
 	logger := logger.NewLoggerAdapter(logrus.New())
 	service := NewAddressService(mockRepo, logger)
 

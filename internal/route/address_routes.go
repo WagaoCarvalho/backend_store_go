@@ -7,7 +7,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/address"
 	jwt_middlewares "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/address"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 

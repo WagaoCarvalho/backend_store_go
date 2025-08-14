@@ -8,7 +8,7 @@ import (
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	models_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
 	models_user_full "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
-	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
+	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/address"
 	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
 	repo_relation "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
 	repo_user_full "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_full_repositories"

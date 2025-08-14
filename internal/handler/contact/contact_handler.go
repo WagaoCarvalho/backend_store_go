@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
@@ -40,7 +40,7 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	createdContact, err := h.service.Create(r.Context(), &contact)
 	if err != nil {
-		if errors.Is(err, repositories.ErrInvalidForeignKey) {
+		if errors.Is(err, repo.ErrInvalidForeignKey) {
 			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
 				"erro": err.Error(),
 			})

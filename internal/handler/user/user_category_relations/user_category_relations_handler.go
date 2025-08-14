@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_category_relations"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
@@ -43,7 +43,7 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 
 	created, wasCreated, err := h.service.Create(ctx, relation.UserID, relation.CategoryID)
 	if err != nil {
-		if errors.Is(err, repositories.ErrInvalidForeignKey) {
+		if errors.Is(err, repo.ErrInvalidForeignKey) {
 			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]interface{}{
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,

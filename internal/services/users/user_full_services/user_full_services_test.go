@@ -11,7 +11,7 @@ import (
 	model_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	model_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
 	model_user_full "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
-	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
+	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/address"
 	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
 	repo_tx "github.com/WagaoCarvalho/backend_store_go/internal/repositories/mocks"
 	repo_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"

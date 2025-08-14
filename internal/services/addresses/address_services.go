@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/addresses"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/address"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
@@ -22,11 +22,11 @@ type AddressService interface {
 }
 
 type addressService struct {
-	repo   repositories.AddressRepository
+	repo   repo.AddressRepository
 	logger *logger.LoggerAdapter
 }
 
-func NewAddressService(repo repositories.AddressRepository, logger *logger.LoggerAdapter) AddressService {
+func NewAddressService(repo repo.AddressRepository, logger *logger.LoggerAdapter) AddressService {
 	return &addressService{
 		repo:   repo,
 		logger: logger,
@@ -78,7 +78,7 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address
 
 	address, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, repositories.ErrAddressNotFound) {
+		if errors.Is(err, repo.ErrAddressNotFound) {
 			s.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
 				"address_id": id,
 			})
