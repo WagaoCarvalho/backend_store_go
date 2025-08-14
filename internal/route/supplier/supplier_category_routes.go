@@ -7,7 +7,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/supplier/supplier_categories"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_categories"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier_categories"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_categories"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"

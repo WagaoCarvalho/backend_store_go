@@ -9,8 +9,8 @@ import (
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
 	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/address"
 	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contact"
-	repo_supplier_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_category_relations"
-	repo_supplier "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_full_repositories"
+	repo_supplier_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier_category_relations"
+	repo_supplier "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier_full_repositories"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_full_services"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 

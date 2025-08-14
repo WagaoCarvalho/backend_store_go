@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
-	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/suppliers"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
@@ -23,11 +23,11 @@ type SupplierService interface {
 }
 
 type supplierService struct {
-	repo   repository.SupplierRepository
+	repo   repo.SupplierRepository
 	logger *logger.LoggerAdapter
 }
 
-func NewSupplierService(repo repository.SupplierRepository, logger *logger.LoggerAdapter) SupplierService {
+func NewSupplierService(repo repo.SupplierRepository, logger *logger.LoggerAdapter) SupplierService {
 	return &supplierService{
 		repo:   repo,
 		logger: logger,
@@ -204,14 +204,14 @@ func (s *supplierService) Update(ctx context.Context, supplier *models.Supplier)
 
 	if err := s.repo.Update(ctx, supplier); err != nil {
 		switch {
-		case errors.Is(err, repository.ErrVersionConflict):
+		case errors.Is(err, repo.ErrVersionConflict):
 			s.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"supplier_id": supplier.ID,
 				"version":     supplier.Version,
 			})
 			return nil, ErrSupplierVersionConflict
 
-		case errors.Is(err, repository.ErrSupplierNotFound):
+		case errors.Is(err, repo.ErrSupplierNotFound):
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"supplier_id": supplier.ID,
 			})

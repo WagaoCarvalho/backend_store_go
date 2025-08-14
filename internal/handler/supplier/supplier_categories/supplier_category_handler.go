@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier_categories"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_categories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"

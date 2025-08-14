@@ -12,7 +12,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
 	supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/suppliers"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
@@ -314,7 +314,7 @@ func TestSupplierHandler_GetByName(t *testing.T) {
 	t.Run("Erro fornecedor não encontrado", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetByName", mock.Anything, "notfound").Return(nil, repositories.ErrSupplierNotFound).Once()
+		mockService.On("GetByName", mock.Anything, "notfound").Return(nil, repo.ErrSupplierNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/suppliers/name/notfound", nil)
 		req = mux.SetURLVars(req, map[string]string{"name": "notfound"})
@@ -391,7 +391,7 @@ func TestSupplierHandler_GetVersionByID(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		mockService.On("GetVersionByID", mock.Anything, int64(2)).
-			Return(int64(0), repositories.ErrSupplierNotFound).Once()
+			Return(int64(0), repo.ErrSupplierNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/suppliers/2/version", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "2"})
@@ -404,7 +404,7 @@ func TestSupplierHandler_GetVersionByID(t *testing.T) {
 		var resp utils.DefaultResponse
 		err := json.Unmarshal(rec.Body.Bytes(), &resp)
 		assert.NoError(t, err)
-		assert.Equal(t, repositories.ErrSupplierNotFound.Error(), resp.Message)
+		assert.Equal(t, repo.ErrSupplierNotFound.Error(), resp.Message)
 
 		mockService.AssertExpectations(t)
 	})
@@ -531,7 +531,7 @@ func TestSupplierHandler_Update(t *testing.T) {
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == supplierID && s.Version == 2
-		})).Return(nil, repositories.ErrVersionConflict).Once()
+		})).Return(nil, repo.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -666,7 +666,7 @@ func TestSupplierHandler_Enable(t *testing.T) {
 		}, nil).Once()
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == 1 && s.Version == 1
-		})).Return(nil, repositories.ErrVersionConflict).Once()
+		})).Return(nil, repo.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/enable", bytes.NewReader([]byte(`{"version":1}`)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -815,7 +815,7 @@ func TestSupplierHandler_Disable(t *testing.T) {
 		}, nil).Once()
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == 1 && s.Version == 1
-		})).Return(nil, repositories.ErrVersionConflict).Once()
+		})).Return(nil, repo.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/disable", bytes.NewReader([]byte(`{"version":1}`)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})

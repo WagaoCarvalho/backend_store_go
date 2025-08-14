@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/suppliers"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"

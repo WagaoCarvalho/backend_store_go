@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_category_relations"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier_category_relations"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
