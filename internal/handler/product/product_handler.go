@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/product"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/services/product"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"

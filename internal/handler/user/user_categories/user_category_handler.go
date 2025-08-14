@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_categories"
+	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
@@ -32,7 +32,7 @@ func (h *UserCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]interface{}{})
 
-	var category *models_user_categories.UserCategory
+	var category *model.UserCategory
 	if err := utils.FromJson(r.Body, &category); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]interface{}{
 			"erro": err.Error(),
@@ -141,7 +141,7 @@ func (h *UserCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var category *models_user_categories.UserCategory
+	var category *model.UserCategory
 	if err := utils.FromJson(r.Body, &category); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]interface{}{
 			"erro": err.Error(),

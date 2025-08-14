@@ -8,9 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
-	supplier_category_relations "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier_category_relations"
+	model "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
 	mock_service "github.com/WagaoCarvalho/backend_store_go/internal/services/supplier/supplier_category_relations/mocks"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
@@ -27,7 +26,7 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		mockService := new(mock_service.MockSupplierCategoryRelationService)
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
-		relation := &supplier_category_relations.SupplierCategoryRelations{
+		relation := &model.SupplierCategoryRelations{
 			SupplierID: 1,
 			CategoryID: 2,
 		}
@@ -58,7 +57,7 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		mockService := new(mock_service.MockSupplierCategoryRelationService)
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
-		relation := &supplier_category_relations.SupplierCategoryRelations{
+		relation := &model.SupplierCategoryRelations{
 			SupplierID: 1,
 			CategoryID: 2,
 		}
@@ -89,7 +88,7 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		mockService := new(mock_service.MockSupplierCategoryRelationService)
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
-		relation := &supplier_category_relations.SupplierCategoryRelations{
+		relation := &model.SupplierCategoryRelations{
 			SupplierID: 99,
 			CategoryID: 88,
 		}
@@ -141,7 +140,7 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		mockService := new(mock_service.MockSupplierCategoryRelationService)
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
-		relation := &supplier_category_relations.SupplierCategoryRelations{
+		relation := &model.SupplierCategoryRelations{
 			SupplierID: 1,
 			CategoryID: 2,
 		}
@@ -220,7 +219,7 @@ func TestSupplierCategoryRelationHandler_GetBySupplierID(t *testing.T) {
 		mockService := new(mock_service.MockSupplierCategoryRelationService)
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
-		expectedRelations := []*models.SupplierCategoryRelations{
+		expectedRelations := []*model.SupplierCategoryRelations{
 			{SupplierID: 123, CategoryID: 1},
 			{SupplierID: 123, CategoryID: 2},
 		}
@@ -244,7 +243,7 @@ func TestSupplierCategoryRelationHandler_GetBySupplierID(t *testing.T) {
 		assert.Equal(t, "Relações encontradas", resp.Message)
 
 		// Reinterpreta resp.Data para o tipo correto
-		var data []*models.SupplierCategoryRelations
+		var data []*model.SupplierCategoryRelations
 		dataBytes, err := json.Marshal(resp.Data)
 		assert.NoError(t, err)
 		err = json.Unmarshal(dataBytes, &data)
@@ -308,7 +307,7 @@ func TestSupplierCategoryRelationHandler_GetByCategoryID(t *testing.T) {
 		mockService := new(mock_service.MockSupplierCategoryRelationService)
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
-		expectedRelations := []*models.SupplierCategoryRelations{
+		expectedRelations := []*model.SupplierCategoryRelations{
 			{SupplierID: 123, CategoryID: 456},
 			{SupplierID: 124, CategoryID: 456},
 		}
@@ -331,7 +330,7 @@ func TestSupplierCategoryRelationHandler_GetByCategoryID(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.Status)
 		assert.Equal(t, "Relações encontradas", resp.Message)
 
-		var data []*models.SupplierCategoryRelations
+		var data []*model.SupplierCategoryRelations
 		dataBytes, err := json.Marshal(resp.Data)
 		assert.NoError(t, err)
 		err = json.Unmarshal(dataBytes, &data)

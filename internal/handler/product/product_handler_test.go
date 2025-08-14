@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/product"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/product/mocks"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"

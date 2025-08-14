@@ -7,7 +7,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/address"
 	jwt_middlewares "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/address"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/services/address"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 
@@ -21,7 +21,7 @@ func RegisterAddressRoutes(
 	log *logger.LoggerAdapter,
 	blacklist jwt_middlewares.TokenBlacklist,
 ) {
-	repo := repositories.NewAddressRepository(db, log)
+	repo := repo.NewAddressRepository(db, log)
 	service := service.NewAddressService(repo, log)
 	handler := handler.NewAddressHandler(service, log)
 

@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/services/supplier/supplier"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"

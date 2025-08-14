@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_categories"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 

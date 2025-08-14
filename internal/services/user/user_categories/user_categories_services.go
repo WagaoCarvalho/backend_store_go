@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 

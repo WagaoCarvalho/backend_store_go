@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
+	model "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/services/supplier/supplier_full_services"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
@@ -36,7 +36,7 @@ func (h *SupplierHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	var requestData models.SupplierFull
+	var requestData model.SupplierFull
 
 	if err := utils.FromJson(r.Body, &requestData); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{

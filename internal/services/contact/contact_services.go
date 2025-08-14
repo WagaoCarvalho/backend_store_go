@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contact"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
@@ -22,11 +22,11 @@ type ContactService interface {
 }
 
 type contactService struct {
-	contactRepo repositories.ContactRepository
+	contactRepo repo.ContactRepository
 	logger      *logger.LoggerAdapter
 }
 
-func NewContactService(contactRepo repositories.ContactRepository, logger *logger.LoggerAdapter) ContactService {
+func NewContactService(contactRepo repo.ContactRepository, logger *logger.LoggerAdapter) ContactService {
 	return &contactService{
 		contactRepo: contactRepo,
 		logger:      logger,
@@ -81,7 +81,7 @@ func (s *contactService) GetByID(ctx context.Context, id int64) (*models.Contact
 
 	contact, err := s.contactRepo.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, repositories.ErrContactNotFound) {
+		if errors.Is(err, repo.ErrContactNotFound) {
 			s.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
 				"contact_id": id,
 			})
@@ -214,7 +214,7 @@ func (s *contactService) Update(ctx context.Context, contact *models.Contact) er
 
 	_, err := s.contactRepo.GetByID(ctx, contact.ID)
 	if err != nil {
-		if errors.Is(err, repositories.ErrContactNotFound) {
+		if errors.Is(err, repo.ErrContactNotFound) {
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"contact_id": contact.ID,
 			})
@@ -255,7 +255,7 @@ func (s *contactService) Delete(ctx context.Context, id int64) error {
 
 	_, err := s.contactRepo.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, repositories.ErrContactNotFound) {
+		if errors.Is(err, repo.ErrContactNotFound) {
 			s.logger.Warn(ctx, ref+"Contato não encontrado para exclusão", map[string]any{
 				"contact_id": id,
 			})

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
-	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_categories"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
@@ -18,11 +18,11 @@ type SupplierCategoryService interface {
 }
 
 type supplierCategoryService struct {
-	repo   repository.SupplierCategoryRepository
+	repo   repo.SupplierCategoryRepository
 	logger *logger.LoggerAdapter
 }
 
-func NewSupplierCategoryService(repo repository.SupplierCategoryRepository, logger *logger.LoggerAdapter) SupplierCategoryService {
+func NewSupplierCategoryService(repo repo.SupplierCategoryRepository, logger *logger.LoggerAdapter) SupplierCategoryService {
 	return &supplierCategoryService{
 		repo:   repo,
 		logger: logger,

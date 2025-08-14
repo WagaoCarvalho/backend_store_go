@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_categories"
-	user_categories_repositories_mock "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories"
+	repo_mock "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +18,7 @@ func TestUserCategoryService_Create(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("Success", func(t *testing.T) {
-		mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
+		mockRepo := new(repo_mock.MockUserCategoryRepository)
 
 		inputCategory := &models.UserCategory{Name: "NewCategory", Description: "NewDesc"}
 		createdCategory := &models.UserCategory{ID: 1, Name: "NewCategory", Description: "NewDesc"}
@@ -36,7 +36,7 @@ func TestUserCategoryService_Create(t *testing.T) {
 	})
 
 	t.Run("ErrInvalidCategoryName", func(t *testing.T) {
-		mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
+		mockRepo := new(repo_mock.MockUserCategoryRepository)
 		service := NewUserCategoryService(mockRepo, logger)
 
 		invalidCategory := &models.UserCategory{Name: "   "} // nome só com espaços
@@ -48,7 +48,7 @@ func TestUserCategoryService_Create(t *testing.T) {
 	})
 
 	t.Run("ErrorOnCreate", func(t *testing.T) {
-		mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
+		mockRepo := new(repo_mock.MockUserCategoryRepository)
 		inputCategory := &models.UserCategory{Name: "NewCategory", Description: "NewDesc"}
 
 		mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(cat *models.UserCategory) bool {
@@ -71,7 +71,7 @@ func TestUserCategoryService_GetAll(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("Success", func(t *testing.T) {
-		mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
+		mockRepo := new(repo_mock.MockUserCategoryRepository)
 		expectedCategories := []*models.UserCategory{
 			{ID: 1, Name: "Category1", Description: "Desc1"},
 		}
@@ -87,7 +87,7 @@ func TestUserCategoryService_GetAll(t *testing.T) {
 	})
 
 	t.Run("ErrorOnGetAll", func(t *testing.T) {
-		mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
+		mockRepo := new(repo_mock.MockUserCategoryRepository)
 		mockRepo.On("GetAll", mock.Anything).Return([]*models.UserCategory(nil), errors.New("db error"))
 
 		service := NewUserCategoryService(mockRepo, logger)
@@ -103,7 +103,7 @@ func TestUserCategoryService_GetAll(t *testing.T) {
 
 func TestUserCategoryService_GetById(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
-	mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
+	mockRepo := new(repo_mock.MockUserCategoryRepository)
 	service := NewUserCategoryService(mockRepo, logger)
 
 	t.Run("Success", func(t *testing.T) {
@@ -162,7 +162,7 @@ func TestUserCategoryService_GetById(t *testing.T) {
 
 func TestUserCategoryService_Update(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
-	mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
+	mockRepo := new(repo_mock.MockUserCategoryRepository)
 	service := NewUserCategoryService(mockRepo, logger)
 
 	t.Run("Success", func(t *testing.T) {
@@ -235,7 +235,7 @@ func TestUserCategoryService_Update(t *testing.T) {
 		ctx := context.Background()
 		missingCategory := &models.UserCategory{ID: 4, Name: "NotFound", Description: "NoDesc"}
 
-		mockRepo.On("GetByID", ctx, int64(4)).Return(nil, user_categories_repositories_mock.ErrCategoryNotFound).Once()
+		mockRepo.On("GetByID", ctx, int64(4)).Return(nil, repo_mock.ErrCategoryNotFound).Once()
 
 		category, err := service.Update(ctx, missingCategory)
 
@@ -254,7 +254,7 @@ func TestUserCategoryService_Update(t *testing.T) {
 
 func TestUserCategoryService_Delete(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
-	mockRepo := new(user_categories_repositories_mock.MockUserCategoryRepository)
+	mockRepo := new(repo_mock.MockUserCategoryRepository)
 	service := NewUserCategoryService(mockRepo, logger)
 
 	t.Run("Success", func(t *testing.T) {

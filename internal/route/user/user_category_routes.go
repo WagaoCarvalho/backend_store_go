@@ -7,7 +7,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user_categories"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"

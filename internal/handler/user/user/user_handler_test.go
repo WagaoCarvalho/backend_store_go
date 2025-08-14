@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"

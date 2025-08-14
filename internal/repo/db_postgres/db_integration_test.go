@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	config "github.com/WagaoCarvalho/backend_store_go/internal/config"
-	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/db_postgres/db_mock"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db_postgres/db_mock"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -15,7 +15,7 @@ import (
 )
 
 func TestConnect_Success(t *testing.T) {
-	mockPool := new(repository.MockPgxPool)
+	mockPool := new(repo.MockPgxPool)
 	mockConfig := &pgxpool.Config{}
 
 	// Setar variável de ambiente obrigatória para o config.LoadDatabaseConfig()
@@ -33,7 +33,7 @@ func TestConnect_Success(t *testing.T) {
 }
 
 func TestConnect_ParseConfigError(t *testing.T) {
-	mockPool := new(repository.MockPgxPool)
+	mockPool := new(repo.MockPgxPool)
 
 	os.Setenv("DB_CONN_URL", "fake_conn_string")
 	defer os.Unsetenv("DB_CONN_URL")
@@ -50,7 +50,7 @@ func TestConnect_ParseConfigError(t *testing.T) {
 }
 
 func TestConnect_NewWithConfigError(t *testing.T) {
-	mockPool := new(repository.MockPgxPool)
+	mockPool := new(repo.MockPgxPool)
 
 	os.Setenv("DB_CONN_URL", "fake_conn_string")
 	defer os.Unsetenv("DB_CONN_URL")

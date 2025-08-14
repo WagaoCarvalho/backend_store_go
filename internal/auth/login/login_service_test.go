@@ -13,7 +13,7 @@ import (
 
 	models_login "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 

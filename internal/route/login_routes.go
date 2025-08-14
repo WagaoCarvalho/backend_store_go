@@ -7,9 +7,9 @@ import (
 	login "github.com/WagaoCarvalho/backend_store_go/internal/auth/login"
 	logout "github.com/WagaoCarvalho/backend_store_go/internal/auth/logout"
 	pass "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
-	login_handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/login"
-	logout_handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/logout"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user"
+	login_handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/login"
+	logout_handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/logout"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
@@ -39,11 +39,11 @@ func RegisterLoginRoutes(
 	hasher := pass.BcryptHasher{}
 
 	loginService := login.NewLoginService(userRepo, log, jwtManager, hasher)
-	loginHandler := login_handlers.NewLoginHandler(loginService, log)
+	loginHandler := login_handler.NewLoginHandler(loginService, log)
 
 	// Passa jwtManager (JWTService) em vez de string SecretKey
 	logoutService := logout.NewLogoutService(blacklist, log, jwtManager)
-	logoutHandler := logout_handlers.NewLogoutHandler(logoutService, log)
+	logoutHandler := logout_handler.NewLogoutHandler(logoutService, log)
 
 	r.HandleFunc("/login", loginHandler.Login).Methods(http.MethodPost)
 	r.HandleFunc("/logout", logoutHandler.Logout).Methods(http.MethodPost)
