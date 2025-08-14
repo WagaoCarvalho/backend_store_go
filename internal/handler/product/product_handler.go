@@ -9,18 +9,18 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/product"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/products"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/product"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
 )
 
 type ProductHandler struct {
-	service services.ProductService
+	service service.ProductService
 	logger  *logger.LoggerAdapter
 }
 
-func NewProductHandler(service services.ProductService, logger *logger.LoggerAdapter) *ProductHandler {
+func NewProductHandler(service service.ProductService, logger *logger.LoggerAdapter) *ProductHandler {
 	return &ProductHandler{
 		service: service,
 		logger:  logger,

@@ -13,7 +13,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
 	supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier"
-	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_services_mock"
+	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/supplier/supplier_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"

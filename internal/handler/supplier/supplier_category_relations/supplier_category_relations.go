@@ -8,18 +8,18 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier_category_relations"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_category_relations"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/supplier/supplier_category_relations"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
 )
 
 type SupplierCategoryRelationHandler struct {
-	service services.SupplierCategoryRelationService
+	service service.SupplierCategoryRelationService
 	logger  *logger.LoggerAdapter
 }
 
-func NewSupplierCategoryRelationHandler(service services.SupplierCategoryRelationService, logger *logger.LoggerAdapter) *SupplierCategoryRelationHandler {
+func NewSupplierCategoryRelationHandler(service service.SupplierCategoryRelationService, logger *logger.LoggerAdapter) *SupplierCategoryRelationHandler {
 	return &SupplierCategoryRelationHandler{
 		service: service,
 		logger:  logger,

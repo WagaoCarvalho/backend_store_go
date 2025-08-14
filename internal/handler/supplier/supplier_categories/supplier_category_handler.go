@@ -6,17 +6,17 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier_categories"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_categories"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/supplier/supplier_categories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type SupplierCategoryHandler struct {
-	service services.SupplierCategoryService
+	service service.SupplierCategoryService
 	logger  *logger.LoggerAdapter
 }
 
-func NewSupplierCategoryHandler(service services.SupplierCategoryService, logger *logger.LoggerAdapter) *SupplierCategoryHandler {
+func NewSupplierCategoryHandler(service service.SupplierCategoryService, logger *logger.LoggerAdapter) *SupplierCategoryHandler {
 	return &SupplierCategoryHandler{
 		service: service,
 		logger:  logger,

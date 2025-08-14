@@ -5,17 +5,17 @@ import (
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_full_services"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/supplier/supplier_full_services"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type SupplierHandler struct {
-	service services.SupplierFullService
+	service service.SupplierFullService
 	logger  *logger.LoggerAdapter
 }
 
-func NewSupplierFullHandler(service services.SupplierFullService, logger *logger.LoggerAdapter) *SupplierHandler {
+func NewSupplierFullHandler(service service.SupplierFullService, logger *logger.LoggerAdapter) *SupplierHandler {
 	return &SupplierHandler{
 		service: service,
 		logger:  logger,

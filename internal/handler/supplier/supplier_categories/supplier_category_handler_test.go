@@ -10,7 +10,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier_categories"
-	mock_service "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/supplier_categories/mocks"
+	mock_service "github.com/WagaoCarvalho/backend_store_go/internal/services/supplier/supplier_categories/mocks"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"

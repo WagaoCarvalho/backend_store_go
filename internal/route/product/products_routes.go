@@ -8,7 +8,7 @@ import (
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/product"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/product"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/products"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/product"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 
 	"github.com/gorilla/mux"
@@ -23,7 +23,7 @@ func RegisterProductRoutes(
 ) {
 	repo_product := repo.NewProductRepository(db, log)
 
-	productService := services.NewProductService(repo_product, log)
+	productService := service.NewProductService(repo_product, log)
 	handler := handler.NewProductHandler(productService, log)
 
 	// Config JWT

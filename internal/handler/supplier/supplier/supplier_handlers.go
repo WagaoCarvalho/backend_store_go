@@ -8,18 +8,18 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/supplier/supplier"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/suppliers/suppliers"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/supplier/supplier"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
 )
 
 type SupplierHandler struct {
-	service services.SupplierService
+	service service.SupplierService
 	logger  *logger.LoggerAdapter
 }
 
-func NewSupplierHandler(service services.SupplierService, logger *logger.LoggerAdapter) *SupplierHandler {
+func NewSupplierHandler(service service.SupplierService, logger *logger.LoggerAdapter) *SupplierHandler {
 	return &SupplierHandler{
 		service: service,
 		logger:  logger,
