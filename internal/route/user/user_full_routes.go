@@ -12,7 +12,7 @@ import (
 	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contact"
 	repo_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_category_relations"
 	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_full_repositories"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_full_services"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_full_services"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 
 	"github.com/gorilla/mux"
@@ -31,7 +31,7 @@ func RegisterUserFullRoutes(
 	repo_user_cat_rel := repo_user_cat_rel.NewUserCategoryRelationRepositories(db, log)
 	hasher := auth.BcryptHasher{}
 
-	userService := services.NewUserFullService(repo_user, repo_address, repo_contact, repo_user_cat_rel, log, hasher)
+	userService := service.NewUserFullService(repo_user, repo_address, repo_contact, repo_user_cat_rel, log, hasher)
 	handler := handlers.NewUserFullHandler(userService, log)
 
 	// Config JWT

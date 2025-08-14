@@ -8,18 +8,18 @@ import (
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_category_relations"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_category_relations"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_category_relations"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
 )
 
 type UserCategoryRelationHandler struct {
-	service services.UserCategoryRelationServices
+	service service.UserCategoryRelationServices
 	logger  *logger.LoggerAdapter
 }
 
-func NewUserCategoryRelationHandler(service services.UserCategoryRelationServices, logger *logger.LoggerAdapter) *UserCategoryRelationHandler {
+func NewUserCategoryRelationHandler(service service.UserCategoryRelationServices, logger *logger.LoggerAdapter) *UserCategoryRelationHandler {
 	return &UserCategoryRelationHandler{
 		service: service,
 		logger:  logger,

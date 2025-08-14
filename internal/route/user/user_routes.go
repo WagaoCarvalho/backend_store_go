@@ -6,10 +6,10 @@ import (
 	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
-	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user"
+	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/users"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 
 	"github.com/gorilla/mux"
@@ -25,8 +25,8 @@ func RegisterUserRoutes(
 	repo_user := repo.NewUserRepository(db, log)
 	hasher := auth.BcryptHasher{}
 
-	userService := services.NewUserService(repo_user, log, hasher)
-	handler := handlers.NewUserHandler(userService, log)
+	userService := service.NewUserService(repo_user, log, hasher)
+	handler := handler.NewUserHandler(userService, log)
 
 	// Rota pública
 	r.HandleFunc("/user", handler.Create).Methods(http.MethodPost)

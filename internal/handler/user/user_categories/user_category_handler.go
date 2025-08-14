@@ -8,18 +8,18 @@ import (
 
 	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_categories"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_categories"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
 )
 
 type UserCategoryHandler struct {
-	service services.UserCategoryService
+	service service.UserCategoryService
 	logger  *logger.LoggerAdapter
 }
 
-func NewUserCategoryHandler(service services.UserCategoryService, logger *logger.LoggerAdapter) *UserCategoryHandler {
+func NewUserCategoryHandler(service service.UserCategoryService, logger *logger.LoggerAdapter) *UserCategoryHandler {
 	return &UserCategoryHandler{
 		service: service,
 		logger:  logger,

@@ -5,17 +5,17 @@ import (
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_full_services"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_full_services"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type UserHandler struct {
-	service services.UserFullService
+	service service.UserFullService
 	logger  *logger.LoggerAdapter
 }
 
-func NewUserFullHandler(service services.UserFullService, logger *logger.LoggerAdapter) *UserHandler {
+func NewUserFullHandler(service service.UserFullService, logger *logger.LoggerAdapter) *UserHandler {
 	return &UserHandler{
 		service: service,
 		logger:  logger,

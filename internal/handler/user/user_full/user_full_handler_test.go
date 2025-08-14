@@ -13,7 +13,7 @@ import (
 	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
 	model_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	model_user_full "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_full_services/user_full_services_mock"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_full_services/user_full_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +21,7 @@ import (
 )
 
 func TestUserHandler_CreateFull(t *testing.T) {
-	mockService := new(services.MockUserFullService)
+	mockService := new(service.MockUserFullService)
 	logger := logger.NewLoggerAdapter(logrus.New())
 	handler := NewUserFullHandler(mockService, logger)
 

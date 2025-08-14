@@ -8,18 +8,18 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/users"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
 )
 
 type UserHandler struct {
-	service services.UserService
+	service service.UserService
 	logger  *logger.LoggerAdapter
 }
 
-func NewUserHandler(service services.UserService, logger *logger.LoggerAdapter) *UserHandler {
+func NewUserHandler(service service.UserService, logger *logger.LoggerAdapter) *UserHandler {
 	return &UserHandler{
 		service: service,
 		logger:  logger,
