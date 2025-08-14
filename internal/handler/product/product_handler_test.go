@@ -15,8 +15,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/product"
 	services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/products/mocks"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
@@ -95,7 +94,7 @@ func TestProductHandler_Create(t *testing.T) {
 			StockQuantity: 10,
 		}
 
-		mockService.On("Create", mock.Anything, input).Return((*models.Product)(nil), repositories.ErrInvalidForeignKey)
+		mockService.On("Create", mock.Anything, input).Return((*models.Product)(nil), repo.ErrInvalidForeignKey)
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPost, "/products", bytes.NewBuffer(body))

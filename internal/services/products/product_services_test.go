@@ -11,15 +11,14 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
-	repo_mock "github.com/WagaoCarvalho/backend_store_go/internal/repositories/products"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/product"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 func newTestLogger() *logger.LoggerAdapter {
 	logrusLogger := logrus.New()
-	logrusLogger.SetLevel(logrus.FatalLevel) // Silencia logs durante testes
+	logrusLogger.SetLevel(logrus.FatalLevel)
 	return logger.NewLoggerAdapter(logrusLogger)
 }
 
@@ -40,7 +39,7 @@ func TestProductService_Create(t *testing.T) {
 	}
 
 	t.Run("sucesso", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -66,7 +65,7 @@ func TestProductService_Create(t *testing.T) {
 	})
 
 	t.Run("produto inválido", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -81,7 +80,7 @@ func TestProductService_Create(t *testing.T) {
 	})
 
 	t.Run("erro no repositório", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -102,7 +101,7 @@ func TestProductService_GetAll(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("sucesso", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -127,7 +126,7 @@ func TestProductService_GetAll(t *testing.T) {
 	})
 
 	t.Run("erro do repositório", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -151,7 +150,7 @@ func TestProductService_GetById(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("sucesso", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -174,7 +173,7 @@ func TestProductService_GetById(t *testing.T) {
 	})
 
 	t.Run("id inválido", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -189,7 +188,7 @@ func TestProductService_GetById(t *testing.T) {
 	})
 
 	t.Run("erro do repositório", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -212,7 +211,7 @@ func TestProductService_GetByName(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("sucesso", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -236,7 +235,7 @@ func TestProductService_GetByName(t *testing.T) {
 	})
 
 	t.Run("nome inválido (string vazia)", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -251,7 +250,7 @@ func TestProductService_GetByName(t *testing.T) {
 	})
 
 	t.Run("erro no repositório", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -274,7 +273,7 @@ func TestProductService_GetByManufacturer(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("sucesso", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -298,7 +297,7 @@ func TestProductService_GetByManufacturer(t *testing.T) {
 	})
 
 	t.Run("fabricante inválido (string vazia)", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -313,7 +312,7 @@ func TestProductService_GetByManufacturer(t *testing.T) {
 	})
 
 	t.Run("erro no repositório", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -350,7 +349,7 @@ func TestProductService_Update(t *testing.T) {
 	}
 
 	t.Run("sucesso", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -370,7 +369,7 @@ func TestProductService_Update(t *testing.T) {
 	})
 
 	t.Run("erro de validação: nome inválido", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -385,7 +384,7 @@ func TestProductService_Update(t *testing.T) {
 	})
 
 	t.Run("erro de validação: versão inválida", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -400,7 +399,7 @@ func TestProductService_Update(t *testing.T) {
 	})
 
 	t.Run("erro do repositório: produto não encontrado", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -418,7 +417,7 @@ func TestProductService_Update(t *testing.T) {
 	})
 
 	t.Run("erro do repositório: conflito de versão", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -436,7 +435,7 @@ func TestProductService_Update(t *testing.T) {
 	})
 
 	t.Run("erro do repositório genérico", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -526,7 +525,7 @@ func TestProductService_Delete(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("sucesso", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -541,7 +540,7 @@ func TestProductService_Delete(t *testing.T) {
 	})
 
 	t.Run("erro do repositório", func(t *testing.T) {
-		mockRepo := new(repo_mock.ProductRepositoryMock)
+		mockRepo := new(repo.ProductRepositoryMock)
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
@@ -561,7 +560,7 @@ func TestProductService_Delete(t *testing.T) {
 func TestProductService_GetVersionByID(t *testing.T) {
 	t.Parallel()
 
-	mockRepo := new(repo_mock.ProductRepositoryMock)
+	mockRepo := new(repo.ProductRepositoryMock)
 	log := newTestLogger()
 	service := NewProductService(mockRepo, log)
 
