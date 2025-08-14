@@ -9,7 +9,7 @@ import (
 	pass "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	login_handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/login"
 	logout_handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/logout"
-	user_repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
@@ -23,7 +23,7 @@ func RegisterLoginRoutes(
 	log *logger.LoggerAdapter,
 	blacklist logout.TokenBlacklist,
 ) {
-	userRepo := user_repositories.NewUserRepository(db, log)
+	userRepo := repo.NewUserRepository(db, log)
 
 	// Carregar config JWT
 	jwtCfg := config.LoadJwtConfig()

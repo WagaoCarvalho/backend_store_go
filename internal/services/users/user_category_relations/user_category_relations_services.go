@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_category_relations"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
@@ -19,11 +19,11 @@ type UserCategoryRelationServices interface {
 }
 
 type userCategoryRelationServices struct {
-	relationRepo repositories.UserCategoryRelationRepository
+	relationRepo repo.UserCategoryRelationRepository
 	logger       *logger.LoggerAdapter
 }
 
-func NewUserCategoryRelationServices(repo repositories.UserCategoryRelationRepository, logger *logger.LoggerAdapter) UserCategoryRelationServices {
+func NewUserCategoryRelationServices(repo repo.UserCategoryRelationRepository, logger *logger.LoggerAdapter) UserCategoryRelationServices {
 	return &userCategoryRelationServices{
 		relationRepo: repo,
 		logger:       logger,
@@ -59,7 +59,7 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 	createdRelation, err := s.relationRepo.Create(ctx, &relation)
 	if err != nil {
 		switch {
-		case errors.Is(err, repositories.ErrRelationExists):
+		case errors.Is(err, repo.ErrRelationExists):
 			s.logger.Warn(ctx, ref+logger.LogForeignKeyHasExists, map[string]any{
 				"user_id":     userID,
 				"category_id": categoryID,
@@ -79,14 +79,14 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 				}
 			}
 
-			return nil, false, repositories.ErrRelationExists
+			return nil, false, repo.ErrRelationExists
 
-		case errors.Is(err, repositories.ErrInvalidForeignKey):
+		case errors.Is(err, repo.ErrInvalidForeignKey):
 			s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 				"user_id":     userID,
 				"category_id": categoryID,
 			})
-			return nil, false, repositories.ErrInvalidForeignKey
+			return nil, false, repo.ErrInvalidForeignKey
 
 		default:
 			s.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
@@ -197,7 +197,7 @@ func (s *userCategoryRelationServices) Delete(ctx context.Context, userID, categ
 
 	err := s.relationRepo.Delete(ctx, userID, categoryID)
 	if err != nil {
-		if errors.Is(err, repositories.ErrRelationNotFound) {
+		if errors.Is(err, repo.ErrRelationNotFound) {
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id":     userID,
 				"category_id": categoryID,

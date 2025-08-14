@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
@@ -20,11 +20,11 @@ type UserCategoryService interface {
 }
 
 type userCategoryService struct {
-	repo   repositories.UserCategoryRepository
+	repo   repo.UserCategoryRepository
 	logger *logger.LoggerAdapter
 }
 
-func NewUserCategoryService(repo repositories.UserCategoryRepository, logger *logger.LoggerAdapter) UserCategoryService {
+func NewUserCategoryService(repo repo.UserCategoryRepository, logger *logger.LoggerAdapter) UserCategoryService {
 	return &userCategoryService{
 		repo:   repo,
 		logger: logger,
@@ -135,7 +135,7 @@ func (s *userCategoryService) Update(ctx context.Context, category *models.UserC
 	})
 
 	if _, err := s.repo.GetByID(ctx, int64(category.ID)); err != nil {
-		if errors.Is(err, repositories.ErrCategoryNotFound) {
+		if errors.Is(err, repo.ErrCategoryNotFound) {
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"id": category.ID,
 			})
@@ -177,7 +177,7 @@ func (s *userCategoryService) Delete(ctx context.Context, id int64) error {
 
 	_, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, repositories.ErrCategoryNotFound) {
+		if errors.Is(err, repo.ErrCategoryNotFound) {
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"id": id,
 			})

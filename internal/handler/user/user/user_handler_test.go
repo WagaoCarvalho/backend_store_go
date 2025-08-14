@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
+	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
@@ -27,7 +27,7 @@ func TestUserHandler_Create(t *testing.T) {
 	t.Run("Sucesso ao criar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		expectedUser := &model_user.User{
+		expectedUser := &model.User{
 			UID:      1,
 			Username: "testuser",
 			Email:    "test@example.com",
@@ -44,7 +44,7 @@ func TestUserHandler_Create(t *testing.T) {
 
 		mockService.On("Create",
 			mock.Anything,
-			mock.MatchedBy(func(u *model_user.User) bool {
+			mock.MatchedBy(func(u *model.User) bool {
 				return u.Username == "testuser" && u.Email == "test@example.com"
 			}),
 		).Return(expectedUser, nil).Once()
@@ -79,7 +79,7 @@ func TestUserHandler_Create(t *testing.T) {
 	t.Run("Erro ao criar usuário no service", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		userData := &model_user.User{
+		userData := &model.User{
 			Username: "failuser",
 			Email:    "fail@example.com",
 		}
@@ -89,7 +89,7 @@ func TestUserHandler_Create(t *testing.T) {
 		}
 		body, _ := json.Marshal(requestBody)
 
-		mockService.On("Create", mock.Anything, mock.MatchedBy(func(u *model_user.User) bool {
+		mockService.On("Create", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
 			return u.Username == userData.Username && u.Email == userData.Email
 		})).Return(nil, errors.New("erro ao criar usuário")).Once()
 
@@ -111,7 +111,7 @@ func TestUserHandler_GetAll(t *testing.T) {
 	t.Run("Sucesso ao buscar todos usuários", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		users := []*model_user.User{
+		users := []*model.User{
 			{UID: 1, Username: "user1", Email: "user1@example.com"},
 			{UID: 2, Username: "user2", Email: "user2@example.com"},
 		}
@@ -150,7 +150,7 @@ func TestUserHandler_GetByID(t *testing.T) {
 	t.Run("Sucesso ao buscar usuário por ID", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		user := &model_user.User{
+		user := &model.User{
 			UID:      1,
 			Username: "user1",
 			Email:    "user1@example.com",
@@ -242,7 +242,7 @@ func TestUserHandler_GetVersionByID(t *testing.T) {
 	t.Run("Erro usuário não encontrado", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetVersionByID", mock.Anything, int64(999)).Return(int64(0), repositories.ErrUserNotFound).Once()
+		mockService.On("GetVersionByID", mock.Anything, int64(999)).Return(int64(0), repo.ErrUserNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/users/999/version", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "999"})
@@ -278,7 +278,7 @@ func TestUserHandler_GetByEmail(t *testing.T) {
 	t.Run("Sucesso ao buscar usuário por email", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		user := &model_user.User{
+		user := &model.User{
 			UID:      1,
 			Username: "user1",
 			Email:    "user1@example.com",
@@ -335,7 +335,7 @@ func TestUserHandler_GetByName(t *testing.T) {
 	t.Run("Sucesso ao buscar usuários por nome parcial", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		users := []*model_user.User{
+		users := []*model.User{
 			{
 				UID:      1,
 				Username: "user1",
@@ -400,7 +400,7 @@ func TestUserHandler_Update(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		userID := int64(1)
-		userToUpdate := &model_user.User{
+		userToUpdate := &model.User{
 			UID:      userID,
 			Username: "updatedUser",
 			Email:    "updated@example.com",
@@ -417,7 +417,7 @@ func TestUserHandler_Update(t *testing.T) {
 
 		body, _ := json.Marshal(requestBody)
 
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model_user.User) bool {
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
 			return u.UID == userID && u.Username == "updatedUser" && u.Version == 2
 		})).Return(userToUpdate, nil).Once()
 
@@ -488,9 +488,9 @@ func TestUserHandler_Update(t *testing.T) {
 
 		body, _ := json.Marshal(requestBody)
 
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model_user.User) bool {
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
 			return u.UID == userID && u.Version == 2
-		})).Return(nil, repositories.ErrVersionConflict).Once()
+		})).Return(nil, repo.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -515,7 +515,7 @@ func TestUserHandler_Update(t *testing.T) {
 
 		body, _ := json.Marshal(requestBody)
 
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model_user.User) bool {
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
 			return u.UID == userID && u.Version == 2
 		})).Return(nil, errors.New("erro interno")).Once()
 
@@ -539,16 +539,16 @@ func TestUserHandler_Disable(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		// Mock do GetByID para buscar o usuário antes de atualizar
-		mockService.On("GetByID", mock.Anything, int64(1)).Return(&model_user.User{
+		mockService.On("GetByID", mock.Anything, int64(1)).Return(&model.User{
 			UID:     1,
 			Status:  true,
 			Version: 5,
 		}, nil).Once()
 
 		// Mock do Update com usuário atualizado
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(user *model_user.User) bool {
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(user *model.User) bool {
 			return user.UID == 1 && user.Status == false && user.Version == 10
-		})).Return(&model_user.User{
+		})).Return(&model.User{
 			UID:     1,
 			Status:  false,
 			Version: 10,
@@ -616,13 +616,13 @@ func TestUserHandler_Disable(t *testing.T) {
 	t.Run("Erro conflito de versão ao desabilitar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetByID", mock.Anything, int64(4)).Return(&model_user.User{
+		mockService.On("GetByID", mock.Anything, int64(4)).Return(&model.User{
 			UID:     4,
 			Status:  true,
 			Version: 2,
 		}, nil).Once()
 
-		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, repositories.ErrVersionConflict).Once()
+		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, repo.ErrVersionConflict).Once()
 
 		body := `{"version": 2}`
 		req := httptest.NewRequest(http.MethodPatch, "/users/4/disable", strings.NewReader(body))
@@ -638,7 +638,7 @@ func TestUserHandler_Disable(t *testing.T) {
 	t.Run("Erro genérico ao desabilitar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetByID", mock.Anything, int64(2)).Return(&model_user.User{
+		mockService.On("GetByID", mock.Anything, int64(2)).Return(&model.User{
 			UID:     2,
 			Status:  true,
 			Version: 1,
@@ -683,16 +683,16 @@ func TestUserHandler_Enable(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		// Mock GetByID para buscar usuário atual
-		mockService.On("GetByID", mock.Anything, int64(1)).Return(&model_user.User{
+		mockService.On("GetByID", mock.Anything, int64(1)).Return(&model.User{
 			UID:     1,
 			Status:  false,
 			Version: 3,
 		}, nil).Once()
 
 		// Mock Update com usuário atualizado
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(user *model_user.User) bool {
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(user *model.User) bool {
 			return user.UID == 1 && user.Status == true && user.Version == 4
-		})).Return(&model_user.User{
+		})).Return(&model.User{
 			UID:     1,
 			Status:  true,
 			Version: 4,
@@ -734,14 +734,14 @@ func TestUserHandler_Enable(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		// GetByID retorna usuário válido
-		mockService.On("GetByID", mock.Anything, int64(3)).Return(&model_user.User{
+		mockService.On("GetByID", mock.Anything, int64(3)).Return(&model.User{
 			UID:     3,
 			Status:  false,
 			Version: 5,
 		}, nil).Once()
 
 		// Update retorna erro de conflito de versão
-		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, repositories.ErrVersionConflict).Once()
+		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, repo.ErrVersionConflict).Once()
 
 		body := `{"version": 5}`
 		req := httptest.NewRequest(http.MethodPatch, "/users/3/enable", strings.NewReader(body))
@@ -784,7 +784,7 @@ func TestUserHandler_Enable(t *testing.T) {
 	t.Run("Erro genérico ao habilitar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetByID", mock.Anything, int64(2)).Return(&model_user.User{
+		mockService.On("GetByID", mock.Anything, int64(2)).Return(&model.User{
 			UID:     2,
 			Status:  false,
 			Version: 1,

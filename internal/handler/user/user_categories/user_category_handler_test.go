@@ -8,8 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
+	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_categories"
 	services_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_categories/user_categories_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
@@ -25,7 +25,7 @@ func TestUserCategoryHandler_Create(t *testing.T) {
 	handler := NewUserCategoryHandler(mockSvc, logger)
 
 	t.Run("Success", func(t *testing.T) {
-		category := &models.UserCategory{Name: "Nova"}
+		category := &model.UserCategory{Name: "Nova"}
 		mockSvc.On("Create", mock.Anything, category).Return(category, nil)
 
 		body, _ := json.Marshal(category)
@@ -41,7 +41,7 @@ func TestUserCategoryHandler_Create(t *testing.T) {
 		assert.NoError(t, err)
 
 		itemBytes, _ := json.Marshal(response.Data)
-		var result models.UserCategory
+		var result model.UserCategory
 		json.Unmarshal(itemBytes, &result)
 
 		assert.Equal(t, category.Name, result.Name)
@@ -66,9 +66,9 @@ func TestUserCategoryHandler_Create(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		input := models.UserCategory{Name: "Erro"}
+		input := model.UserCategory{Name: "Erro"}
 
-		mockSvc.On("Create", mock.Anything, mock.MatchedBy(func(c *models.UserCategory) bool {
+		mockSvc.On("Create", mock.Anything, mock.MatchedBy(func(c *model.UserCategory) bool {
 			return c.Name == input.Name
 		})).Return(nil, errors.New("erro ao criar categoria"))
 
@@ -96,7 +96,7 @@ func TestUserCategoryHandler_GetById(t *testing.T) {
 	handler := NewUserCategoryHandler(mockSvc, logger)
 
 	t.Run("Success", func(t *testing.T) {
-		expected := &models.UserCategory{ID: 1, Name: "Teste"}
+		expected := &model.UserCategory{ID: 1, Name: "Teste"}
 		mockSvc.On("GetByID", mock.Anything, int64(1)).Return(expected, nil)
 
 		req := mux.SetURLVars(httptest.NewRequest("GET", "/categories/1", nil), map[string]string{"id": "1"})
@@ -111,7 +111,7 @@ func TestUserCategoryHandler_GetById(t *testing.T) {
 		assert.NoError(t, err)
 
 		itemBytes, _ := json.Marshal(response.Data)
-		var result models.UserCategory
+		var result model.UserCategory
 		json.Unmarshal(itemBytes, &result)
 
 		assert.Equal(t, *expected, result)
@@ -183,7 +183,7 @@ func TestUserCategoryHandler_GetAll(t *testing.T) {
 		logger := logger.NewLoggerAdapter(logrus.New())
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
-		expected := []*models.UserCategory{{ID: 1, Name: "Categoria"}}
+		expected := []*model.UserCategory{{ID: 1, Name: "Categoria"}}
 		mockSvc.On("GetAll", mock.Anything).Return(expected, nil)
 
 		req := httptest.NewRequest("GET", "/categories", nil)
@@ -200,10 +200,10 @@ func TestUserCategoryHandler_GetAll(t *testing.T) {
 		rawData, ok := response.Data.([]interface{})
 		assert.True(t, ok)
 
-		var result []*models.UserCategory
+		var result []*model.UserCategory
 		for _, item := range rawData {
 			itemBytes, _ := json.Marshal(item)
-			var cat models.UserCategory
+			var cat model.UserCategory
 			json.Unmarshal(itemBytes, &cat)
 			result = append(result, &cat)
 		}
@@ -219,7 +219,7 @@ func TestUserCategoryHandler_GetAll(t *testing.T) {
 		logger := logger.NewLoggerAdapter(logrus.New())
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
-		mockSvc.On("GetAll", mock.Anything).Return(([]*models.UserCategory)(nil), errors.New("erro de banco"))
+		mockSvc.On("GetAll", mock.Anything).Return(([]*model.UserCategory)(nil), errors.New("erro de banco"))
 
 		req := httptest.NewRequest("GET", "/categories", nil)
 		w := httptest.NewRecorder()
@@ -247,7 +247,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 		mockSvc := new(services_mock.MockUserCategoryService)
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
-		category := &models.UserCategory{ID: 1, Name: "Atualizada"}
+		category := &model.UserCategory{ID: 1, Name: "Atualizada"}
 		mockSvc.On("Update", mock.Anything, category).Return(category, nil)
 
 		body, _ := json.Marshal(category)
@@ -263,7 +263,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 		assert.NoError(t, err)
 
 		itemBytes, _ := json.Marshal(response.Data)
-		var result models.UserCategory
+		var result model.UserCategory
 		json.Unmarshal(itemBytes, &result)
 
 		assert.Equal(t, category.Name, result.Name)
@@ -276,13 +276,13 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 		mockSvc := new(services_mock.MockUserCategoryService)
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
-		category := &models.UserCategory{Name: "Inexistente"}
+		category := &model.UserCategory{Name: "Inexistente"}
 		body, _ := json.Marshal(category)
 
 		req := mux.SetURLVars(httptest.NewRequest("PUT", "/categories/999", bytes.NewBuffer(body)), map[string]string{"id": "999"})
 		w := httptest.NewRecorder()
 
-		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(c *models.UserCategory) bool {
+		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(c *model.UserCategory) bool {
 			return c.ID == 999
 		})).Return(nil, repo.ErrCategoryNotFound)
 
@@ -337,7 +337,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 		mockSvc := new(services_mock.MockUserCategoryService)
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
-		category := &models.UserCategory{ID: 2, Name: "Falha"}
+		category := &model.UserCategory{ID: 2, Name: "Falha"}
 		mockSvc.On("Update", mock.Anything, category).Return(nil, errors.New("erro ao atualizar"))
 
 		body, _ := json.Marshal(category)

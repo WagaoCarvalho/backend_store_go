@@ -13,7 +13,7 @@ import (
 
 	models_login "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
@@ -55,7 +55,7 @@ func TestLoginService_Login(t *testing.T) {
 	log.SetOutput(io.Discard)
 	adapter := logger.NewLoggerAdapter(log)
 
-	mockRepo := new(repositories.MockUserRepository)
+	mockRepo := new(repo.MockUserRepository)
 	mockHasher := new(mockHasher)
 	mockToken := new(mockTokenGen)
 

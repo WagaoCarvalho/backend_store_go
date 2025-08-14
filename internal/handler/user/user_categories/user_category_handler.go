@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_categories"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"

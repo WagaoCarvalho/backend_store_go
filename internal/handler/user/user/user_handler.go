@@ -7,8 +7,7 @@ import (
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
-	repository "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/users"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
@@ -163,7 +162,7 @@ func (h *UserHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 	version, err := h.service.GetVersionByID(ctx, id)
 	if err != nil {
 		status := http.StatusInternalServerError
-		if errors.Is(err, repository.ErrUserNotFound) {
+		if errors.Is(err, repo.ErrUserNotFound) {
 			status = http.StatusNotFound
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id": id,
@@ -319,7 +318,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	updatedUser, err := h.service.Update(ctx, requestData.User)
 	if err != nil {
-		if errors.Is(err, repository.ErrVersionConflict) {
+		if errors.Is(err, repo.ErrVersionConflict) {
 			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"user_id": id,
 			})
@@ -400,7 +399,7 @@ func (h *UserHandler) Disable(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.service.Update(ctx, user)
 	if err != nil {
-		if errors.Is(err, repositories.ErrVersionConflict) {
+		if errors.Is(err, repo.ErrVersionConflict) {
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"user_id": id,
 			})
@@ -477,7 +476,7 @@ func (h *UserHandler) Enable(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.service.Update(ctx, user)
 	if err != nil {
-		if errors.Is(err, repositories.ErrVersionConflict) {
+		if errors.Is(err, repo.ErrVersionConflict) {
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"user_id": id,
 			})

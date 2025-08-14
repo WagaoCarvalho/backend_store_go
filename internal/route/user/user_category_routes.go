@@ -7,7 +7,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user_categories"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_categories"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_categories"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
@@ -20,7 +20,7 @@ func RegisterUserCategoryRoutes(
 	log *logger.LoggerAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	userCategoryRepo := repositories.NewUserCategoryRepository(db, log)
+	userCategoryRepo := repo.NewUserCategoryRepository(db, log)
 	userCategoryService := service.NewUserCategoryService(userCategoryRepo, log)
 	userCategoryHandler := handler.NewUserCategoryHandler(userCategoryService, log)
 

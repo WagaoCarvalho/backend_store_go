@@ -7,8 +7,7 @@ import (
 	"testing"
 
 	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
-	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -33,11 +32,11 @@ func TestUserService_Create(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New()) // logger real
 
 	setup := func() (
-		*repo_user.MockUserRepository,
+		*repo.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo_user.MockUserRepository)
+		mockUserRepo := new(repo.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -147,11 +146,11 @@ func TestUserService_GetAll(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo_user.MockUserRepository,
+		*repo.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo_user.MockUserRepository)
+		mockUserRepo := new(repo.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -197,11 +196,11 @@ func TestUserService_GetByID(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo_user.MockUserRepository,
+		*repo.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo_user.MockUserRepository)
+		mockUserRepo := new(repo.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -261,11 +260,11 @@ func TestUserService_GetVersionByID(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo_user.MockUserRepository,
+		*repo.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo_user.MockUserRepository)
+		mockUserRepo := new(repo.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -294,12 +293,12 @@ func TestUserService_GetVersionByID(t *testing.T) {
 
 		mockRepo.On("GetVersionByID", mock.Anything, int64(999)).Return(
 			int64(0),
-			repo_user.ErrUserNotFound,
+			repo.ErrUserNotFound,
 		)
 
 		version, err := service.GetVersionByID(context.Background(), 999)
 
-		assert.ErrorIs(t, err, repo_user.ErrUserNotFound)
+		assert.ErrorIs(t, err, repo.ErrUserNotFound)
 		assert.Equal(t, int64(0), version)
 		mockRepo.AssertExpectations(t)
 	})
@@ -324,11 +323,11 @@ func TestUserService_GetByEmail(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo_user.MockUserRepository,
+		*repo.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo_user.MockUserRepository)
+		mockUserRepo := new(repo.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -379,11 +378,11 @@ func TestUserService_GetByName(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo_user.MockUserRepository,
+		*repo.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo_user.MockUserRepository)
+		mockUserRepo := new(repo.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -442,11 +441,11 @@ func TestUserService_Update(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo_user.MockUserRepository,
+		*repo.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo_user.MockUserRepository)
+		mockUserRepo := new(repo.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -497,11 +496,11 @@ func TestUserService_Update(t *testing.T) {
 			Version: 1,
 		}
 
-		mockRepo.On("Update", mock.Anything, user).Return(nil, repo_user.ErrUserNotFound)
+		mockRepo.On("Update", mock.Anything, user).Return(nil, repo.ErrUserNotFound)
 
 		updatedUser, err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, repo_user.ErrUserNotFound)
+		assert.ErrorIs(t, err, repo.ErrUserNotFound)
 		assert.Nil(t, updatedUser)
 		mockRepo.AssertExpectations(t)
 	})
@@ -515,11 +514,11 @@ func TestUserService_Update(t *testing.T) {
 			Version: 2,
 		}
 
-		mockRepo.On("Update", mock.Anything, user).Return(nil, repo_user.ErrVersionConflict)
+		mockRepo.On("Update", mock.Anything, user).Return(nil, repo.ErrVersionConflict)
 
 		updatedUser, err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, repo_user.ErrVersionConflict)
+		assert.ErrorIs(t, err, repo.ErrVersionConflict)
 		assert.Nil(t, updatedUser)
 		mockRepo.AssertExpectations(t)
 	})
@@ -573,11 +572,11 @@ func TestUserService_Disable(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo_user.MockUserRepository,
+		*repo.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo_user.MockUserRepository)
+		mockUserRepo := new(repo.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -618,11 +617,11 @@ func TestUserService_Enable(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo_user.MockUserRepository,
+		*repo.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo_user.MockUserRepository)
+		mockUserRepo := new(repo.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -676,11 +675,11 @@ func TestUserService_Delete(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo_user.MockUserRepository,
+		*repo.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo_user.MockUserRepository)
+		mockUserRepo := new(repo.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(

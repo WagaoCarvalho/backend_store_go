@@ -8,7 +8,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
-	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/users"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/users"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 
@@ -22,7 +22,7 @@ func RegisterUserRoutes(
 	log *logger.LoggerAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repo_user := repo_user.NewUserRepository(db, log)
+	repo_user := repo.NewUserRepository(db, log)
 	hasher := auth.BcryptHasher{}
 
 	userService := services.NewUserService(repo_user, log, hasher)

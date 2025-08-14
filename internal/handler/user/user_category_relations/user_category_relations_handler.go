@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/users/user_category_relations"
+	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/user/user_category_relations"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/users/user_category_relations"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
@@ -32,7 +32,7 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]interface{}{})
 
-	var relation *models.UserCategoryRelations
+	var relation *model.UserCategoryRelations
 	if err := utils.FromJson(r.Body, &relation); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]interface{}{
 			"erro": err.Error(),
