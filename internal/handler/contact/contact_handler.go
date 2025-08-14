@@ -7,7 +7,7 @@ import (
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/services/contact"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/contact"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )

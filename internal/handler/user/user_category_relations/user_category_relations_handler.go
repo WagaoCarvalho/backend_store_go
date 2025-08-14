@@ -8,7 +8,7 @@ import (
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_category_relations"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_category_relations"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"

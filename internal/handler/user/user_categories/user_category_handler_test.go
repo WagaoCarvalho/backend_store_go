@@ -10,7 +10,7 @@ import (
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories"
-	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_categories/user_categories_services_mock"
+	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_categories/user_categories_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"

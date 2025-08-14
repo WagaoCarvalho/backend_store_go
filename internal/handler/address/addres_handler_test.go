@@ -15,8 +15,8 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/services/address"
-	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/address/address_services_mock"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/address"
+	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/address/address_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )

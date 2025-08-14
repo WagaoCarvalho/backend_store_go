@@ -12,7 +12,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
-	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_category_relations/user_category_relations_services_mock"
+	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_category_relations/user_category_relations_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"

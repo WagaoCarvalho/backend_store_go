@@ -8,7 +8,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/gorilla/mux"

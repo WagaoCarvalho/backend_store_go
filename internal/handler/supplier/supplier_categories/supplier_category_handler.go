@@ -6,7 +6,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_categories"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/services/supplier/supplier_categories"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_categories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )

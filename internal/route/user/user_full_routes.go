@@ -12,7 +12,7 @@ import (
 	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	repo_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
 	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_full_repositories"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/services/user/user_full_services"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_full_services"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 
 	"github.com/gorilla/mux"

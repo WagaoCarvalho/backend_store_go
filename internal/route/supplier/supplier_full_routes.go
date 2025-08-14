@@ -11,7 +11,7 @@ import (
 	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	repo_supplier_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
 	repo_supplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_full_repositories"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/supplier/supplier_full_services"
+	services "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_full_services"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 
 	"github.com/gorilla/mux"

@@ -8,7 +8,7 @@ import (
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/contact"
 	jwt_middleware "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/services/contact"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/contact"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 
 	"github.com/gorilla/mux"
