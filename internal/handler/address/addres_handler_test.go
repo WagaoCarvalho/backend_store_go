@@ -15,8 +15,8 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/address"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
-	addresses_services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses/address_services_mock"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/address"
+	addresses_services "github.com/WagaoCarvalho/backend_store_go/internal/services/address/address_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
@@ -550,7 +550,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 		mockSvc := new(addresses_services.MockAddressService)
 		handler := NewAddressHandler(mockSvc, logAdapter)
 
-		mockSvc.On("Delete", mock.Anything, int64(2)).Return(services.ErrAddressIDRequired).Once()
+		mockSvc.On("Delete", mock.Anything, int64(2)).Return(service.ErrAddressIDRequired).Once()
 
 		req := newRequestWithVars("DELETE", "/addresses/2", nil, map[string]string{"id": "2"})
 		w := httptest.NewRecorder()

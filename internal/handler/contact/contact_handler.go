@@ -7,17 +7,17 @@ import (
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contact"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/contact"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type ContactHandler struct {
-	service services.ContactService
+	service service.ContactService
 	logger  *logger.LoggerAdapter
 }
 
-func NewContactHandler(service services.ContactService, logger *logger.LoggerAdapter) *ContactHandler {
+func NewContactHandler(service service.ContactService, logger *logger.LoggerAdapter) *ContactHandler {
 	return &ContactHandler{
 		service: service,
 		logger:  logger,

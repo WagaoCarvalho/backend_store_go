@@ -7,17 +7,17 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/address"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/addresses"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/address"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )
 
 type AddressHandler struct {
-	service services.AddressService
+	service service.AddressService
 	logger  *logger.LoggerAdapter
 }
 
-func NewAddressHandler(service services.AddressService, logger *logger.LoggerAdapter) *AddressHandler {
+func NewAddressHandler(service service.AddressService, logger *logger.LoggerAdapter) *AddressHandler {
 	return &AddressHandler{
 		service: service,
 		logger:  logger,
@@ -279,7 +279,7 @@ func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 				"erro":       err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusNotFound)
-		case errors.Is(err, services.ErrAddressIDRequired):
+		case errors.Is(err, service.ErrAddressIDRequired):
 			h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{
 				"erro": err.Error(),
 			})

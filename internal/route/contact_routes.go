@@ -5,10 +5,10 @@ import (
 
 	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
-	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/contact"
+	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/contact"
 	jwt_middleware "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contact"
-	services "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/services/contact"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 
 	"github.com/gorilla/mux"
@@ -22,8 +22,8 @@ func RegisterContactRoutes(
 	blacklist jwt_middleware.TokenBlacklist,
 ) {
 	repo := repo.NewContactRepository(db, log)
-	service := services.NewContactService(repo, log)
-	handler := handlers.NewContactHandler(service, log)
+	service := service.NewContactService(repo, log)
+	handler := handler.NewContactHandler(service, log)
 
 	// Carrega a configuração do JWT
 	jwtCfg := config.LoadJwtConfig()
