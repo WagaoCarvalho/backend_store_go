@@ -7,7 +7,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/contact"
 	jwt_middleware "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contact"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 
@@ -21,7 +21,7 @@ func RegisterContactRoutes(
 	log *logger.LoggerAdapter,
 	blacklist jwt_middleware.TokenBlacklist,
 ) {
-	repo := repositories.NewContactRepository(db, log)
+	repo := repo.NewContactRepository(db, log)
 	service := services.NewContactService(repo, log)
 	handler := handlers.NewContactHandler(service, log)
 

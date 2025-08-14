@@ -8,7 +8,7 @@ import (
 	models_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
 	models_full "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
 	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repositories/address"
-	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
+	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contact"
 	repo_relation "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_category_relations"
 	repo_supplier "github.com/WagaoCarvalho/backend_store_go/internal/repositories/suppliers/supplier_full_repositories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"

@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
+	repositories "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contact"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 )

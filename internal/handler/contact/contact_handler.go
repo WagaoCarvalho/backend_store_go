@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
+	model "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contact"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/services/contacts"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
@@ -26,7 +26,7 @@ func NewContactHandler(service services.ContactService, logger *logger.LoggerAda
 
 func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ref := "[ContactHandler - Create] "
-	var contact models.Contact
+	var contact model.Contact
 
 	h.logger.Info(r.Context(), ref+logger.LogCreateInit, map[string]any{})
 
@@ -231,7 +231,7 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var contact models.Contact
+	var contact model.Contact
 	if err := json.NewDecoder(r.Body).Decode(&contact); err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogParseJsonError, map[string]any{
 			"erro": err.Error(),

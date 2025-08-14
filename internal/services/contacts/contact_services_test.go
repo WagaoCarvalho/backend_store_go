@@ -7,7 +7,7 @@ import (
 	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contacts"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repositories/contact"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
