@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/config"
+	"github.com/WagaoCarvalho/backend_store_go/config"
 	routes "github.com/WagaoCarvalho/backend_store_go/internal/route"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 	"github.com/sirupsen/logrus"

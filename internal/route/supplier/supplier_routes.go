@@ -3,8 +3,8 @@ package routes
 import (
 	"net/http"
 
+	"github.com/WagaoCarvalho/backend_store_go/config"
 	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
-	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/supplier/supplier"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"

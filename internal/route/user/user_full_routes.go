@@ -3,9 +3,9 @@ package routes
 import (
 	"net/http"
 
+	"github.com/WagaoCarvalho/backend_store_go/config"
 	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
-	"github.com/WagaoCarvalho/backend_store_go/internal/config"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user_full"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
 	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"

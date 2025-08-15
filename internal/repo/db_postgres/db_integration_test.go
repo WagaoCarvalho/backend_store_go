@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	config "github.com/WagaoCarvalho/backend_store_go/internal/config"
+	config "github.com/WagaoCarvalho/backend_store_go/config"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db_postgres/db_mock"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"

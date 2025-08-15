@@ -12,7 +12,7 @@ import (
 	logout "github.com/WagaoCarvalho/backend_store_go/internal/service/logout"
 	"github.com/WagaoCarvalho/backend_store_go/logger"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/config"
+	"github.com/WagaoCarvalho/backend_store_go/config"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
