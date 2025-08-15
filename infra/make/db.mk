@@ -1,4 +1,4 @@
-.PHONY: db db_test stop_db clean_db migrate_up	
+.PHONY: db db_test stop_db clean_db migrate_up migrate_down
 
 db:
 	@echo "Subindo o banco de dados com Docker..."

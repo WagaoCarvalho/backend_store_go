@@ -4,12 +4,12 @@ import (
 	"context"
 	"net/http"
 
+	redis "github.com/WagaoCarvalho/backend_store_go/infra/db/redis"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/home"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db_postgres"
 	routes_product "github.com/WagaoCarvalho/backend_store_go/internal/route/product"
 	routes_supplier "github.com/WagaoCarvalho/backend_store_go/internal/route/supplier"
 	routes_user "github.com/WagaoCarvalho/backend_store_go/internal/route/user"
-	redis "github.com/WagaoCarvalho/backend_store_go/pkg/auth/blacklist_redis"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 	cors "github.com/WagaoCarvalho/backend_store_go/pkg/middleware/cors"
 	logging "github.com/WagaoCarvalho/backend_store_go/pkg/middleware/logging"
