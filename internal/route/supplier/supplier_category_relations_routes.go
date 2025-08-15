@@ -5,11 +5,11 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/supplier/supplier_category_relations"
-	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_category_relations"
 	jwt_auth "github.com/WagaoCarvalho/backend_store_go/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
+	jwt "github.com/WagaoCarvalho/backend_store_go/pkg/middleware/jwt"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

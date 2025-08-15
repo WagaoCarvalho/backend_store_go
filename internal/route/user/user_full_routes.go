@@ -5,7 +5,6 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user_full"
-	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
 	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
 	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	repo_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
@@ -14,6 +13,7 @@ import (
 	jwt_auth "github.com/WagaoCarvalho/backend_store_go/pkg/auth/jwt"
 	auth "github.com/WagaoCarvalho/backend_store_go/pkg/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
+	jwt "github.com/WagaoCarvalho/backend_store_go/pkg/middleware/jwt"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
