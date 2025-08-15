@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"strings"
 	"testing"
 
+	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -216,4 +218,61 @@ func TestValidateSingleNonNil(t *testing.T) {
 			assert.Equal(t, tt.expected, result)
 		})
 	}
+}
+
+func TestValidateStrongPassword(t *testing.T) {
+	t.Run("campo obrigatório", func(t *testing.T) {
+		err := ValidateStrongPassword("")
+		assert.Error(t, err)
+		ve, ok := err.(*utils.ValidationError)
+		assert.True(t, ok)
+		assert.Equal(t, "Password", ve.Field)
+		assert.Equal(t, "campo obrigatório", ve.Message)
+	})
+
+	t.Run("senha muito curta", func(t *testing.T) {
+		err := ValidateStrongPassword("Ab1@")
+		assert.Error(t, err)
+		ve, ok := err.(*utils.ValidationError)
+		assert.True(t, ok)
+		assert.Equal(t, "mínimo de 8 caracteres", ve.Message)
+	})
+
+	t.Run("senha muito longa", func(t *testing.T) {
+		longPwd := strings.Repeat("A1a@", 20) // 80 caracteres
+		err := ValidateStrongPassword(longPwd)
+		assert.Error(t, err)
+		ve, ok := err.(*utils.ValidationError)
+		assert.True(t, ok)
+		assert.Equal(t, "máximo de 64 caracteres", ve.Message)
+	})
+
+	t.Run("senha sem maiúscula", func(t *testing.T) {
+		err := ValidateStrongPassword("abcdef1@")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "senha deve conter letras maiúsculas")
+	})
+
+	t.Run("senha sem minúscula", func(t *testing.T) {
+		err := ValidateStrongPassword("ABCDEF1@")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "senha deve conter letras maiúsculas, minúsculas, números e caracteres especiais")
+	})
+
+	t.Run("senha sem número", func(t *testing.T) {
+		err := ValidateStrongPassword("Abcdefg@")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "senha deve conter letras maiúsculas, minúsculas, números e caracteres especiais")
+	})
+
+	t.Run("senha sem símbolo", func(t *testing.T) {
+		err := ValidateStrongPassword("Abcdef12")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "senha deve conter letras maiúsculas, minúsculas, números e caracteres especiais")
+	})
+
+	t.Run("senha válida", func(t *testing.T) {
+		err := ValidateStrongPassword("Abcdef1@")
+		assert.NoError(t, err)
+	})
 }

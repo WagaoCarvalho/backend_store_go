@@ -3,6 +3,8 @@ package utils
 import (
 	"regexp"
 	"strings"
+
+	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 )
 
 func IsBlank(s string) bool {
@@ -99,4 +101,44 @@ func ValidateSingleNonNil(fields ...*int64) bool {
 		}
 	}
 	return count == 1
+}
+
+func ValidateStrongPassword(password string) error {
+	if IsBlank(password) {
+		return &utils.ValidationError{Field: "Password", Message: "campo obrigatório"}
+	}
+	if len(password) < 8 {
+		return &utils.ValidationError{Field: "Password", Message: "mínimo de 8 caracteres"}
+	}
+	if len(password) > 64 {
+		return &utils.ValidationError{Field: "Password", Message: "máximo de 64 caracteres"}
+	}
+
+	var (
+		hasUpper  = false
+		hasLower  = false
+		hasNumber = false
+		hasSymbol = false
+	)
+	for _, c := range password {
+		switch {
+		case 'A' <= c && c <= 'Z':
+			hasUpper = true
+		case 'a' <= c && c <= 'z':
+			hasLower = true
+		case '0' <= c && c <= '9':
+			hasNumber = true
+		case strings.ContainsRune("@$!%*?&", c):
+			hasSymbol = true
+		}
+	}
+
+	if !hasUpper || !hasLower || !hasNumber || !hasSymbol {
+		return &utils.ValidationError{
+			Field:   "Password",
+			Message: "senha deve conter letras maiúsculas, minúsculas, números e caracteres especiais",
+		}
+	}
+
+	return nil
 }
