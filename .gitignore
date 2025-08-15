@@ -7,7 +7,6 @@ internal/repositories/db_postgres/db_postgres_connection_mock.go
 
 # Diretórios do Go
 bin/
-pkg/
 build/
 vendor/
 
