@@ -9,7 +9,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 type ProductService interface {

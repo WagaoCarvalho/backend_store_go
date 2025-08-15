@@ -7,7 +7,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 type SupplierService interface {

@@ -9,7 +9,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 type UserService interface {

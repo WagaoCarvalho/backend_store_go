@@ -8,7 +8,7 @@ import (
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
-	logger "github.com/WagaoCarvalho/backend_store_go/logger"
+	logger "github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 type LoginService interface {

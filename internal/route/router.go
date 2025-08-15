@@ -15,7 +15,7 @@ import (
 	routes_product "github.com/WagaoCarvalho/backend_store_go/internal/route/product"
 	routes_supplier "github.com/WagaoCarvalho/backend_store_go/internal/route/supplier"
 	routes_user "github.com/WagaoCarvalho/backend_store_go/internal/route/user"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 	"github.com/gorilla/mux"
 )
 

@@ -7,7 +7,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_full_services"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 type UserHandler struct {

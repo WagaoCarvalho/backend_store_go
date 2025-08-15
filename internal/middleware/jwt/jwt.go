@@ -7,7 +7,7 @@ import (
 
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	middlewares "github.com/WagaoCarvalho/backend_store_go/internal/middleware/context_utils"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 type TokenBlacklist interface {

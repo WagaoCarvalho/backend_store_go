@@ -10,7 +10,7 @@ import (
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	login "github.com/WagaoCarvalho/backend_store_go/internal/service/login"
 	logout "github.com/WagaoCarvalho/backend_store_go/internal/service/logout"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	"github.com/gorilla/mux"

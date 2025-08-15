@@ -16,7 +16,7 @@ import (
 	repo_tx "github.com/WagaoCarvalho/backend_store_go/internal/repo/mocks"
 	repo_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
 	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_full_repositories"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

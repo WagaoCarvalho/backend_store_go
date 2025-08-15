@@ -10,7 +10,7 @@ import (
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 	"github.com/gorilla/mux"
 )
 

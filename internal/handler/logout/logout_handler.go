@@ -6,7 +6,7 @@ import (
 
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/logout"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 type LogoutHandler struct {

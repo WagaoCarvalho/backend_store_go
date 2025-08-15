@@ -9,7 +9,7 @@ import (
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/contact"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 type ContactHandler struct {

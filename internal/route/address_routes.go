@@ -9,7 +9,7 @@ import (
 	jwt_middlewares "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/address"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"

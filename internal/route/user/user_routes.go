@@ -10,7 +10,7 @@ import (
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"

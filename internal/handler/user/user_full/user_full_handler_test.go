@@ -14,7 +14,7 @@ import (
 	model_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	model_user_full "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_full_services/user_full_services_mock"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

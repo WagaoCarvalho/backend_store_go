@@ -18,7 +18,7 @@ import (
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/product/mocks"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 func TestProductHandler_Create(t *testing.T) {

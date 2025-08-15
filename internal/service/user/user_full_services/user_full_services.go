@@ -13,7 +13,7 @@ import (
 	repo_relation "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
 	repo_user_full "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_full_repositories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 type UserFullService interface {

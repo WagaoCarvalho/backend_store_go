@@ -18,7 +18,7 @@ import (
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/address"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/address/address_services_mock"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 func newRequestWithVars(method, url string, body []byte, vars map[string]string) *http.Request {

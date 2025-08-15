@@ -7,7 +7,7 @@ import (
 	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

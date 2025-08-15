@@ -8,7 +8,7 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	routes "github.com/WagaoCarvalho/backend_store_go/internal/route"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 	"github.com/sirupsen/logrus"
 )
 

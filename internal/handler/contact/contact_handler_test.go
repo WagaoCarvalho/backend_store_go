@@ -11,7 +11,7 @@ import (
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/contact/contact_services_mock"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"

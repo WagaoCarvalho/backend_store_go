@@ -7,7 +7,7 @@ import (
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_full_services"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
-	"github.com/WagaoCarvalho/backend_store_go/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 type SupplierHandler struct {
