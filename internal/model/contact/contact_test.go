@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	utils_errors "github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 )
 
 func TestContact_Validate(t *testing.T) {

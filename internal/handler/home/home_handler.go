@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 )
 
 func GetHome(w http.ResponseWriter, r *http.Request) {

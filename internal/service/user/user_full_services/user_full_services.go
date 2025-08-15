@@ -11,9 +11,9 @@ import (
 	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	repo_relation "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
 	repo_user_full "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_full_repositories"
-	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	auth "github.com/WagaoCarvalho/backend_store_go/pkg/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 )
 
 type UserFullService interface {

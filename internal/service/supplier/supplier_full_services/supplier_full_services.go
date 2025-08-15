@@ -11,8 +11,8 @@ import (
 	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	repo_relation "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
 	repo_supplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_full_repositories"
-	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 )
 
 type SupplierFullService interface {

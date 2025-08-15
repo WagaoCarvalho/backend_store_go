@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	err "github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 )
 
 func TestAddress_Validate(t *testing.T) {
@@ -64,7 +64,7 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "exatamente um deve ser informado",
 		},
 		{
@@ -79,7 +79,7 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "exatamente um deve ser informado",
 		},
 		{
@@ -94,7 +94,7 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "exatamente um deve ser informado",
 		},
 		{
@@ -109,7 +109,7 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "exatamente um deve ser informado",
 		},
 		{
@@ -123,7 +123,7 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "Street",
 		},
 		{
@@ -137,7 +137,7 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "mínimo de 3 caracteres",
 		},
 		{
@@ -151,7 +151,7 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "máximo de 100 caracteres",
 		},
 		{
@@ -165,7 +165,7 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "City",
 		},
 		{
@@ -179,7 +179,7 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "mínimo de 2 caracteres",
 		},
 		{
@@ -193,7 +193,7 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "State",
 		},
 		{
@@ -207,7 +207,7 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "estado inválido",
 		},
 		{
@@ -220,7 +220,7 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "Country",
 		},
 		{
@@ -234,7 +234,7 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "país não suportado",
 		},
 		{
@@ -247,7 +247,7 @@ func TestAddress_Validate(t *testing.T) {
 				Country: "Brasil",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "PostalCode",
 		},
 		{
@@ -261,7 +261,7 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "ABC",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &err.ValidationError{},
 			errMsg:  "formato inválido",
 		},
 	}

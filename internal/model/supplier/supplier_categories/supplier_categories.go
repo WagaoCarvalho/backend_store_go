@@ -3,8 +3,8 @@ package models
 import (
 	"time"
 
-	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/utils"
-	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
+	err "github.com/WagaoCarvalho/backend_store_go/pkg/utils"
+	validators "github.com/WagaoCarvalho/backend_store_go/pkg/utils/validators"
 )
 
 type SupplierCategory struct {
@@ -16,14 +16,14 @@ type SupplierCategory struct {
 }
 
 func (sc *SupplierCategory) Validate() error {
-	if utils_validators.IsBlank(sc.Name) {
-		return &utils_errors.ValidationError{Field: "Name", Message: "campo obrigatório"}
+	if validators.IsBlank(sc.Name) {
+		return &err.ValidationError{Field: "Name", Message: "campo obrigatório"}
 	}
 	if len(sc.Name) > 100 {
-		return &utils_errors.ValidationError{Field: "Name", Message: "máximo de 100 caracteres"}
+		return &err.ValidationError{Field: "Name", Message: "máximo de 100 caracteres"}
 	}
 	if len(sc.Description) > 255 {
-		return &utils_errors.ValidationError{Field: "Description", Message: "máximo de 255 caracteres"}
+		return &err.ValidationError{Field: "Description", Message: "máximo de 255 caracteres"}
 	}
 	return nil
 }

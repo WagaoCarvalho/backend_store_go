@@ -9,8 +9,8 @@ import (
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_categories"
-	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 	"github.com/gorilla/mux"
 )
 

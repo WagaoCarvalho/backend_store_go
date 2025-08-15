@@ -7,8 +7,8 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
-	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 )
 
 type AddressService interface {

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"time"
 
-	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/utils"
-	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
+	utils_errors "github.com/WagaoCarvalho/backend_store_go/pkg/utils"
+	utils_validators "github.com/WagaoCarvalho/backend_store_go/pkg/utils/validators"
 )
 
 type Contact struct {

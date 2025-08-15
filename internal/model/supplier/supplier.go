@@ -4,8 +4,8 @@ import (
 	"strings"
 	"time"
 
-	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/utils"
-	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
+	err "github.com/WagaoCarvalho/backend_store_go/pkg/utils"
+	validators "github.com/WagaoCarvalho/backend_store_go/pkg/utils/validators"
 )
 
 type Supplier struct {
@@ -20,29 +20,29 @@ type Supplier struct {
 }
 
 func (s *Supplier) Validate() error {
-	if utils_validators.IsBlank(s.Name) {
-		return &utils_errors.ValidationError{Field: "Name", Message: "campo obrigatório"}
+	if validators.IsBlank(s.Name) {
+		return &err.ValidationError{Field: "Name", Message: "campo obrigatório"}
 	}
 	if len(s.Name) > 100 {
-		return &utils_errors.ValidationError{Field: "Name", Message: "máximo de 100 caracteres"}
+		return &err.ValidationError{Field: "Name", Message: "máximo de 100 caracteres"}
 	}
 
 	// Valida CPF e CNPJ mutuamente exclusivos (se quiser aplicar isso):
 	if s.CPF != nil && s.CNPJ != nil {
-		return &utils_errors.ValidationError{Field: "CPF/CNPJ", Message: "não é permitido preencher ambos"}
+		return &err.ValidationError{Field: "CPF/CNPJ", Message: "não é permitido preencher ambos"}
 	}
 
 	if s.CPF != nil {
 		cpf := strings.TrimSpace(*s.CPF)
-		if !utils_validators.IsValidCPF(cpf) {
-			return &utils_errors.ValidationError{Field: "CPF", Message: "CPF inválido"}
+		if !validators.IsValidCPF(cpf) {
+			return &err.ValidationError{Field: "CPF", Message: "CPF inválido"}
 		}
 	}
 
 	if s.CNPJ != nil {
 		cnpj := strings.TrimSpace(*s.CNPJ)
-		if !utils_validators.IsValidCNPJ(cnpj) {
-			return &utils_errors.ValidationError{Field: "CNPJ", Message: "CNPJ inválido"}
+		if !validators.IsValidCNPJ(cnpj) {
+			return &err.ValidationError{Field: "CNPJ", Message: "CNPJ inválido"}
 		}
 	}
 
