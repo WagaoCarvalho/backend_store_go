@@ -560,13 +560,16 @@ func TestProductService_Delete(t *testing.T) {
 func TestProductService_GetVersionByID(t *testing.T) {
 	t.Parallel()
 
-	mockRepo := new(repo.ProductRepositoryMock)
-	log := newTestLogger()
-	service := NewProductService(mockRepo, log)
+	newService := func() (*repo.ProductRepositoryMock, ProductService) {
+		mr := new(repo.ProductRepositoryMock)
+		log := newTestLogger()
+		return mr, NewProductService(mr, log)
+	}
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
 
+		mockRepo, service := newService()
 		mockRepo.On("GetVersionByID", mock.Anything, int64(1)).Return(int64(5), nil)
 
 		version, err := service.GetVersionByID(context.Background(), 1)
@@ -579,6 +582,7 @@ func TestProductService_GetVersionByID(t *testing.T) {
 	t.Run("ProductNotFound", func(t *testing.T) {
 		t.Parallel()
 
+		mockRepo, service := newService()
 		mockRepo.On("GetVersionByID", mock.Anything, int64(2)).Return(int64(0), repo.ErrProductNotFound)
 
 		version, err := service.GetVersionByID(context.Background(), 2)
@@ -591,6 +595,7 @@ func TestProductService_GetVersionByID(t *testing.T) {
 	t.Run("RepositoryError", func(t *testing.T) {
 		t.Parallel()
 
+		mockRepo, service := newService()
 		mockRepo.On("GetVersionByID", mock.Anything, int64(3)).Return(int64(0), errors.New("db failure"))
 
 		version, err := service.GetVersionByID(context.Background(), 3)
