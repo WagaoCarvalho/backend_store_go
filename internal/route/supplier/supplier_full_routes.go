@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
-	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/supplier/supplier_full"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
 	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
@@ -12,6 +11,7 @@ import (
 	repo_supplier_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
 	repo_supplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_full_repositories"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_full_services"
+	jwt_auth "github.com/WagaoCarvalho/backend_store_go/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 
 	"github.com/gorilla/mux"

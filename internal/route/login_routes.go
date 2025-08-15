@@ -3,13 +3,13 @@ package routes
 import (
 	"net/http"
 
-	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
-	pass "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	login_handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/login"
 	logout_handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/logout"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	login "github.com/WagaoCarvalho/backend_store_go/internal/service/login"
 	logout "github.com/WagaoCarvalho/backend_store_go/internal/service/logout"
+	jwt_auth "github.com/WagaoCarvalho/backend_store_go/pkg/auth/jwt"
+	pass "github.com/WagaoCarvalho/backend_store_go/pkg/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"

@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
+	auth "github.com/WagaoCarvalho/backend_store_go/pkg/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 

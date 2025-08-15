@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	redis "github.com/WagaoCarvalho/backend_store_go/internal/auth/blacklist_redis"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/home"
 	cors "github.com/WagaoCarvalho/backend_store_go/internal/middleware/cors"
 	logging "github.com/WagaoCarvalho/backend_store_go/internal/middleware/logging"
@@ -15,6 +14,7 @@ import (
 	routes_product "github.com/WagaoCarvalho/backend_store_go/internal/route/product"
 	routes_supplier "github.com/WagaoCarvalho/backend_store_go/internal/route/supplier"
 	routes_user "github.com/WagaoCarvalho/backend_store_go/internal/route/user"
+	redis "github.com/WagaoCarvalho/backend_store_go/pkg/auth/blacklist_redis"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 	"github.com/gorilla/mux"
 )

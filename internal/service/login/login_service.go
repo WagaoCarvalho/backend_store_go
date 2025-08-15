@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	pass "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/utils/validators"
+	pass "github.com/WagaoCarvalho/backend_store_go/pkg/auth/password"
 	logger "github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 

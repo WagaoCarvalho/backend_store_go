@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/password"
 	models_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
 	models_user_full "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
 	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
@@ -13,6 +12,7 @@ import (
 	repo_relation "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
 	repo_user_full "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_full_repositories"
 	"github.com/WagaoCarvalho/backend_store_go/internal/utils"
+	auth "github.com/WagaoCarvalho/backend_store_go/pkg/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 

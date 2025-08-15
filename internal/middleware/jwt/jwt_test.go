@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
+	auth "github.com/WagaoCarvalho/backend_store_go/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"

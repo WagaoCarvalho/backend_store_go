@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	middlewares "github.com/WagaoCarvalho/backend_store_go/internal/middleware/context_utils"
+	auth "github.com/WagaoCarvalho/backend_store_go/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 

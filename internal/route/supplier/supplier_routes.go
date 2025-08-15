@@ -4,11 +4,11 @@ import (
 	"net/http"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
-	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/auth/jwt"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/supplier/supplier"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier"
+	jwt_auth "github.com/WagaoCarvalho/backend_store_go/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 
 	"github.com/gorilla/mux"
