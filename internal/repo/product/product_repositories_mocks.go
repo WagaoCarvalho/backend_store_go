@@ -69,12 +69,12 @@ func (m *ProductRepositoryMock) GetVersionByID(ctx context.Context, pid int64) (
 	return 0, args.Error(1)
 }
 
-func (m *ProductRepositoryMock) Disable(ctx context.Context, pid int64) error {
+func (m *ProductRepositoryMock) DisableProduct(ctx context.Context, pid int64) error {
 	args := m.Called(ctx, pid)
 	return args.Error(0)
 }
 
-func (m *ProductRepositoryMock) Enable(ctx context.Context, pid int64) error {
+func (m *ProductRepositoryMock) EnableProduct(ctx context.Context, pid int64) error {
 	args := m.Called(ctx, pid)
 	return args.Error(0)
 }

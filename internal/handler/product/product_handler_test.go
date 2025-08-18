@@ -294,7 +294,7 @@ func TestProductHandler_GetVersionByID(t *testing.T) {
 	})
 }
 
-func TestProductHandler_Enable(t *testing.T) {
+func TestProductHandler_EnableProduct(t *testing.T) {
 	log := logrus.New()
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
@@ -309,13 +309,13 @@ func TestProductHandler_Enable(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(1)
 
-		mockService.On("Enable", mock.Anything, productID).Return(nil).Once()
+		mockService.On("EnableProduct", mock.Anything, productID).Return(nil).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/enable/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		handler.Enable(w, req)
+		handler.EnableProduct(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
@@ -331,26 +331,26 @@ func TestProductHandler_Enable(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
 
-		handler.Enable(w, req)
+		handler.EnableProduct(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		mockService.AssertNotCalled(t, "Enable")
+		mockService.AssertNotCalled(t, "EnableProduct")
 	})
 
 	t.Run("Product not found", func(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(2)
 
-		mockService.On("Enable", mock.Anything, productID).Return(repo.ErrProductNotFound).Once()
+		mockService.On("EnableProduct", mock.Anything, productID).Return(repo.ErrProductNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/enable/2", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "2"})
 		w := httptest.NewRecorder()
 
-		handler.Enable(w, req)
+		handler.EnableProduct(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
@@ -363,13 +363,13 @@ func TestProductHandler_Enable(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(3)
 
-		mockService.On("Enable", mock.Anything, productID).Return(repo.ErrVersionConflict).Once()
+		mockService.On("EnableProduct", mock.Anything, productID).Return(repo.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/enable/3", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "3"})
 		w := httptest.NewRecorder()
 
-		handler.Enable(w, req)
+		handler.EnableProduct(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
@@ -383,13 +383,13 @@ func TestProductHandler_Enable(t *testing.T) {
 		productID := int64(4)
 		mockErr := errors.New("erro interno")
 
-		mockService.On("Enable", mock.Anything, productID).Return(mockErr).Once()
+		mockService.On("EnableProduct", mock.Anything, productID).Return(mockErr).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/enable/4", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "4"})
 		w := httptest.NewRecorder()
 
-		handler.Enable(w, req)
+		handler.EnableProduct(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
@@ -405,17 +405,17 @@ func TestProductHandler_Enable(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		handler.Enable(w, req)
+		handler.EnableProduct(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
-		mockService.AssertNotCalled(t, "Enable")
+		mockService.AssertNotCalled(t, "EnableProduct")
 	})
 }
 
-func TestProductHandler_Disable(t *testing.T) {
+func TestProductHandler_DisableProduct(t *testing.T) {
 	log := logrus.New()
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
@@ -430,13 +430,13 @@ func TestProductHandler_Disable(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(1)
 
-		mockService.On("Disable", mock.Anything, productID).Return(nil).Once()
+		mockService.On("DisableProduct", mock.Anything, productID).Return(nil).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/disable/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		handler.Disable(w, req)
+		handler.DisableProduct(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
@@ -452,26 +452,26 @@ func TestProductHandler_Disable(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
 
-		handler.Disable(w, req)
+		handler.DisableProduct(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		mockService.AssertNotCalled(t, "Disable")
+		mockService.AssertNotCalled(t, "DisableProduct")
 	})
 
 	t.Run("Product not found", func(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(2)
 
-		mockService.On("Disable", mock.Anything, productID).Return(repo.ErrProductNotFound).Once()
+		mockService.On("DisableProduct", mock.Anything, productID).Return(repo.ErrProductNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/disable/2", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "2"})
 		w := httptest.NewRecorder()
 
-		handler.Disable(w, req)
+		handler.DisableProduct(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
@@ -484,13 +484,13 @@ func TestProductHandler_Disable(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(3)
 
-		mockService.On("Disable", mock.Anything, productID).Return(repo.ErrVersionConflict).Once()
+		mockService.On("DisableProduct", mock.Anything, productID).Return(repo.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/disable/3", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "3"})
 		w := httptest.NewRecorder()
 
-		handler.Disable(w, req)
+		handler.DisableProduct(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
@@ -504,13 +504,13 @@ func TestProductHandler_Disable(t *testing.T) {
 		productID := int64(4)
 		mockErr := errors.New("erro interno")
 
-		mockService.On("Disable", mock.Anything, productID).Return(mockErr).Once()
+		mockService.On("DisableProduct", mock.Anything, productID).Return(mockErr).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/disable/4", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "4"})
 		w := httptest.NewRecorder()
 
-		handler.Disable(w, req)
+		handler.DisableProduct(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
@@ -526,13 +526,13 @@ func TestProductHandler_Disable(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		handler.Disable(w, req)
+		handler.DisableProduct(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
-		mockService.AssertNotCalled(t, "Disable")
+		mockService.AssertNotCalled(t, "DisableProduct")
 	})
 }
 

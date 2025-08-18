@@ -46,7 +46,7 @@ func RegisterProductRoutes(
 	s.HandleFunc("/product/manufacturer/{manufacturer}", handler.GetByManufacturer).Methods(http.MethodGet)
 	s.HandleFunc("/product/version/{id:[0-9]+}", handler.GetVersionByID).Methods(http.MethodGet)
 	s.HandleFunc("/product/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
-	s.HandleFunc("/product/enable/{id:[0-9]+}", handler.Enable).Methods(http.MethodPatch)
-	s.HandleFunc("/product/disable/{id:[0-9]+}", handler.Disable).Methods(http.MethodPatch)
+	s.HandleFunc("/product/enable/{id:[0-9]+}", handler.EnableProduct).Methods(http.MethodPatch)
+	s.HandleFunc("/product/disable/{id:[0-9]+}", handler.DisableProduct).Methods(http.MethodPatch)
 	s.HandleFunc("/product/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
 }

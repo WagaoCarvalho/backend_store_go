@@ -269,7 +269,7 @@ func (h *ProductHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
-func (h *ProductHandler) Disable(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) DisableProduct(w http.ResponseWriter, r *http.Request) {
 	ref := "[productHandler - Disable] "
 	ctx := r.Context()
 
@@ -292,7 +292,7 @@ func (h *ProductHandler) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.service.Disable(ctx, uid)
+	err = h.service.DisableProduct(ctx, uid)
 	if err != nil {
 		switch {
 		case errors.Is(err, repo.ErrProductNotFound):
@@ -322,7 +322,7 @@ func (h *ProductHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *ProductHandler) Enable(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) EnableProduct(w http.ResponseWriter, r *http.Request) {
 	ref := "[productHandler - Enable] "
 	ctx := r.Context()
 
@@ -345,7 +345,7 @@ func (h *ProductHandler) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.service.Enable(ctx, uid)
+	err = h.service.EnableProduct(ctx, uid)
 	if err != nil {
 		switch {
 		case errors.Is(err, repo.ErrProductNotFound):

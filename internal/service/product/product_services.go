@@ -19,8 +19,8 @@ type ProductService interface {
 	GetByName(ctx context.Context, name string) ([]*models.Product, error)
 	GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error)
 	GetVersionByID(ctx context.Context, uid int64) (int64, error)
-	Disable(ctx context.Context, uid int64) error
-	Enable(ctx context.Context, uid int64) error
+	DisableProduct(ctx context.Context, uid int64) error
+	EnableProduct(ctx context.Context, uid int64) error
 	Update(ctx context.Context, product *models.Product) (*models.Product, error)
 	Delete(ctx context.Context, id int64) error
 }
@@ -203,13 +203,13 @@ func (s *productService) GetVersionByID(ctx context.Context, pid int64) (int64, 
 	return version, nil
 }
 
-func (s *productService) Disable(ctx context.Context, uid int64) error {
+func (s *productService) DisableProduct(ctx context.Context, uid int64) error {
 	ref := "[productService - Disable] - "
 	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
 		"product_id": uid,
 	})
 
-	err := s.repo.Disable(ctx, uid)
+	err := s.repo.DisableProduct(ctx, uid)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"product_id": uid,
@@ -225,13 +225,13 @@ func (s *productService) Disable(ctx context.Context, uid int64) error {
 	return nil
 }
 
-func (s *productService) Enable(ctx context.Context, uid int64) error {
+func (s *productService) EnableProduct(ctx context.Context, uid int64) error {
 	ref := "[productService - Enable] - "
 	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
 		"product_id": uid,
 	})
 
-	err := s.repo.Enable(ctx, uid)
+	err := s.repo.EnableProduct(ctx, uid)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"product_id": uid,

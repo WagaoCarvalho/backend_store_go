@@ -56,12 +56,12 @@ func (m *ProductServiceMock) GetVersionByID(ctx context.Context, uid int64) (int
 	return args.Get(0).(int64), args.Error(1)
 }
 
-func (m *ProductServiceMock) Disable(ctx context.Context, uid int64) error {
+func (m *ProductServiceMock) DisableProduct(ctx context.Context, uid int64) error {
 	args := m.Called(ctx, uid)
 	return args.Error(0)
 }
 
-func (m *ProductServiceMock) Enable(ctx context.Context, uid int64) error {
+func (m *ProductServiceMock) EnableProduct(ctx context.Context, uid int64) error {
 	args := m.Called(ctx, uid)
 	return args.Error(0)
 }

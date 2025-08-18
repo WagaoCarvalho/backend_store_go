@@ -20,8 +20,8 @@ type ProductRepository interface {
 	GetByName(ctx context.Context, name string) ([]*models.Product, error)
 	GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error)
 	GetVersionByID(ctx context.Context, id int64) (int64, error)
-	Enable(ctx context.Context, uid int64) error
-	Disable(ctx context.Context, uid int64) error
+	EnableProduct(ctx context.Context, uid int64) error
+	DisableProduct(ctx context.Context, uid int64) error
 	Update(ctx context.Context, product *models.Product) (*models.Product, error)
 	Delete(ctx context.Context, id int64) error
 }
@@ -343,7 +343,7 @@ func (r *productRepository) GetVersionByID(ctx context.Context, id int64) (int64
 	return version, nil
 }
 
-func (r *productRepository) Enable(ctx context.Context, uid int64) error {
+func (r *productRepository) EnableProduct(ctx context.Context, uid int64) error {
 	ref := "[productRepository - Enable] - "
 	r.logger.Info(ctx, ref+logger.LogEnableInit, map[string]any{
 		"product_id": uid,
@@ -381,7 +381,7 @@ func (r *productRepository) Enable(ctx context.Context, uid int64) error {
 	return nil
 }
 
-func (r *productRepository) Disable(ctx context.Context, uid int64) error {
+func (r *productRepository) DisableProduct(ctx context.Context, uid int64) error {
 	ref := "[productRepository - Disable] - "
 	r.logger.Info(ctx, ref+logger.LogDisableInit, map[string]any{
 		"product_id": uid,

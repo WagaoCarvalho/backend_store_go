@@ -455,7 +455,7 @@ func TestProductService_Update(t *testing.T) {
 	})
 }
 
-func TestProductService_Disable(t *testing.T) {
+func TestProductService_DisableProduct(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (*repo.ProductRepositoryMock, ProductService) {
@@ -467,9 +467,9 @@ func TestProductService_Disable(t *testing.T) {
 	t.Run("Deve desabilitar produto com sucesso", func(t *testing.T) {
 		mockRepo, service := setup()
 
-		mockRepo.On("Disable", mock.Anything, int64(1)).Return(nil).Once()
+		mockRepo.On("DisableProduct", mock.Anything, int64(1)).Return(nil).Once()
 
-		err := service.Disable(context.Background(), 1)
+		err := service.DisableProduct(context.Background(), 1)
 
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
@@ -478,9 +478,9 @@ func TestProductService_Disable(t *testing.T) {
 	t.Run("Deve retornar erro ao desabilitar produto", func(t *testing.T) {
 		mockRepo, service := setup()
 
-		mockRepo.On("Disable", mock.Anything, int64(2)).Return(fmt.Errorf("erro banco")).Once()
+		mockRepo.On("DisableProduct", mock.Anything, int64(2)).Return(fmt.Errorf("erro banco")).Once()
 
-		err := service.Disable(context.Background(), 2)
+		err := service.DisableProduct(context.Background(), 2)
 
 		assert.ErrorContains(t, err, "erro ao desativar produto")
 		assert.ErrorContains(t, err, "erro banco")
@@ -488,7 +488,7 @@ func TestProductService_Disable(t *testing.T) {
 	})
 }
 
-func TestProductService_Enable(t *testing.T) {
+func TestProductService_EnableProduct(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (*repo.ProductRepositoryMock, ProductService) {
@@ -500,9 +500,9 @@ func TestProductService_Enable(t *testing.T) {
 	t.Run("Deve habilitar produto com sucesso", func(t *testing.T) {
 		mockRepo, service := setup()
 
-		mockRepo.On("Enable", mock.Anything, int64(1)).Return(nil).Once()
+		mockRepo.On("EnableProduct", mock.Anything, int64(1)).Return(nil).Once()
 
-		err := service.Enable(context.Background(), 1)
+		err := service.EnableProduct(context.Background(), 1)
 
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
@@ -511,9 +511,9 @@ func TestProductService_Enable(t *testing.T) {
 	t.Run("Deve retornar erro ao habilitar produto", func(t *testing.T) {
 		mockRepo, service := setup()
 
-		mockRepo.On("Enable", mock.Anything, int64(2)).Return(fmt.Errorf("erro banco")).Once()
+		mockRepo.On("EnableProduct", mock.Anything, int64(2)).Return(fmt.Errorf("erro banco")).Once()
 
-		err := service.Enable(context.Background(), 2)
+		err := service.EnableProduct(context.Background(), 2)
 
 		assert.ErrorContains(t, err, "erro ao ativar produto")
 		assert.ErrorContains(t, err, "erro banco")
