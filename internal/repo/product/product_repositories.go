@@ -20,10 +20,20 @@ type ProductRepository interface {
 	GetByName(ctx context.Context, name string) ([]*models.Product, error)
 	GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error)
 	GetVersionByID(ctx context.Context, id int64) (int64, error)
-	EnableProduct(ctx context.Context, uid int64) error
-	DisableProduct(ctx context.Context, uid int64) error
 	Update(ctx context.Context, product *models.Product) (*models.Product, error)
 	Delete(ctx context.Context, id int64) error
+
+	EnableProduct(ctx context.Context, uid int64) error
+	DisableProduct(ctx context.Context, uid int64) error
+
+	UpdateStock(ctx context.Context, id int64, quantity int) error
+	//IncreaseStock(ctx context.Context, id int64, amount int) error
+	//DecreaseStock(ctx context.Context, id int64, amount int) error
+	//GetStock(ctx context.Context, id int64) (int, error)
+
+	//EnableDiscount(ctx context.Context, id int64) error
+	//DisableDiscount(ctx context.Context, id int64) error
+	//ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error)
 }
 
 type productRepository struct {
@@ -509,6 +519,46 @@ func (r *productRepository) Delete(ctx context.Context, id int64) error {
 
 	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
 		"id": id,
+	})
+
+	return nil
+}
+
+func (r *productRepository) UpdateStock(ctx context.Context, id int64, quantity int) error {
+	ref := "[productRepository - UpdateStock] - "
+	r.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"product_id": id,
+		"quantity":   quantity,
+	})
+
+	const query = `
+		UPDATE products
+		SET stock_quantity = $2, updated_at = NOW(), version = version + 1
+		WHERE id = $1
+		RETURNING version, updated_at;
+	`
+
+	var version int
+	var updatedAt time.Time
+	err := r.db.QueryRow(ctx, query, id, quantity).Scan(&version, &updatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": id,
+			})
+			return ErrProductNotFound
+		}
+
+		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"product_id": id,
+			"quantity":   quantity,
+		})
+		return fmt.Errorf("%w: %v", ErrUpdateStock, err)
+	}
+
+	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id": id,
+		"quantity":   quantity,
 	})
 
 	return nil

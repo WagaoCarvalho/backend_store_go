@@ -13,7 +13,7 @@ import (
 
 type DefaultResponse struct {
 	Data    interface{} `json:"data,omitempty"`
-	Message string      `json:"message,omitempty"` // <- Usado tanto para sucesso quanto erro
+	Message string      `json:"message,omitempty"`
 	Status  int         `json:"status"`
 }
 
@@ -36,7 +36,7 @@ func ErrorResponse(w http.ResponseWriter, err error, statusCode int) {
 	}
 }
 
-func ToJson(w http.ResponseWriter, statusCode int, data interface{}) {
+func ToJson(w http.ResponseWriter, statusCode int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	if err := json.NewEncoder(w).Encode(data); err != nil {
@@ -45,7 +45,7 @@ func ToJson(w http.ResponseWriter, statusCode int, data interface{}) {
 	}
 }
 
-func FromJson(r io.Reader, target interface{}) error {
+func FromJson(r io.Reader, target any) error {
 	decoder := json.NewDecoder(r)
 	if err := decoder.Decode(target); err != nil {
 		return fmt.Errorf("erro ao decodificar JSON: %w", err)

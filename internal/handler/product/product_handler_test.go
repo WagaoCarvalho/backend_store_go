@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -1000,4 +1002,134 @@ func TestProductHandler_Delete(t *testing.T) {
 
 		mockService.AssertExpectations(t)
 	})
+}
+
+func TestProductHandler_UpdateStock(t *testing.T) {
+	// Silenciar logs
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(log)
+
+	t.Run("Deve retornar erro quando o método não for PATCH", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, logAdapter)
+
+		req := httptest.NewRequest(http.MethodGet, "/products/1/stock", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.UpdateStock(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
+	})
+
+	t.Run("Deve retornar erro quando o body for inválido", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, logAdapter)
+
+		req := httptest.NewRequest(http.MethodPatch, "/products/1/stock", strings.NewReader("invalid-json"))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.UpdateStock(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("Deve retornar erro quando o ID for inválido", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, logAdapter)
+
+		payload := `{"quantity": 10}`
+		req := httptest.NewRequest(http.MethodPatch, "/products/abc/stock", strings.NewReader(payload))
+		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
+
+		handler.UpdateStock(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("Deve retornar erro quando o service falhar", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, logAdapter)
+
+		payload := `{"quantity": 10}`
+		req := httptest.NewRequest(http.MethodPatch, "/products/1/stock", strings.NewReader(payload))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		mockService.On("UpdateStock", mock.Anything, int64(1), 10).Return(fmt.Errorf("erro do service")).Once()
+
+		handler.UpdateStock(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Deve atualizar estoque com sucesso", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, logAdapter)
+
+		payload := `{"quantity": 10}`
+		req := httptest.NewRequest(http.MethodPatch, "/products/1/stock", strings.NewReader(payload))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		mockService.On("UpdateStock", mock.Anything, int64(1), 10).Return(nil).Once()
+
+		handler.UpdateStock(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar 404 quando o produto não for encontrado", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, logAdapter)
+
+		payload := `{"quantity": 10}`
+		req := httptest.NewRequest(http.MethodPatch, "/products/1/stock", strings.NewReader(payload))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		mockService.On("UpdateStock", mock.Anything, int64(1), 10).Return(repo.ErrProductNotFound).Once()
+
+		handler.UpdateStock(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar 409 quando houver conflito de versão", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, logAdapter)
+
+		payload := `{"quantity": 10}`
+		req := httptest.NewRequest(http.MethodPatch, "/products/1/stock", strings.NewReader(payload))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		mockService.On("UpdateStock", mock.Anything, int64(1), 10).Return(repo.ErrVersionConflict).Once()
+
+		handler.UpdateStock(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusConflict, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
 }

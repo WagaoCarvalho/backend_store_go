@@ -607,3 +607,37 @@ func TestProductService_GetVersionByID(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 }
+
+func TestProductService_UpdateStock(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
+
+	setup := func() (*repo.ProductRepositoryMock, ProductService) {
+		mockRepo := new(repo.ProductRepositoryMock)
+		service := NewProductService(mockRepo, logger)
+		return mockRepo, service
+	}
+
+	t.Run("Deve atualizar o estoque com sucesso", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		mockRepo.On("UpdateStock", mock.Anything, int64(1), 25).Return(nil).Once()
+
+		err := service.UpdateStock(context.Background(), 1, 25)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar erro quando repo falhar", func(t *testing.T) {
+		mockRepo, service := setup()
+		expectedErr := fmt.Errorf("erro de banco")
+
+		mockRepo.On("UpdateStock", mock.Anything, int64(1), 25).Return(expectedErr).Once()
+
+		err := service.UpdateStock(context.Background(), 1, 25)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), expectedErr.Error())
+		mockRepo.AssertExpectations(t)
+	})
+}

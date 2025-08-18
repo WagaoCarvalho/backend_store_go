@@ -18,6 +18,7 @@ var (
 	ErrDisableProduct      = errors.New("erro ao desabilitar produto")
 	ErrEnableProduct       = errors.New("erro ao ativar produto")
 	ErrVersionConflict     = errors.New("conflito de versão")
+	ErrUpdateStock         = errors.New("falha ao atualizar estoque do produto")
 )
 
 func IsForeignKeyViolation(err error) bool {

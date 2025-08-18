@@ -78,3 +78,8 @@ func (m *ProductServiceMock) Delete(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
+
+func (m *ProductServiceMock) UpdateStock(ctx context.Context, id int64, quantity int) error {
+	args := m.Called(ctx, id, quantity)
+	return args.Error(0)
+}

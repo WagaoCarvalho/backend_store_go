@@ -19,10 +19,20 @@ type ProductService interface {
 	GetByName(ctx context.Context, name string) ([]*models.Product, error)
 	GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error)
 	GetVersionByID(ctx context.Context, uid int64) (int64, error)
-	DisableProduct(ctx context.Context, uid int64) error
-	EnableProduct(ctx context.Context, uid int64) error
 	Update(ctx context.Context, product *models.Product) (*models.Product, error)
 	Delete(ctx context.Context, id int64) error
+
+	DisableProduct(ctx context.Context, uid int64) error
+	EnableProduct(ctx context.Context, uid int64) error
+
+	UpdateStock(ctx context.Context, id int64, quantity int) error
+	//IncreaseStock(ctx context.Context, id int64, amount int) error
+	//DecreaseStock(ctx context.Context, id int64, amount int) error
+	//GetStock(ctx context.Context, id int64) (int, error)
+
+	//EnableDiscount(ctx context.Context, id int64) error
+	//DisableDiscount(ctx context.Context, id int64) error
+	//ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error)
 }
 
 type productService struct {
@@ -320,6 +330,30 @@ func (s *productService) Delete(ctx context.Context, id int64) error {
 
 	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
 		"product_id": id,
+	})
+
+	return nil
+}
+
+func (s *productService) UpdateStock(ctx context.Context, id int64, quantity int) error {
+	ref := "[productService - UpdateStock] - "
+	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"product_id": id,
+		"quantity":   quantity,
+	})
+
+	err := s.repo.UpdateStock(ctx, id, quantity)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"product_id": id,
+			"quantity":   quantity,
+		})
+		return fmt.Errorf("%w: %v", ErrUpdateStock, err)
+	}
+
+	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id": id,
+		"quantity":   quantity,
 	})
 
 	return nil
