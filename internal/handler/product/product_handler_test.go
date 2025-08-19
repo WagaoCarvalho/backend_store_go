@@ -1133,3 +1133,118 @@ func TestProductHandler_UpdateStock(t *testing.T) {
 	})
 
 }
+
+func TestProductHandler_IncreaseStock(t *testing.T) {
+	// Função auxiliar para criar logger silenciado
+	newLogger := func() *logger.LoggerAdapter {
+		log := logrus.New()
+		log.Out = &bytes.Buffer{}
+		return logger.NewLoggerAdapter(log)
+	}
+
+	t.Run("Deve retornar erro quando o método for inválido", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, newLogger())
+
+		req := httptest.NewRequest(http.MethodGet, "/products/1/increase-stock", nil)
+		w := httptest.NewRecorder()
+
+		handler.IncreaseStock(w, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
+	})
+
+	t.Run("Deve retornar erro quando o ID for inválido", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, newLogger())
+
+		req := httptest.NewRequest(http.MethodPatch, "/products/abc/increase-stock", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
+
+		handler.IncreaseStock(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("Deve retornar erro quando o body for inválido", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, newLogger())
+
+		req := httptest.NewRequest(http.MethodPatch, "/products/1/increase-stock", strings.NewReader("{invalid-json}"))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.IncreaseStock(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("Deve retornar erro quando produto não encontrado", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, newLogger())
+
+		body := `{"stock_quantity": 5}`
+		req := httptest.NewRequest(http.MethodPatch, "/products/1/increase-stock", strings.NewReader(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		mockService.On("IncreaseStock", mock.Anything, int64(1), 5).Return(repo.ErrProductNotFound)
+
+		handler.IncreaseStock(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar erro de conflito de versão", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, newLogger())
+
+		body := `{"stock_quantity": 5}`
+		req := httptest.NewRequest(http.MethodPatch, "/products/1/increase-stock", strings.NewReader(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		mockService.On("IncreaseStock", mock.Anything, int64(1), 5).Return(repo.ErrVersionConflict)
+
+		handler.IncreaseStock(w, req)
+
+		assert.Equal(t, http.StatusConflict, w.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar erro interno para falhas inesperadas", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, newLogger())
+
+		body := `{"stock_quantity": 5}`
+		req := httptest.NewRequest(http.MethodPatch, "/products/1/increase-stock", strings.NewReader(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		mockService.On("IncreaseStock", mock.Anything, int64(1), 5).Return(fmt.Errorf("erro inesperado"))
+
+		handler.IncreaseStock(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Deve aumentar estoque com sucesso", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, newLogger())
+
+		body := `{"stock_quantity": 5}`
+		req := httptest.NewRequest(http.MethodPatch, "/products/1/increase-stock", strings.NewReader(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		mockService.On("IncreaseStock", mock.Anything, int64(1), 5).Return(nil)
+
+		handler.IncreaseStock(w, req)
+
+		assert.Equal(t, http.StatusNoContent, w.Code)
+		mockService.AssertExpectations(t)
+	})
+}

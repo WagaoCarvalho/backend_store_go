@@ -27,7 +27,7 @@ type ProductRepository interface {
 	DisableProduct(ctx context.Context, uid int64) error
 
 	UpdateStock(ctx context.Context, id int64, quantity int) error
-	//IncreaseStock(ctx context.Context, id int64, amount int) error
+	IncreaseStock(ctx context.Context, id int64, amount int) error
 	//DecreaseStock(ctx context.Context, id int64, amount int) error
 	//GetStock(ctx context.Context, id int64) (int, error)
 
@@ -559,6 +559,46 @@ func (r *productRepository) UpdateStock(ctx context.Context, id int64, quantity 
 	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
 		"product_id": id,
 		"quantity":   quantity,
+	})
+
+	return nil
+}
+
+func (r *productRepository) IncreaseStock(ctx context.Context, id int64, amount int) error {
+	ref := "[productRepository - IncreaseStock] - "
+	r.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"product_id":     id,
+		"stock_quantity": amount,
+	})
+
+	const query = `
+		UPDATE products
+		SET stock_quantity = stock_quantity + $2, updated_at = NOW(), version = version + 1
+		WHERE id = $1
+		RETURNING version, updated_at;
+	`
+
+	var version int
+	var updatedAt time.Time
+	err := r.db.QueryRow(ctx, query, id, amount).Scan(&version, &updatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": id,
+			})
+			return ErrProductNotFound
+		}
+
+		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"product_id":     id,
+			"stock_quantity": amount,
+		})
+		return fmt.Errorf("%w: %v", ErrUpdateStock, err)
+	}
+
+	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id":     id,
+		"stock_quantity": amount,
 	})
 
 	return nil

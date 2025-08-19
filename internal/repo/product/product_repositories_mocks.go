@@ -88,3 +88,8 @@ func (m *ProductRepositoryMock) UpdateStock(ctx context.Context, id int64, quant
 	args := m.Called(ctx, id, quantity)
 	return args.Error(0)
 }
+
+func (m *ProductRepositoryMock) IncreaseStock(ctx context.Context, id int64, amount int) error {
+	args := m.Called(ctx, id, amount)
+	return args.Error(0)
+}

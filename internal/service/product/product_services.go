@@ -26,7 +26,7 @@ type ProductService interface {
 	EnableProduct(ctx context.Context, uid int64) error
 
 	UpdateStock(ctx context.Context, id int64, quantity int) error
-	//IncreaseStock(ctx context.Context, id int64, amount int) error
+	IncreaseStock(ctx context.Context, id int64, amount int) error
 	//DecreaseStock(ctx context.Context, id int64, amount int) error
 	//GetStock(ctx context.Context, id int64) (int, error)
 
@@ -357,4 +357,29 @@ func (s *productService) UpdateStock(ctx context.Context, id int64, quantity int
 	})
 
 	return nil
+}
+
+func (s *productService) IncreaseStock(ctx context.Context, id int64, amount int) error {
+	ref := "[productService - IncreaseStock] - "
+	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"product_id":     id,
+		"stock_quantity": amount,
+	})
+
+	err := s.repo.IncreaseStock(ctx, id, amount)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"product_id":     id,
+			"stock_quantity": amount,
+		})
+		return fmt.Errorf("%w: %v", ErrUpdateStock, err)
+	}
+
+	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id":     id,
+		"stock_quantity": amount,
+	})
+
+	return nil
+
 }
