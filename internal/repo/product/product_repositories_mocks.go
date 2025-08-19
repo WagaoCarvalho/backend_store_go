@@ -98,3 +98,8 @@ func (m *ProductRepositoryMock) DecreaseStock(ctx context.Context, id int64, amo
 	args := m.Called(ctx, id, amount)
 	return args.Error(0)
 }
+
+func (m *ProductRepositoryMock) GetStock(ctx context.Context, id int64) (int, error) {
+	args := m.Called(ctx, id)
+	return args.Int(0), args.Error(1)
+}

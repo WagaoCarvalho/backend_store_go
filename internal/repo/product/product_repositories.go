@@ -29,7 +29,7 @@ type ProductRepository interface {
 	UpdateStock(ctx context.Context, id int64, quantity int) error
 	IncreaseStock(ctx context.Context, id int64, amount int) error
 	DecreaseStock(ctx context.Context, id int64, amount int) error
-	//GetStock(ctx context.Context, id int64) (int, error)
+	GetStock(ctx context.Context, id int64) (int, error)
 
 	//EnableDiscount(ctx context.Context, id int64) error
 	//DisableDiscount(ctx context.Context, id int64) error
@@ -644,4 +644,40 @@ func (r *productRepository) DecreaseStock(ctx context.Context, id int64, amount 
 	})
 
 	return nil
+}
+
+func (r *productRepository) GetStock(ctx context.Context, id int64) (int, error) {
+	ref := "[productRepository - GetStock] - "
+	r.logger.Info(ctx, ref+logger.LogGetError, map[string]any{
+		"product_id": id,
+	})
+
+	const query = `
+		SELECT COALESCE(stock_quantity, 0)
+		FROM products
+		WHERE id = $1;
+	`
+
+	var stock int
+	err := r.db.QueryRow(ctx, query, id).Scan(&stock)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": id,
+			})
+			return 0, ErrProductNotFound
+		}
+
+		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"product_id": id,
+		})
+		return 0, fmt.Errorf("erro ao obter estoque: %w", err)
+	}
+
+	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"product_id": id,
+		"stock":      stock,
+	})
+
+	return stock, nil
 }

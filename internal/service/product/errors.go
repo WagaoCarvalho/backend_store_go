@@ -22,4 +22,5 @@ var (
 	ErrEnableProduct             = errors.New("erro ao ativar produto")
 	ErrDisableProduct            = errors.New("erro ao desativar produto")
 	ErrUpdateStock               = errors.New("falha ao atualizar estoque do produto")
+	ErrGetStock                  = errors.New("erro ao obter o estoque do produto")
 )

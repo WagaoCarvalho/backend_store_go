@@ -1362,3 +1362,101 @@ func TestProductHandler_DecreaseStock(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 }
+
+func TestProductHandler_GetStock(t *testing.T) {
+	// Função auxiliar para criar logger silenciado
+	newLogger := func() *logger.LoggerAdapter {
+		log := logrus.New()
+		log.Out = &bytes.Buffer{}
+		return logger.NewLoggerAdapter(log)
+	}
+
+	t.Run("Deve retornar erro quando o método for inválido", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, newLogger())
+
+		req := httptest.NewRequest(http.MethodPost, "/products/1/stock", nil)
+		w := httptest.NewRecorder()
+
+		handler.GetStock(w, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
+	})
+
+	t.Run("Deve retornar erro quando o ID for inválido", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, newLogger())
+
+		req := httptest.NewRequest(http.MethodGet, "/products/abc/stock", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
+
+		handler.GetStock(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("Deve retornar erro quando produto não encontrado", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, newLogger())
+
+		req := httptest.NewRequest(http.MethodGet, "/products/1/stock", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		mockService.On("GetStock", mock.Anything, int64(1)).Return(0, repo.ErrProductNotFound)
+
+		handler.GetStock(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar erro interno para falhas inesperadas", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, newLogger())
+
+		req := httptest.NewRequest(http.MethodGet, "/products/1/stock", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		mockService.On("GetStock", mock.Anything, int64(1)).Return(0, fmt.Errorf("erro inesperado"))
+
+		handler.GetStock(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar estoque com sucesso", func(t *testing.T) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, newLogger())
+
+		req := httptest.NewRequest(http.MethodGet, "/products/1/stock", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		mockService.On("GetStock", mock.Anything, int64(1)).Return(20, nil)
+
+		handler.GetStock(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var resp utils.DefaultResponse
+		err := json.NewDecoder(w.Body).Decode(&resp)
+		assert.NoError(t, err)
+
+		assert.Equal(t, http.StatusOK, resp.Status)
+		assert.Equal(t, "Produtos listados com sucesso", resp.Message)
+
+		data, ok := resp.Data.(map[string]interface{})
+		if !ok {
+			t.Fatalf("esperava map[string]interface{} em Data, mas veio %T", resp.Data)
+		}
+
+		assert.Equal(t, float64(1), data["product_id"])
+		assert.Equal(t, float64(20), data["stock_quantity"])
+
+		mockService.AssertExpectations(t)
+	})
+}

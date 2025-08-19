@@ -52,5 +52,6 @@ func RegisterProductRoutes(
 	s.HandleFunc("/product/stock/{id:[0-9]+}", handler.UpdateStock).Methods(http.MethodPatch)
 	s.HandleFunc("/product/increase-stock/{id:[0-9]+}", handler.IncreaseStock).Methods(http.MethodPatch)
 	s.HandleFunc("/product/decrease-stock/{id:[0-9]+}", handler.DecreaseStock).Methods(http.MethodPatch)
+	s.HandleFunc("/product/get-stock/{id:[0-9]+}", handler.GetStock).Methods(http.MethodGet)
 
 }
