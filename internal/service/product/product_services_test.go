@@ -672,3 +672,34 @@ func TestProductService_IncreaseStock(t *testing.T) {
 		repoMock.AssertExpectations(t)
 	})
 }
+
+func TestProductService_DecreaseStock(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("Deve retornar erro quando repo retornar erro", func(t *testing.T) {
+		repoMock := new(repo.ProductRepositoryMock)
+		log := newTestLogger()
+		service := productService{repo: repoMock, logger: log}
+
+		repoMock.On("DecreaseStock", ctx, int64(1), 10).Return(repo.ErrProductNotFound)
+
+		err := service.DecreaseStock(ctx, 1, 10)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrUpdateStock)
+		repoMock.AssertExpectations(t)
+	})
+
+	t.Run("Deve diminuir estoque com sucesso", func(t *testing.T) {
+		repoMock := new(repo.ProductRepositoryMock)
+		log := newTestLogger()
+		service := productService{repo: repoMock, logger: log}
+
+		repoMock.On("DecreaseStock", ctx, int64(1), 10).Return(nil)
+
+		err := service.DecreaseStock(ctx, 1, 10)
+
+		assert.NoError(t, err)
+		repoMock.AssertExpectations(t)
+	})
+}

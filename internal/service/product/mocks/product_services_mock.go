@@ -88,3 +88,8 @@ func (m *ProductServiceMock) IncreaseStock(ctx context.Context, id int64, amount
 	args := m.Called(ctx, id, amount)
 	return args.Error(0)
 }
+
+func (m *ProductServiceMock) DecreaseStock(ctx context.Context, id int64, amount int) error {
+	args := m.Called(ctx, id, amount)
+	return args.Error(0)
+}
