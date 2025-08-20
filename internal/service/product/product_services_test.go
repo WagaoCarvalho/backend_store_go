@@ -736,3 +736,36 @@ func TestProductService_GetStock(t *testing.T) {
 		repoMock.AssertExpectations(t)
 	})
 }
+
+func TestProductService_EnableDiscount(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
+
+	setup := func() (*repo.ProductRepositoryMock, ProductService) {
+		mockRepo := new(repo.ProductRepositoryMock)
+		service := NewProductService(mockRepo, logger)
+		return mockRepo, service
+	}
+
+	t.Run("Deve habilitar desconto com sucesso", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		mockRepo.On("EnableDiscount", mock.Anything, int64(1)).Return(nil).Once()
+
+		err := service.EnableDiscount(context.Background(), 1)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar erro quando repo falhar", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		mockRepo.On("EnableDiscount", mock.Anything, int64(1)).Return(repo.ErrProductNotFound).Once()
+
+		err := service.EnableDiscount(context.Background(), 1)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrEnableDiscount)
+		mockRepo.AssertExpectations(t)
+	})
+}

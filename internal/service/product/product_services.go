@@ -30,7 +30,7 @@ type ProductService interface {
 	DecreaseStock(ctx context.Context, id int64, amount int) error
 	GetStock(ctx context.Context, id int64) (int, error)
 
-	//EnableDiscount(ctx context.Context, id int64) error
+	EnableDiscount(ctx context.Context, id int64) error
 	//DisableDiscount(ctx context.Context, id int64) error
 	//ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error)
 	//UpdateDiscount(ctx context.Context, id int64, maxPercent float64) error
@@ -432,4 +432,26 @@ func (s *productService) GetStock(ctx context.Context, id int64) (int, error) {
 	})
 
 	return stock, nil
+}
+
+func (s *productService) EnableDiscount(ctx context.Context, id int64) error {
+	ref := "[productService - EnableDiscount] - "
+	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"product_id": id,
+	})
+
+	err := s.repo.EnableDiscount(ctx, id)
+	if err != nil {
+		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"product_id": id,
+		})
+		return fmt.Errorf("%w: %v", ErrEnableDiscount, err)
+	}
+
+	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id": id,
+		"allow":      true,
+	})
+
+	return nil
 }

@@ -1460,3 +1460,122 @@ func TestProductHandler_GetStock(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 }
+
+func TestProductHandler_EnableDiscount(t *testing.T) {
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(log)
+
+	setup := func() (*service_mock.ProductServiceMock, *ProductHandler) {
+		mockService := new(service_mock.ProductServiceMock)
+		handler := NewProductHandler(mockService, logAdapter)
+		return mockService, handler
+	}
+
+	t.Run("Success", func(t *testing.T) {
+		mockService, handler := setup()
+		productID := int64(1)
+
+		mockService.On("EnableDiscount", mock.Anything, productID).Return(nil).Once()
+
+		req := httptest.NewRequest(http.MethodPatch, "/product/discount/enable/1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.EnableDiscount(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Invalid ID", func(t *testing.T) {
+		_, handler := setup()
+
+		req := httptest.NewRequest(http.MethodPatch, "/product/discount/enable/abc", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
+
+		handler.EnableDiscount(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("Method Not Allowed", func(t *testing.T) {
+		_, handler := setup()
+
+		req := httptest.NewRequest(http.MethodGet, "/product/discount/enable/1", nil) // GET não permitido
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.EnableDiscount(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
+	})
+
+	t.Run("Service returns not found", func(t *testing.T) {
+		mockService, handler := setup()
+		productID := int64(2)
+
+		mockService.On("EnableDiscount", mock.Anything, productID).Return(repo.ErrProductNotFound).Once()
+
+		req := httptest.NewRequest(http.MethodPatch, "/product/discount/enable/2", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "2"})
+		w := httptest.NewRecorder()
+
+		handler.EnableDiscount(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Produto não encontrado", func(t *testing.T) {
+		mockService, handler := setup()
+		productID := int64(1)
+
+		mockService.On("EnableDiscount", mock.Anything, productID).Return(repo.ErrProductNotFound).Once()
+
+		req := httptest.NewRequest(http.MethodPatch, "/product/discount/enable/1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.EnableDiscount(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro inesperado", func(t *testing.T) {
+		mockService, handler := setup()
+		productID := int64(1)
+
+		mockService.On("EnableDiscount", mock.Anything, productID).Return(fmt.Errorf("erro inesperado")).Once()
+
+		req := httptest.NewRequest(http.MethodPatch, "/product/discount/enable/1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.EnableDiscount(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+}

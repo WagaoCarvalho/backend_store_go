@@ -103,3 +103,8 @@ func (m *ProductRepositoryMock) GetStock(ctx context.Context, id int64) (int, er
 	args := m.Called(ctx, id)
 	return args.Int(0), args.Error(1)
 }
+
+func (m *ProductRepositoryMock) EnableDiscount(ctx context.Context, id int64) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
