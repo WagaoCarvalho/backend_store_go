@@ -10,7 +10,7 @@ var (
 	ErrProductCreateNameRequired  = errors.New("validação falhou: nome do produto é obrigatório")
 	ErrProductCreateCostPrice     = errors.New("validação falhou: preço de custo deve ser positivo")
 
-	ErrInvalidProduct            = errors.New("validação falhou: produto inválido")
+	ErrInvalidProduct            = errors.New("produto inválido")
 	ErrProductCreateManufacturer = errors.New("validação falhou: fabricante é obrigatório")
 	ErrProductCreatePriceLogic   = errors.New("validação falhou: preço de venda deve ser maior que o preço de custo")
 	ErrProductUpdate             = errors.New("erro ao atualizar produto")

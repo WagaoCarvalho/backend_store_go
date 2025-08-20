@@ -34,6 +34,7 @@ type ProductRepository interface {
 	//EnableDiscount(ctx context.Context, id int64) error
 	//DisableDiscount(ctx context.Context, id int64) error
 	//ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error)
+	//UpdateDiscount(ctx context.Context, id int64, maxPercent float64) error
 }
 
 type productRepository struct {
@@ -49,22 +50,26 @@ func (r *productRepository) Create(ctx context.Context, product *models.Product)
 	ref := "[productRepository - Create] - "
 
 	r.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
-		"supplier_id":    utils.Int64OrNil(product.SupplierID),
-		"product_name":   product.ProductName,
-		"manufacturer":   product.Manufacturer,
-		"cost_price":     product.CostPrice,
-		"sale_price":     product.SalePrice,
-		"stock_quantity": product.StockQuantity,
-		"status":         product.Status,
+		"supplier_id":          utils.Int64OrNil(product.SupplierID),
+		"product_name":         product.ProductName,
+		"manufacturer":         product.Manufacturer,
+		"cost_price":           product.CostPrice,
+		"sale_price":           product.SalePrice,
+		"stock_quantity":       product.StockQuantity,
+		"status":               product.Status,
+		"allow_discount":       product.AllowDiscount,
+		"max_discount_percent": product.MaxDiscountPercent,
 	})
 
 	const query = `
 		INSERT INTO products (
 			supplier_id, product_name, manufacturer,
 			product_description, cost_price, sale_price,
-			stock_quantity, barcode, status, created_at, updated_at
+			stock_quantity, barcode, status,
+			allow_discount, max_discount_percent,
+			created_at, updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
 		RETURNING id, created_at, updated_at;
 	`
 
@@ -78,6 +83,8 @@ func (r *productRepository) Create(ctx context.Context, product *models.Product)
 		product.StockQuantity,
 		product.Barcode,
 		product.Status,
+		product.AllowDiscount,
+		product.MaxDiscountPercent,
 	).Scan(&product.ID, &product.CreatedAt, &product.UpdatedAt)
 
 	if err != nil {
@@ -89,13 +96,15 @@ func (r *productRepository) Create(ctx context.Context, product *models.Product)
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"supplier_id":    utils.Int64OrNil(product.SupplierID),
-			"product_name":   product.ProductName,
-			"manufacturer":   product.Manufacturer,
-			"cost_price":     product.CostPrice,
-			"sale_price":     product.SalePrice,
-			"stock_quantity": product.StockQuantity,
-			"status":         product.Status,
+			"supplier_id":          utils.Int64OrNil(product.SupplierID),
+			"product_name":         product.ProductName,
+			"manufacturer":         product.Manufacturer,
+			"cost_price":           product.CostPrice,
+			"sale_price":           product.SalePrice,
+			"stock_quantity":       product.StockQuantity,
+			"status":               product.Status,
+			"allow_discount":       product.AllowDiscount,
+			"max_discount_percent": product.MaxDiscountPercent,
 		})
 		return nil, fmt.Errorf("%w: %v", ErrCreateProduct, err)
 	}
@@ -115,15 +124,14 @@ func (r *productRepository) GetAll(ctx context.Context, limit, offset int) ([]*m
 	})
 
 	const query = `
-		SELECT id, supplier_id, product_name, manufacturer, product_description,
-			cost_price, sale_price, stock_quantity, barcode,
-			status, version,
-			created_at, updated_at
-		FROM products
-		ORDER BY id
-		LIMIT $1 OFFSET $2;
-
-	`
+	SELECT id, supplier_id, product_name, manufacturer, product_description,
+		cost_price, sale_price, stock_quantity, barcode,
+		status, allow_discount, max_discount_percent,
+		created_at, updated_at
+	FROM products
+	ORDER BY id
+	LIMIT $1 OFFSET $2;
+`
 
 	rows, err := r.db.Query(ctx, query, limit, offset)
 	if err != nil {
@@ -150,7 +158,8 @@ func (r *productRepository) GetAll(ctx context.Context, limit, offset int) ([]*m
 			&p.StockQuantity,
 			&p.Barcode,
 			&p.Status,
-			&p.Version,
+			&p.AllowDiscount,
+			&p.MaxDiscountPercent,
 			&p.CreatedAt,
 			&p.UpdatedAt,
 		)
@@ -180,7 +189,8 @@ func (r *productRepository) GetById(ctx context.Context, id int64) (*models.Prod
 	const query = `
 	SELECT id, supplier_id, product_name, manufacturer, product_description,
 	       cost_price, sale_price, stock_quantity, barcode,
-	       status, version, created_at, updated_at
+	       status, allow_discount, max_discount_percent,
+	       created_at, updated_at
 	FROM products
 	WHERE id = $1;
 `
@@ -197,7 +207,8 @@ func (r *productRepository) GetById(ctx context.Context, id int64) (*models.Prod
 		&p.StockQuantity,
 		&p.Barcode,
 		&p.Status,
-		&p.Version,
+		&p.AllowDiscount,
+		&p.MaxDiscountPercent,
 		&p.CreatedAt,
 		&p.UpdatedAt,
 	)
@@ -221,13 +232,14 @@ func (r *productRepository) GetByName(ctx context.Context, name string) ([]*mode
 	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{"name": name})
 
 	const query = `
-		SELECT id, supplier_id, product_name, manufacturer, product_description,
-		       cost_price, sale_price, stock_quantity, barcode,
-		       status, version, created_at, updated_at
-		FROM products
-		WHERE product_name ILIKE '%' || $1 || '%'
-		ORDER BY product_name;
-	`
+	SELECT id, supplier_id, product_name, manufacturer, product_description,
+	       cost_price, sale_price, stock_quantity, barcode,
+	       status, allow_discount, max_discount_percent,
+	       created_at, updated_at
+	FROM products
+	WHERE product_name ILIKE '%' || $1 || '%'
+	ORDER BY product_name;
+`
 
 	rows, err := r.db.Query(ctx, query, name)
 	if err != nil {
@@ -250,7 +262,8 @@ func (r *productRepository) GetByName(ctx context.Context, name string) ([]*mode
 			&p.StockQuantity,
 			&p.Barcode,
 			&p.Status,
-			&p.Version,
+			&p.AllowDiscount,
+			&p.MaxDiscountPercent,
 			&p.CreatedAt,
 			&p.UpdatedAt,
 		)
@@ -275,13 +288,14 @@ func (r *productRepository) GetByManufacturer(ctx context.Context, manufacturer 
 	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{"manufacturer": manufacturer})
 
 	const query = `
-		SELECT id, supplier_id, product_name, manufacturer, product_description,
-		       cost_price, sale_price, stock_quantity, barcode,
-		       created_at, updated_at
-		FROM products
-		WHERE manufacturer ILIKE '%' || $1 || '%'
-		ORDER BY product_name;
-	`
+	SELECT id, supplier_id, product_name, manufacturer, product_description,
+	       cost_price, sale_price, stock_quantity, barcode,
+	       status, allow_discount, max_discount_percent,
+	       created_at, updated_at
+	FROM products
+	WHERE manufacturer ILIKE '%' || $1 || '%'
+	ORDER BY product_name;
+`
 
 	rows, err := r.db.Query(ctx, query, manufacturer)
 	if err != nil {
@@ -303,6 +317,9 @@ func (r *productRepository) GetByManufacturer(ctx context.Context, manufacturer 
 			&p.SalePrice,
 			&p.StockQuantity,
 			&p.Barcode,
+			&p.Status,
+			&p.AllowDiscount,
+			&p.MaxDiscountPercent,
 			&p.CreatedAt,
 			&p.UpdatedAt,
 		); err != nil {
@@ -432,10 +449,12 @@ func (r *productRepository) DisableProduct(ctx context.Context, uid int64) error
 func (r *productRepository) Update(ctx context.Context, product *models.Product) (*models.Product, error) {
 	ref := "[productRepository - Update] - "
 	r.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
-		"id":           product.ID,
-		"name":         product.ProductName,
-		"manufacturer": product.Manufacturer,
-		"version":      product.Version,
+		"id":                   product.ID,
+		"name":                 product.ProductName,
+		"manufacturer":         product.Manufacturer,
+		"version":              product.Version,
+		"allow_discount":       product.AllowDiscount,
+		"max_discount_percent": product.MaxDiscountPercent,
 	})
 
 	const query = `
@@ -450,9 +469,11 @@ func (r *productRepository) Update(ctx context.Context, product *models.Product)
 			stock_quantity = $7,
 			barcode = $8,
 			status = $9,
+			allow_discount = $10,
+			max_discount_percent = $11,
 			updated_at = NOW(),
 			version = version + 1
-		WHERE id = $10 AND version = $11
+		WHERE id = $12 AND version = $13
 		RETURNING created_at, updated_at, version;
 	`
 
@@ -466,12 +487,13 @@ func (r *productRepository) Update(ctx context.Context, product *models.Product)
 		product.StockQuantity,
 		product.Barcode,
 		product.Status,
+		product.AllowDiscount,
+		product.MaxDiscountPercent,
 		product.ID,
-		product.Version, // versão atual esperada
+		product.Version,
 	).Scan(&product.CreatedAt, &product.UpdatedAt, &product.Version)
 
 	if err != nil {
-		// Checa se falhou por conflito de versão
 		if errors.Is(err, pgx.ErrNoRows) {
 			r.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"id":      product.ID,

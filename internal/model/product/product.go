@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -29,7 +30,7 @@ var barcodeRegex = regexp.MustCompile(`^[0-9]{8,14}$`)
 
 func (p *Product) Validate() error {
 	if strings.TrimSpace(p.ProductName) == "" {
-		return ErrInvalidProductName
+		return fmt.Errorf("%w: nome do produto inválido", ErrInvalidProductName)
 	}
 	if strings.TrimSpace(p.Manufacturer) == "" {
 		return ErrInvalidManufacturer

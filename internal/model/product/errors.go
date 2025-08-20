@@ -3,7 +3,7 @@ package models
 import "errors"
 
 var (
-	ErrInvalidProductName        = errors.New("nome do produto inválido")
+	ErrInvalidProductName        = errors.New("produto inválido")
 	ErrInvalidManufacturer       = errors.New("fabricante inválido")
 	ErrInvalidCostPrice          = errors.New("preço de custo não pode ser negativo")
 	ErrInvalidSalePrice          = errors.New("preço de venda não pode ser negativo")

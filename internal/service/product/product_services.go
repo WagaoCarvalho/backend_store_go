@@ -33,6 +33,7 @@ type ProductService interface {
 	//EnableDiscount(ctx context.Context, id int64) error
 	//DisableDiscount(ctx context.Context, id int64) error
 	//ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error)
+	//UpdateDiscount(ctx context.Context, id int64, maxPercent float64) error
 }
 
 type productService struct {
@@ -266,13 +267,16 @@ func (s *productService) Update(ctx context.Context, product *models.Product) (*
 		"version":      product.Version,
 	})
 
+	// Validação de campos do produto
 	if err := product.Validate(); err != nil {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
-			"erro": err.Error(),
+			"product_id": product.ID,
+			"erro":       err.Error(),
 		})
-		return nil, ErrInvalidProduct
+		return nil, err
 	}
 
+	// Validação de version para controle otimista
 	if product.Version <= 0 {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"product_id": product.ID,
@@ -301,7 +305,7 @@ func (s *productService) Update(ctx context.Context, product *models.Product) (*
 			s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 				"product_id": product.ID,
 			})
-			return nil, fmt.Errorf("%w: %v", ErrProductUpdate, err)
+			return nil, fmt.Errorf("%w", err)
 		}
 	}
 

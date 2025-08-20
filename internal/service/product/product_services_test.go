@@ -379,7 +379,7 @@ func TestProductService_Update(t *testing.T) {
 		updated, err := service.Update(ctx, input)
 
 		assert.Nil(t, updated)
-		assert.ErrorIs(t, err, ErrInvalidProduct)
+		assert.ErrorIs(t, err, models.ErrInvalidProductName)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
@@ -450,7 +450,7 @@ func TestProductService_Update(t *testing.T) {
 
 		assert.Nil(t, updated)
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "erro ao atualizar produto")
+		assert.ErrorContains(t, err, "erro no repositório")
 		mockRepo.AssertExpectations(t)
 	})
 }
