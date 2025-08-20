@@ -769,3 +769,48 @@ func TestProductService_EnableDiscount(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 }
+
+func TestProductService_DisableDiscount(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
+
+	setup := func() (*repo.ProductRepositoryMock, ProductService) {
+		mockRepo := new(repo.ProductRepositoryMock)
+		service := NewProductService(mockRepo, logger)
+		return mockRepo, service
+	}
+
+	t.Run("Deve desabilitar desconto com sucesso", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		mockRepo.On("DisableDiscount", mock.Anything, int64(1)).Return(nil).Once()
+
+		err := service.DisableDiscount(context.Background(), 1)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Erro: produto não encontrado", func(t *testing.T) {
+		mockRepo, service := setup()
+		mockRepo.On("EnableDiscount", mock.Anything, int64(2)).Return(repo.ErrProductNotFound).Once()
+
+		err := service.EnableDiscount(context.Background(), 2)
+
+		assert.ErrorIs(t, err, ErrEnableDiscount)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Erro inesperado do repositório", func(t *testing.T) {
+		mockRepo, service := setup()
+		unexpectedErr := fmt.Errorf("erro de conexão")
+		mockRepo.On("DisableDiscount", mock.Anything, int64(3)).Return(unexpectedErr).Once()
+
+		err := service.DisableDiscount(context.Background(), 3)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrDisableDiscount)         // garante que ErrDisableDiscount está na cadeia
+		assert.Contains(t, err.Error(), "erro de conexão") // garante que a mensagem original também está
+		mockRepo.AssertExpectations(t)
+	})
+
+}

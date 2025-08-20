@@ -32,7 +32,7 @@ type ProductRepository interface {
 	GetStock(ctx context.Context, id int64) (int, error)
 
 	EnableDiscount(ctx context.Context, id int64) error
-	//DisableDiscount(ctx context.Context, id int64) error
+	DisableDiscount(ctx context.Context, id int64) error
 	//ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error)
 	//UpdateDiscount(ctx context.Context, id int64, maxPercent float64) error
 }
@@ -737,6 +737,44 @@ func (r *productRepository) EnableDiscount(ctx context.Context, id int64) error 
 	r.logger.Info(ctx, ref+logger.LogEnableSuccess, map[string]any{
 		"product_id":     id,
 		"allow_discount": true,
+	})
+
+	return nil
+}
+
+func (r *productRepository) DisableDiscount(ctx context.Context, id int64) error {
+	ref := "[productRepository - DisableDiscount] - "
+	r.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"product_id": id,
+	})
+
+	const query = `
+		UPDATE products
+		SET allow_discount = FALSE, updated_at = NOW(), version = version + 1
+		WHERE id = $1
+		RETURNING version, updated_at;
+	`
+
+	var version int
+	var updatedAt time.Time
+	err := r.db.QueryRow(ctx, query, id).Scan(&version, &updatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": id,
+			})
+			return ErrProductNotFound
+		}
+
+		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"product_id": id,
+		})
+		return fmt.Errorf("%w: %v", ErrDisableDiscount, err)
+	}
+
+	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id":     id,
+		"allow_discount": false,
 	})
 
 	return nil

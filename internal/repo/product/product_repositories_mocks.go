@@ -108,3 +108,8 @@ func (m *ProductRepositoryMock) EnableDiscount(ctx context.Context, id int64) er
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
+
+func (m *ProductRepositoryMock) DisableDiscount(ctx context.Context, id int64) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
