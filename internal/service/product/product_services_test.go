@@ -814,3 +814,72 @@ func TestProductService_DisableDiscount(t *testing.T) {
 	})
 
 }
+
+func TestProductService_ApplyDiscount(t *testing.T) {
+	logger := logger.NewLoggerAdapter(logrus.New())
+
+	setup := func() (*repo.ProductRepositoryMock, ProductService) {
+		mockRepo := new(repo.ProductRepositoryMock)
+		service := NewProductService(mockRepo, logger)
+		return mockRepo, service
+	}
+
+	t.Run("Deve aplicar desconto com sucesso", func(t *testing.T) {
+		mockRepo, service := setup()
+		productID := int64(1)
+		percent := 10.0
+
+		expectedProduct := &models.Product{
+			ID:            productID,
+			ProductName:   "Produto Teste",
+			SalePrice:     90.0, // supondo que o desconto foi aplicado
+			AllowDiscount: true,
+		}
+
+		mockRepo.On("ApplyDiscount", mock.Anything, productID, percent).
+			Return(expectedProduct, nil).
+			Once()
+
+		product, err := service.ApplyDiscount(context.Background(), productID, percent)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, product)
+		assert.Equal(t, expectedProduct, product)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar erro se produto não encontrado", func(t *testing.T) {
+		mockRepo, service := setup()
+		productID := int64(99)
+		percent := 15.0
+
+		mockRepo.On("ApplyDiscount", mock.Anything, productID, percent).
+			Return(nil, repo.ErrProductNotFound).
+			Once()
+
+		product, err := service.ApplyDiscount(context.Background(), productID, percent)
+
+		assert.Error(t, err)
+		assert.Nil(t, product)
+		assert.ErrorIs(t, err, ErrApplyDiscount)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Deve retornar erro genérico ao aplicar desconto", func(t *testing.T) {
+		mockRepo, service := setup()
+		productID := int64(2)
+		percent := 5.0
+		expectedErr := errors.New("erro inesperado no banco")
+
+		mockRepo.On("ApplyDiscount", mock.Anything, productID, percent).
+			Return(nil, expectedErr).
+			Once()
+
+		product, err := service.ApplyDiscount(context.Background(), productID, percent)
+
+		assert.Error(t, err)
+		assert.Nil(t, product)
+		assert.ErrorIs(t, err, ErrApplyDiscount)
+		mockRepo.AssertExpectations(t)
+	})
+}

@@ -26,4 +26,5 @@ var (
 
 	ErrEnableDiscount  = errors.New("erro ao ativar desconto")
 	ErrDisableDiscount = errors.New("erro ao desativar desconto")
+	ErrApplyDiscount   = errors.New("erro ao aplicar desconto")
 )

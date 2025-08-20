@@ -113,3 +113,11 @@ func (m *ProductRepositoryMock) DisableDiscount(ctx context.Context, id int64) e
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
+
+func (m *ProductRepositoryMock) ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error) {
+	args := m.Called(ctx, id, percent)
+	if product, ok := args.Get(0).(*models.Product); ok {
+		return product, args.Error(1)
+	}
+	return nil, args.Error(1)
+}

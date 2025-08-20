@@ -800,3 +800,64 @@ func (h *ProductHandler) DisableDiscount(w http.ResponseWriter, r *http.Request)
 	})
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *ProductHandler) ApplyDiscount(w http.ResponseWriter, r *http.Request) {
+	ref := "[productHandler - ApplyDiscount] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	// Extrair percent do body
+	var payload struct {
+		Percent float64 `json:"percent"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		h.logger.Warn(ctx, ref+"payload inválido", map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("payload inválido"), http.StatusBadRequest)
+		return
+	}
+
+	product, err := h.service.ApplyDiscount(ctx, uid, payload.Percent)
+	if err != nil {
+		switch {
+		case errors.Is(err, repo.ErrProductNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id": uid,
+		"percent":    payload.Percent,
+	})
+
+	utils.ToJson(w, http.StatusOK, product)
+}

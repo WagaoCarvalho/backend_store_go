@@ -33,7 +33,7 @@ type ProductRepository interface {
 
 	EnableDiscount(ctx context.Context, id int64) error
 	DisableDiscount(ctx context.Context, id int64) error
-	//ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error)
+	ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error)
 	//UpdateDiscount(ctx context.Context, id int64, maxPercent float64) error
 }
 
@@ -778,4 +778,57 @@ func (r *productRepository) DisableDiscount(ctx context.Context, id int64) error
 	})
 
 	return nil
+}
+
+func (r *productRepository) ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error) {
+	ref := "[productRepository - ApplyDiscount] - "
+	r.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
+		"product_id": id,
+		"percent":    percent,
+	})
+
+	const query = `
+		UPDATE products
+		SET max_discount_percent = $2, updated_at = NOW(), version = version + 1
+		WHERE id = $1 AND allow_discount = TRUE
+		RETURNING id, product_name, sale_price, max_discount_percent, allow_discount, version, updated_at;
+	`
+
+	var p models.Product
+	err := r.db.QueryRow(ctx, query, id, percent).Scan(
+		&p.ID,
+		&p.ProductName,
+		&p.SalePrice,
+		&p.MaxDiscountPercent,
+		&p.AllowDiscount,
+		&p.Version,
+		&p.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			// Verifica se o produto existe independentemente de allow_discount
+			const checkQuery = `SELECT 1 FROM products WHERE id = $1`
+			var exists int
+			errCheck := r.db.QueryRow(ctx, checkQuery, id).Scan(&exists)
+			if errCheck != nil || exists == 0 {
+				r.logger.Warn(ctx, ref+"produto não encontrado", map[string]any{"product_id": id})
+				return nil, ErrProductNotFound
+			}
+			r.logger.Warn(ctx, ref+"desconto não permitido", map[string]any{"product_id": id})
+			return nil, ErrDiscountNotAllowed
+		}
+
+		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			"product_id": id,
+			"percent":    percent,
+		})
+		return nil, fmt.Errorf("%w: %v", ErrApplyDiscount, err)
+	}
+
+	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id": id,
+		"percent":    percent,
+	})
+
+	return &p, nil
 }

@@ -44,16 +44,21 @@ func RegisterProductRoutes(
 	s.HandleFunc("/product/{id:[0-9]+}", handler.GetById).Methods(http.MethodGet)
 	s.HandleFunc("/product/name/{name}", handler.GetByName).Methods(http.MethodGet)
 	s.HandleFunc("/product/manufacturer/{manufacturer}", handler.GetByManufacturer).Methods(http.MethodGet)
-	s.HandleFunc("/product/version/{id:[0-9]+}", handler.GetVersionByID).Methods(http.MethodGet)
 	s.HandleFunc("/product/update/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
+	s.HandleFunc("/product/delete/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
+
 	s.HandleFunc("/product/enable/{id:[0-9]+}", handler.EnableProduct).Methods(http.MethodPatch)
 	s.HandleFunc("/product/disable/{id:[0-9]+}", handler.DisableProduct).Methods(http.MethodPatch)
-	s.HandleFunc("/product/delete/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
+
+	s.HandleFunc("/product/version/{id:[0-9]+}", handler.GetVersionByID).Methods(http.MethodGet)
+
 	s.HandleFunc("/product/stock/{id:[0-9]+}", handler.UpdateStock).Methods(http.MethodPatch)
 	s.HandleFunc("/product/increase-stock/{id:[0-9]+}", handler.IncreaseStock).Methods(http.MethodPatch)
 	s.HandleFunc("/product/decrease-stock/{id:[0-9]+}", handler.DecreaseStock).Methods(http.MethodPatch)
 	s.HandleFunc("/product/get-stock/{id:[0-9]+}", handler.GetStock).Methods(http.MethodGet)
+
 	s.HandleFunc("/product/enable-discount/{id:[0-9]+}", handler.EnableDiscount).Methods(http.MethodPatch)
 	s.HandleFunc("/product/disable-discount/{id:[0-9]+}", handler.DisableDiscount).Methods(http.MethodPatch)
+	s.HandleFunc("/product/apply-discount/{id:[0-9]+}", handler.ApplyDiscount).Methods(http.MethodPatch)
 
 }
