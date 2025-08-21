@@ -4,7 +4,6 @@ import (
 	"strings"
 	"time"
 
-	err "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
 )
 
@@ -18,15 +17,15 @@ type UserCategory struct {
 
 func (uc *UserCategory) Validate() error {
 	if validators.IsBlank(uc.Name) {
-		return &err.ValidationError{Field: "Name", Message: "campo obrigatório"}
+		return &validators.ValidationError{Field: "Name", Message: "campo obrigatório"}
 	}
 
 	if len(uc.Name) > 100 {
-		return &err.ValidationError{Field: "Name", Message: "máximo de 100 caracteres"}
+		return &validators.ValidationError{Field: "Name", Message: "máximo de 100 caracteres"}
 	}
 
 	if len(strings.TrimSpace(uc.Description)) > 255 {
-		return &err.ValidationError{Field: "Description", Message: "máximo de 255 caracteres"}
+		return &validators.ValidationError{Field: "Description", Message: "máximo de 255 caracteres"}
 	}
 
 	return nil

@@ -4,7 +4,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -224,7 +223,7 @@ func TestValidateStrongPassword(t *testing.T) {
 	t.Run("campo obrigatório", func(t *testing.T) {
 		err := ValidateStrongPassword("")
 		assert.Error(t, err)
-		ve, ok := err.(*utils.ValidationError)
+		ve, ok := err.(*ValidationError)
 		assert.True(t, ok)
 		assert.Equal(t, "Password", ve.Field)
 		assert.Equal(t, "campo obrigatório", ve.Message)
@@ -233,7 +232,7 @@ func TestValidateStrongPassword(t *testing.T) {
 	t.Run("senha muito curta", func(t *testing.T) {
 		err := ValidateStrongPassword("Ab1@")
 		assert.Error(t, err)
-		ve, ok := err.(*utils.ValidationError)
+		ve, ok := err.(*ValidationError)
 		assert.True(t, ok)
 		assert.Equal(t, "mínimo de 8 caracteres", ve.Message)
 	})
@@ -242,7 +241,7 @@ func TestValidateStrongPassword(t *testing.T) {
 		longPwd := strings.Repeat("A1a@", 20) // 80 caracteres
 		err := ValidateStrongPassword(longPwd)
 		assert.Error(t, err)
-		ve, ok := err.(*utils.ValidationError)
+		ve, ok := err.(*ValidationError)
 		assert.True(t, ok)
 		assert.Equal(t, "máximo de 64 caracteres", ve.Message)
 	})

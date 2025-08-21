@@ -1,11 +1,22 @@
 package utils
 
 import (
+	"errors"
+	"fmt"
 	"regexp"
 	"strings"
-
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
+
+var ErrNotFound = errors.New("registro não encontrado")
+
+type ValidationError struct {
+	Field   string
+	Message string
+}
+
+func (e *ValidationError) Error() string {
+	return fmt.Sprintf("Erro no campo '%s': %s", e.Field, e.Message)
+}
 
 func IsBlank(s string) bool {
 	return strings.TrimSpace(s) == ""
@@ -105,13 +116,13 @@ func ValidateSingleNonNil(fields ...*int64) bool {
 
 func ValidateStrongPassword(password string) error {
 	if IsBlank(password) {
-		return &utils.ValidationError{Field: "Password", Message: "campo obrigatório"}
+		return &ValidationError{Field: "Password", Message: "campo obrigatório"}
 	}
 	if len(password) < 8 {
-		return &utils.ValidationError{Field: "Password", Message: "mínimo de 8 caracteres"}
+		return &ValidationError{Field: "Password", Message: "mínimo de 8 caracteres"}
 	}
 	if len(password) > 64 {
-		return &utils.ValidationError{Field: "Password", Message: "máximo de 64 caracteres"}
+		return &ValidationError{Field: "Password", Message: "máximo de 64 caracteres"}
 	}
 
 	var (
@@ -134,7 +145,7 @@ func ValidateStrongPassword(password string) error {
 	}
 
 	if !hasUpper || !hasLower || !hasNumber || !hasSymbol {
-		return &utils.ValidationError{
+		return &ValidationError{
 			Field:   "Password",
 			Message: "senha deve conter letras maiúsculas, minúsculas, números e caracteres especiais",
 		}

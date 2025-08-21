@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
-	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -26,7 +26,7 @@ func TestSupplierCategoryRelations_Validate(t *testing.T) {
 		}
 		err := rel.Validate()
 		assert.NotNil(t, err)
-		verr, ok := err.(*utils_errors.ValidationError)
+		verr, ok := err.(*validators.ValidationError)
 		assert.True(t, ok)
 		assert.Equal(t, "SupplierID", verr.Field)
 	})
@@ -38,7 +38,7 @@ func TestSupplierCategoryRelations_Validate(t *testing.T) {
 		}
 		err := rel.Validate()
 		assert.NotNil(t, err)
-		verr, ok := err.(*utils_errors.ValidationError)
+		verr, ok := err.(*validators.ValidationError)
 		assert.True(t, ok)
 		assert.Equal(t, "CategoryID", verr.Field)
 	})

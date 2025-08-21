@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	err "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
 )
 
 type SupplierCategoryRelations struct {
@@ -15,13 +15,13 @@ type SupplierCategoryRelations struct {
 
 func (r *SupplierCategoryRelations) Validate() error {
 	if r.SupplierID <= 0 {
-		return &err.ValidationError{
+		return &validators.ValidationError{
 			Field:   "SupplierID",
 			Message: "ID do fornecedor é obrigatório e deve ser maior que zero",
 		}
 	}
 	if r.CategoryID <= 0 {
-		return &err.ValidationError{
+		return &validators.ValidationError{
 			Field:   "CategoryID",
 			Message: "ID da categoria é obrigatório e deve ser maior que zero",
 		}

@@ -16,6 +16,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/address"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/address/address_services_mock"
@@ -436,7 +437,7 @@ func TestAddressHandler_Update(t *testing.T) {
 		handler := NewAddressHandler(mockSvc, logAdapter)
 
 		addr := models.Address{ID: 1, Street: ""}
-		validationErr := &utils.ValidationError{Field: "Street", Message: "campo obrigatório"}
+		validationErr := &validators.ValidationError{Field: "Street", Message: "campo obrigatório"}
 
 		mockSvc.On("Update", mock.Anything, &addr).Return(validationErr).Once()
 
@@ -529,7 +530,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 		mockSvc := new(service_mock.MockAddressService)
 		handler := NewAddressHandler(mockSvc, logAdapter)
 
-		mockSvc.On("Delete", mock.Anything, int64(99)).Return(utils.ErrNotFound).Once()
+		mockSvc.On("Delete", mock.Anything, int64(99)).Return(validators.ErrNotFound).Once()
 
 		req := newRequestWithVars("DELETE", "/addresses/99", nil, map[string]string{"id": "99"})
 		w := httptest.NewRecorder()
@@ -540,7 +541,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-		assert.Contains(t, w.Body.String(), utils.ErrNotFound.Error())
+		assert.Contains(t, w.Body.String(), validators.ErrNotFound.Error())
 
 		mockSvc.AssertExpectations(t)
 	})

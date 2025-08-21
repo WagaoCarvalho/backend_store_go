@@ -8,6 +8,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/address"
 )
@@ -226,7 +227,7 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err := h.service.Update(r.Context(), &address); err != nil {
-		if ve, ok := err.(*utils.ValidationError); ok {
+		if ve, ok := err.(*validators.ValidationError); ok {
 			h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{
 				"erro": ve.Error(),
 				"id":   id,
@@ -273,7 +274,7 @@ func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	err = h.service.Delete(r.Context(), id)
 	if err != nil {
 		switch {
-		case errors.Is(err, utils.ErrNotFound):
+		case errors.Is(err, validators.ErrNotFound):
 			h.logger.Warn(r.Context(), ref+logger.LogNotFound, map[string]any{
 				"address_id": id,
 				"erro":       err.Error(),

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
 )
 
 func TestContact_Validate(t *testing.T) {
@@ -60,7 +60,7 @@ func TestContact_Validate(t *testing.T) {
 				ContactName: "Contato",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &validators.ValidationError{},
 			errMsg:  "exatamente um deve ser informado",
 		},
 		{
@@ -71,7 +71,7 @@ func TestContact_Validate(t *testing.T) {
 				ContactName: "Contato",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &validators.ValidationError{},
 			errMsg:  "exatamente um deve ser informado",
 		},
 		{
@@ -82,7 +82,7 @@ func TestContact_Validate(t *testing.T) {
 				ContactName: "Contato",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &validators.ValidationError{},
 			errMsg:  "exatamente um deve ser informado",
 		},
 		{
@@ -93,7 +93,7 @@ func TestContact_Validate(t *testing.T) {
 				ContactName: "Contato",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &validators.ValidationError{},
 			errMsg:  "exatamente um deve ser informado",
 		},
 		{
@@ -103,7 +103,7 @@ func TestContact_Validate(t *testing.T) {
 				ContactName: " ",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &validators.ValidationError{},
 			errMsg:  "ContactName",
 		},
 		{
@@ -113,7 +113,7 @@ func TestContact_Validate(t *testing.T) {
 				ContactName: "AB",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &validators.ValidationError{},
 			errMsg:  "mínimo de 3",
 		},
 		{
@@ -123,7 +123,7 @@ func TestContact_Validate(t *testing.T) {
 				ContactName: strings.Repeat("A", 101),
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &validators.ValidationError{},
 			errMsg:  "máximo de 100",
 		},
 		{
@@ -134,7 +134,7 @@ func TestContact_Validate(t *testing.T) {
 				ContactPosition: strings.Repeat("X", 101),
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &validators.ValidationError{},
 			errMsg:  "ContactPosition",
 		},
 		{
@@ -145,7 +145,7 @@ func TestContact_Validate(t *testing.T) {
 				Email:       "email@invalido",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &validators.ValidationError{},
 			errMsg:  "Email",
 		},
 		{
@@ -156,7 +156,7 @@ func TestContact_Validate(t *testing.T) {
 				Email:       strings.Repeat("a", 95) + "@x.com",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &validators.ValidationError{},
 			errMsg:  "máximo de 100 caracteres",
 		},
 		{
@@ -167,7 +167,7 @@ func TestContact_Validate(t *testing.T) {
 				Phone:       "11987654321",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &validators.ValidationError{},
 			errMsg:  "Phone",
 		},
 		{
@@ -178,7 +178,7 @@ func TestContact_Validate(t *testing.T) {
 				Cell:        "(11) 1234-5678", // fixo no lugar de celular
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &validators.ValidationError{},
 			errMsg:  "Cell",
 		},
 		{
@@ -189,7 +189,7 @@ func TestContact_Validate(t *testing.T) {
 				ContactType: "RH",
 			},
 			wantErr: true,
-			errType: &utils_errors.ValidationError{},
+			errType: &validators.ValidationError{},
 			errMsg:  "tipo inválido",
 		},
 	}

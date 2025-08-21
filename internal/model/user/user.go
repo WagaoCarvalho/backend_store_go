@@ -5,8 +5,7 @@ import (
 
 	"unicode"
 
-	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
 )
 
 type User struct {
@@ -22,34 +21,34 @@ type User struct {
 
 func (u *User) Validate() error {
 	// Username obrigatório e tamanho
-	if utils_validators.IsBlank(u.Username) {
-		return &utils_errors.ValidationError{Field: "Username", Message: "campo obrigatório"}
+	if validators.IsBlank(u.Username) {
+		return &validators.ValidationError{Field: "Username", Message: "campo obrigatório"}
 	}
 	if len(u.Username) < 3 || len(u.Username) > 50 {
-		return &utils_errors.ValidationError{Field: "Username", Message: "deve ter entre 3 e 50 caracteres"}
+		return &validators.ValidationError{Field: "Username", Message: "deve ter entre 3 e 50 caracteres"}
 	}
 
 	// Email obrigatório e válido
-	if utils_validators.IsBlank(u.Email) {
-		return &utils_errors.ValidationError{Field: "Email", Message: "campo obrigatório"}
+	if validators.IsBlank(u.Email) {
+		return &validators.ValidationError{Field: "Email", Message: "campo obrigatório"}
 	}
 	if len(u.Email) > 100 {
-		return &utils_errors.ValidationError{Field: "Email", Message: "máximo de 100 caracteres"}
+		return &validators.ValidationError{Field: "Email", Message: "máximo de 100 caracteres"}
 	}
-	if !utils_validators.IsValidEmail(u.Email) {
-		return &utils_errors.ValidationError{Field: "Email", Message: "email inválido"}
+	if !validators.IsValidEmail(u.Email) {
+		return &validators.ValidationError{Field: "Email", Message: "email inválido"}
 	}
 
 	// Password obrigatório, mínimo 8 caracteres, complexidade mínima
-	if utils_validators.IsBlank(u.Password) {
-		return &utils_errors.ValidationError{Field: "Password", Message: "campo obrigatório"}
+	if validators.IsBlank(u.Password) {
+		return &validators.ValidationError{Field: "Password", Message: "campo obrigatório"}
 	}
 	if len(u.Password) < 8 {
-		return &utils_errors.ValidationError{Field: "Password", Message: "mínimo de 8 caracteres"}
+		return &validators.ValidationError{Field: "Password", Message: "mínimo de 8 caracteres"}
 	}
 
 	if !hasPasswordComplexity(u.Password) {
-		return &utils_errors.ValidationError{Field: "Password", Message: "deve conter letras maiúsculas, minúsculas e números"}
+		return &validators.ValidationError{Field: "Password", Message: "deve conter letras maiúsculas, minúsculas e números"}
 	}
 
 	return nil

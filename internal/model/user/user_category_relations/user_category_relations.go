@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	err "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
 )
 
 type UserCategoryRelations struct {
@@ -14,11 +14,11 @@ type UserCategoryRelations struct {
 
 func (ucr *UserCategoryRelations) Validate() error {
 	if ucr.UserID <= 0 {
-		return &err.ValidationError{Field: "UserID", Message: "campo obrigatório e deve ser maior que zero"}
+		return &validators.ValidationError{Field: "UserID", Message: "campo obrigatório e deve ser maior que zero"}
 	}
 
 	if ucr.CategoryID <= 0 {
-		return &err.ValidationError{Field: "CategoryID", Message: "campo obrigatório e deve ser maior que zero"}
+		return &validators.ValidationError{Field: "CategoryID", Message: "campo obrigatório e deve ser maior que zero"}
 	}
 
 	return nil

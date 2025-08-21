@@ -3,7 +3,7 @@ package models
 import (
 	"testing"
 
-	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,7 +30,7 @@ func TestUserCategory_Validate(t *testing.T) {
 		}
 		err := uc.Validate()
 		assert.Error(t, err)
-		verr, ok := err.(*utils_errors.ValidationError)
+		verr, ok := err.(*validators.ValidationError)
 		assert.True(t, ok)
 		assert.Equal(t, "Name", verr.Field)
 	})
@@ -42,7 +42,7 @@ func TestUserCategory_Validate(t *testing.T) {
 		}
 		err := uc.Validate()
 		assert.Error(t, err)
-		verr, ok := err.(*utils_errors.ValidationError)
+		verr, ok := err.(*validators.ValidationError)
 		assert.True(t, ok)
 		assert.Equal(t, "Name", verr.Field)
 	})
@@ -58,7 +58,7 @@ func TestUserCategory_Validate(t *testing.T) {
 		}
 		err := uc.Validate()
 		assert.Error(t, err)
-		verr, ok := err.(*utils_errors.ValidationError)
+		verr, ok := err.(*validators.ValidationError)
 		assert.True(t, ok)
 		assert.Equal(t, "Description", verr.Field)
 	})
