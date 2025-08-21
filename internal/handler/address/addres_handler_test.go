@@ -14,11 +14,11 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	err_msg_pg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/address"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/address/address_services_mock"
 )
 
@@ -101,7 +101,7 @@ func TestAddressHandler_Create(t *testing.T) {
 			PostalCode: "99999-999",
 		}
 
-		mockService.On("Create", mock.Anything, input).Return((*models.Address)(nil), repo.ErrInvalidForeignKey)
+		mockService.On("Create", mock.Anything, input).Return((*models.Address)(nil), err_msg_pg.ErrInvalidForeignKey)
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer(body))
@@ -551,7 +551,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 		mockSvc := new(service_mock.MockAddressService)
 		handler := NewAddressHandler(mockSvc, logAdapter)
 
-		mockSvc.On("Delete", mock.Anything, int64(2)).Return(service.ErrAddressIDRequired).Once()
+		mockSvc.On("Delete", mock.Anything, int64(2)).Return(err_msg.ErrAddressIDRequired).Once()
 
 		req := newRequestWithVars("DELETE", "/addresses/2", nil, map[string]string{"id": "2"})
 		w := httptest.NewRecorder()
@@ -562,7 +562,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		assert.Contains(t, w.Body.String(), "endereço ID é obrigatório")
+		assert.Contains(t, w.Body.String(), "erro id deve ser maior que 0")
 
 		mockSvc.AssertExpectations(t)
 	})

@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	err_msg_pg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	logger "github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/jackc/pgx/v5"
@@ -62,13 +64,13 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 	).Scan(&address.ID, &address.CreatedAt, &address.UpdatedAt)
 
 	if err != nil {
-		if IsForeignKeyViolation(err) {
+		if err_msg_pg.IsForeignKeyViolation(err) {
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"user_id":     utils.Int64OrNil(address.UserID),
 				"client_id":   utils.Int64OrNil(address.ClientID),
 				"supplier_id": utils.Int64OrNil(address.SupplierID),
 			})
-			return nil, ErrInvalidForeignKey
+			return nil, err_msg_pg.ErrInvalidForeignKey
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
@@ -77,7 +79,7 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 			"supplier_id": utils.Int64OrNil(address.SupplierID),
 			"street":      address.Street,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrCreateAddress, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrAddressCreate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
@@ -118,13 +120,13 @@ func (r *addressRepository) CreateTx(ctx context.Context, tx pgx.Tx, address *mo
 	).Scan(&address.ID, &address.CreatedAt, &address.UpdatedAt)
 
 	if err != nil {
-		if IsForeignKeyViolation(err) {
+		if err_msg_pg.IsForeignKeyViolation(err) {
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"user_id":     utils.Int64OrNil(address.UserID),
 				"client_id":   utils.Int64OrNil(address.ClientID),
 				"supplier_id": utils.Int64OrNil(address.SupplierID),
 			})
-			return nil, ErrInvalidForeignKey
+			return nil, err_msg_pg.ErrInvalidForeignKey
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
@@ -133,7 +135,7 @@ func (r *addressRepository) CreateTx(ctx context.Context, tx pgx.Tx, address *mo
 			"supplier_id": utils.Int64OrNil(address.SupplierID),
 			"street":      address.Street,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrCreateAddress, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrAddressCreate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
@@ -177,13 +179,13 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 			r.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
 				"address_id": id,
 			})
-			return nil, ErrAddressNotFound
+			return nil, err_msg.ErrAddressNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"address_id": id,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrAddressGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -212,7 +214,7 @@ func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": userID,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrAddressGet, err)
 	}
 	defer rows.Close()
 
@@ -235,7 +237,7 @@ func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, map[string]any{
 				"user_id": userID,
 			})
-			return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrAddressGet, err)
 		}
 		addresses = append(addresses, &address)
 	}
@@ -268,7 +270,7 @@ func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) (
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"client_id": clientID,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrAddressGet, err)
 	}
 	defer rows.Close()
 
@@ -291,7 +293,7 @@ func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) (
 			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, map[string]any{
 				"client_id": clientID,
 			})
-			return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrAddressGet, err)
 		}
 		addresses = append(addresses, &address)
 	}
@@ -324,7 +326,7 @@ func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int6
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"supplier_id": supplierID,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrAddressGet, err)
 	}
 	defer rows.Close()
 
@@ -347,7 +349,7 @@ func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int6
 			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, map[string]any{
 				"supplier_id": supplierID,
 			})
-			return nil, fmt.Errorf("%w: %v", ErrFetchAddress, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrAddressGet, err)
 		}
 		addresses = append(addresses, &address)
 	}
@@ -403,13 +405,20 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 			r.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
 				"address_id": address.ID,
 			})
-			return ErrAddressNotFound
+			return err_msg.ErrAddressNotFound
+		}
+
+		if err_msg_pg.IsForeignKeyViolation(err) {
+			r.logger.Warn(ctx, ref+"violação de chave estrangeira", map[string]any{
+				"address_id": address.ID,
+			})
+			return err_msg_pg.ErrInvalidForeignKey
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"address_id": address.ID,
 		})
-		return fmt.Errorf("%w: %v", ErrUpdateAddress, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrAddressUpdate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -434,14 +443,14 @@ func (r *addressRepository) Delete(ctx context.Context, id int64) error {
 		r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"address_id": id,
 		})
-		return fmt.Errorf("%w: %v", ErrDeleteAddress, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrAddressDelete, err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
 		r.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
 			"address_id": id,
 		})
-		return ErrAddressNotFound
+		return err_msg.ErrAddressNotFound
 	}
 
 	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{

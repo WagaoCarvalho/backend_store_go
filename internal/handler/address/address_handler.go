@@ -6,10 +6,11 @@ import (
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	err_msg_pg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/address"
 )
 
@@ -41,7 +42,7 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	createdAddress, err := h.service.Create(r.Context(), &address)
 	if err != nil {
-		if errors.Is(err, repo.ErrInvalidForeignKey) {
+		if errors.Is(err, err_msg_pg.ErrInvalidForeignKey) {
 			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
 				"erro": err.Error(),
 			})
@@ -280,11 +281,11 @@ func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 				"erro":       err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusNotFound)
-		case errors.Is(err, service.ErrAddressIDRequired):
+		case errors.Is(err, err_msg.ErrAddressIDRequired):
 			h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{
 				"erro": err.Error(),
 			})
-			utils.ErrorResponse(w, errors.New("endereço ID é obrigatório"), http.StatusBadRequest)
+			utils.ErrorResponse(w, err_msg.ErrAddressIDRequired, http.StatusBadRequest)
 		default:
 			h.logger.Error(r.Context(), err, ref+logger.LogDeleteError, map[string]any{
 				"address_id": id,
