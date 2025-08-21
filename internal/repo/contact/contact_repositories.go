@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	logger "github.com/WagaoCarvalho/backend_store_go/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
+	logger "github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"

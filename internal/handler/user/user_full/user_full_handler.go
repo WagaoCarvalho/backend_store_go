@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_full_services"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 )
 
 type UserHandler struct {

@@ -8,10 +8,10 @@ import (
 	"strconv"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/product"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 	"github.com/gorilla/mux"
 )
 

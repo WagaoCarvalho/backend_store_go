@@ -7,10 +7,10 @@ import (
 	"strconv"
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_category_relations"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 	"github.com/gorilla/mux"
 )
 

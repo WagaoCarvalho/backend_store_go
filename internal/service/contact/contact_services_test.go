@@ -7,8 +7,8 @@ import (
 	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

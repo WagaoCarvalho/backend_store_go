@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 )
 
 func RecoverMiddleware(log logger.Logger) func(http.Handler) http.Handler {

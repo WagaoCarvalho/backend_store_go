@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 type SupplierCategoryRelationService interface {

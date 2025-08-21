@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

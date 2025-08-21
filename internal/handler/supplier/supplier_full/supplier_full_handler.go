@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_full_services"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 )
 
 type SupplierHandler struct {

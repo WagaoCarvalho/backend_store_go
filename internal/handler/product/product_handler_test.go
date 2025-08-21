@@ -17,10 +17,10 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/product/mocks"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 )
 
 func TestProductHandler_Create(t *testing.T) {

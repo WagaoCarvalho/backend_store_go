@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_categories"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_categories"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 )
 
 type SupplierCategoryHandler struct {

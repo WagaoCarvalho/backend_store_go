@@ -13,8 +13,8 @@ import (
 
 	models_login "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 type mockUserRepo struct{ mock.Mock }

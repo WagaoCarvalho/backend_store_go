@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_categories/user_categories_services_mock"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strings"
 
-	auth "github.com/WagaoCarvalho/backend_store_go/pkg/auth/jwt"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
-	middlewares "github.com/WagaoCarvalho/backend_store_go/pkg/middleware/context_utils"
+	auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	middlewares "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/context_utils"
 )
 
 type TokenBlacklist interface {

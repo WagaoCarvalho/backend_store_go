@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/golang-jwt/jwt/v5"
 )
 

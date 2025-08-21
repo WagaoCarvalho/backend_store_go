@@ -7,12 +7,12 @@ import (
 
 	models_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
 	models_full "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
 	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	repo_relation "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
 	repo_supplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_full_repositories"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 )
 
 type SupplierFullService interface {

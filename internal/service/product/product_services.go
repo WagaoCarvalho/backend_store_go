@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 )
 
 type ProductService interface {
@@ -33,7 +33,6 @@ type ProductService interface {
 	EnableDiscount(ctx context.Context, id int64) error
 	DisableDiscount(ctx context.Context, id int64) error
 	ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error)
-	//UpdateDiscount(ctx context.Context, id int64, maxPercent float64) error
 }
 
 type productService struct {

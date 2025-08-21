@@ -14,11 +14,11 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/address"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/address/address_services_mock"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 )
 
 func newRequestWithVars(method, url string, body []byte, vars map[string]string) *http.Request {

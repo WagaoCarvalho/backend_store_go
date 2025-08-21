@@ -3,8 +3,8 @@ package models
 import (
 	"time"
 
-	err "github.com/WagaoCarvalho/backend_store_go/pkg/utils"
-	validators "github.com/WagaoCarvalho/backend_store_go/pkg/utils/validators"
+	err "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
 )
 
 type SupplierCategory struct {

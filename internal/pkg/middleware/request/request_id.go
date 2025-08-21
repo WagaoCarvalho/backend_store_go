@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	contextutils "github.com/WagaoCarvalho/backend_store_go/pkg/middleware/context_utils"
+	contextutils "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/context_utils"
 	"github.com/google/uuid"
 )
 

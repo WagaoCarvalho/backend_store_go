@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 

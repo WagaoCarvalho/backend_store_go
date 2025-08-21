@@ -7,8 +7,8 @@ import (
 	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -34,7 +34,6 @@ type ProductRepository interface {
 	EnableDiscount(ctx context.Context, id int64) error
 	DisableDiscount(ctx context.Context, id int64) error
 	ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error)
-	//UpdateDiscount(ctx context.Context, id int64, maxPercent float64) error
 }
 
 type productRepository struct {

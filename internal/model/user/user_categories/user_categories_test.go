@@ -3,7 +3,7 @@ package models
 import (
 	"testing"
 
-	utils_errors "github.com/WagaoCarvalho/backend_store_go/pkg/utils"
+	utils_errors "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
 func IsBlank(s string) bool {

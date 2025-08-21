@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"

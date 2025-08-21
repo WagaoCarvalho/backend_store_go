@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
 )
 
 func Test_Create(t *testing.T) {

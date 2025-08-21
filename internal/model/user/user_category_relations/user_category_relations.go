@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	err "github.com/WagaoCarvalho/backend_store_go/pkg/utils"
+	err "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
 type UserCategoryRelations struct {

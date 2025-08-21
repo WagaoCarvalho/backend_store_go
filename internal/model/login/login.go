@@ -1,8 +1,8 @@
 package models
 
 import (
-	err "github.com/WagaoCarvalho/backend_store_go/pkg/utils"
-	validators "github.com/WagaoCarvalho/backend_store_go/pkg/utils/validators"
+	err "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
 )
 
 type LoginCredentials struct {

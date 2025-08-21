@@ -12,10 +12,10 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
 	supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_services_mock"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/pkg/utils"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
