@@ -7,6 +7,7 @@ import (
 	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	"github.com/sirupsen/logrus"
@@ -74,7 +75,7 @@ func TestCreate(t *testing.T) {
 		_, err := service.Create(context.Background(), inputContact)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, ErrCreateContact)
+		assert.ErrorIs(t, err, err_msg.ErrContactCreate)
 		assert.Contains(t, err.Error(), "repository error")
 		mockRepo.AssertExpectations(t)
 	})
@@ -144,7 +145,7 @@ func Test_GetByID(t *testing.T) {
 		service := NewContactService(mockRepo, logger)
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).
-			Return((*models.Contact)(nil), repo.ErrContactNotFound)
+			Return((*models.Contact)(nil), err_msg.ErrContactNotFound)
 
 		contact, err := service.GetByID(context.Background(), 1)
 
@@ -162,7 +163,7 @@ func Test_GetByID(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, contact)
-		assert.Contains(t, err.Error(), "ID inválido")
+		assert.Contains(t, err.Error(), "erro o id tem que ser maior que 0")
 		mockRepo.AssertNotCalled(t, "GetByID")
 	})
 
@@ -177,7 +178,7 @@ func Test_GetByID(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, contact)
-		assert.Contains(t, err.Error(), "erro ao verificar contato")
+		assert.Contains(t, err.Error(), "erro ao buscar contato")
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -239,7 +240,7 @@ func Test_GetByUserID(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, contacts)
-		assert.Contains(t, err.Error(), "erro ao listar contatos do usuário")
+		assert.Contains(t, err.Error(), "erro ao buscar contatos do usuário")
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -303,7 +304,7 @@ func Test_GetByClientID(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, contacts)
-		assert.Contains(t, err.Error(), "erro ao listar contatos do cliente")
+		assert.Contains(t, err.Error(), "erro ao buscar contatos do cliente")
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -373,7 +374,7 @@ func Test_GetBySupplierID(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, contacts)
-		assert.Contains(t, err.Error(), "erro ao listar contatos do fornecedor")
+		assert.Contains(t, err.Error(), "erro ao buscar contatos do fornecedor")
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -416,10 +417,10 @@ func TestContactService_Update(t *testing.T) {
 			UserID:      &userID,
 		}
 
-		mockRepo.On("GetByID", mock.Anything, int64(1)).Return((*models.Contact)(nil), repo.ErrContactNotFound).Once()
+		mockRepo.On("GetByID", mock.Anything, int64(1)).Return((*models.Contact)(nil), err_msg.ErrContactNotFound).Once()
 
 		err := service.Update(context.Background(), updatedContact)
-		assert.ErrorIs(t, err, ErrContactNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrContactNotFound)
 
 		mockRepo.AssertNotCalled(t, "Update")
 	})
@@ -449,7 +450,7 @@ func TestContactService_Update(t *testing.T) {
 		invalidContact := &models.Contact{ID: 0, ContactName: "Válido"}
 
 		err := service.Update(context.Background(), invalidContact)
-		assert.ErrorIs(t, err, ErrInvalidID)
+		assert.ErrorIs(t, err, err_msg.ErrContactID)
 		mockRepo.AssertNotCalled(t, "GetByID")
 		mockRepo.AssertNotCalled(t, "Update")
 	})
@@ -469,7 +470,7 @@ func TestContactService_Update(t *testing.T) {
 
 		err := service.Update(context.Background(), contact)
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "erro ao verificar existência do contato antes da atualização")
+		assert.ErrorContains(t, err, "erro ao buscar contato")
 
 		mockRepo.AssertNotCalled(t, "Update")
 	})
@@ -521,7 +522,7 @@ func TestDeleteContact(t *testing.T) {
 			service := NewContactService(mockRepo, logger)
 
 			mockRepo.On("GetByID", mock.Anything, int64(1)).
-				Return((*models.Contact)(nil), repo.ErrContactNotFound)
+				Return((*models.Contact)(nil), err_msg.ErrContactNotFound)
 
 			err := service.Delete(context.Background(), 1)
 			assert.Error(t, err)
@@ -536,7 +537,7 @@ func TestDeleteContact(t *testing.T) {
 
 			err := service.Delete(context.Background(), 0)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "ID inválido")
+			assert.Contains(t, err.Error(), "erro id deve ser maior que 0")
 
 			mockRepo.AssertNotCalled(t, "GetByID")
 			mockRepo.AssertNotCalled(t, "Delete")
@@ -551,7 +552,7 @@ func TestDeleteContact(t *testing.T) {
 
 			err := service.Delete(context.Background(), 1)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "erro ao verificar contato")
+			assert.Contains(t, err.Error(), "erro ao buscar contato")
 
 			mockRepo.AssertNotCalled(t, "Delete")
 		},

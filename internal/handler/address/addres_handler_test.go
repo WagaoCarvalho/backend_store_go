@@ -551,7 +551,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 		mockSvc := new(service_mock.MockAddressService)
 		handler := NewAddressHandler(mockSvc, logAdapter)
 
-		mockSvc.On("Delete", mock.Anything, int64(2)).Return(err_msg.ErrAddressIDRequired).Once()
+		mockSvc.On("Delete", mock.Anything, int64(2)).Return(err_msg.ErrAddressID).Once()
 
 		req := newRequestWithVars("DELETE", "/addresses/2", nil, map[string]string{"id": "2"})
 		w := httptest.NewRecorder()

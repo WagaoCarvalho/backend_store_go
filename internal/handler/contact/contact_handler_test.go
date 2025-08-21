@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
+	err_msg_pg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/contact/contact_services_mock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -68,7 +68,7 @@ func TestContactHandler_Create(t *testing.T) {
 		cont := &model.Contact{ContactName: "Contato FK Inválida"}
 		mockSvc.On("Create", mock.Anything, mock.MatchedBy(func(c *model.Contact) bool {
 			return c.ContactName == "Contato FK Inválida"
-		})).Return((*model.Contact)(nil), repo.ErrInvalidForeignKey)
+		})).Return((*model.Contact)(nil), err_msg_pg.ErrInvalidForeignKey)
 
 		body, _ := json.Marshal(cont)
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))

@@ -144,7 +144,7 @@ func TestAddressService_GetByID(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.EqualError(t, err, err_msg.ErrAddressIDRequired.Error())
+		assert.EqualError(t, err, err_msg.ErrAddressID.Error())
 	})
 
 	t.Run("endereço não encontrado", func(t *testing.T) {
@@ -197,7 +197,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.EqualError(t, err, err_msg.ErrAddressIDRequired.Error())
+		assert.EqualError(t, err, err_msg.ErrAddressID.Error())
 	})
 
 	t.Run("nenhum endereço encontrado por UserID", func(t *testing.T) {
@@ -250,7 +250,7 @@ func TestAddressService_GetByClientID(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.EqualError(t, err, err_msg.ErrAddressIDRequired.Error())
+		assert.EqualError(t, err, err_msg.ErrAddressID.Error())
 	})
 
 	t.Run("nenhum endereço encontrado por ClientID", func(t *testing.T) {
@@ -302,7 +302,7 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 		result, err := service.GetBySupplierID(context.Background(), 0)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, err_msg.ErrAddressIDRequired)
+		assert.ErrorIs(t, err, err_msg.ErrAddressID)
 	})
 
 	t.Run("nenhum endereço encontrado por SupplierID", func(t *testing.T) {
@@ -363,7 +363,7 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 		}
 
 		err := service.Update(context.Background(), &address)
-		assert.ErrorIs(t, err, err_msg.ErrAddressIDRequired)
+		assert.ErrorIs(t, err, err_msg.ErrAddressID)
 	})
 
 	t.Run("falha na validação do endereço no update", func(t *testing.T) {
@@ -431,7 +431,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 		err := service.Delete(context.Background(), 0)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, err_msg.ErrAddressIDRequired)
+		assert.ErrorIs(t, err, err_msg.ErrAddressID)
 	})
 
 	t.Run("erro ao deletar do repositório", func(t *testing.T) {
