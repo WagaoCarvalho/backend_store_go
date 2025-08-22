@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
 	"github.com/sirupsen/logrus"
@@ -379,7 +380,7 @@ func TestSupplierService_Update(t *testing.T) {
 				supplier: &models.Supplier{ID: 1, Name: "Fornecedor D", Version: 2},
 			},
 			mockRepo: func(m *repo.MockSupplierRepository) {
-				m.On("Update", mock.Anything, mock.Anything).Return(repo.ErrVersionConflict).Once()
+				m.On("Update", mock.Anything, mock.Anything).Return(err_msg.ErrSupplierVersionConflict).Once()
 			},
 			expected:    nil,
 			expectedErr: ErrSupplierVersionConflict,
@@ -390,7 +391,7 @@ func TestSupplierService_Update(t *testing.T) {
 				supplier: &models.Supplier{ID: 10, Name: "Fornecedor X", Version: 1},
 			},
 			mockRepo: func(m *repo.MockSupplierRepository) {
-				m.On("Update", mock.Anything, mock.Anything).Return(repo.ErrSupplierNotFound).Once()
+				m.On("Update", mock.Anything, mock.Anything).Return(err_msg.ErrSupplierNotFound).Once()
 			},
 			expected:    nil,
 			expectedErr: ErrSupplierNotFound,

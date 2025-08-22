@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier"
 	"github.com/gorilla/mux"
 )
@@ -168,7 +168,7 @@ func (h *SupplierHandler) GetVersionByID(w http.ResponseWriter, r *http.Request)
 	version, err := h.service.GetVersionByID(ctx, id)
 	if err != nil {
 		status := http.StatusInternalServerError
-		if errors.Is(err, repo.ErrSupplierNotFound) {
+		if errors.Is(err, err_msg.ErrSupplierNotFound) {
 			status = http.StatusNotFound
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"supplier_id": id,
@@ -210,7 +210,7 @@ func (h *SupplierHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 	suppliers, err := h.service.GetByName(ctx, name)
 	if err != nil {
 		status := http.StatusInternalServerError
-		if errors.Is(err, repo.ErrSupplierNotFound) {
+		if errors.Is(err, err_msg.ErrSupplierNotFound) {
 			status = http.StatusNotFound
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"name": name})
 		} else {
@@ -276,7 +276,7 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	updatedSupplier, err := h.service.Update(ctx, requestData.Supplier)
 	if err != nil {
-		if errors.Is(err, repo.ErrVersionConflict) {
+		if errors.Is(err, err_msg.ErrSupplierVersionConflict) {
 			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"supplier_id": id,
 			})
@@ -357,7 +357,7 @@ func (h *SupplierHandler) Disable(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.service.Update(ctx, supplier)
 	if err != nil {
-		if errors.Is(err, repo.ErrVersionConflict) {
+		if errors.Is(err, err_msg.ErrSupplierVersionConflict) {
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"supplier_id": id,
 			})
@@ -434,7 +434,7 @@ func (h *SupplierHandler) Enable(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.service.Update(ctx, supplier)
 	if err != nil {
-		if errors.Is(err, repo.ErrVersionConflict) {
+		if errors.Is(err, err_msg.ErrSupplierVersionConflict) {
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"supplier_id": id,
 			})

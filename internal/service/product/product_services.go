@@ -294,12 +294,12 @@ func (s *productService) Update(ctx context.Context, product *models.Product) (*
 			})
 			return nil, err_msg.ErrProductNotFound
 
-		case errors.Is(err, err_msg.ErrVersionConflict):
+		case errors.Is(err, err_msg.ErrProductVersionConflict):
 			s.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"product_id": product.ID,
 				"version":    product.Version,
 			})
-			return nil, err_msg.ErrVersionConflict
+			return nil, err_msg.ErrProductVersionConflict
 
 		default:
 			s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{

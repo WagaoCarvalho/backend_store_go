@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -62,7 +63,7 @@ func (r *supplierRepository) Create(ctx context.Context, supplier *models.Suppli
 			"cpf":    supplier.CPF,
 			"status": supplier.Status,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrSupplierCreate, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrSupplierCreate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
@@ -98,11 +99,11 @@ func (r *supplierRepository) GetByID(ctx context.Context, id int64) (*models.Sup
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"supplier_id": id})
-		return nil, ErrSupplierNotFound
+		return nil, err_msg.ErrSupplierNotFound
 	}
 	if err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogGetError, nil)
-		return nil, fmt.Errorf("%w: %v", ErrSupplierGet, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrSupplierGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -159,7 +160,7 @@ func (r *supplierRepository) GetByName(ctx context.Context, name string) ([]*mod
 		r.logger.Warn(ctx, ref+"não encontrado", map[string]any{
 			"name_partial": name,
 		})
-		return nil, ErrSupplierNotFound
+		return nil, err_msg.ErrSupplierNotFound
 	}
 
 	r.logger.Info(ctx, ref+"sucesso na busca", map[string]any{
@@ -183,7 +184,7 @@ func (r *supplierRepository) GetAll(ctx context.Context) ([]*models.Supplier, er
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogGetError, nil)
-		return nil, fmt.Errorf("%w: %v", ErrSuppliersGet, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrSuppliersGet, err)
 	}
 	defer rows.Close()
 
@@ -200,14 +201,14 @@ func (r *supplierRepository) GetAll(ctx context.Context) ([]*models.Supplier, er
 			&s.UpdatedAt,
 		); err != nil {
 			r.logger.Error(ctx, err, ref+logger.LogGetError, nil)
-			return nil, fmt.Errorf("%w: %v", ErrSuppliersGet, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrSuppliersGet, err)
 		}
 		suppliers = append(suppliers, &s)
 	}
 
 	if err = rows.Err(); err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogGetError, nil)
-		return nil, fmt.Errorf("%w: %v", ErrSuppliersGet, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrSuppliersGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -263,10 +264,10 @@ func (r *supplierRepository) Update(ctx context.Context, supplier *models.Suppli
 				"supplier_id": supplier.ID,
 				"version":     supplier.Version,
 			})
-			return ErrVersionConflict
+			return err_msg.ErrSupplierVersionConflict
 		}
 		r.logger.Error(ctx, err, ref+logger.LogUpdateError, nil)
-		return fmt.Errorf("%w: %v", ErrSupplierUpdate, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrSupplierUpdate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -288,14 +289,14 @@ func (r *supplierRepository) Delete(ctx context.Context, id int64) error {
 	cmdTag, err := r.db.Exec(ctx, query, id)
 	if err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogDeleteError, nil)
-		return fmt.Errorf("%w: %v", ErrSupplierDelete, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrSupplierDelete, err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
 		r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 			"supplier_id": id,
 		})
-		return ErrSupplierNotFound
+		return err_msg.ErrSupplierNotFound
 	}
 
 	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
@@ -322,12 +323,12 @@ func (r *supplierRepository) Disable(ctx context.Context, id int64) error {
 	cmdTag, err := r.db.Exec(ctx, query, id)
 	if err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogDisableError, nil)
-		return fmt.Errorf("%w: %v", ErrSupplierDisable, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrSupplierDisable, err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
 		r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"supplier_id": id})
-		return ErrSupplierNotFound
+		return err_msg.ErrSupplierNotFound
 	}
 
 	r.logger.Info(ctx, ref+logger.LogDisableSuccess, map[string]any{"supplier_id": id})
@@ -351,12 +352,12 @@ func (r *supplierRepository) Enable(ctx context.Context, id int64) error {
 	cmdTag, err := r.db.Exec(ctx, query, id)
 	if err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogEnableError, nil)
-		return fmt.Errorf("%w: %v", ErrSupplierEnable, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrSupplierEnable, err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
 		r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"supplier_id": id})
-		return ErrSupplierNotFound
+		return err_msg.ErrSupplierNotFound
 	}
 
 	r.logger.Info(ctx, ref+logger.LogEnableSuccess, map[string]any{"supplier_id": id})
@@ -381,11 +382,11 @@ func (r *supplierRepository) GetVersionByID(ctx context.Context, id int64) (int6
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"supplier_id": id})
-		return 0, ErrSupplierNotFound
+		return 0, err_msg.ErrSupplierNotFound
 	}
 	if err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogGetError, nil)
-		return 0, fmt.Errorf("%w: %v", ErrSupplierGet, err)
+		return 0, fmt.Errorf("%w: %v", err_msg.ErrSupplierGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{

@@ -501,7 +501,7 @@ func (r *productRepository) Update(ctx context.Context, product *models.Product)
 				"id":      product.ID,
 				"version": product.Version,
 			})
-			return nil, err_msg.ErrVersionConflict
+			return nil, err_msg.ErrProductVersionConflict
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{

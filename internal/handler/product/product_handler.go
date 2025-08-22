@@ -301,7 +301,7 @@ func (h *ProductHandler) DisableProduct(w http.ResponseWriter, r *http.Request) 
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, err_msg.ErrVersionConflict):
+		case errors.Is(err, err_msg.ErrProductVersionConflict):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"product_id": uid,
 			})
@@ -354,7 +354,7 @@ func (h *ProductHandler) EnableProduct(w http.ResponseWriter, r *http.Request) {
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, err_msg.ErrVersionConflict):
+		case errors.Is(err, err_msg.ErrProductVersionConflict):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"product_id": uid,
 			})
@@ -499,7 +499,7 @@ func (h *ProductHandler) UpdateStock(w http.ResponseWriter, r *http.Request) {
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, err_msg.ErrVersionConflict):
+		case errors.Is(err, err_msg.ErrProductVersionConflict):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"product_id": uid,
 			})
@@ -565,7 +565,7 @@ func (h *ProductHandler) IncreaseStock(w http.ResponseWriter, r *http.Request) {
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, err_msg.ErrVersionConflict):
+		case errors.Is(err, err_msg.ErrProductVersionConflict):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"product_id": uid,
 			})
@@ -631,7 +631,7 @@ func (h *ProductHandler) DecreaseStock(w http.ResponseWriter, r *http.Request) {
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, err_msg.ErrVersionConflict):
+		case errors.Is(err, err_msg.ErrProductVersionConflict):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"product_id": uid,
 			})

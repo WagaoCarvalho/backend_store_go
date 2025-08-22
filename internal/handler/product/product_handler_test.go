@@ -365,7 +365,7 @@ func TestProductHandler_EnableProduct(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(3)
 
-		mockService.On("EnableProduct", mock.Anything, productID).Return(err_msg.ErrVersionConflict).Once()
+		mockService.On("EnableProduct", mock.Anything, productID).Return(err_msg.ErrProductVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/enable/3", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "3"})
@@ -486,7 +486,7 @@ func TestProductHandler_DisableProduct(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(3)
 
-		mockService.On("DisableProduct", mock.Anything, productID).Return(err_msg.ErrVersionConflict).Once()
+		mockService.On("DisableProduct", mock.Anything, productID).Return(err_msg.ErrProductVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/disable/3", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "3"})
@@ -1122,7 +1122,7 @@ func TestProductHandler_UpdateStock(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		mockService.On("UpdateStock", mock.Anything, int64(1), 10).Return(err_msg.ErrVersionConflict).Once()
+		mockService.On("UpdateStock", mock.Anything, int64(1), 10).Return(err_msg.ErrProductVersionConflict).Once()
 
 		handler.UpdateStock(w, req)
 
@@ -1206,7 +1206,7 @@ func TestProductHandler_IncreaseStock(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		mockService.On("IncreaseStock", mock.Anything, int64(1), 5).Return(err_msg.ErrVersionConflict)
+		mockService.On("IncreaseStock", mock.Anything, int64(1), 5).Return(err_msg.ErrProductVersionConflict)
 
 		handler.IncreaseStock(w, req)
 
@@ -1320,7 +1320,7 @@ func TestProductHandler_DecreaseStock(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		mockService.On("DecreaseStock", mock.Anything, int64(1), 5).Return(err_msg.ErrVersionConflict)
+		mockService.On("DecreaseStock", mock.Anything, int64(1), 5).Return(err_msg.ErrProductVersionConflict)
 
 		handler.DecreaseStock(w, req)
 

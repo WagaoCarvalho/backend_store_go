@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
 )
@@ -204,14 +205,14 @@ func (s *supplierService) Update(ctx context.Context, supplier *models.Supplier)
 
 	if err := s.repo.Update(ctx, supplier); err != nil {
 		switch {
-		case errors.Is(err, repo.ErrVersionConflict):
+		case errors.Is(err, err_msg.ErrSupplierVersionConflict):
 			s.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"supplier_id": supplier.ID,
 				"version":     supplier.Version,
 			})
 			return nil, ErrSupplierVersionConflict
 
-		case errors.Is(err, repo.ErrSupplierNotFound):
+		case errors.Is(err, err_msg.ErrSupplierNotFound):
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"supplier_id": supplier.ID,
 			})

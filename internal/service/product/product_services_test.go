@@ -426,12 +426,12 @@ func TestProductService_Update(t *testing.T) {
 
 		mockRepo.
 			On("Update", ctx, input).
-			Return(nil, err_msg.ErrVersionConflict).Once()
+			Return(nil, err_msg.ErrProductVersionConflict).Once()
 
 		updated, err := service.Update(ctx, input)
 
 		assert.Nil(t, updated)
-		assert.ErrorIs(t, err, err_msg.ErrVersionConflict)
+		assert.ErrorIs(t, err, err_msg.ErrProductVersionConflict)
 		mockRepo.AssertExpectations(t)
 	})
 
