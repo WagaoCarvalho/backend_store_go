@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories"
 	repo_mock "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -235,7 +235,7 @@ func TestUserCategoryService_Update(t *testing.T) {
 		ctx := context.Background()
 		missingCategory := &models.UserCategory{ID: 4, Name: "NotFound", Description: "NoDesc"}
 
-		mockRepo.On("GetByID", ctx, int64(4)).Return(nil, repo_mock.ErrCategoryNotFound).Once()
+		mockRepo.On("GetByID", ctx, int64(4)).Return(nil, err_msg.ErrCategoryNotFound).Once()
 
 		category, err := service.Update(ctx, missingCategory)
 
@@ -288,7 +288,7 @@ func TestUserCategoryService_Delete(t *testing.T) {
 	t.Run("CategoryNotFound", func(t *testing.T) {
 		ctx := context.Background()
 
-		mockRepo.On("GetByID", ctx, int64(3)).Return(nil, repo.ErrCategoryNotFound).Once()
+		mockRepo.On("GetByID", ctx, int64(3)).Return(nil, err_msg.ErrCategoryNotFound).Once()
 
 		err := service.Delete(ctx, 3)
 

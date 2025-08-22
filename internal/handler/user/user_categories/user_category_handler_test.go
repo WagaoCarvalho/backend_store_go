@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_categories/user_categories_services_mock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -284,7 +284,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 
 		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(c *model.UserCategory) bool {
 			return c.ID == 999
-		})).Return(nil, repo.ErrCategoryNotFound)
+		})).Return(nil, err_msg.ErrCategoryNotFound)
 
 		handler.Update(w, req)
 

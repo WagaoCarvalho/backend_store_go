@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories"
 )
@@ -135,7 +136,7 @@ func (s *userCategoryService) Update(ctx context.Context, category *models.UserC
 	})
 
 	if _, err := s.repo.GetByID(ctx, int64(category.ID)); err != nil {
-		if errors.Is(err, repo.ErrCategoryNotFound) {
+		if errors.Is(err, err_msg.ErrCategoryNotFound) {
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"id": category.ID,
 			})
@@ -177,7 +178,7 @@ func (s *userCategoryService) Delete(ctx context.Context, id int64) error {
 
 	_, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, repo.ErrCategoryNotFound) {
+		if errors.Is(err, err_msg.ErrCategoryNotFound) {
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"id": id,
 			})

@@ -94,7 +94,7 @@ func (r *supplierCategoryRepository) GetByID(ctx context.Context, id int64) (*mo
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"category_id": id,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetCategoryByID, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrSupplierGetCategoryByID, err)
 	}
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"category_id": category.ID,
