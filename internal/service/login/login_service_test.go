@@ -13,6 +13,7 @@ import (
 
 	models_login "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 )
@@ -85,7 +86,7 @@ func TestLoginService_Login(t *testing.T) {
 			Email:    "invalid",
 			Password: "123",
 		})
-		assert.ErrorIs(t, err, ErrInvalidEmailFormat)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidEmailFormat)
 		assert.Empty(t, token)
 	})
 
@@ -98,7 +99,7 @@ func TestLoginService_Login(t *testing.T) {
 		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "123"})
 		elapsed := time.Since(start)
 
-		assert.ErrorIs(t, err, ErrInvalidCredentials)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidCredentials)
 		assert.Empty(t, token)
 		assert.GreaterOrEqual(t, elapsed.Milliseconds(), int64(1000))
 		mockRepo.AssertExpectations(t)
@@ -114,7 +115,7 @@ func TestLoginService_Login(t *testing.T) {
 
 		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "wrong"})
 
-		assert.ErrorIs(t, err, ErrInvalidCredentials)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidCredentials)
 		assert.Empty(t, token)
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)
@@ -130,7 +131,7 @@ func TestLoginService_Login(t *testing.T) {
 
 		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "123"})
 
-		assert.ErrorIs(t, err, ErrAccountDisabled)
+		assert.ErrorIs(t, err, err_msg.ErrAccountDisabled)
 		assert.Empty(t, token)
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)
@@ -147,7 +148,7 @@ func TestLoginService_Login(t *testing.T) {
 
 		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "123"})
 
-		assert.ErrorIs(t, err, ErrTokenGeneration)
+		assert.ErrorIs(t, err, err_msg.ErrTokenGeneration)
 		assert.Empty(t, token)
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)

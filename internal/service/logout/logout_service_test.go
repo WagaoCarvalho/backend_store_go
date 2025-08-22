@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
@@ -88,7 +89,7 @@ func TestLogoutService_Logout(t *testing.T) {
 		service := NewLogoutService(mockBL, loggerAdapter, mockJWT)
 		err := service.Logout(ctx, "invalid-token")
 
-		assert.ErrorIs(t, err, ErrTokenValidation)
+		assert.ErrorIs(t, err, err_msg.ErrTokenValidation)
 		mockJWT.AssertExpectations(t)
 	})
 
@@ -103,7 +104,7 @@ func TestLogoutService_Logout(t *testing.T) {
 		service := NewLogoutService(mockBL, loggerAdapter, mockJWT)
 		err := service.Logout(ctx, tokenStr)
 
-		assert.ErrorIs(t, err, ErrInvalidToken)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidToken)
 		mockJWT.AssertExpectations(t)
 	})
 
@@ -119,7 +120,7 @@ func TestLogoutService_Logout(t *testing.T) {
 		service := NewLogoutService(mockBL, loggerAdapter, mockJWT)
 		err := service.Logout(ctx, tokenStr)
 
-		assert.ErrorIs(t, err, ErrClaimExpInvalid)
+		assert.ErrorIs(t, err, err_msg.ErrClaimExpInvalid)
 		mockJWT.AssertExpectations(t)
 	})
 
@@ -135,7 +136,7 @@ func TestLogoutService_Logout(t *testing.T) {
 		service := NewLogoutService(mockBL, loggerAdapter, mockJWT)
 		err := service.Logout(ctx, tokenStr)
 
-		assert.ErrorIs(t, err, ErrTokenExpired)
+		assert.ErrorIs(t, err, err_msg.ErrTokenExpired)
 		mockJWT.AssertExpectations(t)
 	})
 
@@ -152,7 +153,7 @@ func TestLogoutService_Logout(t *testing.T) {
 		service := NewLogoutService(mockBL, loggerAdapter, mockJWT)
 		err := service.Logout(ctx, tokenStr)
 
-		assert.ErrorIs(t, err, ErrBlacklistAdd)
+		assert.ErrorIs(t, err, err_msg.ErrBlacklistAdd)
 		mockBL.AssertExpectations(t)
 		mockJWT.AssertExpectations(t)
 	})
