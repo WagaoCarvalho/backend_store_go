@@ -1,9 +1,7 @@
-package repositories
+package err
 
 import (
 	"errors"
-
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
 var (
@@ -12,7 +10,6 @@ var (
 	ErrGetProducts         = errors.New("erro ao buscar produtos")
 	ErrUpdateProduct       = errors.New("erro ao atualizar produto")
 	ErrDeleteProduct       = errors.New("erro ao excluir produto")
-	ErrInvalidForeignKey   = errors.New("chave estrangeira inválida")
 	ErrProductNotFound     = errors.New("produto não encontrado")
 	ErrFetchProductVersion = errors.New("erro ao buscar versão do produto")
 	ErrDisableProduct      = errors.New("erro ao desabilitar produto")
@@ -26,8 +23,3 @@ var (
 
 	ErrDiscountNotAllowed = errors.New("erro desconto não permitido")
 )
-
-func IsForeignKeyViolation(err error) bool {
-	var pgErr *pgconn.PgError
-	return errors.As(err, &pgErr) && pgErr.Code == "23503"
-}

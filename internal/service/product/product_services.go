@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product"
@@ -192,11 +193,11 @@ func (s *productService) GetVersionByID(ctx context.Context, pid int64) (int64, 
 
 	version, err := s.repo.GetVersionByID(ctx, pid)
 	if err != nil {
-		if errors.Is(err, repo.ErrProductNotFound) {
+		if errors.Is(err, err_msg.ErrProductNotFound) {
 			s.logger.Error(ctx, err, ref+logger.LogNotFound, map[string]any{
 				"product_id": pid,
 			})
-			return 0, repo.ErrProductNotFound
+			return 0, err_msg.ErrProductNotFound
 		}
 
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
@@ -287,18 +288,18 @@ func (s *productService) Update(ctx context.Context, product *models.Product) (*
 	updatedProduct, err := s.repo.Update(ctx, product)
 	if err != nil {
 		switch {
-		case errors.Is(err, repo.ErrProductNotFound):
+		case errors.Is(err, err_msg.ErrProductNotFound):
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": product.ID,
 			})
-			return nil, repo.ErrProductNotFound
+			return nil, err_msg.ErrProductNotFound
 
-		case errors.Is(err, repo.ErrVersionConflict):
+		case errors.Is(err, err_msg.ErrVersionConflict):
 			s.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"product_id": product.ID,
 				"version":    product.Version,
 			})
-			return nil, repo.ErrVersionConflict
+			return nil, err_msg.ErrVersionConflict
 
 		default:
 			s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
