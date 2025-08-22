@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	config "github.com/WagaoCarvalho/backend_store_go/config"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db_postgres/db_mock"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
@@ -82,7 +83,7 @@ func TestConnect_DBConnURLNotDefined(t *testing.T) {
 
 	pool, err := Connect(&RealPgxPool{})
 	assert.Nil(t, pool)
-	assert.ErrorIs(t, err, ErrDBConnURLNotDefined)
+	assert.ErrorIs(t, err, err_msg.ErrDBConnURLNotDefined)
 }
 
 func TestRealPgxPool_ParseConfig(t *testing.T) {

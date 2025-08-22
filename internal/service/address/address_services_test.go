@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
-	err_msg_pg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -49,7 +48,7 @@ func TestAddressService_Create(t *testing.T) {
 		service := NewAddressService(mockRepo, logger)
 
 		addressID := int64(1)
-		expectedErr := err_msg_pg.ErrDB
+		expectedErr := err_msg.ErrDB
 
 		mockRepo.
 			On("GetByID", mock.Anything, addressID).

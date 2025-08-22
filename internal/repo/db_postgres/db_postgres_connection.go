@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -31,17 +32,17 @@ func Connect(pool PgxPool) (*pgxpool.Pool, error) {
 	dbConfig := config.LoadDatabaseConfig()
 
 	if dbConfig.ConnURL == "" {
-		return nil, ErrDBConnURLNotDefined
+		return nil, err_msg.ErrDBConnURLNotDefined
 	}
 
 	pgxConfig, err := pool.ParseConfig(dbConfig.ConnURL)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrDBParseConfig, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrDBParseConfig, err)
 	}
 
 	dbPool, err = pool.NewWithConfig(context.Background(), pgxConfig)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrDBNewPool, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrDBNewPool, err)
 	}
 
 	log.Println("✅ Conectado ao banco de dados com sucesso!")

@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
-	err_msg_pg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -101,7 +100,7 @@ func TestAddressHandler_Create(t *testing.T) {
 			PostalCode: "99999-999",
 		}
 
-		mockService.On("Create", mock.Anything, input).Return((*models.Address)(nil), err_msg_pg.ErrInvalidForeignKey)
+		mockService.On("Create", mock.Anything, input).Return((*models.Address)(nil), err_msg.ErrInvalidForeignKey)
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer(body))

@@ -72,7 +72,7 @@ func (r *contactRepository) Create(ctx context.Context, contact *models.Contact)
 				"client_id":   utils.Int64OrNil(contact.ClientID),
 				"supplier_id": utils.Int64OrNil(contact.SupplierID),
 			})
-			return nil, err_msg_pg.ErrInvalidForeignKey
+			return nil, err_msg.ErrInvalidForeignKey
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
@@ -133,7 +133,7 @@ func (r *contactRepository) CreateTx(ctx context.Context, tx pgx.Tx, contact *mo
 				"client_id":   utils.Int64OrNil(contact.ClientID),
 				"supplier_id": utils.Int64OrNil(contact.SupplierID),
 			})
-			return nil, err_msg_pg.ErrInvalidForeignKey
+			return nil, err_msg.ErrInvalidForeignKey
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
