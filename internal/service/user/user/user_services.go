@@ -49,10 +49,10 @@ func (s *userService) Create(ctx context.Context, user *models.User) (*models.Us
 	})
 
 	if !utils_validators.IsValidEmail(user.Email) {
-		s.logger.Error(ctx, ErrInvalidEmail, ref+logger.LogEmailInvalid, map[string]any{
+		s.logger.Error(ctx, err_msg.ErrInvalidEmail, ref+logger.LogEmailInvalid, map[string]any{
 			"email": user.Email,
 		})
-		return nil, ErrInvalidEmail
+		return nil, err_msg.ErrInvalidEmail
 	}
 
 	if user.Password != "" {
@@ -71,7 +71,7 @@ func (s *userService) Create(ctx context.Context, user *models.User) (*models.Us
 		s.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 			"email": user.Email,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrCreateUser, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreateUser, err)
 	}
 
 	if createdUser == nil {
@@ -97,7 +97,7 @@ func (s *userService) GetAll(ctx context.Context) ([]*models.User, error) {
 	users, err := s.repo_user.GetAll(ctx)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, nil)
-		return nil, fmt.Errorf("%w: %v", ErrGetAllUsers, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetAllUsers, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -125,7 +125,7 @@ func (s *userService) GetByID(ctx context.Context, uid int64) (*models.User, err
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": uid,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrGetUser, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetUser, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -155,7 +155,7 @@ func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, err
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": uid,
 		})
-		return 0, fmt.Errorf("%w: %v", ErrInvalidVersion, err)
+		return 0, fmt.Errorf("%w: %v", err_msg.ErrInvalidVersion, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -177,7 +177,7 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*models.Use
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"email": email,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrGetUser, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetUser, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -200,7 +200,7 @@ func (s *userService) GetByName(ctx context.Context, name string) ([]*models.Use
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"username_partial": name,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrGetUser, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetUser, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -224,7 +224,7 @@ func (s *userService) Update(ctx context.Context, user *models.User) (*models.Us
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"email": user.Email,
 		})
-		return nil, ErrInvalidEmail
+		return nil, err_msg.ErrInvalidEmail
 	}
 
 	if user.Version <= 0 {
@@ -232,7 +232,7 @@ func (s *userService) Update(ctx context.Context, user *models.User) (*models.Us
 			"user_id": user.UID,
 			"version": user.Version,
 		})
-		return nil, ErrInvalidVersion
+		return nil, err_msg.ErrInvalidVersion
 	}
 
 	updatedUser, err := s.repo_user.Update(ctx, user)
@@ -255,7 +255,7 @@ func (s *userService) Update(ctx context.Context, user *models.User) (*models.Us
 			s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 				"user_id": user.UID,
 			})
-			return nil, fmt.Errorf("%w: %v", ErrUpdateUser, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrUpdateUser, err)
 		}
 	}
 
@@ -280,7 +280,7 @@ func (s *userService) Disable(ctx context.Context, uid int64) error {
 		s.logger.Error(ctx, err, ref+logger.LogDisableError, map[string]any{
 			"user_id": uid,
 		})
-		return fmt.Errorf("%w: %v", ErrDisableUser, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDisableUser, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogDisableSuccess, map[string]any{
@@ -333,7 +333,7 @@ func (s *userService) Delete(ctx context.Context, uid int64) error {
 		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"user_id": uid,
 		})
-		return fmt.Errorf("%w: %v", ErrDeleteUser, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDeleteUser, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{

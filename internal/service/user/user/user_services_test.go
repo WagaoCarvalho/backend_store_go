@@ -469,7 +469,7 @@ func TestUserService_Update(t *testing.T) {
 
 		updatedUser, err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, ErrInvalidEmail)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidEmail)
 		assert.Nil(t, updatedUser)
 	})
 
@@ -484,7 +484,7 @@ func TestUserService_Update(t *testing.T) {
 
 		updatedUser, err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, ErrInvalidVersion)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidVersion)
 		assert.Nil(t, updatedUser)
 	})
 

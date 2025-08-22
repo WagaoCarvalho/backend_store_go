@@ -39,4 +39,20 @@ var (
 	ErrDeleteAllUserRelations = errors.New("erro ao deletar todas as relações do usuário")
 	ErrInvalidForeignKey      = errors.New("usuário ou categoria inválido")
 	ErrCheckRelationExists    = errors.New("erro ao verificar se a relação entre usuário e categoria existe")
+
+	ErrGetUser     = errors.New("erro ao buscar usuário")
+	ErrGetAllUsers = errors.New("erro ao buscar usuários")
+
+	ErrFetchCategories     = errors.New("erro ao buscar categorias")
+	ErrFetchCategory       = errors.New("erro ao buscar categoria")
+	ErrInvalidCategoryName = errors.New("o nome da categoria é obrigatório")
+	ErrInvalidCategory     = errors.New("categoria: objeto inválido")
+	ErrCheckBeforeUpdate   = errors.New("erro ao verificar dados antes da atualização")
+
+	ErrInvalidUserID              = errors.New("ID do usuário inválido")
+	ErrInvalidCategoryID          = errors.New("ID da categoria inválido")
+	ErrCheckExistingRelation      = errors.New("erro ao verificar relação existente")
+	ErrFetchUserRelations         = errors.New("erro ao buscar relações do usuário")
+	ErrFetchCategoryRelations     = errors.New("erro ao buscar relações da categoria")
+	ErrCheckUserCategoryRelations = errors.New("erro ao verificar relações do usuário")
 )

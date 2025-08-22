@@ -38,13 +38,13 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"user_id": userID,
 		})
-		return nil, false, ErrInvalidUserID
+		return nil, false, err_msg.ErrInvalidUserID
 	}
 	if categoryID <= 0 {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"category_id": categoryID,
 		})
-		return nil, false, ErrInvalidCategoryID
+		return nil, false, err_msg.ErrInvalidCategoryID
 	}
 
 	relation := models.UserCategoryRelations{
@@ -71,7 +71,7 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 				s.logger.Error(ctx, getErr, ref+logger.LogCheckError, map[string]any{
 					"user_id": userID,
 				})
-				return nil, false, fmt.Errorf("%w: %v", ErrCheckExistingRelation, getErr)
+				return nil, false, fmt.Errorf("%w: %v", err_msg.ErrCheckExistingRelation, getErr)
 			}
 
 			for _, rel := range relations {
@@ -94,7 +94,7 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 				"user_id":     userID,
 				"category_id": categoryID,
 			})
-			return nil, false, fmt.Errorf("%w: %v", ErrCreateRelation, err)
+			return nil, false, fmt.Errorf("%w: %v", err_msg.ErrCreateRelation, err)
 		}
 	}
 
@@ -113,7 +113,7 @@ func (s *userCategoryRelationServices) GetAllRelationsByUserID(ctx context.Conte
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"user_id": userID,
 		})
-		return nil, ErrInvalidUserID
+		return nil, err_msg.ErrInvalidUserID
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
@@ -125,7 +125,7 @@ func (s *userCategoryRelationServices) GetAllRelationsByUserID(ctx context.Conte
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": userID,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrFetchUserRelations, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrFetchUserRelations, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -143,13 +143,13 @@ func (s *userCategoryRelationServices) HasUserCategoryRelation(ctx context.Conte
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"user_id": userID,
 		})
-		return false, ErrInvalidUserID
+		return false, err_msg.ErrInvalidUserID
 	}
 	if categoryID <= 0 {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"category_id": categoryID,
 		})
-		return false, ErrInvalidCategoryID
+		return false, err_msg.ErrInvalidCategoryID
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
@@ -163,7 +163,7 @@ func (s *userCategoryRelationServices) HasUserCategoryRelation(ctx context.Conte
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
-		return false, fmt.Errorf("%w: %v", ErrCheckRelationExists, err)
+		return false, fmt.Errorf("%w: %v", err_msg.ErrCheckRelationExists, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -182,13 +182,13 @@ func (s *userCategoryRelationServices) Delete(ctx context.Context, userID, categ
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"user_id": userID,
 		})
-		return ErrInvalidUserID
+		return err_msg.ErrInvalidUserID
 	}
 	if categoryID <= 0 {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"category_id": categoryID,
 		})
-		return ErrInvalidCategoryID
+		return err_msg.ErrInvalidCategoryID
 	}
 
 	s.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
@@ -209,7 +209,7 @@ func (s *userCategoryRelationServices) Delete(ctx context.Context, userID, categ
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
-		return fmt.Errorf("%w: %v", ErrDeleteRelation, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDeleteRelation, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
@@ -227,7 +227,7 @@ func (s *userCategoryRelationServices) DeleteAll(ctx context.Context, userID int
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"user_id": userID,
 		})
-		return ErrInvalidUserID
+		return err_msg.ErrInvalidUserID
 	}
 
 	s.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
@@ -239,7 +239,7 @@ func (s *userCategoryRelationServices) DeleteAll(ctx context.Context, userID int
 		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"user_id": userID,
 		})
-		return fmt.Errorf("%w: %v", ErrDeleteAllUserRelations, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDeleteAllUserRelations, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{

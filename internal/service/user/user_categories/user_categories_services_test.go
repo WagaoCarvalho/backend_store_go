@@ -44,7 +44,7 @@ func TestUserCategoryService_Create(t *testing.T) {
 		category, err := service.Create(context.Background(), invalidCategory)
 
 		assert.Nil(t, category)
-		assert.ErrorIs(t, err, ErrInvalidCategoryName)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidCategoryName)
 	})
 
 	t.Run("ErrorOnCreate", func(t *testing.T) {
@@ -121,15 +121,15 @@ func TestUserCategoryService_GetById(t *testing.T) {
 		category, err := service.GetByID(context.Background(), 0)
 
 		assert.Nil(t, category)
-		assert.ErrorIs(t, err, ErrCategoryIDRequired)
+		assert.ErrorIs(t, err, err_msg.ErrCategoryIDRequired)
 	})
 
 	t.Run("ReturnCategoryNotFound", func(t *testing.T) {
-		mockRepo.On("GetByID", mock.Anything, int64(4)).Return(nil, ErrCategoryNotFound).Once()
+		mockRepo.On("GetByID", mock.Anything, int64(4)).Return(nil, err_msg.ErrCategoryNotFound).Once()
 
 		category, err := service.GetByID(context.Background(), 4)
 
-		assert.ErrorIs(t, err, ErrCategoryNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrCategoryNotFound)
 		assert.Nil(t, category)
 		mockRepo.AssertExpectations(t)
 	})
@@ -144,17 +144,17 @@ func TestUserCategoryService_GetById(t *testing.T) {
 
 		assert.Nil(t, category)
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, ErrFetchCategory)
+		assert.ErrorIs(t, err, err_msg.ErrFetchCategory)
 		assert.ErrorContains(t, err, "erro interno do banco")
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("ReturnCategoryNotFound_Duplicate", func(t *testing.T) {
-		mockRepo.On("GetByID", mock.Anything, int64(4)).Return((*models.UserCategory)(nil), ErrCategoryNotFound).Once()
+		mockRepo.On("GetByID", mock.Anything, int64(4)).Return((*models.UserCategory)(nil), err_msg.ErrCategoryNotFound).Once()
 
 		category, err := service.GetByID(context.Background(), 4)
 
-		assert.ErrorIs(t, err, ErrCategoryNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrCategoryNotFound)
 		assert.Nil(t, category)
 		mockRepo.AssertExpectations(t)
 	})
@@ -195,7 +195,7 @@ func TestUserCategoryService_Update(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, ErrCheckBeforeUpdate)
+		assert.ErrorIs(t, err, err_msg.ErrCheckBeforeUpdate)
 		assert.ErrorContains(t, err, "erro no banco")
 		mockRepo.AssertExpectations(t)
 	})
@@ -239,7 +239,7 @@ func TestUserCategoryService_Update(t *testing.T) {
 
 		category, err := service.Update(ctx, missingCategory)
 
-		assert.ErrorIs(t, err, ErrCategoryNotFound) // usar o erro do serviço
+		assert.ErrorIs(t, err, err_msg.ErrCategoryNotFound) // usar o erro do serviço
 		assert.Nil(t, category)
 		mockRepo.AssertExpectations(t)
 	})
@@ -247,7 +247,7 @@ func TestUserCategoryService_Update(t *testing.T) {
 	t.Run("InvalidCategoryID", func(t *testing.T) {
 		category := &models.UserCategory{ID: 0}
 		result, err := service.Update(context.Background(), category)
-		assert.ErrorIs(t, err, ErrCategoryIDRequired)
+		assert.ErrorIs(t, err, err_msg.ErrCategoryIDRequired)
 		assert.Nil(t, result)
 	})
 }
@@ -280,7 +280,7 @@ func TestUserCategoryService_Delete(t *testing.T) {
 		err := service.Delete(ctx, id)
 
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, ErrFetchCategory.Error())
+		assert.ErrorContains(t, err, err_msg.ErrFetchCategory.Error())
 		assert.ErrorContains(t, err, dbErr.Error())
 		mockRepo.AssertExpectations(t)
 	})
@@ -292,7 +292,7 @@ func TestUserCategoryService_Delete(t *testing.T) {
 
 		err := service.Delete(ctx, 3)
 
-		assert.ErrorIs(t, err, ErrCategoryNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrCategoryNotFound)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -307,7 +307,7 @@ func TestUserCategoryService_Delete(t *testing.T) {
 		err := service.Delete(ctx, 2)
 
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, ErrDeleteCategory))
+		assert.True(t, errors.Is(err, err_msg.ErrDeleteCategory))
 		assert.ErrorContains(t, err, "db delete error")
 		mockRepo.AssertExpectations(t)
 	})
@@ -315,6 +315,6 @@ func TestUserCategoryService_Delete(t *testing.T) {
 	t.Run("InvalidID", func(t *testing.T) {
 		err := service.Delete(context.Background(), 0)
 
-		assert.ErrorIs(t, err, ErrCategoryIDRequired)
+		assert.ErrorIs(t, err, err_msg.ErrCategoryIDRequired)
 	})
 }
