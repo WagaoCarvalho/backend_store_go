@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -54,7 +55,7 @@ func (r *userFullRepository) CreateTx(ctx context.Context, tx pgx.Tx, user *mode
 			"email":    user.Email,
 			"status":   user.Status,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrCreateUser, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreateUser, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
