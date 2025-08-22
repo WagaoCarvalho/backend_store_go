@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_categories"
 	mock_service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_categories/mocks"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -157,7 +157,7 @@ func TestSupplierCategoryHandler_GetByID(t *testing.T) {
 		req := mux.SetURLVars(httptest.NewRequest("GET", "/supplier-categories/999", nil), map[string]string{"id": "999"})
 		w := httptest.NewRecorder()
 
-		mockSvc.On("GetByID", mock.Anything, int64(999)).Return(nil, repo.ErrSupplierCategoryNotFound)
+		mockSvc.On("GetByID", mock.Anything, int64(999)).Return(nil, err_msg.ErrSupplierCategoryNotFound)
 
 		handler.GetByID(w, req)
 
@@ -324,7 +324,7 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 
 		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(c *models.SupplierCategory) bool {
 			return c.ID == 999
-		})).Return(repo.ErrSupplierCategoryNotFound)
+		})).Return(err_msg.ErrSupplierCategoryNotFound)
 
 		handler.Update(w, req)
 
@@ -409,7 +409,7 @@ func TestSupplierCategoryHandler_Delete(t *testing.T) {
 		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/supplier-categories/999", nil), map[string]string{"id": "999"})
 		w := httptest.NewRecorder()
 
-		mockSvc.On("Delete", mock.Anything, int64(999)).Return(repo.ErrSupplierCategoryNotFound)
+		mockSvc.On("Delete", mock.Anything, int64(999)).Return(err_msg.ErrSupplierCategoryNotFound)
 
 		handler.Delete(w, req)
 

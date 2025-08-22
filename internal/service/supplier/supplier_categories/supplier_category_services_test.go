@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_categories"
 )
@@ -98,7 +99,7 @@ func TestSupplierCategoryService_GetByID(t *testing.T) {
 		mockRepo := new(repo.MockSupplierCategoryRepo)
 		service := NewSupplierCategoryService(mockRepo, log)
 
-		mockRepo.On("GetByID", mock.Anything, int64(999)).Return((*models.SupplierCategory)(nil), repo.ErrSupplierCategoryNotFound)
+		mockRepo.On("GetByID", mock.Anything, int64(999)).Return((*models.SupplierCategory)(nil), err_msg.ErrSupplierCategoryNotFound)
 
 		result, err := service.GetByID(ctx, 999)
 

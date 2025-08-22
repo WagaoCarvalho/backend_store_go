@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_categories"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_categories"
 )
 
@@ -69,7 +69,7 @@ func (h *SupplierCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request
 		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"category_id": id})
 
 		statusCode := http.StatusInternalServerError
-		if errors.Is(err, repo.ErrSupplierCategoryNotFound) {
+		if errors.Is(err, err_msg.ErrSupplierCategoryNotFound) {
 			statusCode = http.StatusNotFound
 		}
 
@@ -132,7 +132,7 @@ func (h *SupplierCategoryHandler) Update(w http.ResponseWriter, r *http.Request)
 		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{"category_id": category.ID})
 
 		statusCode := http.StatusInternalServerError
-		if errors.Is(err, repo.ErrSupplierCategoryNotFound) {
+		if errors.Is(err, err_msg.ErrSupplierCategoryNotFound) {
 			statusCode = http.StatusNotFound
 		}
 
@@ -167,7 +167,7 @@ func (h *SupplierCategoryHandler) Delete(w http.ResponseWriter, r *http.Request)
 
 	if err := h.service.Delete(ctx, id); err != nil {
 		statusCode := http.StatusInternalServerError
-		if errors.Is(err, repo.ErrSupplierCategoryNotFound) {
+		if errors.Is(err, err_msg.ErrSupplierCategoryNotFound) {
 			statusCode = http.StatusNotFound
 		}
 
