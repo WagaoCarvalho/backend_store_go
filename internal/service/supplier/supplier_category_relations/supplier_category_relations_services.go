@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
 )
@@ -158,7 +159,7 @@ func (s *supplierCategoryRelationService) DeleteById(ctx context.Context, suppli
 
 	err := s.relationRepo.Delete(ctx, supplierID, categoryID)
 	if err != nil {
-		if errors.Is(err, repo.ErrRelationNotFound) {
+		if errors.Is(err, err_msg.ErrRelationNotFound) {
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"supplier_id": supplierID,
 				"category_id": categoryID,

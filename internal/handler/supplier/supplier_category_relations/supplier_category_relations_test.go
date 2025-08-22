@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
 	mock_service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_category_relations/mocks"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -95,7 +95,7 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 
 		mockService.
 			On("Create", mock.Anything, int64(99), int64(88)).
-			Return(nil, false, repo.ErrInvalidForeignKey)
+			Return(nil, false, err_msg.ErrInvalidForeignKey)
 
 		body, _ := json.Marshal(relation)
 		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))

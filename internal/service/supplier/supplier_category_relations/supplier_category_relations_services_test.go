@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_category_relations"
@@ -311,7 +312,7 @@ func TestSupplierCategoryRelationService_DeleteById(t *testing.T) {
 		supplierID := int64(1)
 		categoryID := int64(2)
 
-		mockRepo.On("Delete", ctx, supplierID, categoryID).Return(repo.ErrRelationNotFound)
+		mockRepo.On("Delete", ctx, supplierID, categoryID).Return(err_msg.ErrRelationNotFound)
 
 		err := svc.DeleteById(ctx, supplierID, categoryID)
 		assert.ErrorIs(t, err, service.ErrRelationNotFound)
