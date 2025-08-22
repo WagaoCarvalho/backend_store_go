@@ -37,7 +37,7 @@ func (s *supplierCategoryRelationService) Create(ctx context.Context, supplierID
 			"supplier_id": supplierID,
 			"category_id": categoryID,
 		})
-		return nil, false, ErrInvalidRelationData
+		return nil, false, err_msg.ErrInvalidRelationData
 	}
 
 	s.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
@@ -48,7 +48,7 @@ func (s *supplierCategoryRelationService) Create(ctx context.Context, supplierID
 	exists, err := s.relationRepo.HasRelation(ctx, supplierID, categoryID)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogCheckError, nil)
-		return nil, false, fmt.Errorf("%w: %v", ErrCheckRelationExists, err)
+		return nil, false, fmt.Errorf("%w: %v", err_msg.ErrCheckRelationExists, err)
 	}
 
 	if exists {
@@ -56,7 +56,7 @@ func (s *supplierCategoryRelationService) Create(ctx context.Context, supplierID
 			"supplier_id": supplierID,
 			"category_id": categoryID,
 		})
-		return nil, false, ErrRelationExists
+		return nil, false, err_msg.ErrRelationExists
 	}
 
 	relation := &models.SupplierCategoryRelations{
@@ -70,7 +70,7 @@ func (s *supplierCategoryRelationService) Create(ctx context.Context, supplierID
 			"supplier_id": supplierID,
 			"category_id": categoryID,
 		})
-		return nil, false, fmt.Errorf("%w: %v", ErrCreateRelation, err)
+		return nil, false, fmt.Errorf("%w: %v", err_msg.ErrCreateRelation, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
@@ -88,7 +88,7 @@ func (s *supplierCategoryRelationService) GetBySupplierId(ctx context.Context, s
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"supplier_id": supplierID,
 		})
-		return nil, ErrInvalidRelationData
+		return nil, err_msg.ErrInvalidRelationData
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
@@ -100,7 +100,7 @@ func (s *supplierCategoryRelationService) GetBySupplierId(ctx context.Context, s
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"supplier_id": supplierID,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrGetRelations, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetRelations, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -118,7 +118,7 @@ func (s *supplierCategoryRelationService) GetByCategoryId(ctx context.Context, c
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"category_id": categoryID,
 		})
-		return nil, ErrInvalidRelationData
+		return nil, err_msg.ErrInvalidRelationData
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
@@ -130,7 +130,7 @@ func (s *supplierCategoryRelationService) GetByCategoryId(ctx context.Context, c
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"category_id": categoryID,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrGetRelations, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetRelations, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -149,7 +149,7 @@ func (s *supplierCategoryRelationService) DeleteById(ctx context.Context, suppli
 			"supplier_id": supplierID,
 			"category_id": categoryID,
 		})
-		return ErrInvalidRelationData
+		return err_msg.ErrInvalidRelationData
 	}
 
 	s.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
@@ -164,14 +164,14 @@ func (s *supplierCategoryRelationService) DeleteById(ctx context.Context, suppli
 				"supplier_id": supplierID,
 				"category_id": categoryID,
 			})
-			return ErrRelationNotFound
+			return err_msg.ErrRelationNotFound
 		}
 
 		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"supplier_id": supplierID,
 			"category_id": categoryID,
 		})
-		return fmt.Errorf("%w: %v", ErrDeleteRelation, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDeleteRelation, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
@@ -189,7 +189,7 @@ func (s *supplierCategoryRelationService) DeleteAllBySupplierId(ctx context.Cont
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"supplier_id": supplierID,
 		})
-		return ErrInvalidRelationData
+		return err_msg.ErrInvalidRelationData
 	}
 
 	s.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
@@ -201,7 +201,7 @@ func (s *supplierCategoryRelationService) DeleteAllBySupplierId(ctx context.Cont
 		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"supplier_id": supplierID,
 		})
-		return fmt.Errorf("%w: %v", ErrDeleteAllRelations, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDeleteAllRelations, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
@@ -219,7 +219,7 @@ func (s *supplierCategoryRelationService) HasRelation(ctx context.Context, suppl
 			"supplier_id": supplierID,
 			"category_id": categoryID,
 		})
-		return false, ErrInvalidRelationData
+		return false, err_msg.ErrInvalidRelationData
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
@@ -233,7 +233,7 @@ func (s *supplierCategoryRelationService) HasRelation(ctx context.Context, suppl
 			"supplier_id": supplierID,
 			"category_id": categoryID,
 		})
-		return false, fmt.Errorf("%w: %v", ErrCheckRelationExists, err)
+		return false, fmt.Errorf("%w: %v", err_msg.ErrCheckRelationExists, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{

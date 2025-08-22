@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_categories"
 )
@@ -49,7 +50,7 @@ func (s *supplierCategoryService) Create(ctx context.Context, category *models.S
 		s.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 			"name": category.Name,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrCreateCategory, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreateCategory, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
@@ -71,7 +72,7 @@ func (s *supplierCategoryService) GetByID(ctx context.Context, id int64) (*model
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"id": id,
 		})
-		return nil, ErrCategoryIDInvalid
+		return nil, err_msg.ErrCategoryIDInvalid
 	}
 
 	category, err := s.repo.GetByID(ctx, id)
@@ -79,7 +80,7 @@ func (s *supplierCategoryService) GetByID(ctx context.Context, id int64) (*model
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"id": id,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrGetCategory, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetCategory, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -97,7 +98,7 @@ func (s *supplierCategoryService) GetAll(ctx context.Context) ([]*models.Supplie
 	categories, err := s.repo.GetAll(ctx)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, nil)
-		return nil, fmt.Errorf("%w: %v", ErrGetCategories, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetCategories, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -117,7 +118,7 @@ func (s *supplierCategoryService) Update(ctx context.Context, category *models.S
 
 	if category.ID == 0 {
 		s.logger.Warn(ctx, ref+"ValidationError - id zero", nil)
-		return ErrCategoryIDRequired
+		return err_msg.ErrCategoryIDRequired
 	}
 
 	if err := category.Validate(); err != nil {
@@ -132,7 +133,7 @@ func (s *supplierCategoryService) Update(ctx context.Context, category *models.S
 		s.logger.Error(ctx, err, ref+"UpdateError", map[string]any{
 			"id": category.ID,
 		})
-		return fmt.Errorf("%w: %v", ErrUpdateCategory, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrUpdateCategory, err)
 	}
 
 	s.logger.Info(ctx, ref+"UpdateSuccess", map[string]any{
@@ -153,14 +154,14 @@ func (s *supplierCategoryService) Delete(ctx context.Context, id int64) error {
 		s.logger.Warn(ctx, ref+"ValidationError - invalid id", map[string]any{
 			"id": id,
 		})
-		return ErrCategoryDeleteInvalidID
+		return err_msg.ErrCategoryDeleteInvalidID
 	}
 
 	if err := s.repo.Delete(ctx, id); err != nil {
 		s.logger.Error(ctx, err, ref+"DeleteError", map[string]any{
 			"id": id,
 		})
-		return fmt.Errorf("%w: %v", ErrDeleteCategory, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDeleteCategory, err)
 	}
 
 	s.logger.Info(ctx, ref+"DeleteSuccess", map[string]any{

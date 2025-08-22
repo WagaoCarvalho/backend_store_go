@@ -53,7 +53,7 @@ func TestSupplierService_Create(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Equal(t, ErrSupplierNameRequired, err)
+		assert.Equal(t, err_msg.ErrSupplierNameRequired, err)
 		mockRepo.AssertNotCalled(t, "Create")
 	})
 
@@ -110,7 +110,7 @@ func TestSupplierService_GetAll(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.True(t, errors.Is(err, ErrGetSupplier))
+		assert.True(t, errors.Is(err, err_msg.ErrGetSupplier))
 		assert.Contains(t, err.Error(), "erro na validação dos dados")
 
 		mockRepo.AssertExpectations(t)
@@ -152,7 +152,7 @@ func TestSupplierService_GetByID(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Equal(t, ErrInvalidSupplierID, err)
+		assert.Equal(t, err_msg.ErrInvalidSupplierID, err)
 	})
 
 	t.Run("erro do repositório ao buscar por ID", func(t *testing.T) {
@@ -164,7 +164,7 @@ func TestSupplierService_GetByID(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.True(t, errors.Is(err, ErrGetSupplier))
+		assert.True(t, errors.Is(err, err_msg.ErrGetSupplier))
 		assert.Contains(t, err.Error(), "erro na validação dos dados")
 		mockRepo.AssertExpectations(t)
 	})
@@ -178,7 +178,7 @@ func TestSupplierService_GetByID(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Equal(t, ErrSupplierNotFound, err)
+		assert.Equal(t, err_msg.ErrSupplierNotFound, err)
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -224,7 +224,7 @@ func TestSupplierService_GetByName(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Equal(t, ErrInvalidSupplierName, err)
+		assert.Equal(t, err_msg.ErrInvalidSupplierName, err)
 	})
 
 	t.Run("erro do repositório ao buscar por nome", func(t *testing.T) {
@@ -236,7 +236,7 @@ func TestSupplierService_GetByName(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.True(t, errors.Is(err, ErrGetSupplier))
+		assert.True(t, errors.Is(err, err_msg.ErrGetSupplier))
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -249,7 +249,7 @@ func TestSupplierService_GetByName(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Equal(t, ErrSupplierNotFound, err)
+		assert.Equal(t, err_msg.ErrSupplierNotFound, err)
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -282,7 +282,7 @@ func TestSupplierService_GetVersionByID(t *testing.T) {
 				// não deve chamar o repo
 			},
 			expectedResult: 0,
-			expectedErr:    ErrInvalidSupplierID,
+			expectedErr:    err_msg.ErrInvalidSupplierID,
 		},
 		{
 			name: "erro ao buscar versão",
@@ -291,7 +291,7 @@ func TestSupplierService_GetVersionByID(t *testing.T) {
 				m.On("GetVersionByID", mock.Anything, int64(2)).Return(int64(0), errors.New("erro banco")).Once()
 			},
 			expectedResult: 0,
-			expectedErr:    ErrGetSupplierVersion, // testará se está contido na composição do erro
+			expectedErr:    err_msg.ErrGetSupplierVersion, // testará se está contido na composição do erro
 		},
 	}
 
@@ -354,7 +354,7 @@ func TestSupplierService_Update(t *testing.T) {
 			},
 			mockRepo:    nil,
 			expected:    nil,
-			expectedErr: ErrInvalidSupplierID,
+			expectedErr: err_msg.ErrInvalidSupplierID,
 		},
 		{
 			name: "nome obrigatório",
@@ -363,7 +363,7 @@ func TestSupplierService_Update(t *testing.T) {
 			},
 			mockRepo:    nil,
 			expected:    nil,
-			expectedErr: ErrSupplierNameRequired,
+			expectedErr: err_msg.ErrSupplierNameRequired,
 		},
 		{
 			name: "versão obrigatória",
@@ -372,7 +372,7 @@ func TestSupplierService_Update(t *testing.T) {
 			},
 			mockRepo:    nil,
 			expected:    nil,
-			expectedErr: ErrSupplierVersionRequired,
+			expectedErr: err_msg.ErrSupplierVersionRequired,
 		},
 		{
 			name: "conflito de versão",
@@ -383,7 +383,7 @@ func TestSupplierService_Update(t *testing.T) {
 				m.On("Update", mock.Anything, mock.Anything).Return(err_msg.ErrSupplierVersionConflict).Once()
 			},
 			expected:    nil,
-			expectedErr: ErrSupplierVersionConflict,
+			expectedErr: err_msg.ErrSupplierVersionConflict,
 		},
 		{
 			name: "fornecedor não encontrado",
@@ -394,7 +394,7 @@ func TestSupplierService_Update(t *testing.T) {
 				m.On("Update", mock.Anything, mock.Anything).Return(err_msg.ErrSupplierNotFound).Once()
 			},
 			expected:    nil,
-			expectedErr: ErrSupplierNotFound,
+			expectedErr: err_msg.ErrSupplierNotFound,
 		},
 		{
 			name: "erro genérico na atualização",
@@ -405,7 +405,7 @@ func TestSupplierService_Update(t *testing.T) {
 				m.On("Update", mock.Anything, mock.Anything).Return(errors.New("erro banco")).Once()
 			},
 			expected:    nil,
-			expectedErr: ErrSupplierUpdate,
+			expectedErr: err_msg.ErrSupplierUpdate,
 		},
 	}
 
@@ -460,7 +460,7 @@ func TestSupplierService_Delete(t *testing.T) {
 			mockRepo: func(m *repo.MockSupplierRepository) {
 				// não deve chamar Delete
 			},
-			expectedErr: ErrInvalidSupplierIDForDeletion,
+			expectedErr: err_msg.ErrInvalidSupplierIDForDeletion,
 		},
 		{
 			name: "erro ao deletar",
@@ -527,7 +527,7 @@ func TestSupplierService_Disable(t *testing.T) {
 			mockRepo: func(m *repo.MockSupplierRepository) {
 				// não deve chamar o repo
 			},
-			expectedErr: ErrInvalidSupplierID,
+			expectedErr: err_msg.ErrInvalidSupplierID,
 		},
 		{
 			name: "erro ao obter fornecedor",
@@ -535,7 +535,7 @@ func TestSupplierService_Disable(t *testing.T) {
 			mockRepo: func(m *repo.MockSupplierRepository) {
 				m.On("GetByID", mock.Anything, int64(2)).Return(nil, errors.New("erro banco")).Once()
 			},
-			expectedErr: fmt.Errorf("%w: %v", ErrGetSupplier, errors.New("erro banco")),
+			expectedErr: fmt.Errorf("%w: %v", err_msg.ErrGetSupplier, errors.New("erro banco")),
 		},
 		{
 			name: "erro ao atualizar fornecedor",
@@ -547,7 +547,7 @@ func TestSupplierService_Disable(t *testing.T) {
 				}, nil).Once()
 				m.On("Update", mock.Anything, mock.Anything).Return(errors.New("erro update")).Once()
 			},
-			expectedErr: fmt.Errorf("%w: %v", ErrDisableSupplier, errors.New("erro update")),
+			expectedErr: fmt.Errorf("%w: %v", err_msg.ErrDisableSupplier, errors.New("erro update")),
 		},
 	}
 
@@ -606,7 +606,7 @@ func TestSupplierService_Enable(t *testing.T) {
 			mockRepo: func(m *repo.MockSupplierRepository) {
 				// não deve chamar o repo
 			},
-			expectedErr: ErrInvalidSupplierID,
+			expectedErr: err_msg.ErrInvalidSupplierID,
 		},
 		{
 			name: "erro ao obter fornecedor",
@@ -614,7 +614,7 @@ func TestSupplierService_Enable(t *testing.T) {
 			mockRepo: func(m *repo.MockSupplierRepository) {
 				m.On("GetByID", mock.Anything, int64(2)).Return(nil, errors.New("erro banco")).Once()
 			},
-			expectedErr: fmt.Errorf("%w: %v", ErrGetSupplier, errors.New("erro banco")),
+			expectedErr: fmt.Errorf("%w: %v", err_msg.ErrGetSupplier, errors.New("erro banco")),
 		},
 		{
 			name: "erro ao atualizar fornecedor",
@@ -626,7 +626,7 @@ func TestSupplierService_Enable(t *testing.T) {
 				}, nil).Once()
 				m.On("Update", mock.Anything, mock.Anything).Return(errors.New("erro update")).Once()
 			},
-			expectedErr: fmt.Errorf("%w: %v", ErrEnableSupplier, errors.New("erro update")),
+			expectedErr: fmt.Errorf("%w: %v", err_msg.ErrEnableSupplier, errors.New("erro update")),
 		},
 	}
 

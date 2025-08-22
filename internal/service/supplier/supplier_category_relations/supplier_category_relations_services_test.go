@@ -61,7 +61,7 @@ func TestSupplierCategoryRelationService_Create(t *testing.T) {
 				result, created, err := svc.Create(ctx, tt.supplierID, tt.categoryID)
 				assert.Nil(t, result)
 				assert.False(t, created)
-				assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+				assert.ErrorIs(t, err, err_msg.ErrInvalidRelationData)
 			})
 		}
 	})
@@ -76,7 +76,7 @@ func TestSupplierCategoryRelationService_Create(t *testing.T) {
 		mockRepo.On("HasRelation", ctx, supplierID, categoryID).Return(true, nil)
 
 		_, created, err := svc.Create(ctx, supplierID, categoryID)
-		assert.ErrorIs(t, err, service.ErrRelationExists)
+		assert.ErrorIs(t, err, err_msg.ErrRelationExists)
 		assert.False(t, created)
 		mockRepo.AssertExpectations(t)
 	})
@@ -91,7 +91,7 @@ func TestSupplierCategoryRelationService_Create(t *testing.T) {
 		mockRepo.On("HasRelation", ctx, supplierID, categoryID).Return(false, errors.New("db error"))
 
 		_, created, err := svc.Create(ctx, supplierID, categoryID)
-		assert.ErrorIs(t, err, service.ErrCheckRelationExists)
+		assert.ErrorIs(t, err, err_msg.ErrCheckRelationExists)
 		assert.ErrorContains(t, err, "db error")
 		assert.False(t, created)
 		mockRepo.AssertExpectations(t)
@@ -108,7 +108,7 @@ func TestSupplierCategoryRelationService_Create(t *testing.T) {
 		mockRepo.On("Create", ctx, mock.Anything).Return(nil, errors.New("db error"))
 
 		_, created, err := svc.Create(ctx, supplierID, categoryID)
-		assert.ErrorIs(t, err, service.ErrCreateRelation)
+		assert.ErrorIs(t, err, err_msg.ErrCreateRelation)
 		assert.False(t, created)
 		mockRepo.AssertExpectations(t)
 	})
@@ -142,7 +142,7 @@ func TestSupplierCategoryRelationService_GetBySupplierId(t *testing.T) {
 		svc := service.NewSupplierCategoryRelationService(mockRepo, log)
 
 		_, err := svc.GetBySupplierId(ctx, 0)
-		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidRelationData)
 	})
 
 	t.Run("repository error", func(t *testing.T) {
@@ -187,7 +187,7 @@ func TestSupplierCategoryRelationService_GetByCategoryId(t *testing.T) {
 		svc := service.NewSupplierCategoryRelationService(mockRepo, log)
 
 		_, err := svc.GetByCategoryId(ctx, -1)
-		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidRelationData)
 	})
 
 	t.Run("repository error", func(t *testing.T) {
@@ -243,7 +243,7 @@ func TestSupplierCategoryRelationService_HasRelation(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				_, err := svc.HasRelation(ctx, tt.supplierID, tt.categoryID)
-				assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+				assert.ErrorIs(t, err, err_msg.ErrInvalidRelationData)
 			})
 		}
 	})
@@ -300,7 +300,7 @@ func TestSupplierCategoryRelationService_DeleteById(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				err := svc.DeleteById(ctx, tt.supplierID, tt.categoryID)
-				assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+				assert.ErrorIs(t, err, err_msg.ErrInvalidRelationData)
 			})
 		}
 	})
@@ -315,7 +315,7 @@ func TestSupplierCategoryRelationService_DeleteById(t *testing.T) {
 		mockRepo.On("Delete", ctx, supplierID, categoryID).Return(err_msg.ErrSupplierRelationNotFound)
 
 		err := svc.DeleteById(ctx, supplierID, categoryID)
-		assert.ErrorIs(t, err, service.ErrRelationNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrRelationNotFound)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -329,7 +329,7 @@ func TestSupplierCategoryRelationService_DeleteById(t *testing.T) {
 		mockRepo.On("Delete", ctx, supplierID, categoryID).Return(errors.New("db error"))
 
 		err := svc.DeleteById(ctx, supplierID, categoryID)
-		assert.ErrorIs(t, err, service.ErrDeleteRelation)
+		assert.ErrorIs(t, err, err_msg.ErrDeleteRelation)
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -357,7 +357,7 @@ func TestSupplierCategoryRelationService_DeleteAllBySupplierId(t *testing.T) {
 		svc := service.NewSupplierCategoryRelationService(mockRepo, log)
 
 		err := svc.DeleteAllBySupplierId(ctx, 0)
-		assert.ErrorIs(t, err, service.ErrInvalidRelationData)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidRelationData)
 	})
 
 	t.Run("repository error", func(t *testing.T) {

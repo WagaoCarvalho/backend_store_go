@@ -155,7 +155,7 @@ func TestSupplierCategoryService_Update(t *testing.T) {
 		err := service.Update(context.Background(), category)
 
 		assert.Error(t, err)
-		assert.Equal(t, ErrCategoryIDRequired, err)
+		assert.Equal(t, err_msg.ErrCategoryIDRequired, err)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
@@ -226,7 +226,7 @@ func TestSupplierCategoryService_Delete(t *testing.T) {
 		err := service.Delete(context.Background(), 2)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "erro ao deletar categorias")
+		assert.Contains(t, err.Error(), "erro ao deletar categoria")
 		assert.Contains(t, err.Error(), expectedErr.Error())
 		mockRepo.AssertCalled(t, "Delete", mock.Anything, int64(2))
 	})

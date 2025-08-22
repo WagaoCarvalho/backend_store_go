@@ -395,7 +395,7 @@ func TestProductService_Update(t *testing.T) {
 		updated, err := service.Update(ctx, input)
 
 		assert.Nil(t, updated)
-		assert.ErrorIs(t, err, ErrInvalidVersion)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidVersion)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
@@ -483,7 +483,7 @@ func TestProductService_DisableProduct(t *testing.T) {
 
 		err := service.DisableProduct(context.Background(), 2)
 
-		assert.ErrorContains(t, err, "erro ao desativar produto")
+		assert.ErrorContains(t, err, "erro ao desabilitar produto")
 		assert.ErrorContains(t, err, "erro banco")
 		mockRepo.AssertExpectations(t)
 	})
@@ -602,7 +602,7 @@ func TestProductService_GetVersionByID(t *testing.T) {
 		version, err := service.GetVersionByID(context.Background(), 3)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "db failure")
-		assert.True(t, errors.Is(err, ErrInvalidVersion))
+		assert.True(t, errors.Is(err, err_msg.ErrInvalidVersion))
 		assert.Equal(t, int64(0), version)
 
 		mockRepo.AssertExpectations(t)
@@ -656,7 +656,7 @@ func TestProductService_IncreaseStock(t *testing.T) {
 		err := service.IncreaseStock(ctx, 1, 10)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, ErrUpdateStock)
+		assert.ErrorIs(t, err, err_msg.ErrUpdateStock)
 		repoMock.AssertExpectations(t)
 	})
 
@@ -687,7 +687,7 @@ func TestProductService_DecreaseStock(t *testing.T) {
 		err := service.DecreaseStock(ctx, 1, 10)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, ErrUpdateStock)
+		assert.ErrorIs(t, err, err_msg.ErrUpdateStock)
 		repoMock.AssertExpectations(t)
 	})
 
@@ -719,7 +719,7 @@ func TestProductService_GetStock(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Equal(t, 0, stock)
-		assert.ErrorIs(t, err, ErrGetStock)
+		assert.ErrorIs(t, err, err_msg.ErrGetStock)
 		repoMock.AssertExpectations(t)
 	})
 
@@ -766,7 +766,7 @@ func TestProductService_EnableDiscount(t *testing.T) {
 		err := service.EnableDiscount(context.Background(), 1)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, ErrEnableDiscount)
+		assert.ErrorIs(t, err, err_msg.ErrEnableDiscount)
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -797,7 +797,7 @@ func TestProductService_DisableDiscount(t *testing.T) {
 
 		err := service.EnableDiscount(context.Background(), 2)
 
-		assert.ErrorIs(t, err, ErrEnableDiscount)
+		assert.ErrorIs(t, err, err_msg.ErrEnableDiscount)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -809,7 +809,7 @@ func TestProductService_DisableDiscount(t *testing.T) {
 		err := service.DisableDiscount(context.Background(), 3)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, ErrDisableDiscount)         // garante que ErrDisableDiscount está na cadeia
+		assert.ErrorIs(t, err, err_msg.ErrDisableDiscount) // garante que ErrDisableDiscount está na cadeia
 		assert.Contains(t, err.Error(), "erro de conexão") // garante que a mensagem original também está
 		mockRepo.AssertExpectations(t)
 	})
@@ -862,7 +862,7 @@ func TestProductService_ApplyDiscount(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, product)
-		assert.ErrorIs(t, err, ErrApplyDiscount)
+		assert.ErrorIs(t, err, err_msg.ErrApplyDiscount)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -880,7 +880,7 @@ func TestProductService_ApplyDiscount(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, product)
-		assert.ErrorIs(t, err, ErrApplyDiscount)
+		assert.ErrorIs(t, err, err_msg.ErrApplyDiscount)
 		mockRepo.AssertExpectations(t)
 	})
 }

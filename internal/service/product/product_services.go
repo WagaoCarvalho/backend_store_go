@@ -203,7 +203,7 @@ func (s *productService) GetVersionByID(ctx context.Context, pid int64) (int64, 
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"product_id": pid,
 		})
-		return 0, fmt.Errorf("%w: %v", ErrInvalidVersion, err)
+		return 0, fmt.Errorf("%w: %v", err_msg.ErrInvalidVersion, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -225,7 +225,7 @@ func (s *productService) DisableProduct(ctx context.Context, uid int64) error {
 		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"product_id": uid,
 		})
-		return fmt.Errorf("%w: %v", ErrDisableProduct, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDisableProduct, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -247,7 +247,7 @@ func (s *productService) EnableProduct(ctx context.Context, uid int64) error {
 		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"product_id": uid,
 		})
-		return fmt.Errorf("%w: %v", ErrEnableProduct, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrEnableProduct, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -282,7 +282,7 @@ func (s *productService) Update(ctx context.Context, product *models.Product) (*
 			"product_id": product.ID,
 			"version":    product.Version,
 		})
-		return nil, ErrInvalidVersion
+		return nil, err_msg.ErrInvalidVersion
 	}
 
 	updatedProduct, err := s.repo.Update(ctx, product)
@@ -352,7 +352,7 @@ func (s *productService) UpdateStock(ctx context.Context, id int64, quantity int
 			"product_id": id,
 			"quantity":   quantity,
 		})
-		return fmt.Errorf("%w: %v", ErrUpdateStock, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrUpdateStock, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -376,7 +376,7 @@ func (s *productService) IncreaseStock(ctx context.Context, id int64, amount int
 			"product_id":     id,
 			"stock_quantity": amount,
 		})
-		return fmt.Errorf("%w: %v", ErrUpdateStock, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrUpdateStock, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -401,7 +401,7 @@ func (s *productService) DecreaseStock(ctx context.Context, id int64, amount int
 			"product_id":     id,
 			"stock_quantity": amount,
 		})
-		return fmt.Errorf("%w: %v", ErrUpdateStock, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrUpdateStock, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -423,7 +423,7 @@ func (s *productService) GetStock(ctx context.Context, id int64) (int, error) {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"product_id": id,
 		})
-		return 0, fmt.Errorf("%w: %v", ErrGetStock, err)
+		return 0, fmt.Errorf("%w: %v", err_msg.ErrGetStock, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -445,7 +445,7 @@ func (s *productService) EnableDiscount(ctx context.Context, id int64) error {
 		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"product_id": id,
 		})
-		return fmt.Errorf("%w: %v", ErrEnableDiscount, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrEnableDiscount, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -467,7 +467,7 @@ func (s *productService) DisableDiscount(ctx context.Context, id int64) error {
 		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"product_id": id,
 		})
-		return fmt.Errorf("%w: %v", ErrDisableDiscount, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDisableDiscount, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -491,7 +491,7 @@ func (s *productService) ApplyDiscount(ctx context.Context, id int64, percent fl
 			"product_id": id,
 			"percent":    percent,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrApplyDiscount, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrApplyDiscount, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
