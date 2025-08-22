@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -66,7 +67,7 @@ func (r *supplierFullRepository) CreateTx(ctx context.Context, tx pgx.Tx, suppli
 			"cpf":    supplier.CPF,
 			"status": supplier.Status,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrCreateSupplier, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrSupplierCreate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{

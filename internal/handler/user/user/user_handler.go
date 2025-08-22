@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user"
 	"github.com/gorilla/mux"
 )
@@ -162,7 +162,7 @@ func (h *UserHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 	version, err := h.service.GetVersionByID(ctx, id)
 	if err != nil {
 		status := http.StatusInternalServerError
-		if errors.Is(err, repo.ErrUserNotFound) {
+		if errors.Is(err, err_msg.ErrUserNotFound) {
 			status = http.StatusNotFound
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id": id,
@@ -318,7 +318,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	updatedUser, err := h.service.Update(ctx, requestData.User)
 	if err != nil {
-		if errors.Is(err, repo.ErrVersionConflict) {
+		if errors.Is(err, err_msg.ErrVersionConflict) {
 			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"user_id": id,
 			})
@@ -399,7 +399,7 @@ func (h *UserHandler) Disable(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.service.Update(ctx, user)
 	if err != nil {
-		if errors.Is(err, repo.ErrVersionConflict) {
+		if errors.Is(err, err_msg.ErrVersionConflict) {
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"user_id": id,
 			})
@@ -476,7 +476,7 @@ func (h *UserHandler) Enable(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.service.Update(ctx, user)
 	if err != nil {
-		if errors.Is(err, repo.ErrVersionConflict) {
+		if errors.Is(err, err_msg.ErrVersionConflict) {
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"user_id": id,
 			})

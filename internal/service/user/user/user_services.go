@@ -7,6 +7,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
@@ -144,11 +145,11 @@ func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, err
 
 	version, err := s.repo_user.GetVersionByID(ctx, uid)
 	if err != nil {
-		if errors.Is(err, repo.ErrUserNotFound) {
+		if errors.Is(err, err_msg.ErrUserNotFound) {
 			s.logger.Error(ctx, err, ref+logger.LogNotFound, map[string]any{
 				"user_id": uid,
 			})
-			return 0, repo.ErrUserNotFound
+			return 0, err_msg.ErrUserNotFound
 		}
 
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
@@ -237,18 +238,18 @@ func (s *userService) Update(ctx context.Context, user *models.User) (*models.Us
 	updatedUser, err := s.repo_user.Update(ctx, user)
 	if err != nil {
 		switch {
-		case errors.Is(err, repo.ErrUserNotFound):
+		case errors.Is(err, err_msg.ErrUserNotFound):
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id": user.UID,
 			})
-			return nil, repo.ErrUserNotFound
+			return nil, err_msg.ErrUserNotFound
 
-		case errors.Is(err, repo.ErrVersionConflict):
+		case errors.Is(err, err_msg.ErrVersionConflict):
 			s.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"user_id": user.UID,
 				"version": user.Version,
 			})
-			return nil, repo.ErrVersionConflict
+			return nil, err_msg.ErrVersionConflict
 
 		default:
 			s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
@@ -299,7 +300,7 @@ func (s *userService) Enable(ctx context.Context, uid int64) error {
 	err := s.repo_user.Enable(ctx, uid)
 	if err != nil {
 		switch {
-		case errors.Is(err, repo.ErrUserNotFound):
+		case errors.Is(err, err_msg.ErrUserNotFound):
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id": uid,
 			})

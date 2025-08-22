@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	"github.com/sirupsen/logrus"
@@ -293,12 +294,12 @@ func TestUserService_GetVersionByID(t *testing.T) {
 
 		mockRepo.On("GetVersionByID", mock.Anything, int64(999)).Return(
 			int64(0),
-			repo.ErrUserNotFound,
+			err_msg.ErrUserNotFound,
 		)
 
 		version, err := service.GetVersionByID(context.Background(), 999)
 
-		assert.ErrorIs(t, err, repo.ErrUserNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrUserNotFound)
 		assert.Equal(t, int64(0), version)
 		mockRepo.AssertExpectations(t)
 	})
@@ -496,11 +497,11 @@ func TestUserService_Update(t *testing.T) {
 			Version: 1,
 		}
 
-		mockRepo.On("Update", mock.Anything, user).Return(nil, repo.ErrUserNotFound)
+		mockRepo.On("Update", mock.Anything, user).Return(nil, err_msg.ErrUserNotFound)
 
 		updatedUser, err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, repo.ErrUserNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrUserNotFound)
 		assert.Nil(t, updatedUser)
 		mockRepo.AssertExpectations(t)
 	})
@@ -514,11 +515,11 @@ func TestUserService_Update(t *testing.T) {
 			Version: 2,
 		}
 
-		mockRepo.On("Update", mock.Anything, user).Return(nil, repo.ErrVersionConflict)
+		mockRepo.On("Update", mock.Anything, user).Return(nil, err_msg.ErrVersionConflict)
 
 		updatedUser, err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, repo.ErrVersionConflict)
+		assert.ErrorIs(t, err, err_msg.ErrVersionConflict)
 		assert.Nil(t, updatedUser)
 		mockRepo.AssertExpectations(t)
 	})
@@ -649,11 +650,11 @@ func TestUserService_Enable(t *testing.T) {
 		mockRepo, _, service := setup()
 
 		mockRepo.On("Enable", mock.Anything, int64(42)).
-			Return(repo.ErrUserNotFound).Once()
+			Return(err_msg.ErrUserNotFound).Once()
 
 		err := service.Enable(context.Background(), 42)
 
-		assert.ErrorIs(t, err, repo.ErrUserNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrUserNotFound)
 		mockRepo.AssertExpectations(t)
 	})
 

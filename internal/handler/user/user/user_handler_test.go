@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_services_mock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -242,7 +242,7 @@ func TestUserHandler_GetVersionByID(t *testing.T) {
 	t.Run("Erro usuário não encontrado", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetVersionByID", mock.Anything, int64(999)).Return(int64(0), repo.ErrUserNotFound).Once()
+		mockService.On("GetVersionByID", mock.Anything, int64(999)).Return(int64(0), err_msg.ErrUserNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/users/999/version", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "999"})
@@ -490,7 +490,7 @@ func TestUserHandler_Update(t *testing.T) {
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
 			return u.UID == userID && u.Version == 2
-		})).Return(nil, repo.ErrVersionConflict).Once()
+		})).Return(nil, err_msg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -622,7 +622,7 @@ func TestUserHandler_Disable(t *testing.T) {
 			Version: 2,
 		}, nil).Once()
 
-		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, repo.ErrVersionConflict).Once()
+		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, err_msg.ErrVersionConflict).Once()
 
 		body := `{"version": 2}`
 		req := httptest.NewRequest(http.MethodPatch, "/users/4/disable", strings.NewReader(body))
@@ -741,7 +741,7 @@ func TestUserHandler_Enable(t *testing.T) {
 		}, nil).Once()
 
 		// Update retorna erro de conflito de versão
-		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, repo.ErrVersionConflict).Once()
+		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, err_msg.ErrVersionConflict).Once()
 
 		body := `{"version": 5}`
 		req := httptest.NewRequest(http.MethodPatch, "/users/3/enable", strings.NewReader(body))
