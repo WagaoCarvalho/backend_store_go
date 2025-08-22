@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
 	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_category_relations/user_category_relations_services_mock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -118,7 +118,7 @@ func TestUserCategoryRelationHandler_Create_ForeignKeyInvalid(t *testing.T) {
 
 	mockService.
 		On("Create", mock.Anything, int64(1), int64(999)).
-		Return(nil, false, repo.ErrInvalidForeignKey)
+		Return(nil, false, err_msg.ErrInvalidForeignKey)
 
 	req := httptest.NewRequest(http.MethodPost, "/relations", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -127,7 +127,7 @@ func TestUserCategoryRelationHandler_Create_ForeignKeyInvalid(t *testing.T) {
 	handler.Create(rec, req)
 
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
-	assert.Contains(t, rec.Body.String(), repo.ErrInvalidForeignKey.Error())
+	assert.Contains(t, rec.Body.String(), err_msg.ErrInvalidForeignKey.Error())
 	mockService.AssertExpectations(t)
 }
 

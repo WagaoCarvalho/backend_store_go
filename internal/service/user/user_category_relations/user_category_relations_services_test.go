@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
 )
@@ -51,7 +52,7 @@ func Test_Create(t *testing.T) {
 
 		existing := &models.UserCategoryRelations{UserID: 1, CategoryID: 2}
 
-		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, repo.ErrRelationExists)
+		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, err_msg.ErrRelationExists)
 		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).Return([]*models.UserCategoryRelations{existing}, nil)
 
 		result, wasCreated, err := service.Create(context.Background(), 1, 2)
@@ -66,7 +67,7 @@ func Test_Create(t *testing.T) {
 		mockRepo := new(repo.MockUserCategoryRelationRepo)
 		service := NewUserCategoryRelationServices(mockRepo, logger)
 
-		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, repo.ErrRelationExists)
+		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, err_msg.ErrRelationExists)
 		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).
 			Return([]*models.UserCategoryRelations{}, errors.New("db error"))
 
@@ -80,14 +81,14 @@ func Test_Create(t *testing.T) {
 		mockRepo := new(repo.MockUserCategoryRelationRepo)
 		service := NewUserCategoryRelationServices(mockRepo, logger)
 
-		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, repo.ErrRelationExists)
+		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, err_msg.ErrRelationExists)
 		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).Return([]*models.UserCategoryRelations{
 			{UserID: 1, CategoryID: 999},
 		}, nil)
 
 		_, _, err := service.Create(context.Background(), 1, 2)
 
-		assert.ErrorIs(t, err, repo.ErrRelationExists)
+		assert.ErrorIs(t, err, err_msg.ErrRelationExists)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -100,13 +101,13 @@ func Test_Create(t *testing.T) {
 
 		mockRepo.
 			On("Create", mock.Anything, mock.Anything).
-			Return(nil, repo.ErrInvalidForeignKey)
+			Return(nil, err_msg.ErrInvalidForeignKey)
 
 		rel, wasCreated, err := service.Create(context.Background(), userID, categoryID)
 
 		assert.Nil(t, rel)
 		assert.False(t, wasCreated)
-		assert.ErrorIs(t, err, repo.ErrInvalidForeignKey)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidForeignKey)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -252,11 +253,11 @@ func Test_Delete(t *testing.T) {
 
 	t.Run("RelationNotFound", func(t *testing.T) {
 		mockRepo.ExpectedCalls = nil
-		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(repo.ErrRelationNotFound)
+		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(err_msg.ErrRelationNotFound)
 
 		err := service.Delete(context.Background(), 1, 2)
 
-		assert.ErrorIs(t, err, repo.ErrRelationNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrRelationNotFound)
 		mockRepo.AssertExpectations(t)
 	})
 

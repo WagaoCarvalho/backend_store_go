@@ -100,7 +100,7 @@ func TestAddressHandler_Create(t *testing.T) {
 			PostalCode: "99999-999",
 		}
 
-		mockService.On("Create", mock.Anything, input).Return((*models.Address)(nil), err_msg.ErrInvalidForeignKey)
+		mockService.On("Create", mock.Anything, input).Return((*models.Address)(nil), err_msg.ErrDbInvalidForeignKey)
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer(body))

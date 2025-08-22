@@ -312,7 +312,7 @@ func TestSupplierCategoryRelationService_DeleteById(t *testing.T) {
 		supplierID := int64(1)
 		categoryID := int64(2)
 
-		mockRepo.On("Delete", ctx, supplierID, categoryID).Return(err_msg.ErrRelationNotFound)
+		mockRepo.On("Delete", ctx, supplierID, categoryID).Return(err_msg.ErrSupplierRelationNotFound)
 
 		err := svc.DeleteById(ctx, supplierID, categoryID)
 		assert.ErrorIs(t, err, service.ErrRelationNotFound)

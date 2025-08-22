@@ -40,7 +40,7 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	createdContact, err := h.service.Create(r.Context(), &contact)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrInvalidForeignKey) {
+		if errors.Is(err, err_msg.ErrDbInvalidForeignKey) {
 			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
 				"erro": err.Error(),
 			})

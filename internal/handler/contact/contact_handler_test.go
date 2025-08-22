@@ -68,7 +68,7 @@ func TestContactHandler_Create(t *testing.T) {
 		cont := &model.Contact{ContactName: "Contato FK Inválida"}
 		mockSvc.On("Create", mock.Anything, mock.MatchedBy(func(c *model.Contact) bool {
 			return c.ContactName == "Contato FK Inválida"
-		})).Return((*model.Contact)(nil), err_msg.ErrInvalidForeignKey)
+		})).Return((*model.Contact)(nil), err_msg.ErrDbInvalidForeignKey)
 
 		body, _ := json.Marshal(cont)
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))

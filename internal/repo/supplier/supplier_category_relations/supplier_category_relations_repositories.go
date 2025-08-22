@@ -45,7 +45,7 @@ func (r *supplierCategoryRelationRepo) Create(ctx context.Context, rel *models.S
 			"supplier_id": rel.SupplierID,
 			"category_id": rel.CategoryID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreateRelation, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrSupplierCreateRelation, err)
 	}
 
 	r.logger.Info(ctx, "[Create] relação criada com sucesso", map[string]any{
@@ -79,21 +79,21 @@ func (r *supplierCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, 
 				"supplier_id": relation.SupplierID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, err_msg.ErrRelationExists
+			return nil, err_msg.ErrSupplierRelationExists
 
 		case err_msg_db.IsForeignKeyViolation(err):
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"supplier_id": relation.SupplierID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, err_msg.ErrInvalidForeignKey
+			return nil, err_msg.ErrDbInvalidForeignKey
 
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 				"supplier_id": relation.SupplierID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreateRelation, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrSupplierCreateRelation, err)
 		}
 	}
 
@@ -168,7 +168,7 @@ func (r *supplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, cate
 	rows, err := r.db.Query(ctx, query, categoryID)
 	if err != nil {
 		r.logger.Error(ctx, err, "[GetByCategoryID] erro na consulta", map[string]any{"category_id": categoryID})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetRelationsByCategory, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrSupplierGetRelationsByCategory, err)
 	}
 	defer rows.Close()
 
@@ -200,11 +200,11 @@ func (r *supplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, c
 		r.logger.Error(ctx, err, "[Delete] erro ao deletar relação", map[string]any{
 			"supplier_id": supplierID, "category_id": categoryID,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrDeleteRelation, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrSupplierDeleteRelation, err)
 	}
 
 	if cmd.RowsAffected() == 0 {
-		return err_msg.ErrRelationNotFound
+		return err_msg.ErrSupplierRelationNotFound
 	}
 	return nil
 }

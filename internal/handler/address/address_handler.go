@@ -41,7 +41,7 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	createdAddress, err := h.service.Create(r.Context(), &address)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrInvalidForeignKey) {
+		if errors.Is(err, err_msg.ErrDbInvalidForeignKey) {
 			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
 				"erro": err.Error(),
 			})

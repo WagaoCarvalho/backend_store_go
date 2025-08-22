@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
+	err_msg_pg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -44,26 +46,26 @@ func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation 
 	_, err := r.db.Exec(ctx, query, relation.UserID, relation.CategoryID)
 	if err != nil {
 		switch {
-		case IsDuplicateKey(err):
+		case err_msg_pg.IsDuplicateKey(err):
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyHasExists, map[string]any{
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, ErrRelationExists
+			return nil, err_msg.ErrRelationExists
 
-		case IsForeignKeyViolation(err):
+		case err_msg_pg.IsForeignKeyViolation(err):
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, ErrInvalidForeignKey
+			return nil, err_msg.ErrInvalidForeignKey
 
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, fmt.Errorf("%w: %v", ErrCreateRelation, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreateRelation, err)
 		}
 	}
 
@@ -90,26 +92,26 @@ func (r *userCategoryRelationRepositories) CreateTx(ctx context.Context, tx pgx.
 	_, err := tx.Exec(ctx, query, relation.UserID, relation.CategoryID)
 	if err != nil {
 		switch {
-		case IsDuplicateKey(err):
+		case err_msg_pg.IsDuplicateKey(err):
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyHasExists, map[string]any{
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, ErrRelationExists
+			return nil, err_msg.ErrRelationExists
 
-		case IsForeignKeyViolation(err):
+		case err_msg_pg.IsForeignKeyViolation(err):
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, ErrInvalidForeignKey
+			return nil, err_msg.ErrInvalidForeignKey
 
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, fmt.Errorf("%w: %v", ErrCreateRelation, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreateRelation, err)
 		}
 	}
 
@@ -138,7 +140,7 @@ func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.C
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": userID,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrGetRelationsByUser, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetRelationsByUser, err)
 	}
 	defer rows.Close()
 
@@ -149,7 +151,7 @@ func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.C
 			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, map[string]any{
 				"user_id": userID,
 			})
-			return nil, fmt.Errorf("%w: %v", ErrScanRelation, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrScanRelation, err)
 		}
 		relations = append(relations, &rel)
 	}
@@ -158,7 +160,7 @@ func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.C
 		r.logger.Error(ctx, err, ref+logger.LogIterateError, map[string]any{
 			"user_id": userID,
 		})
-		return nil, fmt.Errorf("%w: %v", ErrIterateRelations, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrIterateRelations, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -198,7 +200,7 @@ func (r *userCategoryRelationRepositories) HasUserCategoryRelation(ctx context.C
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
-		return false, fmt.Errorf("%w: %v", ErrCheckRelationExists, err)
+		return false, fmt.Errorf("%w: %v", err_msg.ErrCheckRelationExists, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogCheckSuccess, map[string]any{
@@ -227,7 +229,7 @@ func (r *userCategoryRelationRepositories) Delete(ctx context.Context, userID, c
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
-		return fmt.Errorf("%w: %v", ErrDeleteRelation, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDeleteRelation, err)
 	}
 
 	if result.RowsAffected() == 0 {
@@ -235,7 +237,7 @@ func (r *userCategoryRelationRepositories) Delete(ctx context.Context, userID, c
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
-		return ErrRelationNotFound
+		return err_msg.ErrRelationNotFound
 	}
 
 	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
@@ -262,7 +264,7 @@ func (r *userCategoryRelationRepositories) DeleteAll(ctx context.Context, userID
 		r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"user_id": userID,
 		})
-		return fmt.Errorf("%w: %v", ErrDeleteAllUserRelations, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDeleteAllUserRelations, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{

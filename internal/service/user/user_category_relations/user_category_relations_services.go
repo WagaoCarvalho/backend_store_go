@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
+	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
 )
@@ -59,7 +60,7 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 	createdRelation, err := s.relationRepo.Create(ctx, &relation)
 	if err != nil {
 		switch {
-		case errors.Is(err, repo.ErrRelationExists):
+		case errors.Is(err, err_msg.ErrRelationExists):
 			s.logger.Warn(ctx, ref+logger.LogForeignKeyHasExists, map[string]any{
 				"user_id":     userID,
 				"category_id": categoryID,
@@ -79,14 +80,14 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 				}
 			}
 
-			return nil, false, repo.ErrRelationExists
+			return nil, false, err_msg.ErrRelationExists
 
-		case errors.Is(err, repo.ErrInvalidForeignKey):
+		case errors.Is(err, err_msg.ErrInvalidForeignKey):
 			s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 				"user_id":     userID,
 				"category_id": categoryID,
 			})
-			return nil, false, repo.ErrInvalidForeignKey
+			return nil, false, err_msg.ErrInvalidForeignKey
 
 		default:
 			s.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
@@ -197,7 +198,7 @@ func (s *userCategoryRelationServices) Delete(ctx context.Context, userID, categ
 
 	err := s.relationRepo.Delete(ctx, userID, categoryID)
 	if err != nil {
-		if errors.Is(err, repo.ErrRelationNotFound) {
+		if errors.Is(err, err_msg.ErrRelationNotFound) {
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id":     userID,
 				"category_id": categoryID,

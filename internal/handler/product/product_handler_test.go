@@ -96,7 +96,7 @@ func TestProductHandler_Create(t *testing.T) {
 			StockQuantity: 10,
 		}
 
-		mockService.On("Create", mock.Anything, input).Return((*models.Product)(nil), err_msg.ErrInvalidForeignKey)
+		mockService.On("Create", mock.Anything, input).Return((*models.Product)(nil), err_msg.ErrDbInvalidForeignKey)
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPost, "/products", bytes.NewBuffer(body))

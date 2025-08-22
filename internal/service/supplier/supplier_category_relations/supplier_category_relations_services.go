@@ -159,7 +159,7 @@ func (s *supplierCategoryRelationService) DeleteById(ctx context.Context, suppli
 
 	err := s.relationRepo.Delete(ctx, supplierID, categoryID)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrRelationNotFound) {
+		if errors.Is(err, err_msg.ErrSupplierRelationNotFound) {
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"supplier_id": supplierID,
 				"category_id": categoryID,
