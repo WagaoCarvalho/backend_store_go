@@ -5,8 +5,11 @@ import (
 	"errors"
 	"testing"
 
-	mock_tx "github.com/WagaoCarvalho/backend_store_go/infra/mock"
-	mock_repo "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo"
+	mock_tx "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo"
+	mock_address "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/address"
+	mock_contact "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/contact"
+	mock_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
+	mock_user_full "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
 	model_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
@@ -14,8 +17,6 @@ import (
 	model_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
 	model_user_full "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	repo_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
-	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_full_repositories"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -62,10 +63,10 @@ func createValidUserFull() *model_user_full.UserFull {
 
 func TestCreateFull_Validation(t *testing.T) {
 	// Setup dos mocks
-	mockUserRepo := new(repo_user.MockUserFullRepository)
-	mockAddressRepo := new(mock_repo.MockAddressRepository)
-	mockContactRepo := new(mock_repo.MockContactRepository)
-	mockRelationRepo := new(repo_user_cat_rel.MockUserCategoryRelationRepo)
+	mockUserRepo := new(mock_user_full.MockUserFullRepository)
+	mockAddressRepo := new(mock_address.MockAddressRepository)
+	mockContactRepo := new(mock_contact.MockContactRepository)
+	mockRelationRepo := new(mock_user_cat_rel.MockUserCategoryRelationRepo)
 	mockHasher := new(MockHasher)
 	logger := logger.NewLoggerAdapter(logrus.New())
 
@@ -164,18 +165,18 @@ func TestUserService_CreateFull(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo_user.MockUserFullRepository,
-		*mock_repo.MockAddressRepository,
-		*mock_repo.MockContactRepository,
-		*repo_user_cat_rel.MockUserCategoryRelationRepo,
+		*mock_user_full.MockUserFullRepository,
+		*mock_address.MockAddressRepository,
+		*mock_contact.MockContactRepository,
+		*mock_user_cat_rel.MockUserCategoryRelationRepo,
 		*mock_tx.MockTx,
 		*MockHasher,
 		UserFullService,
 	) {
-		mockUserRepo := new(repo_user.MockUserFullRepository)
-		mockAddressRepo := new(mock_repo.MockAddressRepository)
-		mockContactRepo := new(mock_repo.MockContactRepository)
-		mockRelationRepo := new(repo_user_cat_rel.MockUserCategoryRelationRepo)
+		mockUserRepo := new(mock_user_full.MockUserFullRepository)
+		mockAddressRepo := new(mock_address.MockAddressRepository)
+		mockContactRepo := new(mock_contact.MockContactRepository)
+		mockRelationRepo := new(mock_user_cat_rel.MockUserCategoryRelationRepo)
 		mockHasher := new(MockHasher)
 		mockTx := new(mock_tx.MockTx)
 

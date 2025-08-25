@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	mock_contact "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo"
+	mock_contact "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/contact"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"

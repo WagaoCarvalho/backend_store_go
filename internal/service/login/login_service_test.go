@@ -11,11 +11,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	mock_user "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
 	models_login "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
 	models_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 )
 
 type mockUserRepo struct{ mock.Mock }
@@ -56,7 +56,7 @@ func TestLoginService_Login(t *testing.T) {
 	log.SetOutput(io.Discard)
 	adapter := logger.NewLoggerAdapter(log)
 
-	mockRepo := new(repo.MockUserRepository)
+	mockRepo := new(mock_user.MockUserRepository)
 	mockHasher := new(mockHasher)
 	mockToken := new(mockTokenGen)
 

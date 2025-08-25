@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	mock_address "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo"
+	mock_address "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/address"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"

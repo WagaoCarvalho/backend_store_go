@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"testing"
 
+	mock_user "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
 	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -33,11 +33,11 @@ func TestUserService_Create(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New()) // logger real
 
 	setup := func() (
-		*repo.MockUserRepository,
+		*mock_user.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo.MockUserRepository)
+		mockUserRepo := new(mock_user.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -147,11 +147,11 @@ func TestUserService_GetAll(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo.MockUserRepository,
+		*mock_user.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo.MockUserRepository)
+		mockUserRepo := new(mock_user.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -197,11 +197,11 @@ func TestUserService_GetByID(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo.MockUserRepository,
+		*mock_user.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo.MockUserRepository)
+		mockUserRepo := new(mock_user.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -261,11 +261,11 @@ func TestUserService_GetVersionByID(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo.MockUserRepository,
+		*mock_user.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo.MockUserRepository)
+		mockUserRepo := new(mock_user.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -324,11 +324,11 @@ func TestUserService_GetByEmail(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo.MockUserRepository,
+		*mock_user.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo.MockUserRepository)
+		mockUserRepo := new(mock_user.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -379,11 +379,11 @@ func TestUserService_GetByName(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo.MockUserRepository,
+		*mock_user.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo.MockUserRepository)
+		mockUserRepo := new(mock_user.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -442,11 +442,11 @@ func TestUserService_Update(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo.MockUserRepository,
+		*mock_user.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo.MockUserRepository)
+		mockUserRepo := new(mock_user.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -573,11 +573,11 @@ func TestUserService_Disable(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo.MockUserRepository,
+		*mock_user.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo.MockUserRepository)
+		mockUserRepo := new(mock_user.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -618,11 +618,11 @@ func TestUserService_Enable(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo.MockUserRepository,
+		*mock_user.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo.MockUserRepository)
+		mockUserRepo := new(mock_user.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -676,11 +676,11 @@ func TestUserService_Delete(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	setup := func() (
-		*repo.MockUserRepository,
+		*mock_user.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(repo.MockUserRepository)
+		mockUserRepo := new(mock_user.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(

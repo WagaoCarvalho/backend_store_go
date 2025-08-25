@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	repo "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
 )
 
 func Test_Create(t *testing.T) {
