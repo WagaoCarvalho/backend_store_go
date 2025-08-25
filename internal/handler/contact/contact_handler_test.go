@@ -8,10 +8,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	mock_contact "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/contact"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/contact/contact_services_mock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -27,7 +27,7 @@ func TestContactHandler_Create(t *testing.T) {
 	logAdapter := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("Success", func(t *testing.T) {
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		cont := &model.Contact{ContactName: "Fulano"}
@@ -62,7 +62,7 @@ func TestContactHandler_Create(t *testing.T) {
 	})
 
 	t.Run("ForeignKeyInvalid", func(t *testing.T) {
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		cont := &model.Contact{ContactName: "Contato FK Inválida"}
@@ -86,7 +86,7 @@ func TestContactHandler_Create(t *testing.T) {
 	})
 
 	t.Run("InvalidJSON", func(t *testing.T) {
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer([]byte("{invalid")))
@@ -102,7 +102,7 @@ func TestContactHandler_Create(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		cont := &model.Contact{ContactName: "Erro"}
@@ -125,7 +125,7 @@ func TestContactHandler_Create(t *testing.T) {
 	})
 
 	t.Run("ServiceInternalError", func(t *testing.T) {
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		cont := &model.Contact{ContactName: "Erro Interno"}
@@ -149,7 +149,7 @@ func TestContactHandler_Create(t *testing.T) {
 	})
 
 	t.Run("EmptyContactName", func(t *testing.T) {
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		cont := &model.Contact{ContactName: ""}
@@ -177,7 +177,7 @@ func TestContactHandler_GetByID(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		expectedContact := &model.Contact{
@@ -204,7 +204,7 @@ func TestContactHandler_GetByID(t *testing.T) {
 
 	t.Run("InvalidID", func(t *testing.T) {
 		t.Parallel()
-		handler := NewContactHandler(new(service_mock.MockContactService), logAdapter)
+		handler := NewContactHandler(new(mock_contact.MockContactService), logAdapter)
 
 		req := newRequestWithVars("GET", "/contacts/abc", nil, map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
@@ -216,7 +216,7 @@ func TestContactHandler_GetByID(t *testing.T) {
 
 	t.Run("NotFound", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		mockSvc.On("GetByID", mock.Anything, int64(2)).Return((*model.Contact)(nil), errors.New("não encontrado"))
@@ -237,7 +237,7 @@ func TestContactHandler_GetByUserID(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		mockSvc.On("GetByUserID", mock.Anything, int64(1)).Return([]*model.Contact{}, nil)
@@ -252,7 +252,7 @@ func TestContactHandler_GetByUserID(t *testing.T) {
 
 	t.Run("Error", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		mockSvc.On("GetByUserID", mock.Anything, int64(2)).Return([]*model.Contact{}, errors.New("erro ao buscar"))
@@ -267,7 +267,7 @@ func TestContactHandler_GetByUserID(t *testing.T) {
 
 	t.Run("InvalidID", func(t *testing.T) {
 		t.Parallel()
-		handler := NewContactHandler(new(service_mock.MockContactService), logAdapter)
+		handler := NewContactHandler(new(mock_contact.MockContactService), logAdapter)
 
 		req := newRequestWithVars("GET", "/contacts/user/abc", nil, map[string]string{"userID": "abc"})
 		w := httptest.NewRecorder()
@@ -282,7 +282,7 @@ func TestContactHandler_GetByClientID(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		mockSvc.On("GetByClientID", mock.Anything, int64(10)).Return([]*model.Contact{}, nil)
@@ -297,7 +297,7 @@ func TestContactHandler_GetByClientID(t *testing.T) {
 
 	t.Run("ServiceError", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		mockSvc.On("GetByClientID", mock.Anything, int64(1)).Return([]*model.Contact(nil), errors.New("erro ao buscar contatos"))
@@ -313,7 +313,7 @@ func TestContactHandler_GetByClientID(t *testing.T) {
 
 	t.Run("InvalidClientID", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		req := newRequestWithVars("GET", "/contacts/client/abc", nil, map[string]string{"clientID": "abc"})
@@ -329,7 +329,7 @@ func TestContactHandler_GetBySupplierID(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		mockSvc.On("GetBySupplierID", mock.Anything, int64(5)).Return([]*model.Contact{}, nil)
@@ -345,7 +345,7 @@ func TestContactHandler_GetBySupplierID(t *testing.T) {
 
 	t.Run("ServiceError", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		mockSvc.On("GetBySupplierID", mock.Anything, int64(1)).Return(([]*model.Contact)(nil), errors.New("erro ao buscar contatos do fornecedor"))
@@ -362,7 +362,7 @@ func TestContactHandler_GetBySupplierID(t *testing.T) {
 
 	t.Run("InvalidID", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		req := newRequestWithVars("GET", "/contacts/supplier/abc", nil, map[string]string{"supplierID": "abc"})
@@ -379,7 +379,7 @@ func TestContactHandler_Update(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		cont := model.Contact{ID: 1, ContactName: "Atualizado"}
@@ -397,7 +397,7 @@ func TestContactHandler_Update(t *testing.T) {
 
 	t.Run("invalid JSON", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		req := newRequestWithVars("PUT", "/contacts/1", []byte("{invalid"), map[string]string{"id": "1"})
@@ -410,7 +410,7 @@ func TestContactHandler_Update(t *testing.T) {
 
 	t.Run("service error", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		cont := model.Contact{ID: 1, ContactName: "Falha"}
@@ -428,7 +428,7 @@ func TestContactHandler_Update(t *testing.T) {
 
 	t.Run("invalid ID", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		req := newRequestWithVars("PUT", "/contacts/abc", []byte("{}"), map[string]string{"id": "abc"})
@@ -445,7 +445,7 @@ func TestContactHandler_Delete(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil).Once()
@@ -466,7 +466,7 @@ func TestContactHandler_Delete(t *testing.T) {
 
 	t.Run("invalid ID", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		req := newRequestWithVars("DELETE", "/contacts/abc", nil, map[string]string{"id": "abc"})
@@ -484,7 +484,7 @@ func TestContactHandler_Delete(t *testing.T) {
 
 	t.Run("not found", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(service_mock.MockContactService)
+		mockSvc := new(mock_contact.MockContactService)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
 		mockSvc.On("Delete", mock.Anything, int64(99)).Return(errors.New("contato não encontrado")).Once()

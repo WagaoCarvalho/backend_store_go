@@ -10,12 +10,11 @@ import (
 	"testing"
 	"time"
 
+	mock_supplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/supplier"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
-	supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_services_mock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -27,14 +26,14 @@ func strPtr(s string) *string {
 }
 
 func TestSupplierHandler_Create(t *testing.T) {
-	mockService := new(service_mock.MockSupplierService)
+	mockService := new(mock_supplier.MockSupplierService)
 	logger := logger.NewLoggerAdapter(logrus.New())
 	handler := NewSupplierHandler(mockService, logger)
 
 	t.Run("Sucesso ao criar fornecedor", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		expectedSupplier := &supplier.Supplier{
+		expectedSupplier := &models.Supplier{
 			ID:        1,
 			Name:      "Fornecedor Teste",
 			CNPJ:      strPtr("12345678000199"),
@@ -54,7 +53,7 @@ func TestSupplierHandler_Create(t *testing.T) {
 
 		mockService.On("Create",
 			mock.Anything,
-			mock.MatchedBy(func(s *supplier.Supplier) bool {
+			mock.MatchedBy(func(s *models.Supplier) bool {
 				return s.Name == "Fornecedor Teste" && s.CNPJ != nil && *s.CNPJ == "12345678000199"
 			}),
 		).Return(expectedSupplier, nil).Once()
@@ -89,7 +88,7 @@ func TestSupplierHandler_Create(t *testing.T) {
 	t.Run("Erro ao criar fornecedor no service", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		supplierData := &supplier.Supplier{
+		supplierData := &models.Supplier{
 			Name: "Fornecedor Falso",
 			CNPJ: strPtr("98765432000188"),
 		}
@@ -101,7 +100,7 @@ func TestSupplierHandler_Create(t *testing.T) {
 
 		mockService.On("Create",
 			mock.Anything,
-			mock.MatchedBy(func(s *supplier.Supplier) bool {
+			mock.MatchedBy(func(s *models.Supplier) bool {
 				return s.Name == supplierData.Name && s.CNPJ != nil && *s.CNPJ == *supplierData.CNPJ
 			}),
 		).Return(nil, errors.New("erro ao criar fornecedor")).Once()
@@ -118,11 +117,11 @@ func TestSupplierHandler_Create(t *testing.T) {
 
 func TestSupplierHandler_GetAll(t *testing.T) {
 	t.Run("Sucesso ao obter todos os fornecedores", func(t *testing.T) {
-		mockService := new(service_mock.MockSupplierService)
+		mockService := new(mock_supplier.MockSupplierService)
 		logger := logger.NewLoggerAdapter(logrus.New())
 		handler := NewSupplierHandler(mockService, logger)
 
-		expectedSuppliers := []*supplier.Supplier{
+		expectedSuppliers := []*models.Supplier{
 			{
 				ID:        1,
 				Name:      "Fornecedor A",
@@ -159,7 +158,7 @@ func TestSupplierHandler_GetAll(t *testing.T) {
 	})
 
 	t.Run("Erro ao obter fornecedores no service", func(t *testing.T) {
-		mockService := new(service_mock.MockSupplierService)
+		mockService := new(mock_supplier.MockSupplierService)
 		logger := logger.NewLoggerAdapter(logrus.New())
 		handler := NewSupplierHandler(mockService, logger)
 
@@ -181,7 +180,7 @@ func TestSupplierHandler_GetAll(t *testing.T) {
 }
 
 func TestSupplierHandler_GetByID(t *testing.T) {
-	mockSvc := new(service_mock.MockSupplierService)
+	mockSvc := new(mock_supplier.MockSupplierService)
 	log := logger.NewLoggerAdapter(logrus.New())
 	handler := NewSupplierHandler(mockSvc, log)
 
@@ -232,7 +231,7 @@ func TestSupplierHandler_GetByID(t *testing.T) {
 	})
 
 	t.Run("Fornecedor não encontrado", func(t *testing.T) {
-		mockSvc := new(service_mock.MockSupplierService)
+		mockSvc := new(mock_supplier.MockSupplierService)
 		mockSvc.On("GetByID", mock.Anything, int64(99)).Return(nil, errors.New("fornecedor não encontrado"))
 
 		log := logger.NewLoggerAdapter(logrus.New())
@@ -255,7 +254,7 @@ func TestSupplierHandler_GetByID(t *testing.T) {
 	})
 
 	t.Run("Erro interno ao buscar fornecedor", func(t *testing.T) {
-		mockSvc := new(service_mock.MockSupplierService)
+		mockSvc := new(mock_supplier.MockSupplierService)
 		mockSvc.On("GetByID", mock.Anything, int64(2)).Return(nil, errors.New("erro inesperado"))
 
 		log := logger.NewLoggerAdapter(logrus.New())
@@ -279,7 +278,7 @@ func TestSupplierHandler_GetByID(t *testing.T) {
 }
 
 func TestSupplierHandler_GetByName(t *testing.T) {
-	mockService := new(service_mock.MockSupplierService)
+	mockService := new(mock_supplier.MockSupplierService)
 	logger := logger.NewLoggerAdapter(logrus.New())
 	handler := NewSupplierHandler(mockService, logger)
 
@@ -343,7 +342,7 @@ func TestSupplierHandler_GetByName(t *testing.T) {
 }
 
 func TestSupplierHandler_GetVersionByID(t *testing.T) {
-	mockService := new(service_mock.MockSupplierService)
+	mockService := new(mock_supplier.MockSupplierService)
 	logger := logger.NewLoggerAdapter(logrus.New())
 	handler := NewSupplierHandler(mockService, logger)
 
@@ -433,7 +432,7 @@ func TestSupplierHandler_GetVersionByID(t *testing.T) {
 }
 
 func TestSupplierHandler_Update(t *testing.T) {
-	mockService := new(service_mock.MockSupplierService)
+	mockService := new(mock_supplier.MockSupplierService)
 	logger := logger.NewLoggerAdapter(logrus.New())
 	handler := NewSupplierHandler(mockService, logger)
 
@@ -572,7 +571,7 @@ func TestSupplierHandler_Update(t *testing.T) {
 }
 
 func TestSupplierHandler_Enable(t *testing.T) {
-	mockService := new(service_mock.MockSupplierService)
+	mockService := new(mock_supplier.MockSupplierService)
 	logger := logger.NewLoggerAdapter(logrus.New())
 	handler := NewSupplierHandler(mockService, logger)
 
@@ -721,7 +720,7 @@ func TestSupplierHandler_Enable(t *testing.T) {
 }
 
 func TestSupplierHandler_Disable(t *testing.T) {
-	mockService := new(service_mock.MockSupplierService)
+	mockService := new(mock_supplier.MockSupplierService)
 	logger := logger.NewLoggerAdapter(logrus.New())
 	handler := NewSupplierHandler(mockService, logger)
 
@@ -867,7 +866,7 @@ func TestSupplierHandler_Disable(t *testing.T) {
 }
 
 func TestSupplierHandler_Delete(t *testing.T) {
-	mockService := new(service_mock.MockSupplierService)
+	mockService := new(mock_supplier.MockSupplierService)
 	logger := logger.NewLoggerAdapter(logrus.New())
 	handler := NewSupplierHandler(mockService, logger)
 

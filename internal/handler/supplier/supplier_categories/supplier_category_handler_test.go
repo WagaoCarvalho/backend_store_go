@@ -8,11 +8,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	mock_supplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/supplier"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	mock_service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_categories/mocks"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -20,7 +20,7 @@ import (
 )
 
 func TestSupplierCategoryHandler_Create(t *testing.T) {
-	mockSvc := new(mock_service.MockSupplierCategoryService)
+	mockSvc := new(mock_supplier.MockSupplierCategoryService)
 	logger := logger.NewLoggerAdapter(logrus.New())
 	handler := NewSupplierCategoryHandler(mockSvc, logger)
 
@@ -86,7 +86,7 @@ func TestSupplierCategoryHandler_Create(t *testing.T) {
 }
 
 func TestSupplierCategoryHandler_GetByID(t *testing.T) {
-	mockSvc := new(mock_service.MockSupplierCategoryService)
+	mockSvc := new(mock_supplier.MockSupplierCategoryService)
 	log := logger.NewLoggerAdapter(logrus.New())
 	handler := NewSupplierCategoryHandler(mockSvc, log)
 
@@ -151,7 +151,7 @@ func TestSupplierCategoryHandler_GetByID(t *testing.T) {
 	})
 
 	t.Run("GetByID_NotFound", func(t *testing.T) {
-		mockSvc := new(mock_service.MockSupplierCategoryService)
+		mockSvc := new(mock_supplier.MockSupplierCategoryService)
 		handler := NewSupplierCategoryHandler(mockSvc, log)
 
 		req := mux.SetURLVars(httptest.NewRequest("GET", "/supplier-categories/999", nil), map[string]string{"id": "999"})
@@ -173,7 +173,7 @@ func TestSupplierCategoryHandler_GetByID(t *testing.T) {
 }
 
 func TestSupplierCategoryHandler_GetAll(t *testing.T) {
-	mockSvc := new(mock_service.MockSupplierCategoryService)
+	mockSvc := new(mock_supplier.MockSupplierCategoryService)
 	log := logger.NewLoggerAdapter(logrus.New())
 	handler := NewSupplierCategoryHandler(mockSvc, log)
 
@@ -208,7 +208,7 @@ func TestSupplierCategoryHandler_GetAll(t *testing.T) {
 	})
 
 	t.Run("Erro ao buscar categorias", func(t *testing.T) {
-		mockSvc := new(mock_service.MockSupplierCategoryService)
+		mockSvc := new(mock_supplier.MockSupplierCategoryService)
 		mockSvc.On("GetAll", mock.Anything).Return(nil, errors.New("erro inesperado"))
 
 		logger := logger.NewLoggerAdapter(logrus.New())
@@ -235,7 +235,7 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("Success", func(t *testing.T) {
-		mockSvc := new(mock_service.MockSupplierCategoryService)
+		mockSvc := new(mock_supplier.MockSupplierCategoryService)
 		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		category := &models.SupplierCategory{
@@ -265,7 +265,7 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		mockSvc := new(mock_service.MockSupplierCategoryService)
+		mockSvc := new(mock_supplier.MockSupplierCategoryService)
 		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		category := &models.SupplierCategory{
@@ -290,7 +290,7 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 	})
 
 	t.Run("InvalidJSON", func(t *testing.T) {
-		mockSvc := new(mock_service.MockSupplierCategoryService)
+		mockSvc := new(mock_supplier.MockSupplierCategoryService)
 		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("PUT", "/supplier-categories/123", bytes.NewBuffer([]byte(`{invalid-json}`))), map[string]string{"id": "123"})
@@ -310,7 +310,7 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		mockSvc := new(mock_service.MockSupplierCategoryService)
+		mockSvc := new(mock_supplier.MockSupplierCategoryService)
 		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		category := &models.SupplierCategory{
@@ -344,7 +344,7 @@ func TestSupplierCategoryHandler_Delete(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("Success", func(t *testing.T) {
-		mockSvc := new(mock_service.MockSupplierCategoryService)
+		mockSvc := new(mock_supplier.MockSupplierCategoryService)
 		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/supplier-categories/123", nil), map[string]string{"id": "123"})
@@ -361,7 +361,7 @@ func TestSupplierCategoryHandler_Delete(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		mockSvc := new(mock_service.MockSupplierCategoryService)
+		mockSvc := new(mock_supplier.MockSupplierCategoryService)
 		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/supplier-categories/abc", nil), map[string]string{"id": "abc"})
@@ -381,7 +381,7 @@ func TestSupplierCategoryHandler_Delete(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockSvc := new(mock_service.MockSupplierCategoryService)
+		mockSvc := new(mock_supplier.MockSupplierCategoryService)
 		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/supplier-categories/456", nil), map[string]string{"id": "456"})
@@ -403,7 +403,7 @@ func TestSupplierCategoryHandler_Delete(t *testing.T) {
 	})
 
 	t.Run("Delete_NotFound", func(t *testing.T) {
-		mockSvc := new(mock_service.MockSupplierCategoryService)
+		mockSvc := new(mock_supplier.MockSupplierCategoryService)
 		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/supplier-categories/999", nil), map[string]string{"id": "999"})

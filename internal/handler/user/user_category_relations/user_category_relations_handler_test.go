@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
+	mock_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/user"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	service_mock "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_category_relations/user_category_relations_services_mock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -24,7 +24,7 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("success - relação criada", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		relation := &models.UserCategoryRelations{
@@ -48,7 +48,7 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 	})
 
 	t.Run("success - relação já existia", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		relation := &models.UserCategoryRelations{
@@ -72,7 +72,7 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 	})
 
 	t.Run("error - corpo inválido", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodPost, "/relations", bytes.NewBufferString("invalid-json"))
@@ -85,7 +85,7 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 	})
 
 	t.Run("error - falha no serviço", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		relation := &models.UserCategoryRelations{
@@ -111,7 +111,7 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 
 func TestUserCategoryRelationHandler_Create_ForeignKeyInvalid(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
-	mockService := new(service_mock.MockUserCategoryRelationService)
+	mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 	handler := NewUserCategoryRelationHandler(mockService, logger)
 
 	body := `{"user_id":1,"category_id":999}`
@@ -135,7 +135,7 @@ func TestUserCategoryRelationHandler_GetAllRelationsByUserID(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("success - retorna todas as relações do usuário", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		expected := []*models.UserCategoryRelations{
@@ -162,7 +162,7 @@ func TestUserCategoryRelationHandler_GetAllRelationsByUserID(t *testing.T) {
 	})
 
 	t.Run("error - ID inválido", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/user-category-relations/abc", nil)
@@ -176,7 +176,7 @@ func TestUserCategoryRelationHandler_GetAllRelationsByUserID(t *testing.T) {
 	})
 
 	t.Run("error - falha no serviço", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		mockService.
@@ -200,7 +200,7 @@ func TestUserCategoryRelationHandler_HasUserCategoryRelation(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("success - relação existe", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		mockService.On("HasUserCategoryRelation", mock.Anything, int64(1), int64(2)).Return(true, nil)
@@ -222,7 +222,7 @@ func TestUserCategoryRelationHandler_HasUserCategoryRelation(t *testing.T) {
 	})
 
 	t.Run("success - relação não existe", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		mockService.On("HasUserCategoryRelation", mock.Anything, int64(1), int64(3)).Return(false, nil)
@@ -244,7 +244,7 @@ func TestUserCategoryRelationHandler_HasUserCategoryRelation(t *testing.T) {
 	})
 
 	t.Run("error - user_id inválido", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/user-category-relation/abc/category/2", nil)
@@ -261,7 +261,7 @@ func TestUserCategoryRelationHandler_HasUserCategoryRelation(t *testing.T) {
 	})
 
 	t.Run("error - category_id inválido", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/user-category-relation/1/category/xyz", nil)
@@ -278,7 +278,7 @@ func TestUserCategoryRelationHandler_HasUserCategoryRelation(t *testing.T) {
 	})
 
 	t.Run("error - falha no serviço", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		mockService.On("HasUserCategoryRelation", mock.Anything, int64(1), int64(2)).Return(false, errors.New("erro interno")).Once()
@@ -303,7 +303,7 @@ func TestUserCategoryRelationHandler_Delete(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("success - relação deletada com sucesso", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		userID := int64(1)
@@ -328,7 +328,7 @@ func TestUserCategoryRelationHandler_Delete(t *testing.T) {
 	})
 
 	t.Run("bad request - IDs inválidos", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodDelete, "/relations/abc/xyz", nil)
@@ -345,7 +345,7 @@ func TestUserCategoryRelationHandler_Delete(t *testing.T) {
 	})
 
 	t.Run("internal error - erro ao deletar relação", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		userID := int64(2)
@@ -374,7 +374,7 @@ func TestUserCategoryRelationHandler_DeleteAll(t *testing.T) {
 	logger := logger.NewLoggerAdapter(logrus.New())
 
 	t.Run("success - todas as relações deletadas com sucesso", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		userID := int64(1)
@@ -397,7 +397,7 @@ func TestUserCategoryRelationHandler_DeleteAll(t *testing.T) {
 	})
 
 	t.Run("bad request - ID de usuário inválido", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodDelete, "/relations/user/abc", nil)
@@ -413,7 +413,7 @@ func TestUserCategoryRelationHandler_DeleteAll(t *testing.T) {
 	})
 
 	t.Run("internal error - erro ao deletar todas as relações", func(t *testing.T) {
-		mockService := new(service_mock.MockUserCategoryRelationService)
+		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
 
 		userID := int64(2)
