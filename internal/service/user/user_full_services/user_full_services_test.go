@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	mock_tx "github.com/WagaoCarvalho/backend_store_go/infra/mock"
+	mock_repo "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo"
 	model_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
@@ -12,9 +14,6 @@ import (
 	model_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
 	model_user_full "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
-	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
-	repo_tx "github.com/WagaoCarvalho/backend_store_go/internal/repo/mocks"
 	repo_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
 	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_full_repositories"
 	"github.com/sirupsen/logrus"
@@ -64,8 +63,8 @@ func createValidUserFull() *model_user_full.UserFull {
 func TestCreateFull_Validation(t *testing.T) {
 	// Setup dos mocks
 	mockUserRepo := new(repo_user.MockUserFullRepository)
-	mockAddressRepo := new(repo_address.MockAddressRepository)
-	mockContactRepo := new(repo_contact.MockContactRepository)
+	mockAddressRepo := new(mock_repo.MockAddressRepository)
+	mockContactRepo := new(mock_repo.MockContactRepository)
 	mockRelationRepo := new(repo_user_cat_rel.MockUserCategoryRelationRepo)
 	mockHasher := new(MockHasher)
 	logger := logger.NewLoggerAdapter(logrus.New())
@@ -166,19 +165,19 @@ func TestUserService_CreateFull(t *testing.T) {
 
 	setup := func() (
 		*repo_user.MockUserFullRepository,
-		*repo_address.MockAddressRepository,
-		*repo_contact.MockContactRepository,
+		*mock_repo.MockAddressRepository,
+		*mock_repo.MockContactRepository,
 		*repo_user_cat_rel.MockUserCategoryRelationRepo,
-		*repo_tx.MockTx,
+		*mock_tx.MockTx,
 		*MockHasher,
 		UserFullService,
 	) {
 		mockUserRepo := new(repo_user.MockUserFullRepository)
-		mockAddressRepo := new(repo_address.MockAddressRepository)
-		mockContactRepo := new(repo_contact.MockContactRepository)
+		mockAddressRepo := new(mock_repo.MockAddressRepository)
+		mockContactRepo := new(mock_repo.MockContactRepository)
 		mockRelationRepo := new(repo_user_cat_rel.MockUserCategoryRelationRepo)
 		mockHasher := new(MockHasher)
-		mockTx := new(repo_tx.MockTx)
+		mockTx := new(mock_tx.MockTx)
 
 		userService := NewUserFullService(
 			mockUserRepo,

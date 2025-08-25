@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	mock_tx "github.com/WagaoCarvalho/backend_store_go/infra/mock"
+	mock_repo "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo"
 	model_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	model_supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
@@ -12,9 +14,6 @@ import (
 	model_supplier_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
 	model_full "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
-	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
-	repo_tx "github.com/WagaoCarvalho/backend_store_go/internal/repo/mocks"
 	repo_relation "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
 	repo_supplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_full_repositories"
 	"github.com/sirupsen/logrus"
@@ -25,8 +24,8 @@ import (
 func TestCreateFull_Validation(t *testing.T) {
 	// Setup dos mocks
 	mockSupplierRepo := new(repo_supplier.MockSupplierFullRepository)
-	mockAddressRepo := new(repo_address.MockAddressRepository)
-	mockContactRepo := new(repo_contact.MockContactRepository)
+	mockAddressRepo := new(mock_repo.MockAddressRepository)
+	mockContactRepo := new(mock_repo.MockContactRepository)
 	mockRelationRepo := new(repo_relation.MockSupplierCategoryRelationRepo)
 	logger := logger.NewLoggerAdapter(logrus.New())
 
@@ -133,17 +132,17 @@ func TestSupplierService_CreateFull(t *testing.T) {
 
 	setup := func() (
 		*repo_supplier.MockSupplierFullRepository,
-		*repo_address.MockAddressRepository,
-		*repo_contact.MockContactRepository,
+		*mock_repo.MockAddressRepository,
+		*mock_repo.MockContactRepository,
 		*repo_relation.MockSupplierCategoryRelationRepo,
-		*repo_tx.MockTx,
+		*mock_tx.MockTx,
 		SupplierFullService,
 	) {
 		mockSupplierRepo := new(repo_supplier.MockSupplierFullRepository)
-		mockAddressRepo := new(repo_address.MockAddressRepository)
-		mockContactRepo := new(repo_contact.MockContactRepository)
+		mockAddressRepo := new(mock_repo.MockAddressRepository)
+		mockContactRepo := new(mock_repo.MockContactRepository)
 		mockRelationRepo := new(repo_relation.MockSupplierCategoryRelationRepo)
-		mockTx := new(repo_tx.MockTx)
+		mockTx := new(mock_tx.MockTx)
 
 		supplierService := NewSupplierFullService(
 			mockSupplierRepo,
