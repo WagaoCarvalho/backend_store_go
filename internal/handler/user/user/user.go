@@ -162,7 +162,7 @@ func (h *UserHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 	version, err := h.service.GetVersionByID(ctx, id)
 	if err != nil {
 		status := http.StatusInternalServerError
-		if errors.Is(err, err_msg.ErrUserNotFound) {
+		if errors.Is(err, err_msg.ErrNotFound) {
 			status = http.StatusNotFound
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id": id,

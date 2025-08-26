@@ -33,6 +33,7 @@ func NewSupplierCategoryRelationRepo(db *pgxpool.Pool, lg logger.LoggerAdapterIn
 }
 
 func (r *supplierCategoryRelationRepo) Create(ctx context.Context, rel *models.SupplierCategoryRelations) (*models.SupplierCategoryRelations, error) {
+	const ref = "[supplierCategoryRelationRepository - Create] - "
 	const query = `
 		INSERT INTO supplier_category_relations (supplier_id, category_id, created_at)
 		VALUES ($1, $2, NOW())
@@ -41,14 +42,31 @@ func (r *supplierCategoryRelationRepo) Create(ctx context.Context, rel *models.S
 
 	err := r.db.QueryRow(ctx, query, rel.SupplierID, rel.CategoryID).Scan(&rel.CreatedAt)
 	if err != nil {
-		r.logger.Error(ctx, err, "[Create] falha ao inserir relação", map[string]any{
-			"supplier_id": rel.SupplierID,
-			"category_id": rel.CategoryID,
-		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrSupplierCreateRelation, err)
+		switch {
+		case err_msg_db.IsDuplicateKey(err):
+			r.logger.Warn(ctx, ref+logger.LogForeignKeyHasExists, map[string]any{
+				"supplier_id": rel.SupplierID,
+				"category_id": rel.CategoryID,
+			})
+			return nil, err_msg.ErrRelationExists
+
+		case err_msg_db.IsForeignKeyViolation(err):
+			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
+				"supplier_id": rel.SupplierID,
+				"category_id": rel.CategoryID,
+			})
+			return nil, err_msg.ErrDbInvalidForeignKey
+
+		default:
+			r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
+				"supplier_id": rel.SupplierID,
+				"category_id": rel.CategoryID,
+			})
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
+		}
 	}
 
-	r.logger.Info(ctx, "[Create] relação criada com sucesso", map[string]any{
+	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
 		"supplier_id": rel.SupplierID,
 		"category_id": rel.CategoryID,
 	})
@@ -79,7 +97,7 @@ func (r *supplierCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, 
 				"supplier_id": relation.SupplierID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, err_msg.ErrSupplierRelationExists
+			return nil, err_msg.ErrRelationExists
 
 		case err_msg_db.IsForeignKeyViolation(err):
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
@@ -93,7 +111,7 @@ func (r *supplierCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, 
 				"supplier_id": relation.SupplierID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrSupplierCreateRelation, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
 		}
 	}
 
@@ -106,9 +124,11 @@ func (r *supplierCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, 
 }
 
 func (r *supplierCategoryRelationRepo) HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {
+	const ref = "[supplierCategoryRelationRepository - HasRelation] - "
 	const query = `
 		SELECT 1 FROM supplier_category_relations
-		WHERE supplier_id = $1 AND category_id = $2 LIMIT 1;
+		WHERE supplier_id = $1 AND category_id = $2
+		LIMIT 1;
 	`
 
 	var exists int
@@ -117,15 +137,22 @@ func (r *supplierCategoryRelationRepo) HasRelation(ctx context.Context, supplier
 		if errors.Is(err, pgx.ErrNoRows) {
 			return false, nil
 		}
-		r.logger.Error(ctx, err, "[HasRelation] erro ao verificar existência", map[string]any{
-			"supplier_id": supplierID, "category_id": categoryID,
+		r.logger.Error(ctx, err, ref+logger.LogVerificationError, map[string]any{
+			"supplier_id": supplierID,
+			"category_id": categoryID,
 		})
-		return false, fmt.Errorf("%w: %v", err_msg.ErrCheckRelation, err)
+		return false, fmt.Errorf("%w: %v", err_msg.ErrRelationCheck, err)
 	}
+
+	r.logger.Info(ctx, ref+logger.LogVerificationSuccess, map[string]any{
+		"supplier_id": supplierID,
+		"category_id": categoryID,
+	})
 	return true, nil
 }
 
 func (r *supplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {
+	const ref = "[supplierCategoryRelationRepository - GetBySupplierID] - "
 	const query = `
 		SELECT supplier_id, category_id, created_at
 		FROM supplier_category_relations
@@ -135,8 +162,8 @@ func (r *supplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supp
 
 	rows, err := r.db.Query(ctx, query, supplierID)
 	if err != nil {
-		r.logger.Error(ctx, err, "[GetBySupplierID] erro na consulta", map[string]any{"supplier_id": supplierID})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetRelationsBySupplier, err)
+		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"supplier_id": supplierID})
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 	defer rows.Close()
 
@@ -144,20 +171,23 @@ func (r *supplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supp
 	for rows.Next() {
 		rel := new(models.SupplierCategoryRelations)
 		if err := rows.Scan(&rel.SupplierID, &rel.CategoryID, &rel.CreatedAt); err != nil {
-			r.logger.Error(ctx, err, "[GetBySupplierID] erro ao escanear linha", map[string]any{"supplier_id": supplierID})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrScanRelationRow, err)
+			r.logger.Error(ctx, err, ref+logger.LogScanError, map[string]any{"supplier_id": supplierID})
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrScan, err)
 		}
 		rels = append(rels, rel)
 	}
 
 	if err := rows.Err(); err != nil {
-		r.logger.Error(ctx, err, "[GetBySupplierID] erro de iteração", map[string]any{"supplier_id": supplierID})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrScanRelationRow, err)
+		r.logger.Error(ctx, err, ref+logger.LogIterateError, map[string]any{"supplier_id": supplierID})
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrScan, err)
 	}
+
+	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{"supplier_id": supplierID, "count": len(rels)})
 	return rels, nil
 }
 
 func (r *supplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error) {
+	const ref = "[supplierCategoryRelationRepository - GetByCategoryID] - "
 	const query = `
 		SELECT supplier_id, category_id, created_at
 		FROM supplier_category_relations
@@ -167,8 +197,8 @@ func (r *supplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, cate
 
 	rows, err := r.db.Query(ctx, query, categoryID)
 	if err != nil {
-		r.logger.Error(ctx, err, "[GetByCategoryID] erro na consulta", map[string]any{"category_id": categoryID})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrSupplierGetRelationsByCategory, err)
+		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"category_id": categoryID})
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 	defer rows.Close()
 
@@ -176,20 +206,23 @@ func (r *supplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, cate
 	for rows.Next() {
 		rel := new(models.SupplierCategoryRelations)
 		if err := rows.Scan(&rel.SupplierID, &rel.CategoryID, &rel.CreatedAt); err != nil {
-			r.logger.Error(ctx, err, "[GetByCategoryID] erro ao escanear linha", map[string]any{"category_id": categoryID})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrScanRelationRow, err)
+			r.logger.Error(ctx, err, ref+logger.LogScanError, map[string]any{"category_id": categoryID})
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrScan, err)
 		}
 		rels = append(rels, rel)
 	}
 
 	if err := rows.Err(); err != nil {
-		r.logger.Error(ctx, err, "[GetByCategoryID] erro de iteração", map[string]any{"category_id": categoryID})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrScanRelationRow, err)
+		r.logger.Error(ctx, err, ref+logger.LogIterateError, map[string]any{"category_id": categoryID})
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrScan, err)
 	}
+
+	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{"category_id": categoryID, "count": len(rels)})
 	return rels, nil
 }
 
 func (r *supplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, categoryID int64) error {
+	const ref = "[supplierCategoryRelationRepository - Delete] - "
 	const query = `
 		DELETE FROM supplier_category_relations
 		WHERE supplier_id = $1 AND category_id = $2;
@@ -197,19 +230,35 @@ func (r *supplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, c
 
 	cmd, err := r.db.Exec(ctx, query, supplierID, categoryID)
 	if err != nil {
-		r.logger.Error(ctx, err, "[Delete] erro ao deletar relação", map[string]any{
-			"supplier_id": supplierID, "category_id": categoryID,
-		})
-		return fmt.Errorf("%w: %v", err_msg.ErrSupplierDeleteRelation, err)
+		switch {
+		case err_msg_db.IsForeignKeyViolation(err):
+			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
+				"supplier_id": supplierID,
+				"category_id": categoryID,
+			})
+			return err_msg.ErrDbInvalidForeignKey
+		default:
+			r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
+				"supplier_id": supplierID,
+				"category_id": categoryID,
+			})
+			return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
+		}
 	}
 
 	if cmd.RowsAffected() == 0 {
-		return err_msg.ErrSupplierRelationNotFound
+		return err_msg.ErrNotFound
 	}
+
+	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
+		"supplier_id": supplierID,
+		"category_id": categoryID,
+	})
 	return nil
 }
 
 func (r *supplierCategoryRelationRepo) DeleteAllBySupplierId(ctx context.Context, supplierID int64) error {
+	const ref = "[supplierCategoryRelationRepository - DeleteAllBySupplierId] - "
 	const query = `
 		DELETE FROM supplier_category_relations
 		WHERE supplier_id = $1;
@@ -217,10 +266,20 @@ func (r *supplierCategoryRelationRepo) DeleteAllBySupplierId(ctx context.Context
 
 	_, err := r.db.Exec(ctx, query, supplierID)
 	if err != nil {
-		r.logger.Error(ctx, err, "[DeleteAllBySupplierId] erro ao deletar todas relações", map[string]any{
-			"supplier_id": supplierID,
-		})
-		return fmt.Errorf("%w: %v", err_msg.ErrDeleteAllRelationsBySupplier, err)
+		switch {
+		case err_msg_db.IsForeignKeyViolation(err):
+			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
+				"supplier_id": supplierID,
+			})
+			return err_msg.ErrDbInvalidForeignKey
+		default:
+			r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
+				"supplier_id": supplierID,
+			})
+			return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
+		}
 	}
+
+	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{"supplier_id": supplierID})
 	return nil
 }

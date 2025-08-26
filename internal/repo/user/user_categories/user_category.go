@@ -51,7 +51,7 @@ func (r *userCategoryRepository) Create(ctx context.Context, category *models.Us
 			"name":        category.Name,
 			"description": category.Description,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreateCategory, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
@@ -90,13 +90,13 @@ func (r *userCategoryRepository) GetByID(ctx context.Context, id int64) (*models
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"category_id": id,
 			})
-			return nil, err_msg.ErrCategoryNotFound
+			return nil, err_msg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"category_id": id,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetCategoryByID, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -119,7 +119,7 @@ func (r *userCategoryRepository) GetAll(ctx context.Context) ([]*models.UserCate
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogGetError, nil)
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetCategories, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 	defer rows.Close()
 
@@ -129,14 +129,14 @@ func (r *userCategoryRepository) GetAll(ctx context.Context) ([]*models.UserCate
 		if err := rows.Scan(&category.ID, &category.Name, &category.Description,
 			&category.CreatedAt, &category.UpdatedAt); err != nil {
 			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, nil)
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrScanCategory, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrScan, err)
 		}
 		categories = append(categories, category)
 	}
 
 	if err := rows.Err(); err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogIterateError, nil)
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrIterateCategories, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrIterate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -177,14 +177,14 @@ func (r *userCategoryRepository) Update(ctx context.Context, category *models.Us
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"category_id": category.ID,
 			})
-			return err_msg.ErrCategoryNotFound
+			return err_msg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"category_id": category.ID,
 			"name":        category.Name,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrUpdateCategory, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -207,14 +207,14 @@ func (r *userCategoryRepository) Delete(ctx context.Context, id int64) error {
 		r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"category_id": id,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrDeleteCategory, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
 	}
 
 	if result.RowsAffected() == 0 {
 		r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 			"category_id": id,
 		})
-		return err_msg.ErrCategoryNotFound
+		return err_msg.ErrNotFound
 	}
 
 	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{

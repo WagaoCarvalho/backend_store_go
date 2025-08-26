@@ -74,22 +74,22 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"address_id": id,
 		})
-		return nil, err_msg.ErrAddressID
+		return nil, err_msg.ErrID
 	}
 
 	address, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrAddressNotFound) {
+		if errors.Is(err, err_msg.ErrNotFound) {
 			s.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
 				"address_id": id,
 			})
-			return nil, err_msg.ErrAddressNotFound
+			return nil, err_msg.ErrNotFound
 		}
 
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"address_id": id,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrAddressGet, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -109,7 +109,7 @@ func (s *addressService) GetByUserID(ctx context.Context, id int64) ([]*models.A
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"user_id": id,
 		})
-		return nil, err_msg.ErrAddressID
+		return nil, err_msg.ErrID
 	}
 
 	addresses, err := s.repo.GetByUserID(ctx, id)
@@ -138,7 +138,7 @@ func (s *addressService) GetByClientID(ctx context.Context, id int64) ([]*models
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"client_id": id,
 		})
-		return nil, err_msg.ErrAddressID
+		return nil, err_msg.ErrID
 	}
 
 	addresses, err := s.repo.GetByClientID(ctx, id)
@@ -167,7 +167,7 @@ func (s *addressService) GetBySupplierID(ctx context.Context, id int64) ([]*mode
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"supplier_id": id,
 		})
-		return nil, err_msg.ErrAddressID
+		return nil, err_msg.ErrID
 	}
 
 	addresses, err := s.repo.GetBySupplierID(ctx, id)
@@ -206,7 +206,7 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"address_id": address.ID,
 		})
-		return err_msg.ErrAddressID
+		return err_msg.ErrID
 	}
 
 	err := s.repo.Update(ctx, address)
@@ -214,7 +214,7 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"address_id": address.ID,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrAddressUpdate, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -233,14 +233,14 @@ func (s *addressService) Delete(ctx context.Context, id int64) error {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"address_id": id,
 		})
-		return err_msg.ErrAddressID
+		return err_msg.ErrID
 	}
 
 	if err := s.repo.Delete(ctx, id); err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"address_id": id,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrAddressDelete, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{

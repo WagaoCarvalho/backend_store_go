@@ -313,7 +313,7 @@ func TestSupplierHandler_GetByName(t *testing.T) {
 	t.Run("Erro fornecedor não encontrado", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetByName", mock.Anything, "notfound").Return(nil, err_msg.ErrSupplierNotFound).Once()
+		mockService.On("GetByName", mock.Anything, "notfound").Return(nil, err_msg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/suppliers/name/notfound", nil)
 		req = mux.SetURLVars(req, map[string]string{"name": "notfound"})
@@ -390,7 +390,7 @@ func TestSupplierHandler_GetVersionByID(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		mockService.On("GetVersionByID", mock.Anything, int64(2)).
-			Return(int64(0), err_msg.ErrSupplierNotFound).Once()
+			Return(int64(0), err_msg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/suppliers/2/version", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "2"})
@@ -403,7 +403,7 @@ func TestSupplierHandler_GetVersionByID(t *testing.T) {
 		var resp utils.DefaultResponse
 		err := json.Unmarshal(rec.Body.Bytes(), &resp)
 		assert.NoError(t, err)
-		assert.Equal(t, err_msg.ErrSupplierNotFound.Error(), resp.Message)
+		assert.Equal(t, err_msg.ErrNotFound.Error(), resp.Message)
 
 		mockService.AssertExpectations(t)
 	})
@@ -530,7 +530,7 @@ func TestSupplierHandler_Update(t *testing.T) {
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == supplierID && s.Version == 2
-		})).Return(nil, err_msg.ErrSupplierVersionConflict).Once()
+		})).Return(nil, err_msg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -665,7 +665,7 @@ func TestSupplierHandler_Enable(t *testing.T) {
 		}, nil).Once()
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == 1 && s.Version == 1
-		})).Return(nil, err_msg.ErrSupplierVersionConflict).Once()
+		})).Return(nil, err_msg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/enable", bytes.NewReader([]byte(`{"version":1}`)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -814,7 +814,7 @@ func TestSupplierHandler_Disable(t *testing.T) {
 		}, nil).Once()
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == 1 && s.Version == 1
-		})).Return(nil, err_msg.ErrSupplierVersionConflict).Once()
+		})).Return(nil, err_msg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/disable", bytes.NewReader([]byte(`{"version":1}`)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})

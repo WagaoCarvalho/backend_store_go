@@ -346,7 +346,7 @@ func TestProductHandler_EnableProduct(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(2)
 
-		mockService.On("EnableProduct", mock.Anything, productID).Return(err_msg.ErrProductNotFound).Once()
+		mockService.On("EnableProduct", mock.Anything, productID).Return(err_msg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/enable/2", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "2"})
@@ -365,7 +365,7 @@ func TestProductHandler_EnableProduct(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(3)
 
-		mockService.On("EnableProduct", mock.Anything, productID).Return(err_msg.ErrProductVersionConflict).Once()
+		mockService.On("EnableProduct", mock.Anything, productID).Return(err_msg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/enable/3", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "3"})
@@ -467,7 +467,7 @@ func TestProductHandler_DisableProduct(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(2)
 
-		mockService.On("DisableProduct", mock.Anything, productID).Return(err_msg.ErrProductNotFound).Once()
+		mockService.On("DisableProduct", mock.Anything, productID).Return(err_msg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/disable/2", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "2"})
@@ -486,7 +486,7 @@ func TestProductHandler_DisableProduct(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(3)
 
-		mockService.On("DisableProduct", mock.Anything, productID).Return(err_msg.ErrProductVersionConflict).Once()
+		mockService.On("DisableProduct", mock.Anything, productID).Return(err_msg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/disable/3", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "3"})
@@ -1103,7 +1103,7 @@ func TestProductHandler_UpdateStock(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		mockService.On("UpdateStock", mock.Anything, int64(1), 10).Return(err_msg.ErrProductNotFound).Once()
+		mockService.On("UpdateStock", mock.Anything, int64(1), 10).Return(err_msg.ErrNotFound).Once()
 
 		handler.UpdateStock(w, req)
 
@@ -1122,7 +1122,7 @@ func TestProductHandler_UpdateStock(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		mockService.On("UpdateStock", mock.Anything, int64(1), 10).Return(err_msg.ErrProductVersionConflict).Once()
+		mockService.On("UpdateStock", mock.Anything, int64(1), 10).Return(err_msg.ErrVersionConflict).Once()
 
 		handler.UpdateStock(w, req)
 
@@ -1189,7 +1189,7 @@ func TestProductHandler_IncreaseStock(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		mockService.On("IncreaseStock", mock.Anything, int64(1), 5).Return(err_msg.ErrProductNotFound)
+		mockService.On("IncreaseStock", mock.Anything, int64(1), 5).Return(err_msg.ErrNotFound)
 
 		handler.IncreaseStock(w, req)
 
@@ -1206,7 +1206,7 @@ func TestProductHandler_IncreaseStock(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		mockService.On("IncreaseStock", mock.Anything, int64(1), 5).Return(err_msg.ErrProductVersionConflict)
+		mockService.On("IncreaseStock", mock.Anything, int64(1), 5).Return(err_msg.ErrVersionConflict)
 
 		handler.IncreaseStock(w, req)
 
@@ -1303,7 +1303,7 @@ func TestProductHandler_DecreaseStock(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		mockService.On("DecreaseStock", mock.Anything, int64(1), 5).Return(err_msg.ErrProductNotFound)
+		mockService.On("DecreaseStock", mock.Anything, int64(1), 5).Return(err_msg.ErrNotFound)
 
 		handler.DecreaseStock(w, req)
 
@@ -1320,7 +1320,7 @@ func TestProductHandler_DecreaseStock(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		mockService.On("DecreaseStock", mock.Anything, int64(1), 5).Return(err_msg.ErrProductVersionConflict)
+		mockService.On("DecreaseStock", mock.Anything, int64(1), 5).Return(err_msg.ErrVersionConflict)
 
 		handler.DecreaseStock(w, req)
 
@@ -1404,7 +1404,7 @@ func TestProductHandler_GetStock(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		mockService.On("GetStock", mock.Anything, int64(1)).Return(0, err_msg.ErrProductNotFound)
+		mockService.On("GetStock", mock.Anything, int64(1)).Return(0, err_msg.ErrNotFound)
 
 		handler.GetStock(w, req)
 
@@ -1525,7 +1525,7 @@ func TestProductHandler_EnableDiscount(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(2)
 
-		mockService.On("EnableDiscount", mock.Anything, productID).Return(err_msg.ErrProductNotFound).Once()
+		mockService.On("EnableDiscount", mock.Anything, productID).Return(err_msg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/discount/enable/2", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "2"})
@@ -1544,7 +1544,7 @@ func TestProductHandler_EnableDiscount(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(1)
 
-		mockService.On("EnableDiscount", mock.Anything, productID).Return(err_msg.ErrProductNotFound).Once()
+		mockService.On("EnableDiscount", mock.Anything, productID).Return(err_msg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/discount/enable/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -1644,7 +1644,7 @@ func TestProductHandler_DisableDiscount(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(99)
 
-		mockService.On("DisableDiscount", mock.Anything, productID).Return(err_msg.ErrProductNotFound).Once()
+		mockService.On("DisableDiscount", mock.Anything, productID).Return(err_msg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/discount/disable/99", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "99"})
@@ -1769,7 +1769,7 @@ func TestProductHandler_ApplyDiscount(t *testing.T) {
 		percent := 10.0
 
 		mockService.On("ApplyDiscount", mock.Anything, productID, percent).
-			Return(nil, err_msg.ErrProductNotFound).Once()
+			Return(nil, err_msg.ErrNotFound).Once()
 
 		body := bytes.NewBufferString(`{"percent": 10}`)
 		req := httptest.NewRequest(http.MethodPatch, "/product/discount/1", body)

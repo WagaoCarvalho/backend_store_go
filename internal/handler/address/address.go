@@ -280,11 +280,11 @@ func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 				"erro":       err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusNotFound)
-		case errors.Is(err, err_msg.ErrAddressID):
+		case errors.Is(err, err_msg.ErrID):
 			h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{
 				"erro": err.Error(),
 			})
-			utils.ErrorResponse(w, err_msg.ErrAddressID, http.StatusBadRequest)
+			utils.ErrorResponse(w, err_msg.ErrID, http.StatusBadRequest)
 		default:
 			h.logger.Error(r.Context(), err, ref+logger.LogDeleteError, map[string]any{
 				"address_id": id,

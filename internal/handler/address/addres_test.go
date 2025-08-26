@@ -550,7 +550,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 		mockSvc := new(mock_address.MockAddressService)
 		handler := NewAddressHandler(mockSvc, logAdapter)
 
-		mockSvc.On("Delete", mock.Anything, int64(2)).Return(err_msg.ErrAddressID).Once()
+		mockSvc.On("Delete", mock.Anything, int64(2)).Return(err_msg.ErrID).Once()
 
 		req := newRequestWithVars("DELETE", "/addresses/2", nil, map[string]string{"id": "2"})
 		w := httptest.NewRecorder()
@@ -561,7 +561,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		assert.Contains(t, w.Body.String(), "erro id deve ser maior que 0")
+		assert.Contains(t, w.Body.String(), "erro ID inválido")
 
 		mockSvc.AssertExpectations(t)
 	})

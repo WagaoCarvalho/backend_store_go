@@ -58,14 +58,14 @@ func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation 
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, err_msg.ErrInvalidForeignKey
+			return nil, err_msg.ErrDbInvalidForeignKey
 
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreateRelation, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
 		}
 	}
 
@@ -104,14 +104,14 @@ func (r *userCategoryRelationRepositories) CreateTx(ctx context.Context, tx pgx.
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, err_msg.ErrInvalidForeignKey
+			return nil, err_msg.ErrDbInvalidForeignKey
 
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreateRelation, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
 		}
 	}
 
@@ -140,7 +140,7 @@ func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.C
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": userID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetRelationsByUser, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 	defer rows.Close()
 
@@ -151,7 +151,7 @@ func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.C
 			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, map[string]any{
 				"user_id": userID,
 			})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrScanRelation, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrScan, err)
 		}
 		relations = append(relations, &rel)
 	}
@@ -160,7 +160,7 @@ func (r *userCategoryRelationRepositories) GetAllRelationsByUserID(ctx context.C
 		r.logger.Error(ctx, err, ref+logger.LogIterateError, map[string]any{
 			"user_id": userID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrIterateRelations, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrIterate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -200,7 +200,7 @@ func (r *userCategoryRelationRepositories) HasUserCategoryRelation(ctx context.C
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
-		return false, fmt.Errorf("%w: %v", err_msg.ErrCheckRelationExists, err)
+		return false, fmt.Errorf("%w: %v", err_msg.ErrRelationCheck, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogCheckSuccess, map[string]any{
@@ -229,7 +229,7 @@ func (r *userCategoryRelationRepositories) Delete(ctx context.Context, userID, c
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrDeleteRelation, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
 	}
 
 	if result.RowsAffected() == 0 {
@@ -237,7 +237,7 @@ func (r *userCategoryRelationRepositories) Delete(ctx context.Context, userID, c
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
-		return err_msg.ErrRelationNotFound
+		return err_msg.ErrNotFound
 	}
 
 	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
@@ -264,7 +264,7 @@ func (r *userCategoryRelationRepositories) DeleteAll(ctx context.Context, userID
 		r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"user_id": userID,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrDeleteAllUserRelations, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{

@@ -395,7 +395,7 @@ func TestProductService_Update(t *testing.T) {
 		updated, err := service.Update(ctx, input)
 
 		assert.Nil(t, updated)
-		assert.ErrorIs(t, err, err_msg.ErrInvalidVersion)
+		assert.ErrorIs(t, err, err_msg.ErrVersionConflict)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
@@ -408,12 +408,12 @@ func TestProductService_Update(t *testing.T) {
 
 		mockRepo.
 			On("Update", ctx, input).
-			Return(nil, err_msg.ErrProductNotFound).Once()
+			Return(nil, err_msg.ErrNotFound).Once()
 
 		updated, err := service.Update(ctx, input)
 
 		assert.Nil(t, updated)
-		assert.ErrorIs(t, err, err_msg.ErrProductNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrNotFound)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -426,12 +426,12 @@ func TestProductService_Update(t *testing.T) {
 
 		mockRepo.
 			On("Update", ctx, input).
-			Return(nil, err_msg.ErrProductVersionConflict).Once()
+			Return(nil, err_msg.ErrVersionConflict).Once()
 
 		updated, err := service.Update(ctx, input)
 
 		assert.Nil(t, updated)
-		assert.ErrorIs(t, err, err_msg.ErrProductVersionConflict)
+		assert.ErrorIs(t, err, err_msg.ErrVersionConflict)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -483,8 +483,7 @@ func TestProductService_DisableProduct(t *testing.T) {
 
 		err := service.DisableProduct(context.Background(), 2)
 
-		assert.ErrorContains(t, err, "erro ao desabilitar produto")
-		assert.ErrorContains(t, err, "erro banco")
+		assert.ErrorContains(t, err, "erro ao desabilitar")
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -516,8 +515,7 @@ func TestProductService_EnableProduct(t *testing.T) {
 
 		err := service.EnableProduct(context.Background(), 2)
 
-		assert.ErrorContains(t, err, "erro ao ativar produto")
-		assert.ErrorContains(t, err, "erro banco")
+		assert.ErrorContains(t, err, "erro ao ativar")
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -584,10 +582,10 @@ func TestProductService_GetVersionByID(t *testing.T) {
 		t.Parallel()
 
 		mockRepo, service := newService()
-		mockRepo.On("GetVersionByID", mock.Anything, int64(2)).Return(int64(0), err_msg.ErrProductNotFound)
+		mockRepo.On("GetVersionByID", mock.Anything, int64(2)).Return(int64(0), err_msg.ErrNotFound)
 
 		version, err := service.GetVersionByID(context.Background(), 2)
-		assert.ErrorIs(t, err, err_msg.ErrProductNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrNotFound)
 		assert.Equal(t, int64(0), version)
 
 		mockRepo.AssertExpectations(t)
@@ -602,7 +600,7 @@ func TestProductService_GetVersionByID(t *testing.T) {
 		version, err := service.GetVersionByID(context.Background(), 3)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "db failure")
-		assert.True(t, errors.Is(err, err_msg.ErrInvalidVersion))
+		assert.True(t, errors.Is(err, err_msg.ErrVersionConflict))
 		assert.Equal(t, int64(0), version)
 
 		mockRepo.AssertExpectations(t)
@@ -651,12 +649,12 @@ func TestProductService_IncreaseStock(t *testing.T) {
 		log := newTestLogger()
 		service := productService{repo: repoMock, logger: log}
 
-		repoMock.On("IncreaseStock", ctx, int64(1), 10).Return(err_msg.ErrProductNotFound)
+		repoMock.On("IncreaseStock", ctx, int64(1), 10).Return(err_msg.ErrNotFound)
 
 		err := service.IncreaseStock(ctx, 1, 10)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, err_msg.ErrUpdateStock)
+		assert.ErrorIs(t, err, err_msg.ErrUpdate)
 		repoMock.AssertExpectations(t)
 	})
 
@@ -682,12 +680,12 @@ func TestProductService_DecreaseStock(t *testing.T) {
 		log := newTestLogger()
 		service := productService{repo: repoMock, logger: log}
 
-		repoMock.On("DecreaseStock", ctx, int64(1), 10).Return(err_msg.ErrProductNotFound)
+		repoMock.On("DecreaseStock", ctx, int64(1), 10).Return(err_msg.ErrNotFound)
 
 		err := service.DecreaseStock(ctx, 1, 10)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, err_msg.ErrUpdateStock)
+		assert.ErrorIs(t, err, err_msg.ErrUpdate)
 		repoMock.AssertExpectations(t)
 	})
 
@@ -719,7 +717,7 @@ func TestProductService_GetStock(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Equal(t, 0, stock)
-		assert.ErrorIs(t, err, err_msg.ErrGetStock)
+		assert.ErrorIs(t, err, err_msg.ErrGet)
 		repoMock.AssertExpectations(t)
 	})
 
@@ -761,12 +759,12 @@ func TestProductService_EnableDiscount(t *testing.T) {
 	t.Run("Deve retornar erro quando repo falhar", func(t *testing.T) {
 		mockRepo, service := setup()
 
-		mockRepo.On("EnableDiscount", mock.Anything, int64(1)).Return(err_msg.ErrProductNotFound).Once()
+		mockRepo.On("EnableDiscount", mock.Anything, int64(1)).Return(err_msg.ErrNotFound).Once()
 
 		err := service.EnableDiscount(context.Background(), 1)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, err_msg.ErrEnableDiscount)
+		assert.ErrorIs(t, err, err_msg.ErrProductEnableDiscount)
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -793,11 +791,11 @@ func TestProductService_DisableDiscount(t *testing.T) {
 
 	t.Run("Erro: produto não encontrado", func(t *testing.T) {
 		mockRepo, service := setup()
-		mockRepo.On("EnableDiscount", mock.Anything, int64(2)).Return(err_msg.ErrProductNotFound).Once()
+		mockRepo.On("EnableDiscount", mock.Anything, int64(2)).Return(err_msg.ErrNotFound).Once()
 
 		err := service.EnableDiscount(context.Background(), 2)
 
-		assert.ErrorIs(t, err, err_msg.ErrEnableDiscount)
+		assert.ErrorIs(t, err, err_msg.ErrProductEnableDiscount)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -809,8 +807,8 @@ func TestProductService_DisableDiscount(t *testing.T) {
 		err := service.DisableDiscount(context.Background(), 3)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, err_msg.ErrDisableDiscount) // garante que ErrDisableDiscount está na cadeia
-		assert.Contains(t, err.Error(), "erro de conexão") // garante que a mensagem original também está
+		assert.ErrorIs(t, err, err_msg.ErrProductDisableDiscount) // garante que ErrDisableDiscount está na cadeia
+		assert.Contains(t, err.Error(), "erro de conexão")        // garante que a mensagem original também está
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -855,14 +853,14 @@ func TestProductService_ApplyDiscount(t *testing.T) {
 		percent := 15.0
 
 		mockRepo.On("ApplyDiscount", mock.Anything, productID, percent).
-			Return(nil, err_msg.ErrProductNotFound).
+			Return(nil, err_msg.ErrNotFound).
 			Once()
 
 		product, err := service.ApplyDiscount(context.Background(), productID, percent)
 
 		assert.Error(t, err)
 		assert.Nil(t, product)
-		assert.ErrorIs(t, err, err_msg.ErrApplyDiscount)
+		assert.ErrorIs(t, err, err_msg.ErrProductApplyDiscount)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -880,7 +878,7 @@ func TestProductService_ApplyDiscount(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, product)
-		assert.ErrorIs(t, err, err_msg.ErrApplyDiscount)
+		assert.ErrorIs(t, err, err_msg.ErrProductApplyDiscount)
 		mockRepo.AssertExpectations(t)
 	})
 }

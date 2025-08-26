@@ -58,7 +58,7 @@ func TestAddressService_Create(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), err_msg.ErrAddressGet.Error())
+		assert.Contains(t, err.Error(), err_msg.ErrGet.Error())
 		assert.Contains(t, err.Error(), expectedErr.Error())
 
 		mockRepo.AssertExpectations(t)
@@ -143,16 +143,16 @@ func TestAddressService_GetByID(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.EqualError(t, err, err_msg.ErrAddressID.Error())
+		assert.EqualError(t, err, err_msg.ErrID.Error())
 	})
 
 	t.Run("endereço não encontrado", func(t *testing.T) {
 		mockRepo.On("GetByID", mock.Anything, int64(2)).
-			Return((*models.Address)(nil), err_msg.ErrAddressNotFound).Once() // Correção aqui
+			Return((*models.Address)(nil), err_msg.ErrNotFound).Once() // Correção aqui
 
 		result, err := service.GetByID(context.Background(), 2)
 
-		assert.ErrorIs(t, err, err_msg.ErrAddressNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrNotFound)
 		assert.Nil(t, result)
 		mockRepo.AssertExpectations(t)
 	})
@@ -196,17 +196,17 @@ func TestAddressService_GetByUserID(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.EqualError(t, err, err_msg.ErrAddressID.Error())
+		assert.EqualError(t, err, err_msg.ErrID.Error())
 	})
 
 	t.Run("nenhum endereço encontrado por UserID", func(t *testing.T) {
-		mockRepo.On("GetByUserID", mock.Anything, int64(2)).Return(nil, err_msg.ErrAddressNotFound)
+		mockRepo.On("GetByUserID", mock.Anything, int64(2)).Return(nil, err_msg.ErrNotFound)
 
 		result, err := service.GetByUserID(context.Background(), 2)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.EqualError(t, err, err_msg.ErrAddressNotFound.Error())
+		assert.EqualError(t, err, err_msg.ErrNotFound.Error())
 
 		mockRepo.AssertExpectations(t)
 	})
@@ -249,18 +249,18 @@ func TestAddressService_GetByClientID(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.EqualError(t, err, err_msg.ErrAddressID.Error())
+		assert.EqualError(t, err, err_msg.ErrID.Error())
 	})
 
 	t.Run("nenhum endereço encontrado por ClientID", func(t *testing.T) {
 		clientID := int64(2)
-		mockRepo.On("GetByClientID", mock.Anything, clientID).Return(nil, err_msg.ErrAddressNotFound)
+		mockRepo.On("GetByClientID", mock.Anything, clientID).Return(nil, err_msg.ErrNotFound)
 
 		result, err := service.GetByClientID(context.Background(), clientID)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.EqualError(t, err, err_msg.ErrAddressNotFound.Error())
+		assert.EqualError(t, err, err_msg.ErrNotFound.Error())
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -301,16 +301,16 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 		result, err := service.GetBySupplierID(context.Background(), 0)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, err_msg.ErrAddressID)
+		assert.ErrorIs(t, err, err_msg.ErrID)
 	})
 
 	t.Run("nenhum endereço encontrado por SupplierID", func(t *testing.T) {
 		supplierID := int64(5)
-		mockRepo.On("GetBySupplierID", mock.Anything, supplierID).Return(nil, err_msg.ErrAddressNotFound)
+		mockRepo.On("GetBySupplierID", mock.Anything, supplierID).Return(nil, err_msg.ErrNotFound)
 
 		result, err := service.GetBySupplierID(context.Background(), supplierID)
 
-		assert.ErrorIs(t, err, err_msg.ErrAddressNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrNotFound)
 		assert.Nil(t, result)
 		mockRepo.AssertExpectations(t)
 	})
@@ -362,7 +362,7 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 		}
 
 		err := service.Update(context.Background(), &address)
-		assert.ErrorIs(t, err, err_msg.ErrAddressID)
+		assert.ErrorIs(t, err, err_msg.ErrID)
 	})
 
 	t.Run("falha na validação do endereço no update", func(t *testing.T) {
@@ -430,7 +430,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 		err := service.Delete(context.Background(), 0)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, err_msg.ErrAddressID)
+		assert.ErrorIs(t, err, err_msg.ErrID)
 	})
 
 	t.Run("erro ao deletar do repositório", func(t *testing.T) {

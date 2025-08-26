@@ -55,7 +55,7 @@ func (r *userFullRepository) CreateTx(ctx context.Context, tx pgx.Tx, user *mode
 			"email":    user.Email,
 			"status":   user.Status,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreateUser, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{

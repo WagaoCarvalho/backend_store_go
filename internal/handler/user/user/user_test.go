@@ -242,7 +242,7 @@ func TestUserHandler_GetVersionByID(t *testing.T) {
 	t.Run("Erro usuário não encontrado", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetVersionByID", mock.Anything, int64(999)).Return(int64(0), err_msg.ErrUserNotFound).Once()
+		mockService.On("GetVersionByID", mock.Anything, int64(999)).Return(int64(0), err_msg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/users/999/version", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "999"})

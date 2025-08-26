@@ -44,8 +44,8 @@ func (s *supplierService) Create(ctx context.Context, supplier *models.Supplier)
 	})
 
 	if supplier == nil || supplier.Name == "" {
-		s.logger.Error(ctx, err_msg.ErrSupplierNameRequired, ref+"nome do fornecedor é obrigatório", nil)
-		return nil, err_msg.ErrSupplierNameRequired
+		s.logger.Error(ctx, err_msg.ErrInvalidData, ref+logger.LogValidateError, nil)
+		return nil, err_msg.ErrInvalidData
 	}
 
 	created, err := s.repo.Create(ctx, supplier)
@@ -54,7 +54,7 @@ func (s *supplierService) Create(ctx context.Context, supplier *models.Supplier)
 			"name": supplier.Name,
 			"cnpj": supplier.CNPJ,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrSupplierCreateFailed, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
@@ -73,7 +73,7 @@ func (s *supplierService) GetAll(ctx context.Context) ([]*models.Supplier, error
 	suppliers, err := s.repo.GetAll(ctx)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, nil)
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetSupplier, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -89,10 +89,10 @@ func (s *supplierService) GetByID(ctx context.Context, id int64) (*models.Suppli
 	})
 
 	if id <= 0 {
-		s.logger.Error(ctx, err_msg.ErrInvalidSupplierID, ref+"ID inválido", map[string]any{
+		s.logger.Error(ctx, err_msg.ErrID, ref+"ID inválido", map[string]any{
 			"supplier_id": id,
 		})
-		return nil, err_msg.ErrInvalidSupplierID
+		return nil, err_msg.ErrID
 	}
 
 	supplier, err := s.repo.GetByID(ctx, id)
@@ -100,14 +100,14 @@ func (s *supplierService) GetByID(ctx context.Context, id int64) (*models.Suppli
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"supplier_id": id,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetSupplier, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	if supplier == nil {
 		s.logger.Warn(ctx, ref+"fornecedor não encontrado", map[string]any{
 			"supplier_id": id,
 		})
-		return nil, err_msg.ErrSupplierNotFound
+		return nil, err_msg.ErrNotFound
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -124,10 +124,10 @@ func (s *supplierService) GetByName(ctx context.Context, name string) ([]*models
 	})
 
 	if name == "" {
-		s.logger.Error(ctx, err_msg.ErrInvalidSupplierName, ref+"Nome inválido", map[string]any{
+		s.logger.Error(ctx, err_msg.ErrInvalidData, ref+logger.LogValidateError, map[string]any{
 			"supplier_name": name,
 		})
-		return nil, err_msg.ErrInvalidSupplierName
+		return nil, err_msg.ErrInvalidData
 	}
 
 	suppliers, err := s.repo.GetByName(ctx, name)
@@ -135,14 +135,14 @@ func (s *supplierService) GetByName(ctx context.Context, name string) ([]*models
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"supplier_name": name,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGetSupplier, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	if len(suppliers) == 0 {
 		s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 			"supplier_name": name,
 		})
-		return nil, err_msg.ErrSupplierNotFound
+		return nil, err_msg.ErrNotFound
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -159,10 +159,10 @@ func (s *supplierService) GetVersionByID(ctx context.Context, id int64) (int64, 
 	})
 
 	if id <= 0 {
-		s.logger.Error(ctx, err_msg.ErrInvalidSupplierID, ref+"ID inválido", map[string]any{
+		s.logger.Error(ctx, err_msg.ErrID, ref+"ID inválido", map[string]any{
 			"supplier_id": id,
 		})
-		return 0, err_msg.ErrInvalidSupplierID
+		return 0, err_msg.ErrID
 	}
 
 	version, err := s.repo.GetVersionByID(ctx, id)
@@ -170,7 +170,7 @@ func (s *supplierService) GetVersionByID(ctx context.Context, id int64) (int64, 
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"supplier_id": id,
 		})
-		return 0, fmt.Errorf("%w: %v", err_msg.ErrGetSupplierVersion, err)
+		return 0, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -187,42 +187,42 @@ func (s *supplierService) Update(ctx context.Context, supplier *models.Supplier)
 	})
 
 	if supplier.ID <= 0 {
-		s.logger.Error(ctx, err_msg.ErrInvalidSupplierID, ref+"ID inválido", map[string]any{
+		s.logger.Error(ctx, err_msg.ErrID, ref+"ID inválido", map[string]any{
 			"supplier_id": supplier.ID,
 		})
-		return nil, err_msg.ErrInvalidSupplierID
+		return nil, err_msg.ErrID
 	}
 
 	if supplier.Name == "" {
-		s.logger.Error(ctx, err_msg.ErrSupplierNameRequired, ref+"nome do fornecedor obrigatório", nil)
-		return nil, err_msg.ErrSupplierNameRequired
+		s.logger.Error(ctx, err_msg.ErrInvalidData, ref+logger.LogValidateError, nil)
+		return nil, err_msg.ErrInvalidData
 	}
 
 	if supplier.Version == 0 {
-		s.logger.Error(ctx, err_msg.ErrSupplierVersionRequired, ref+"versão do fornecedor obrigatória", nil)
-		return nil, err_msg.ErrSupplierVersionRequired
+		s.logger.Error(ctx, err_msg.ErrVersionConflict, ref+logger.LogVersionConflict, nil)
+		return nil, err_msg.ErrVersionConflict
 	}
 
 	if err := s.repo.Update(ctx, supplier); err != nil {
 		switch {
-		case errors.Is(err, err_msg.ErrSupplierVersionConflict):
+		case errors.Is(err, err_msg.ErrVersionConflict):
 			s.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"supplier_id": supplier.ID,
 				"version":     supplier.Version,
 			})
-			return nil, err_msg.ErrSupplierVersionConflict
+			return nil, err_msg.ErrVersionConflict
 
-		case errors.Is(err, err_msg.ErrSupplierNotFound):
+		case errors.Is(err, err_msg.ErrNotFound):
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"supplier_id": supplier.ID,
 			})
-			return nil, err_msg.ErrSupplierNotFound
+			return nil, err_msg.ErrNotFound
 
 		default:
 			s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 				"supplier_id": supplier.ID,
 			})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrSupplierUpdate, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
 		}
 	}
 
@@ -240,10 +240,10 @@ func (s *supplierService) Delete(ctx context.Context, id int64) error {
 	})
 
 	if id <= 0 {
-		s.logger.Error(ctx, err_msg.ErrInvalidSupplierIDForDeletion, ref+"ID inválido para deleção", map[string]any{
+		s.logger.Error(ctx, err_msg.ErrID, ref+"ID inválido para deleção", map[string]any{
 			"supplier_id": id,
 		})
-		return err_msg.ErrInvalidSupplierIDForDeletion
+		return err_msg.ErrID
 	}
 
 	err := s.repo.Delete(ctx, id)
@@ -268,10 +268,10 @@ func (s *supplierService) Disable(ctx context.Context, id int64) error {
 	})
 
 	if id <= 0 {
-		s.logger.Error(ctx, err_msg.ErrInvalidSupplierID, ref+"ID inválido para desabilitar fornecedor", map[string]any{
+		s.logger.Error(ctx, err_msg.ErrID, ref+"ID inválido para desabilitar fornecedor", map[string]any{
 			"supplier_id": id,
 		})
-		return err_msg.ErrInvalidSupplierID
+		return err_msg.ErrID
 	}
 
 	supplier, err := s.repo.GetByID(ctx, id)
@@ -279,7 +279,7 @@ func (s *supplierService) Disable(ctx context.Context, id int64) error {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"supplier_id": id,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrGetSupplier, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	supplier.Status = false
@@ -289,7 +289,7 @@ func (s *supplierService) Disable(ctx context.Context, id int64) error {
 		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"supplier_id": id,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrDisableSupplier, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDisable, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -307,10 +307,10 @@ func (s *supplierService) Enable(ctx context.Context, id int64) error {
 	})
 
 	if id <= 0 {
-		s.logger.Error(ctx, err_msg.ErrInvalidSupplierID, ref+"ID inválido para habilitar fornecedor", map[string]any{
+		s.logger.Error(ctx, err_msg.ErrID, ref+"ID inválido para habilitar fornecedor", map[string]any{
 			"supplier_id": id,
 		})
-		return err_msg.ErrInvalidSupplierID
+		return err_msg.ErrID
 	}
 
 	supplier, err := s.repo.GetByID(ctx, id)
@@ -318,7 +318,7 @@ func (s *supplierService) Enable(ctx context.Context, id int64) error {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"supplier_id": id,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrGetSupplier, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	supplier.Status = true
@@ -328,7 +328,7 @@ func (s *supplierService) Enable(ctx context.Context, id int64) error {
 		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"supplier_id": id,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrEnableSupplier, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrEnable, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{

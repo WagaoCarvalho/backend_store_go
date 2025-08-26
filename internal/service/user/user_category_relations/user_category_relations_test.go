@@ -40,10 +40,10 @@ func Test_Create(t *testing.T) {
 		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		_, _, err := service.Create(context.Background(), 0, 1)
-		assert.ErrorIs(t, err, err_msg.ErrInvalidUserID)
+		assert.ErrorIs(t, err, err_msg.ErrID)
 
 		_, _, err = service.Create(context.Background(), 1, 0)
-		assert.ErrorIs(t, err, err_msg.ErrInvalidCategoryID)
+		assert.ErrorIs(t, err, err_msg.ErrID)
 	})
 
 	t.Run("AlreadyExists_ReturnsExisting", func(t *testing.T) {
@@ -73,7 +73,7 @@ func Test_Create(t *testing.T) {
 
 		_, _, err := service.Create(context.Background(), 1, 2)
 
-		assert.ErrorContains(t, err, "erro ao verificar relação existente")
+		assert.ErrorContains(t, err, "erro ao verificar relação")
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -101,13 +101,13 @@ func Test_Create(t *testing.T) {
 
 		mockRepo.
 			On("Create", mock.Anything, mock.Anything).
-			Return(nil, err_msg.ErrInvalidForeignKey)
+			Return(nil, err_msg.ErrDbInvalidForeignKey)
 
 		rel, wasCreated, err := service.Create(context.Background(), userID, categoryID)
 
 		assert.Nil(t, rel)
 		assert.False(t, wasCreated)
-		assert.ErrorIs(t, err, err_msg.ErrInvalidForeignKey)
+		assert.ErrorIs(t, err, err_msg.ErrDbInvalidForeignKey)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -119,7 +119,7 @@ func Test_Create(t *testing.T) {
 
 		_, _, err := service.Create(context.Background(), 1, 2)
 
-		assert.ErrorContains(t, err, "erro ao criar relação")
+		assert.ErrorContains(t, err, "erro ao criar")
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -146,7 +146,7 @@ func Test_GetAllRelationsByUserID(t *testing.T) {
 		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		_, err := service.GetAllRelationsByUserID(context.Background(), 0)
-		assert.ErrorIs(t, err, err_msg.ErrInvalidUserID)
+		assert.ErrorIs(t, err, err_msg.ErrID)
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
@@ -159,7 +159,7 @@ func Test_GetAllRelationsByUserID(t *testing.T) {
 		result, err := service.GetAllRelationsByUserID(context.Background(), 1)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, err_msg.ErrFetchUserRelations)
+		assert.ErrorIs(t, err, err_msg.ErrGet)
 		assert.Contains(t, err.Error(), expectedErr.Error())
 		mockRepo.AssertExpectations(t)
 	})
@@ -199,7 +199,7 @@ func Test_HasUserCategoryRelation(t *testing.T) {
 		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		_, err := service.HasUserCategoryRelation(context.Background(), 0, 1)
-		assert.ErrorIs(t, err, err_msg.ErrInvalidUserID)
+		assert.ErrorIs(t, err, err_msg.ErrID)
 	})
 
 	t.Run("InvalidCategoryID", func(t *testing.T) {
@@ -207,7 +207,7 @@ func Test_HasUserCategoryRelation(t *testing.T) {
 		service := NewUserCategoryRelationServices(mockRepo, logger)
 
 		_, err := service.HasUserCategoryRelation(context.Background(), 1, 0)
-		assert.ErrorIs(t, err, err_msg.ErrInvalidCategoryID)
+		assert.ErrorIs(t, err, err_msg.ErrID)
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
@@ -220,7 +220,7 @@ func Test_HasUserCategoryRelation(t *testing.T) {
 		exists, err := service.HasUserCategoryRelation(context.Background(), 1, 2)
 
 		assert.False(t, exists)
-		assert.ErrorIs(t, err, err_msg.ErrCheckRelationExists)
+		assert.ErrorIs(t, err, err_msg.ErrRelationCheck)
 		assert.Contains(t, err.Error(), expectedErr.Error())
 		mockRepo.AssertExpectations(t)
 	})
@@ -243,21 +243,21 @@ func Test_Delete(t *testing.T) {
 
 	t.Run("InvalidUserID", func(t *testing.T) {
 		err := service.Delete(context.Background(), 0, 1)
-		assert.ErrorIs(t, err, err_msg.ErrInvalidUserID)
+		assert.ErrorIs(t, err, err_msg.ErrID)
 	})
 
 	t.Run("InvalidCategoryID", func(t *testing.T) {
 		err := service.Delete(context.Background(), 1, 0)
-		assert.ErrorIs(t, err, err_msg.ErrInvalidCategoryID)
+		assert.ErrorIs(t, err, err_msg.ErrID)
 	})
 
 	t.Run("RelationNotFound", func(t *testing.T) {
 		mockRepo.ExpectedCalls = nil
-		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(err_msg.ErrRelationNotFound)
+		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(err_msg.ErrNotFound)
 
 		err := service.Delete(context.Background(), 1, 2)
 
-		assert.ErrorIs(t, err, err_msg.ErrRelationNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrNotFound)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -267,7 +267,7 @@ func Test_Delete(t *testing.T) {
 
 		err := service.Delete(context.Background(), 1, 2)
 
-		assert.ErrorContains(t, err, "erro ao deletar relação")
+		assert.ErrorContains(t, err, "erro ao deletar")
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -290,7 +290,7 @@ func Test_DeleteAll(t *testing.T) {
 	t.Run("InvalidUserID", func(t *testing.T) {
 		err := service.DeleteAll(context.Background(), 0)
 
-		assert.ErrorIs(t, err, err_msg.ErrInvalidUserID)
+		assert.ErrorIs(t, err, err_msg.ErrID)
 	})
 
 	t.Run("DeleteAllError", func(t *testing.T) {
@@ -299,7 +299,7 @@ func Test_DeleteAll(t *testing.T) {
 
 		err := service.DeleteAll(context.Background(), 1)
 
-		assert.ErrorContains(t, err, "erro ao deletar todas as relações do usuário")
+		assert.ErrorContains(t, err, "erro ao deletar")
 		mockRepo.AssertExpectations(t)
 	})
 }

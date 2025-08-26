@@ -44,7 +44,7 @@ func TestUserCategoryService_Create(t *testing.T) {
 		category, err := service.Create(context.Background(), invalidCategory)
 
 		assert.Nil(t, category)
-		assert.ErrorIs(t, err, err_msg.ErrInvalidCategoryName)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidData)
 	})
 
 	t.Run("ErrorOnCreate", func(t *testing.T) {
@@ -53,14 +53,13 @@ func TestUserCategoryService_Create(t *testing.T) {
 
 		mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(cat *models.UserCategory) bool {
 			return cat.Name == inputCategory.Name && cat.Description == inputCategory.Description
-		})).Return(nil, errors.New("db error"))
+		})).Return(nil, errors.New("erro ao criar"))
 
 		service := NewUserCategoryService(mockRepo, logger)
 		category, err := service.Create(context.Background(), inputCategory)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "erro ao criar categoria")
-		assert.Contains(t, err.Error(), "db error")
+		assert.Contains(t, err.Error(), "erro ao criar")
 		assert.Nil(t, category)
 
 		mockRepo.AssertExpectations(t)
@@ -95,7 +94,7 @@ func TestUserCategoryService_GetAll(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, categories)
-		assert.Contains(t, err.Error(), "erro ao buscar categorias")
+		assert.Contains(t, err.Error(), "erro ao buscar")
 		assert.Contains(t, err.Error(), "db error")
 		mockRepo.AssertExpectations(t)
 	})
@@ -121,15 +120,15 @@ func TestUserCategoryService_GetById(t *testing.T) {
 		category, err := service.GetByID(context.Background(), 0)
 
 		assert.Nil(t, category)
-		assert.ErrorIs(t, err, err_msg.ErrCategoryIDRequired)
+		assert.ErrorIs(t, err, err_msg.ErrID)
 	})
 
 	t.Run("ReturnCategoryNotFound", func(t *testing.T) {
-		mockRepo.On("GetByID", mock.Anything, int64(4)).Return(nil, err_msg.ErrCategoryNotFound).Once()
+		mockRepo.On("GetByID", mock.Anything, int64(4)).Return(nil, err_msg.ErrNotFound).Once()
 
 		category, err := service.GetByID(context.Background(), 4)
 
-		assert.ErrorIs(t, err, err_msg.ErrCategoryNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrNotFound)
 		assert.Nil(t, category)
 		mockRepo.AssertExpectations(t)
 	})
@@ -144,17 +143,17 @@ func TestUserCategoryService_GetById(t *testing.T) {
 
 		assert.Nil(t, category)
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, err_msg.ErrFetchCategory)
+		assert.ErrorIs(t, err, err_msg.ErrGet)
 		assert.ErrorContains(t, err, "erro interno do banco")
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("ReturnCategoryNotFound_Duplicate", func(t *testing.T) {
-		mockRepo.On("GetByID", mock.Anything, int64(4)).Return((*models.UserCategory)(nil), err_msg.ErrCategoryNotFound).Once()
+		mockRepo.On("GetByID", mock.Anything, int64(4)).Return((*models.UserCategory)(nil), err_msg.ErrNotFound).Once()
 
 		category, err := service.GetByID(context.Background(), 4)
 
-		assert.ErrorIs(t, err, err_msg.ErrCategoryNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrNotFound)
 		assert.Nil(t, category)
 		mockRepo.AssertExpectations(t)
 	})
@@ -195,7 +194,7 @@ func TestUserCategoryService_Update(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, err_msg.ErrCheckBeforeUpdate)
+		assert.ErrorIs(t, err, err_msg.ErrGet)
 		assert.ErrorContains(t, err, "erro no banco")
 		mockRepo.AssertExpectations(t)
 	})
@@ -228,18 +227,18 @@ func TestUserCategoryService_Update(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "campo obrigatório") // Corrigido
+		assert.Contains(t, err.Error(), "campo obrigatório")
 	})
 
 	t.Run("CategoryNotFound", func(t *testing.T) {
 		ctx := context.Background()
 		missingCategory := &models.UserCategory{ID: 4, Name: "NotFound", Description: "NoDesc"}
 
-		mockRepo.On("GetByID", ctx, int64(4)).Return(nil, err_msg.ErrCategoryNotFound).Once()
+		mockRepo.On("GetByID", ctx, int64(4)).Return(nil, err_msg.ErrNotFound).Once()
 
 		category, err := service.Update(ctx, missingCategory)
 
-		assert.ErrorIs(t, err, err_msg.ErrCategoryNotFound) // usar o erro do serviço
+		assert.ErrorIs(t, err, err_msg.ErrNotFound)
 		assert.Nil(t, category)
 		mockRepo.AssertExpectations(t)
 	})
@@ -247,7 +246,7 @@ func TestUserCategoryService_Update(t *testing.T) {
 	t.Run("InvalidCategoryID", func(t *testing.T) {
 		category := &models.UserCategory{ID: 0}
 		result, err := service.Update(context.Background(), category)
-		assert.ErrorIs(t, err, err_msg.ErrCategoryIDRequired)
+		assert.ErrorIs(t, err, err_msg.ErrID)
 		assert.Nil(t, result)
 	})
 }
@@ -280,7 +279,7 @@ func TestUserCategoryService_Delete(t *testing.T) {
 		err := service.Delete(ctx, id)
 
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, err_msg.ErrFetchCategory.Error())
+		assert.ErrorContains(t, err, err_msg.ErrGet.Error())
 		assert.ErrorContains(t, err, dbErr.Error())
 		mockRepo.AssertExpectations(t)
 	})
@@ -288,11 +287,11 @@ func TestUserCategoryService_Delete(t *testing.T) {
 	t.Run("CategoryNotFound", func(t *testing.T) {
 		ctx := context.Background()
 
-		mockRepo.On("GetByID", ctx, int64(3)).Return(nil, err_msg.ErrCategoryNotFound).Once()
+		mockRepo.On("GetByID", ctx, int64(3)).Return(nil, err_msg.ErrNotFound).Once()
 
 		err := service.Delete(ctx, 3)
 
-		assert.ErrorIs(t, err, err_msg.ErrCategoryNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrNotFound)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -307,7 +306,7 @@ func TestUserCategoryService_Delete(t *testing.T) {
 		err := service.Delete(ctx, 2)
 
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, err_msg.ErrDeleteCategory))
+		assert.True(t, errors.Is(err, err_msg.ErrDelete))
 		assert.ErrorContains(t, err, "db delete error")
 		mockRepo.AssertExpectations(t)
 	})
@@ -315,6 +314,6 @@ func TestUserCategoryService_Delete(t *testing.T) {
 	t.Run("InvalidID", func(t *testing.T) {
 		err := service.Delete(context.Background(), 0)
 
-		assert.ErrorIs(t, err, err_msg.ErrCategoryIDRequired)
+		assert.ErrorIs(t, err, err_msg.ErrID)
 	})
 }

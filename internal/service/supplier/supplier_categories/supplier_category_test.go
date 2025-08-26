@@ -99,7 +99,7 @@ func TestSupplierCategoryService_GetByID(t *testing.T) {
 		mockRepo := new(mock_supplier_category.MockSupplierCategoryRepo)
 		service := NewSupplierCategoryService(mockRepo, log)
 
-		mockRepo.On("GetByID", mock.Anything, int64(999)).Return((*models.SupplierCategory)(nil), err_msg.ErrSupplierCategoryNotFound)
+		mockRepo.On("GetByID", mock.Anything, int64(999)).Return((*models.SupplierCategory)(nil), err_msg.ErrNotFound)
 
 		result, err := service.GetByID(ctx, 999)
 
@@ -155,7 +155,7 @@ func TestSupplierCategoryService_Update(t *testing.T) {
 		err := service.Update(context.Background(), category)
 
 		assert.Error(t, err)
-		assert.Equal(t, err_msg.ErrCategoryIDRequired, err)
+		assert.Equal(t, err_msg.ErrID, err)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
@@ -226,7 +226,7 @@ func TestSupplierCategoryService_Delete(t *testing.T) {
 		err := service.Delete(context.Background(), 2)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "erro ao deletar categoria")
+		assert.Contains(t, err.Error(), "erro ao deletar")
 		assert.Contains(t, err.Error(), expectedErr.Error())
 		mockRepo.AssertCalled(t, "Delete", mock.Anything, int64(2))
 	})

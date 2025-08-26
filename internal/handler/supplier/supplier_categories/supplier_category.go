@@ -69,7 +69,7 @@ func (h *SupplierCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request
 		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"category_id": id})
 
 		statusCode := http.StatusInternalServerError
-		if errors.Is(err, err_msg.ErrSupplierCategoryNotFound) {
+		if errors.Is(err, err_msg.ErrNotFound) {
 			statusCode = http.StatusNotFound
 		}
 
@@ -132,7 +132,7 @@ func (h *SupplierCategoryHandler) Update(w http.ResponseWriter, r *http.Request)
 		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{"category_id": category.ID})
 
 		statusCode := http.StatusInternalServerError
-		if errors.Is(err, err_msg.ErrSupplierCategoryNotFound) {
+		if errors.Is(err, err_msg.ErrNotFound) {
 			statusCode = http.StatusNotFound
 		}
 
@@ -167,7 +167,7 @@ func (h *SupplierCategoryHandler) Delete(w http.ResponseWriter, r *http.Request)
 
 	if err := h.service.Delete(ctx, id); err != nil {
 		statusCode := http.StatusInternalServerError
-		if errors.Is(err, err_msg.ErrSupplierCategoryNotFound) {
+		if errors.Is(err, err_msg.ErrNotFound) {
 			statusCode = http.StatusNotFound
 		}
 

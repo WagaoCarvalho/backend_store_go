@@ -67,7 +67,7 @@ func (r *supplierFullRepository) CreateTx(ctx context.Context, tx pgx.Tx, suppli
 			"cpf":    supplier.CPF,
 			"status": supplier.Status,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrSupplierCreate, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{

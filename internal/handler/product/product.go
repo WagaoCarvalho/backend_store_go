@@ -295,13 +295,13 @@ func (h *ProductHandler) DisableProduct(w http.ResponseWriter, r *http.Request) 
 	err = h.service.DisableProduct(ctx, uid)
 	if err != nil {
 		switch {
-		case errors.Is(err, err_msg.ErrProductNotFound):
+		case errors.Is(err, err_msg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": uid,
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, err_msg.ErrProductVersionConflict):
+		case errors.Is(err, err_msg.ErrVersionConflict):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"product_id": uid,
 			})
@@ -348,13 +348,13 @@ func (h *ProductHandler) EnableProduct(w http.ResponseWriter, r *http.Request) {
 	err = h.service.EnableProduct(ctx, uid)
 	if err != nil {
 		switch {
-		case errors.Is(err, err_msg.ErrProductNotFound):
+		case errors.Is(err, err_msg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": uid,
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, err_msg.ErrProductVersionConflict):
+		case errors.Is(err, err_msg.ErrVersionConflict):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"product_id": uid,
 			})
@@ -493,13 +493,13 @@ func (h *ProductHandler) UpdateStock(w http.ResponseWriter, r *http.Request) {
 	err = h.service.UpdateStock(ctx, uid, payload.Quantity)
 	if err != nil {
 		switch {
-		case errors.Is(err, err_msg.ErrProductNotFound):
+		case errors.Is(err, err_msg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": uid,
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, err_msg.ErrProductVersionConflict):
+		case errors.Is(err, err_msg.ErrVersionConflict):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"product_id": uid,
 			})
@@ -559,13 +559,13 @@ func (h *ProductHandler) IncreaseStock(w http.ResponseWriter, r *http.Request) {
 	err = h.service.IncreaseStock(ctx, uid, payload.Amount)
 	if err != nil {
 		switch {
-		case errors.Is(err, err_msg.ErrProductNotFound):
+		case errors.Is(err, err_msg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": uid,
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, err_msg.ErrProductVersionConflict):
+		case errors.Is(err, err_msg.ErrVersionConflict):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"product_id": uid,
 			})
@@ -625,13 +625,13 @@ func (h *ProductHandler) DecreaseStock(w http.ResponseWriter, r *http.Request) {
 	err = h.service.DecreaseStock(ctx, uid, payload.Amount)
 	if err != nil {
 		switch {
-		case errors.Is(err, err_msg.ErrProductNotFound):
+		case errors.Is(err, err_msg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": uid,
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, err_msg.ErrProductVersionConflict):
+		case errors.Is(err, err_msg.ErrVersionConflict):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"product_id": uid,
 			})
@@ -679,7 +679,7 @@ func (h *ProductHandler) GetStock(w http.ResponseWriter, r *http.Request) {
 	stock, err := h.service.GetStock(ctx, uid)
 	if err != nil {
 		switch {
-		case errors.Is(err, err_msg.ErrProductNotFound):
+		case errors.Is(err, err_msg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": uid,
 			})
@@ -733,7 +733,7 @@ func (h *ProductHandler) EnableDiscount(w http.ResponseWriter, r *http.Request) 
 	err = h.service.EnableDiscount(ctx, uid)
 	if err != nil {
 		switch {
-		case errors.Is(err, err_msg.ErrProductNotFound):
+		case errors.Is(err, err_msg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": uid,
 			})
@@ -780,7 +780,7 @@ func (h *ProductHandler) DisableDiscount(w http.ResponseWriter, r *http.Request)
 	err = h.service.DisableDiscount(ctx, uid)
 	if err != nil {
 		switch {
-		case errors.Is(err, err_msg.ErrProductNotFound):
+		case errors.Is(err, err_msg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": uid,
 			})
@@ -839,7 +839,7 @@ func (h *ProductHandler) ApplyDiscount(w http.ResponseWriter, r *http.Request) {
 	product, err := h.service.ApplyDiscount(ctx, uid, payload.Percent)
 	if err != nil {
 		switch {
-		case errors.Is(err, err_msg.ErrProductNotFound):
+		case errors.Is(err, err_msg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": uid,
 			})

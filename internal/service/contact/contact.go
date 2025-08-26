@@ -56,7 +56,7 @@ func (s *contactService) Create(ctx context.Context, contact *models.Contact) (*
 			"contact_name": contact.ContactName,
 			"email":        contact.Email,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrContactCreate, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
@@ -77,22 +77,22 @@ func (s *contactService) GetByID(ctx context.Context, id int64) (*models.Contact
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"contact_id": id,
 		})
-		return nil, err_msg.ErrContactInvalidID
+		return nil, err_msg.ErrID
 	}
 
 	contact, err := s.contactRepo.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrContactNotFound) {
+		if errors.Is(err, err_msg.ErrNotFound) {
 			s.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
 				"contact_id": id,
 			})
-			return nil, err_msg.ErrContactNotFound
+			return nil, err_msg.ErrNotFound
 		}
 
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"contact_id": id,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrContactGet, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -108,10 +108,10 @@ func (s *contactService) GetByUserID(ctx context.Context, userID int64) ([]*mode
 	})
 
 	if userID <= 0 {
-		s.logger.Error(ctx, err_msg.ErrUserIDInvalid, ref+logger.LogValidateError, map[string]any{
+		s.logger.Error(ctx, err_msg.ErrID, ref+logger.LogValidateError, map[string]any{
 			"user_id": userID,
 		})
-		return nil, err_msg.ErrUserIDInvalid
+		return nil, err_msg.ErrID
 	}
 
 	contacts, err := s.contactRepo.GetByUserID(ctx, userID)
@@ -119,7 +119,7 @@ func (s *contactService) GetByUserID(ctx context.Context, userID int64) ([]*mode
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": userID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrUserContactsGet, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -137,10 +137,10 @@ func (s *contactService) GetByClientID(ctx context.Context, clientID int64) ([]*
 	})
 
 	if clientID <= 0 {
-		s.logger.Error(ctx, err_msg.ErrClientIDInvalid, ref+logger.LogValidateError, map[string]any{
+		s.logger.Error(ctx, err_msg.ErrID, ref+logger.LogValidateError, map[string]any{
 			"client_id": clientID,
 		})
-		return nil, err_msg.ErrClientIDInvalid
+		return nil, err_msg.ErrID
 	}
 
 	contacts, err := s.contactRepo.GetByClientID(ctx, clientID)
@@ -148,7 +148,7 @@ func (s *contactService) GetByClientID(ctx context.Context, clientID int64) ([]*
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"client_id": clientID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrClientContactsGet, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -166,10 +166,10 @@ func (s *contactService) GetBySupplierID(ctx context.Context, supplierID int64) 
 	})
 
 	if supplierID <= 0 {
-		s.logger.Error(ctx, err_msg.ErrSupplierIDInvalid, ref+logger.LogValidateError, map[string]any{
+		s.logger.Error(ctx, err_msg.ErrID, ref+logger.LogValidateError, map[string]any{
 			"supplier_id": supplierID,
 		})
-		return nil, err_msg.ErrSupplierIDInvalid
+		return nil, err_msg.ErrID
 	}
 
 	contacts, err := s.contactRepo.GetBySupplierID(ctx, supplierID)
@@ -177,7 +177,7 @@ func (s *contactService) GetBySupplierID(ctx context.Context, supplierID int64) 
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"supplier_id": supplierID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrSupplierContactsGet, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -202,7 +202,7 @@ func (s *contactService) Update(ctx context.Context, contact *models.Contact) er
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"contact_id": contact.ID,
 		})
-		return err_msg.ErrContactID
+		return err_msg.ErrID
 	}
 
 	if err := contact.Validate(); err != nil {
@@ -215,23 +215,23 @@ func (s *contactService) Update(ctx context.Context, contact *models.Contact) er
 
 	_, err := s.contactRepo.GetByID(ctx, contact.ID)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrContactNotFound) {
+		if errors.Is(err, err_msg.ErrNotFound) {
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"contact_id": contact.ID,
 			})
-			return err_msg.ErrContactNotFound
+			return err_msg.ErrNotFound
 		}
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"contact_id": contact.ID,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrContactGet, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	if err := s.contactRepo.Update(ctx, contact); err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"contact_id": contact.ID,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrContactUpdate, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -251,28 +251,28 @@ func (s *contactService) Delete(ctx context.Context, id int64) error {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"contact_id": id,
 		})
-		return err_msg.ErrContactID
+		return err_msg.ErrID
 	}
 
 	_, err := s.contactRepo.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrContactNotFound) {
+		if errors.Is(err, err_msg.ErrNotFound) {
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"contact_id": id,
 			})
-			return err_msg.ErrContactNotFound
+			return err_msg.ErrNotFound
 		}
 		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"contact_id": id,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrContactGet, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	if err := s.contactRepo.Delete(ctx, id); err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"contact_id": id,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrContactDelete, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{

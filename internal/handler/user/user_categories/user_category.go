@@ -153,7 +153,7 @@ func (h *UserCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	updatedCategory, err := h.service.Update(ctx, category)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrCategoryNotFound) {
+		if errors.Is(err, err_msg.ErrNotFound) {
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]interface{}{
 				"id": id,
 			})

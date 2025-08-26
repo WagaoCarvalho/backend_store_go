@@ -86,6 +86,8 @@ const (
 	LogIterateError   = "erro ao iterar"
 	LogParseJsonError = "falha ao fazer parse do json"
 
+	LogVersionConflict = "Conflito de versão"
+
 	//JWT
 	LogAuthTokenMissing            = "token ausente"
 	LogAuthTokenInvalidFormat      = "formato de token inválido"

@@ -42,7 +42,7 @@ func (s *userCategoryService) Create(ctx context.Context, category *models.UserC
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"name": category.Name,
 		})
-		return nil, err_msg.ErrInvalidCategoryName
+		return nil, err_msg.ErrInvalidData
 	}
 
 	createdCategory, err := s.repo.Create(ctx, category)
@@ -50,7 +50,7 @@ func (s *userCategoryService) Create(ctx context.Context, category *models.UserC
 		s.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 			"name": category.Name,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreateCategory, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
@@ -68,7 +68,7 @@ func (s *userCategoryService) GetAll(ctx context.Context) ([]*models.UserCategor
 	categories, err := s.repo.GetAll(ctx)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, nil)
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrFetchCategories, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -88,21 +88,21 @@ func (s *userCategoryService) GetByID(ctx context.Context, id int64) (*models.Us
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"category_id": id,
 		})
-		return nil, err_msg.ErrCategoryIDRequired
+		return nil, err_msg.ErrID
 	}
 
 	category, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrCategoryNotFound) {
+		if errors.Is(err, err_msg.ErrNotFound) {
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"category_id": id,
 			})
-			return nil, err_msg.ErrCategoryNotFound
+			return nil, err_msg.ErrNotFound
 		}
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"category_id": id,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrFetchCategory, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -119,7 +119,7 @@ func (s *userCategoryService) Update(ctx context.Context, category *models.UserC
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"id": category.ID,
 		})
-		return nil, err_msg.ErrCategoryIDRequired
+		return nil, err_msg.ErrID
 	}
 
 	if err := category.Validate(); err != nil {
@@ -136,23 +136,23 @@ func (s *userCategoryService) Update(ctx context.Context, category *models.UserC
 	})
 
 	if _, err := s.repo.GetByID(ctx, int64(category.ID)); err != nil {
-		if errors.Is(err, err_msg.ErrCategoryNotFound) {
+		if errors.Is(err, err_msg.ErrNotFound) {
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"id": category.ID,
 			})
-			return nil, err_msg.ErrCategoryNotFound
+			return nil, err_msg.ErrNotFound
 		}
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"id": category.ID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrCheckBeforeUpdate, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	if err := s.repo.Update(ctx, category); err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"id": category.ID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrUpdateCategory, err)
+		return nil, fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -169,7 +169,7 @@ func (s *userCategoryService) Delete(ctx context.Context, id int64) error {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"id": id,
 		})
-		return err_msg.ErrCategoryIDRequired
+		return err_msg.ErrID
 	}
 
 	s.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
@@ -178,23 +178,23 @@ func (s *userCategoryService) Delete(ctx context.Context, id int64) error {
 
 	_, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrCategoryNotFound) {
+		if errors.Is(err, err_msg.ErrNotFound) {
 			s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"id": id,
 			})
-			return err_msg.ErrCategoryNotFound
+			return err_msg.ErrNotFound
 		}
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"id": id,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrFetchCategory, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
 	if err := s.repo.Delete(ctx, id); err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"id": id,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrDeleteCategory, err)
+		return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{

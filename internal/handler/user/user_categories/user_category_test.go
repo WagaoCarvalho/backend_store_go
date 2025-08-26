@@ -284,7 +284,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 
 		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(c *model.UserCategory) bool {
 			return c.ID == 999
-		})).Return(nil, err_msg.ErrCategoryNotFound)
+		})).Return(nil, err_msg.ErrNotFound)
 
 		handler.Update(w, req)
 

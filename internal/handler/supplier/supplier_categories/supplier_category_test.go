@@ -157,7 +157,7 @@ func TestSupplierCategoryHandler_GetByID(t *testing.T) {
 		req := mux.SetURLVars(httptest.NewRequest("GET", "/supplier-categories/999", nil), map[string]string{"id": "999"})
 		w := httptest.NewRecorder()
 
-		mockSvc.On("GetByID", mock.Anything, int64(999)).Return(nil, err_msg.ErrSupplierCategoryNotFound)
+		mockSvc.On("GetByID", mock.Anything, int64(999)).Return(nil, err_msg.ErrNotFound)
 
 		handler.GetByID(w, req)
 
@@ -166,7 +166,7 @@ func TestSupplierCategoryHandler_GetByID(t *testing.T) {
 		var resp utils.DefaultResponse
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
 		assert.NoError(t, err)
-		assert.Contains(t, resp.Message, "categoria de fornecedor não encontrada")
+		assert.Contains(t, resp.Message, "não encontrado")
 
 		mockSvc.AssertExpectations(t)
 	})
@@ -324,7 +324,7 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 
 		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(c *models.SupplierCategory) bool {
 			return c.ID == 999
-		})).Return(err_msg.ErrSupplierCategoryNotFound)
+		})).Return(err_msg.ErrNotFound)
 
 		handler.Update(w, req)
 
@@ -334,7 +334,7 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusNotFound, resp.Status)
-		assert.Contains(t, resp.Message, "não encontrada")
+		assert.Contains(t, resp.Message, "não encontrado")
 
 		mockSvc.AssertExpectations(t)
 	})
@@ -409,7 +409,7 @@ func TestSupplierCategoryHandler_Delete(t *testing.T) {
 		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/supplier-categories/999", nil), map[string]string{"id": "999"})
 		w := httptest.NewRecorder()
 
-		mockSvc.On("Delete", mock.Anything, int64(999)).Return(err_msg.ErrSupplierCategoryNotFound)
+		mockSvc.On("Delete", mock.Anything, int64(999)).Return(err_msg.ErrNotFound)
 
 		handler.Delete(w, req)
 
@@ -419,7 +419,7 @@ func TestSupplierCategoryHandler_Delete(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusNotFound, resp.Status)
-		assert.Contains(t, resp.Message, "categoria de fornecedor não encontrada")
+		assert.Contains(t, resp.Message, "não encontrado")
 
 		mockSvc.AssertExpectations(t)
 	})

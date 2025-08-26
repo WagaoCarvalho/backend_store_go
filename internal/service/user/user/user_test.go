@@ -113,7 +113,7 @@ func TestUserService_Create(t *testing.T) {
 		_, err := userService.Create(context.Background(), &newUser)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "erro ao criar usuário")
+		assert.Contains(t, err.Error(), "erro ao criar")
 		mockUserRepo.AssertExpectations(t)
 	})
 
@@ -138,7 +138,7 @@ func TestUserService_Create(t *testing.T) {
 		_, err := userService.Create(context.Background(), &model_user.User{Email: "email-invalido"})
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "email inválido")
+		assert.Contains(t, err.Error(), "erro na validação dos dados")
 	})
 
 }
@@ -294,12 +294,12 @@ func TestUserService_GetVersionByID(t *testing.T) {
 
 		mockRepo.On("GetVersionByID", mock.Anything, int64(999)).Return(
 			int64(0),
-			err_msg.ErrUserNotFound,
+			err_msg.ErrNotFound,
 		)
 
 		version, err := service.GetVersionByID(context.Background(), 999)
 
-		assert.ErrorIs(t, err, err_msg.ErrUserNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrNotFound)
 		assert.Equal(t, int64(0), version)
 		mockRepo.AssertExpectations(t)
 	})
@@ -314,7 +314,7 @@ func TestUserService_GetVersionByID(t *testing.T) {
 
 		version, err := service.GetVersionByID(context.Background(), 2)
 
-		assert.ErrorContains(t, err, "versão inválida")
+		assert.ErrorContains(t, err, "conflito de versão")
 		assert.Equal(t, int64(0), version)
 		mockRepo.AssertExpectations(t)
 	})
@@ -469,7 +469,7 @@ func TestUserService_Update(t *testing.T) {
 
 		updatedUser, err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, err_msg.ErrInvalidEmail)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidData)
 		assert.Nil(t, updatedUser)
 	})
 
@@ -484,7 +484,7 @@ func TestUserService_Update(t *testing.T) {
 
 		updatedUser, err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, err_msg.ErrInvalidVersion)
+		assert.ErrorIs(t, err, err_msg.ErrVersionConflict)
 		assert.Nil(t, updatedUser)
 	})
 
@@ -497,11 +497,11 @@ func TestUserService_Update(t *testing.T) {
 			Version: 1,
 		}
 
-		mockRepo.On("Update", mock.Anything, user).Return(nil, err_msg.ErrUserNotFound)
+		mockRepo.On("Update", mock.Anything, user).Return(nil, err_msg.ErrNotFound)
 
 		updatedUser, err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, err_msg.ErrUserNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrNotFound)
 		assert.Nil(t, updatedUser)
 		mockRepo.AssertExpectations(t)
 	})
@@ -537,7 +537,7 @@ func TestUserService_Update(t *testing.T) {
 
 		updatedUser, err := service.Update(context.Background(), user)
 
-		assert.ErrorContains(t, err, "erro ao atualizar usuário")
+		assert.ErrorContains(t, err, "erro ao atualizar")
 		assert.Nil(t, updatedUser)
 		mockRepo.AssertExpectations(t)
 	})
@@ -609,7 +609,7 @@ func TestUserService_Disable(t *testing.T) {
 
 		err := service.Disable(context.Background(), 2)
 
-		assert.ErrorContains(t, err, "erro ao desabilitar usuário")
+		assert.ErrorContains(t, err, "erro ao desabilitar")
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -650,11 +650,11 @@ func TestUserService_Enable(t *testing.T) {
 		mockRepo, _, service := setup()
 
 		mockRepo.On("Enable", mock.Anything, int64(42)).
-			Return(err_msg.ErrUserNotFound).Once()
+			Return(err_msg.ErrNotFound).Once()
 
 		err := service.Enable(context.Background(), 42)
 
-		assert.ErrorIs(t, err, err_msg.ErrUserNotFound)
+		assert.ErrorIs(t, err, err_msg.ErrNotFound)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -710,7 +710,7 @@ func TestUserService_Delete(t *testing.T) {
 
 		err := service.Delete(context.Background(), 2)
 
-		assert.ErrorContains(t, err, "erro ao deletar usuário")
+		assert.ErrorContains(t, err, "erro ao deletar")
 		mockRepo.AssertExpectations(t)
 	})
 }
