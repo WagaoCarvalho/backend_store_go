@@ -1,0 +1,38 @@
+# Arquivo: .golangci.yml
+run:
+  timeout: 5m
+  skip-dirs:
+    - run                # Ignora diretório problemático
+    - vendor             # Ignora vendor
+  skip-files:
+    - ".*_test.go"       # Ignora arquivos de teste se desejar (opcional)
+  tests: true
+
+linters:
+  enable:
+    - govet
+    - errcheck
+    - staticcheck
+    - gosimple
+    - unused
+    - deadcode
+    - structcheck
+    - gofmt
+    - goimports
+    - gocritic
+    - ineffassign
+    - typecheck
+    - depguard
+    - prealloc
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+
+output:
+  format: github-actions
+  sort-by: severity
+  print-issued-lines: true
+  print-linter-name: true
