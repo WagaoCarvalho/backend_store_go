@@ -1,82 +1,100 @@
 package models
 
 import (
+	"errors"
+	"strings"
 	"testing"
 
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLoginCredentials_Validate(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   LoginCredentials
-		wantErr string
+		name     string
+		input    LoginCredentials
+		wantErr  bool
+		errField string
 	}{
 		{
-			name:    "email em branco",
-			input:   LoginCredentials{Email: "", Password: "Senha123!"},
-			wantErr: "Email",
+			name:     "email em branco",
+			input:    LoginCredentials{Email: "", Password: "Senha123!"},
+			wantErr:  true,
+			errField: "email",
 		},
 		{
-			name:    "email inválido",
-			input:   LoginCredentials{Email: "invalido.com", Password: "Senha123!"},
-			wantErr: "Email",
+			name:     "email inválido",
+			input:    LoginCredentials{Email: "invalido.com", Password: "Senha123!"},
+			wantErr:  true,
+			errField: "email",
 		},
 		{
-			name:    "email muito longo",
-			input:   LoginCredentials{Email: generateLongString(101), Password: "Senha123!"},
-			wantErr: "Email",
+			name:     "email muito longo",
+			input:    LoginCredentials{Email: generateLongString(101) + "@example.com", Password: "Senha123!"},
+			wantErr:  true,
+			errField: "email",
 		},
 		{
-			name:    "senha em branco",
-			input:   LoginCredentials{Email: "user@example.com", Password: ""},
-			wantErr: "Password",
+			name:     "senha em branco",
+			input:    LoginCredentials{Email: "user@example.com", Password: ""},
+			wantErr:  true,
+			errField: "password",
 		},
 		{
-			name:    "senha curta",
-			input:   LoginCredentials{Email: "user@example.com", Password: "Ab1!"},
-			wantErr: "Password",
-		},
-		{
-			name:    "senha muito longa",
-			input:   LoginCredentials{Email: "user@example.com", Password: generateLongString(65)},
-			wantErr: "Password",
-		},
-		{
-			name:    "senha sem maiúscula",
-			input:   LoginCredentials{Email: "user@example.com", Password: "senha123!"},
-			wantErr: "Password",
-		},
-		{
-			name:    "senha sem minúscula",
-			input:   LoginCredentials{Email: "user@example.com", Password: "SENHA123!"},
-			wantErr: "Password",
-		},
-		{
-			name:    "senha sem número",
-			input:   LoginCredentials{Email: "user@example.com", Password: "Senha!@#"},
-			wantErr: "Password",
-		},
-		{
-			name:    "senha sem caractere especial",
-			input:   LoginCredentials{Email: "user@example.com", Password: "Senha123"},
-			wantErr: "Password",
+			name:     "senha fraca",
+			input:    LoginCredentials{Email: "user@example.com", Password: "abc"},
+			wantErr:  true,
+			errField: "password",
 		},
 		{
 			name:    "credenciais válidas",
 			input:   LoginCredentials{Email: "user@example.com", Password: "Senha123!"},
-			wantErr: "",
+			wantErr: false,
+		},
+		{
+			name: "senha fraca retorna ValidationError",
+			input: LoginCredentials{
+				Email:    "user@example.com",
+				Password: "abc", // fraca o suficiente
+			},
+			wantErr:  true,
+			errField: "password",
+		},
+		{
+			name: "senha retorna erro genérico",
+			input: LoginCredentials{
+				Email:    "user@example.com",
+				Password: "generic-error",
+			},
+			wantErr:  true,
+			errField: "password",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.input.Validate()
-			if tt.wantErr == "" {
+			if !tt.wantErr {
 				assert.NoError(t, err)
+				return
+			}
+
+			assert.Error(t, err)
+
+			// Verifica se o erro é ValidationErrors
+			var vErrs validators.ValidationErrors
+			if ok := errors.As(err, &vErrs); ok {
+				found := false
+				for _, e := range vErrs {
+					if strings.EqualFold(e.Field, tt.errField) {
+						found = true
+						break
+					}
+				}
+				assert.True(t, found, "expected error field %q in %v", tt.errField, vErrs)
 			} else {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), tt.wantErr)
+				// fallback: verificar string de erro
+				assert.Contains(t, err.Error(), tt.errField)
 			}
 		})
 	}

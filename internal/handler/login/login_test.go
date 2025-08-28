@@ -33,7 +33,9 @@ func newLoginRequest(method, url string, body []byte) *http.Request {
 }
 
 func TestLoginHandler_Login(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockService := new(MockLoginService)

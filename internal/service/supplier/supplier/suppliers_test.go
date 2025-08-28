@@ -1,27 +1,26 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"testing"
 
 	mock_supplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	convert "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-func strPtr(s string) *string {
-	return &s
-}
-
 func TestSupplierService_Create(t *testing.T) {
-	baseLogger := logrus.New()
-	logger := logger.NewLoggerAdapter(baseLogger)
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 
 	setup := func() (*mock_supplier.MockSupplierRepository, SupplierService) {
 		mockRepo := new(mock_supplier.MockSupplierRepository)
@@ -74,7 +73,9 @@ func TestSupplierService_Create(t *testing.T) {
 }
 
 func TestSupplierService_GetAll(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 
 	setup := func() (*mock_supplier.MockSupplierRepository, SupplierService) {
 		mockRepo := new(mock_supplier.MockSupplierRepository)
@@ -119,7 +120,9 @@ func TestSupplierService_GetAll(t *testing.T) {
 }
 
 func TestSupplierService_GetByID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 
 	setup := func() (*mock_supplier.MockSupplierRepository, SupplierService) {
 		mockRepo := new(mock_supplier.MockSupplierRepository)
@@ -133,7 +136,7 @@ func TestSupplierService_GetByID(t *testing.T) {
 		expected := &models.Supplier{
 			ID:   1,
 			Name: "Fornecedor A",
-			CNPJ: strPtr("111"),
+			CNPJ: convert.StrToPtr("111"),
 		}
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(expected, nil).Once()
@@ -184,7 +187,9 @@ func TestSupplierService_GetByID(t *testing.T) {
 }
 
 func TestSupplierService_GetByName(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 
 	setup := func() (*mock_supplier.MockSupplierRepository, SupplierService) {
 		mockRepo := new(mock_supplier.MockSupplierRepository)
@@ -199,12 +204,12 @@ func TestSupplierService_GetByName(t *testing.T) {
 			{
 				ID:   1,
 				Name: "Fornecedor A",
-				CNPJ: strPtr("111"),
+				CNPJ: convert.StrToPtr("111"),
 			},
 			{
 				ID:   2,
 				Name: "Fornecedor AB",
-				CNPJ: strPtr("222"),
+				CNPJ: convert.StrToPtr("222"),
 			},
 		}
 
@@ -302,7 +307,9 @@ func TestSupplierService_GetVersionByID(t *testing.T) {
 				tt.mockRepo(mockRepo)
 			}
 
-			logger := logger.NewLoggerAdapter(logrus.New())
+			log := logrus.New()
+			log.Out = &bytes.Buffer{}
+			logger := logger.NewLoggerAdapter(log)
 
 			service := NewSupplierService(mockRepo, logger)
 
@@ -416,7 +423,9 @@ func TestSupplierService_Update(t *testing.T) {
 				tt.mockRepo(mockRepo)
 			}
 
-			logger := logger.NewLoggerAdapter(logrus.New())
+			log := logrus.New()
+			log.Out = &bytes.Buffer{}
+			logger := logger.NewLoggerAdapter(log)
 			service := NewSupplierService(mockRepo, logger)
 
 			result, err := service.Update(context.Background(), tt.args.supplier)
@@ -479,7 +488,9 @@ func TestSupplierService_Delete(t *testing.T) {
 				tt.mockRepo(mockRepo)
 			}
 
-			logger := logger.NewLoggerAdapter(logrus.New())
+			log := logrus.New()
+			log.Out = &bytes.Buffer{}
+			logger := logger.NewLoggerAdapter(log)
 			service := NewSupplierService(mockRepo, logger)
 
 			err := service.Delete(context.Background(), tt.args.id)
@@ -558,7 +569,9 @@ func TestSupplierService_Disable(t *testing.T) {
 				tt.mockRepo(mockRepo)
 			}
 
-			logger := logger.NewLoggerAdapter(logrus.New())
+			log := logrus.New()
+			log.Out = &bytes.Buffer{}
+			logger := logger.NewLoggerAdapter(log)
 			service := NewSupplierService(mockRepo, logger)
 
 			err := service.Disable(context.Background(), tt.args.id)
@@ -637,7 +650,9 @@ func TestSupplierService_Enable(t *testing.T) {
 				tt.mockRepo(mockRepo)
 			}
 
-			logger := logger.NewLoggerAdapter(logrus.New())
+			log := logrus.New()
+			log.Out = &bytes.Buffer{}
+			logger := logger.NewLoggerAdapter(log)
 			service := NewSupplierService(mockRepo, logger)
 
 			err := service.Enable(context.Background(), tt.args.id)

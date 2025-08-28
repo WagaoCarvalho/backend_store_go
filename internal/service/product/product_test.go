@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -18,15 +19,14 @@ import (
 )
 
 func newTestLogger() *logger.LoggerAdapter {
-	logrusLogger := logrus.New()
-	logrusLogger.SetLevel(logrus.FatalLevel)
-	return logger.NewLoggerAdapter(logrusLogger)
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	return logger.NewLoggerAdapter(log)
 }
 
 func TestProductService_Create(t *testing.T) {
 	ctx := context.Background()
 
-	// Produto válido base para o teste
 	validProduct := func() *models.Product {
 		return &models.Product{
 			ProductName:   "Produto Teste",
@@ -70,7 +70,7 @@ func TestProductService_Create(t *testing.T) {
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
-		input := &models.Product{} // faltam todos os campos obrigatórios
+		input := &models.Product{}
 
 		created, err := service.Create(ctx, input)
 
@@ -103,8 +103,12 @@ func TestProductService_GetAll(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		log := logrus.New()
+		log.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(log)
+
+		service := NewProductService(mockRepo, logger)
 
 		limit := 10
 		offset := 0
@@ -152,7 +156,9 @@ func TestProductService_GetById(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
 		service := NewProductService(mockRepo, log)
 
 		id := int64(1)
@@ -175,8 +181,10 @@ func TestProductService_GetById(t *testing.T) {
 
 	t.Run("id inválido", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+		log := logrus.New()
+		log.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(log)
+		service := NewProductService(mockRepo, logger)
 
 		id := int64(0)
 
@@ -345,13 +353,15 @@ func TestProductService_Update(t *testing.T) {
 			SalePrice:     15.0,
 			StockQuantity: 5,
 			Status:        true,
-			Version:       1, // já inicializa versão aqui
+			Version:       1,
 		}
 	}
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
 		service := NewProductService(mockRepo, log)
 
 		input := validProduct()
@@ -375,7 +385,7 @@ func TestProductService_Update(t *testing.T) {
 		service := NewProductService(mockRepo, log)
 
 		input := validProduct()
-		input.ProductName = "" // invalida nome
+		input.ProductName = ""
 
 		updated, err := service.Update(ctx, input)
 
@@ -390,7 +400,7 @@ func TestProductService_Update(t *testing.T) {
 		service := NewProductService(mockRepo, log)
 
 		input := validProduct()
-		input.Version = 0 // versão inválida
+		input.Version = 0
 
 		updated, err := service.Update(ctx, input)
 
@@ -457,7 +467,9 @@ func TestProductService_Update(t *testing.T) {
 }
 
 func TestProductService_DisableProduct(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
@@ -489,7 +501,9 @@ func TestProductService_DisableProduct(t *testing.T) {
 }
 
 func TestProductService_EnableProduct(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 
 	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
@@ -608,8 +622,9 @@ func TestProductService_GetVersionByID(t *testing.T) {
 }
 
 func TestProductService_UpdateStock(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
-
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
 		service := NewProductService(mockRepo, logger)
@@ -737,7 +752,9 @@ func TestProductService_GetStock(t *testing.T) {
 }
 
 func TestProductService_EnableDiscount(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 
 	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
@@ -770,7 +787,9 @@ func TestProductService_EnableDiscount(t *testing.T) {
 }
 
 func TestProductService_DisableDiscount(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 
 	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
@@ -807,15 +826,17 @@ func TestProductService_DisableDiscount(t *testing.T) {
 		err := service.DisableDiscount(context.Background(), 3)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, err_msg.ErrProductDisableDiscount) // garante que ErrDisableDiscount está na cadeia
-		assert.Contains(t, err.Error(), "erro de conexão")        // garante que a mensagem original também está
+		assert.ErrorIs(t, err, err_msg.ErrProductDisableDiscount)
+		assert.Contains(t, err.Error(), "erro de conexão")
 		mockRepo.AssertExpectations(t)
 	})
 
 }
 
 func TestProductService_ApplyDiscount(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 
 	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
@@ -831,7 +852,7 @@ func TestProductService_ApplyDiscount(t *testing.T) {
 		expectedProduct := &models.Product{
 			ID:            productID,
 			ProductName:   "Produto Teste",
-			SalePrice:     90.0, // supondo que o desconto foi aplicado
+			SalePrice:     90.0,
 			AllowDiscount: true,
 		}
 

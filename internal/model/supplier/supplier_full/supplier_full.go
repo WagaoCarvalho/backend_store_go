@@ -6,7 +6,7 @@ import (
 
 	models_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	models_supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
+	models_supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
 	models_supplier_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
 )
 

@@ -9,7 +9,7 @@ import (
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
+	val_contact "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/contact"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 )
 
@@ -48,7 +48,7 @@ func (s *userService) Create(ctx context.Context, user *models.User) (*models.Us
 		"status":   user.Status,
 	})
 
-	if !utils_validators.IsValidEmail(user.Email) {
+	if !val_contact.IsValidEmail(user.Email) {
 		s.logger.Error(ctx, err_msg.ErrInvalidData, ref+logger.LogEmailInvalid, map[string]any{
 			"email": user.Email,
 		})
@@ -220,7 +220,7 @@ func (s *userService) Update(ctx context.Context, user *models.User) (*models.Us
 		"username": user.Username,
 	})
 
-	if !utils_validators.IsValidEmail(user.Email) {
+	if !val_contact.IsValidEmail(user.Email) {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"email": user.Email,
 		})

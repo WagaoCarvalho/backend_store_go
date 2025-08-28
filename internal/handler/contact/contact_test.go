@@ -24,7 +24,9 @@ func newRequestWithVars(method, url string, body []byte, vars map[string]string)
 }
 
 func TestContactHandler_Create(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := new(mock_contact.MockContactService)
@@ -68,7 +70,7 @@ func TestContactHandler_Create(t *testing.T) {
 		cont := &model.Contact{ContactName: "Contato FK Inválida"}
 		mockSvc.On("Create", mock.Anything, mock.MatchedBy(func(c *model.Contact) bool {
 			return c.ContactName == "Contato FK Inválida"
-		})).Return((*model.Contact)(nil), err_msg.ErrDbInvalidForeignKey)
+		})).Return((*model.Contact)(nil), err_msg.ErrInvalidForeignKey)
 
 		body, _ := json.Marshal(cont)
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
@@ -173,7 +175,9 @@ func TestContactHandler_Create(t *testing.T) {
 }
 
 func TestContactHandler_GetByID(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
@@ -233,7 +237,9 @@ func TestContactHandler_GetByID(t *testing.T) {
 }
 
 func TestContactHandler_GetByUserID(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
@@ -278,7 +284,9 @@ func TestContactHandler_GetByUserID(t *testing.T) {
 }
 
 func TestContactHandler_GetByClientID(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
@@ -325,7 +333,9 @@ func TestContactHandler_GetByClientID(t *testing.T) {
 }
 
 func TestContactHandler_GetBySupplierID(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
@@ -375,7 +385,9 @@ func TestContactHandler_GetBySupplierID(t *testing.T) {
 }
 
 func TestContactHandler_Update(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -441,7 +453,9 @@ func TestContactHandler_Update(t *testing.T) {
 }
 
 func TestContactHandler_Delete(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()

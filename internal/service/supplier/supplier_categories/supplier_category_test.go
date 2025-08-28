@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -18,7 +19,9 @@ import (
 
 func TestSupplierCategoryService_Create(t *testing.T) {
 	ctx := context.Background()
+
 	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
 	log := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success", func(t *testing.T) {
@@ -68,6 +71,7 @@ func TestSupplierCategoryService_Create(t *testing.T) {
 func TestSupplierCategoryService_GetByID(t *testing.T) {
 	ctx := context.Background()
 	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
 	log := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success", func(t *testing.T) {
@@ -124,6 +128,7 @@ func TestSupplierCategoryService_GetByID(t *testing.T) {
 
 func TestSupplierCategoryService_Update(t *testing.T) {
 	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
 	log := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("deve atualizar com sucesso", func(t *testing.T) {
@@ -161,8 +166,6 @@ func TestSupplierCategoryService_Update(t *testing.T) {
 
 	t.Run("deve retornar erro se nome for vazio", func(t *testing.T) {
 		mockRepo := new(mock_supplier_category.MockSupplierCategoryRepo)
-		baseLogger := logrus.New()
-		log := logger.NewLoggerAdapter(baseLogger)
 		service := NewSupplierCategoryService(mockRepo, log)
 
 		category := &models.SupplierCategory{
@@ -198,8 +201,10 @@ func TestSupplierCategoryService_Update(t *testing.T) {
 }
 
 func TestSupplierCategoryService_Delete(t *testing.T) {
-	baseLogger := logrus.New()
+
 	mockRepo := new(mock_supplier_category.MockSupplierCategoryRepo)
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
 	log := logger.NewLoggerAdapter(baseLogger)
 	service := NewSupplierCategoryService(mockRepo, log)
 
@@ -236,6 +241,7 @@ func TestSupplierCategoryService_Delete(t *testing.T) {
 func TestSupplierCategoryService_GetAll(t *testing.T) {
 	ctx := context.Background()
 	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
 	log := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success", func(t *testing.T) {

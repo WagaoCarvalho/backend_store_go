@@ -3,7 +3,7 @@ package models
 import (
 	"testing"
 
-	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 	"github.com/stretchr/testify/assert"
 )
 

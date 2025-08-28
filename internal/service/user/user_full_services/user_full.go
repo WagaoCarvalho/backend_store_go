@@ -116,7 +116,7 @@ func (s *userFullService) CreateFull(ctx context.Context, user_full *models_user
 		return nil, commitOrRollback(err)
 	}
 
-	user_full.Address.UserID = utils.ToPointer(createdUser.UID)
+	user_full.Address.UserID = utils.StrToPtr(createdUser.UID)
 
 	if err := user_full.Address.Validate(); err != nil {
 		return nil, commitOrRollback(fmt.Errorf("endereço inválido: %w", err))
@@ -127,7 +127,7 @@ func (s *userFullService) CreateFull(ctx context.Context, user_full *models_user
 		return nil, commitOrRollback(err)
 	}
 
-	user_full.Contact.UserID = utils.ToPointer(createdUser.UID)
+	user_full.Contact.UserID = utils.StrToPtr(createdUser.UID)
 
 	if err := user_full.Contact.Validate(); err != nil {
 		return nil, commitOrRollback(fmt.Errorf("contato inválido: %w", err))

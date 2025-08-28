@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"net/http"
@@ -47,7 +48,9 @@ func buildJWT(t *testing.T, manager *auth.JWTManager, duration time.Duration) st
 }
 
 func TestIsAuthByBearerToken(t *testing.T) {
-	loggerAdapter := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	loggerAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("sem header Authorization", func(t *testing.T) {
 		mockJWT := new(mockJWTService)

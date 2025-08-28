@@ -101,7 +101,7 @@ func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *mode
 		return nil, commitOrRollback(err)
 	}
 
-	supplierFull.Address.SupplierID = utils.ToPointer(createdSupplier.ID)
+	supplierFull.Address.SupplierID = utils.StrToPtr(createdSupplier.ID)
 
 	if err := supplierFull.Address.Validate(); err != nil {
 		return nil, commitOrRollback(fmt.Errorf("endereço inválido: %w", err))
@@ -112,7 +112,7 @@ func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *mode
 		return nil, commitOrRollback(err)
 	}
 
-	supplierFull.Contact.SupplierID = utils.ToPointer(createdSupplier.ID)
+	supplierFull.Contact.SupplierID = utils.StrToPtr(createdSupplier.ID)
 
 	if err := supplierFull.Contact.Validate(); err != nil {
 		return nil, commitOrRollback(fmt.Errorf("contato inválido: %w", err))

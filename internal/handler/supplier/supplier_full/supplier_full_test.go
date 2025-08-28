@@ -11,7 +11,7 @@ import (
 	mock_supplier_full "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/supplier"
 	model_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	model_supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
+	model_supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
 	model_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
 	model_supplier_full "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
@@ -22,7 +22,9 @@ import (
 
 func TestSupplierHandler_CreateFull(t *testing.T) {
 	mockService := new(mock_supplier_full.MockSupplierFullService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewSupplierFullHandler(mockService, logger)
 	cnpj := "00.000.000/0000-00"
 

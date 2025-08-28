@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"testing"
@@ -10,13 +11,16 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	convert "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestCreate(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 
 	t.Run("success", func(t *testing.T) {
 		mockRepo := new(mock_contact.MockContactRepository)
@@ -53,7 +57,7 @@ func TestCreate(t *testing.T) {
 		_, err := service.Create(context.Background(), invalidContact)
 
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "ContactName")
+		assert.ErrorContains(t, err, "contact_name")
 		assert.ErrorContains(t, err, "campo obrigatório")
 		mockRepo.AssertNotCalled(t, "Create")
 	})
@@ -117,7 +121,9 @@ func TestCreate(t *testing.T) {
 }
 
 func Test_GetByID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mock
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 
 	t.Run("success", func(t *testing.T) {
 		mockRepo := new(mock_contact.MockContactRepository)
@@ -184,15 +190,17 @@ func Test_GetByID(t *testing.T) {
 }
 
 func Test_GetByUserID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 
 	t.Run("success", func(t *testing.T) {
 		mockRepo := new(mock_contact.MockContactRepository)
 		service := NewContactService(mockRepo, logger)
 
 		expectedContacts := []*models.Contact{
-			{ID: 1, UserID: ptrInt64(1), ContactName: "User 1"},
-			{ID: 2, UserID: ptrInt64(1), ContactName: "User 2"},
+			{ID: 1, UserID: convert.Int64Ptr(1), ContactName: "User 1"},
+			{ID: 2, UserID: convert.Int64Ptr(1), ContactName: "User 2"},
 		}
 
 		mockRepo.On("GetByUserID", mock.Anything, int64(1)).Return(expectedContacts, nil)
@@ -246,15 +254,17 @@ func Test_GetByUserID(t *testing.T) {
 }
 
 func Test_GetByClientID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 
 	t.Run("success", func(t *testing.T) {
 		mockRepo := new(mock_contact.MockContactRepository)
 		service := NewContactService(mockRepo, logger)
 
 		expectedContacts := []*models.Contact{
-			{ID: 1, ClientID: ptrInt64(1), ContactName: "Cliente 1"},
-			{ID: 2, ClientID: ptrInt64(1), ContactName: "Cliente 2"},
+			{ID: 1, ClientID: convert.Int64Ptr(1), ContactName: "Cliente 1"},
+			{ID: 2, ClientID: convert.Int64Ptr(1), ContactName: "Cliente 2"},
 		}
 
 		mockRepo.On("GetByClientID", mock.Anything, int64(1)).
@@ -310,7 +320,9 @@ func Test_GetByClientID(t *testing.T) {
 }
 
 func Test_GetBySupplierID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New()) // ou um mock se preferir
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 
 	t.Run("success", func(t *testing.T) {
 		mockRepo := new(mock_contact.MockContactRepository)
@@ -319,12 +331,12 @@ func Test_GetBySupplierID(t *testing.T) {
 		expectedContacts := []*models.Contact{
 			{
 				ID:          1,
-				SupplierID:  ptrInt64(1),
+				SupplierID:  convert.Int64Ptr(1),
 				ContactName: "Fornecedor 1",
 			},
 			{
 				ID:          2,
-				SupplierID:  ptrInt64(1),
+				SupplierID:  convert.Int64Ptr(1),
 				ContactName: "Fornecedor 2",
 			},
 		}
@@ -380,7 +392,9 @@ func Test_GetBySupplierID(t *testing.T) {
 }
 
 func TestContactService_Update(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(log)
 
 	t.Run("success", func(t *testing.T) {
 		mockRepo := new(mock_contact.MockContactRepository)
@@ -390,12 +404,12 @@ func TestContactService_Update(t *testing.T) {
 		existingContact := &models.Contact{
 			ID:          1,
 			ContactName: "Old Name",
-			UserID:      &userID, // essencial para validação passar
+			UserID:      &userID,
 		}
 		updatedContact := &models.Contact{
 			ID:          1,
 			ContactName: "New Name",
-			UserID:      &userID, // essencial para validação passar
+			UserID:      &userID,
 		}
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(existingContact, nil).Once()
@@ -432,12 +446,12 @@ func TestContactService_Update(t *testing.T) {
 		userID := int64(1)
 		invalidContact := &models.Contact{
 			ID:     1,
-			UserID: &userID, // Necessário para passar da validação do relacionamento
+			UserID: &userID,
 		}
 
 		err := service.Update(context.Background(), invalidContact)
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "campo obrigatório") // Valida o erro do nome
+		assert.ErrorContains(t, err, "campo obrigatório")
 
 		mockRepo.AssertNotCalled(t, "GetByID")
 		mockRepo.AssertNotCalled(t, "Update")
@@ -501,7 +515,9 @@ func TestDeleteContact(t *testing.T) {
 	for name, tt := range map[string]func(t *testing.T){
 		"success": func(t *testing.T) {
 			mockRepo := new(mock_contact.MockContactRepository)
-			logger := logger.NewLoggerAdapter(logrus.New())
+			log := logrus.New()
+			log.Out = &bytes.Buffer{}
+			logger := logger.NewLoggerAdapter(log)
 			service := NewContactService(mockRepo, logger)
 
 			existingContact := &models.Contact{
@@ -518,7 +534,9 @@ func TestDeleteContact(t *testing.T) {
 		},
 		"contact not found": func(t *testing.T) {
 			mockRepo := new(mock_contact.MockContactRepository)
-			logger := logger.NewLoggerAdapter(logrus.New())
+			log := logrus.New()
+			log.Out = &bytes.Buffer{}
+			logger := logger.NewLoggerAdapter(log)
 			service := NewContactService(mockRepo, logger)
 
 			mockRepo.On("GetByID", mock.Anything, int64(1)).
@@ -532,7 +550,9 @@ func TestDeleteContact(t *testing.T) {
 		},
 		"invalid id": func(t *testing.T) {
 			mockRepo := new(mock_contact.MockContactRepository)
-			logger := logger.NewLoggerAdapter(logrus.New())
+			log := logrus.New()
+			log.Out = &bytes.Buffer{}
+			logger := logger.NewLoggerAdapter(log)
 			service := NewContactService(mockRepo, logger)
 
 			err := service.Delete(context.Background(), 0)
@@ -544,7 +564,9 @@ func TestDeleteContact(t *testing.T) {
 		},
 		"repository error on GetByID": func(t *testing.T) {
 			mockRepo := new(mock_contact.MockContactRepository)
-			logger := logger.NewLoggerAdapter(logrus.New())
+			log := logrus.New()
+			log.Out = &bytes.Buffer{}
+			logger := logger.NewLoggerAdapter(log)
 			service := NewContactService(mockRepo, logger)
 
 			mockRepo.On("GetByID", mock.Anything, int64(1)).
@@ -558,7 +580,9 @@ func TestDeleteContact(t *testing.T) {
 		},
 		"repository error on Delete": func(t *testing.T) {
 			mockRepo := new(mock_contact.MockContactRepository)
-			logger := logger.NewLoggerAdapter(logrus.New())
+			log := logrus.New()
+			log.Out = &bytes.Buffer{}
+			logger := logger.NewLoggerAdapter(log)
 			service := NewContactService(mockRepo, logger)
 
 			existingContact := &models.Contact{
@@ -577,8 +601,4 @@ func TestDeleteContact(t *testing.T) {
 	} {
 		t.Run(name, tt)
 	}
-}
-
-func ptrInt64(i int64) *int64 {
-	return &i
 }

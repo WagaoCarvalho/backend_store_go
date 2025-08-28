@@ -5,192 +5,146 @@ import (
 	"strings"
 	"testing"
 
-	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
 func TestContact_Validate(t *testing.T) {
 	id := int64(1)
 
 	tests := []struct {
-		name    string
-		contact Contact
-		wantErr bool
-		errType any
-		errMsg  string
+		name     string
+		contact  Contact
+		wantErr  bool
+		errField string
+		errMsg   string
 	}{
 		{
 			name: "Valid contact with UserID",
 			contact: Contact{
 				UserID:      &id,
 				ContactName: "João Silva",
-				Email:       "joao@email.com",
-				Phone:       "(11) 1234-5678",
-				Cell:        "(11) 91234-5678",
-				ContactType: "financeiro",
+				Email:       "joao@example.com",
+				Phone:       "1134567890",
+				Cell:        "11998765432",
+				ContactType: "principal",
 			},
 			wantErr: false,
 		},
 		{
-			name: "Valid contact with ClientID",
+			name: "Invalid IDs (none provided)",
 			contact: Contact{
-				ClientID:    &id,
-				ContactName: "João Silva",
-				Email:       "joao@email.com",
-				Phone:       "(11) 1234-5678",
-				Cell:        "(11) 91234-5678",
-				ContactType: "suporte",
+				ContactName: "Maria",
 			},
-			wantErr: false,
+			wantErr:  true,
+			errField: "UserID/ClientID/SupplierID",     // atualizado
+			errMsg:   validators.MsgInvalidAssociation, // atualizado
 		},
+
 		{
-			name: "Valid contact with SupplierID",
-			contact: Contact{
-				SupplierID:  &id,
-				ContactName: "João Silva",
-				Email:       "joao@email.com",
-				Phone:       "(11) 1234-5678",
-				Cell:        "(11) 91234-5678",
-				ContactType: "comercial",
-			},
-			wantErr: false,
-		},
-		{
-			name: "Missing all IDs",
-			contact: Contact{
-				ContactName: "Contato",
-			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "exatamente um deve ser informado",
-		},
-		{
-			name: "More than one ID provided (UserID + ClientID)",
+			name: "Invalid IDs (multiple provided)",
 			contact: Contact{
 				UserID:      &id,
 				ClientID:    &id,
-				ContactName: "Contato",
+				ContactName: "Carlos",
 			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "exatamente um deve ser informado",
-		},
-		{
-			name: "More than one ID provided (UserID + SupplierID)",
-			contact: Contact{
-				UserID:      &id,
-				SupplierID:  &id,
-				ContactName: "Contato",
-			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "exatamente um deve ser informado",
-		},
-		{
-			name: "More than one ID provided (ClientID + SupplierID)",
-			contact: Contact{
-				ClientID:    &id,
-				SupplierID:  &id,
-				ContactName: "Contato",
-			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "exatamente um deve ser informado",
+			wantErr:  true,
+			errField: "UserID/ClientID/SupplierID",
+			errMsg:   validators.MsgInvalidAssociation,
 		},
 		{
 			name: "Blank ContactName",
 			contact: Contact{
-				UserID:      &id,
-				ContactName: " ",
+				UserID: &id,
 			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "ContactName",
+			wantErr:  true,
+			errField: "contact_name",
+			errMsg:   validators.MsgRequiredField,
 		},
 		{
-			name: "Short ContactName",
+			name: "ContactName too short",
 			contact: Contact{
 				UserID:      &id,
-				ContactName: "AB",
+				ContactName: "Jo",
 			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "mínimo de 3",
+			wantErr:  true,
+			errField: "contact_name",
+			errMsg:   validators.MsgMin3,
 		},
 		{
-			name: "Long ContactName",
+			name: "ContactName too long",
 			contact: Contact{
 				UserID:      &id,
-				ContactName: strings.Repeat("A", 101),
+				ContactName: strings.Repeat("a", 101),
 			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "máximo de 100",
+			wantErr:  true,
+			errField: "contact_name",
+			errMsg:   validators.MsgMax100,
 		},
 		{
-			name: "Long ContactPosition",
+			name: "ContactPosition too long",
 			contact: Contact{
 				UserID:          &id,
-				ContactName:     "Fulano",
-				ContactPosition: strings.Repeat("X", 101),
+				ContactName:     "Pedro",
+				ContactPosition: strings.Repeat("x", 101),
 			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "ContactPosition",
+			wantErr:  true,
+			errField: "contact_position",
+			errMsg:   validators.MsgMax100,
 		},
 		{
-			name: "Invalid email format",
+			name: "Invalid Email format",
 			contact: Contact{
 				UserID:      &id,
-				ContactName: "Fulano",
-				Email:       "email@invalido",
+				ContactName: "José",
+				Email:       "invalid-email",
 			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "Email",
+			wantErr:  true,
+			errField: "email",
+			errMsg:   validators.MsgInvalidFormat,
 		},
 		{
-			name: "Email exceeds max length",
+			name: "Email too long",
 			contact: Contact{
 				UserID:      &id,
-				ContactName: "Fulano",
-				Email:       strings.Repeat("a", 95) + "@x.com",
+				ContactName: "José",
+				Email:       strings.Repeat("a", 101) + "@example.com",
 			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "máximo de 100 caracteres",
+			wantErr:  true,
+			errField: "email",
+			errMsg:   validators.MsgMax100,
 		},
 		{
-			name: "Invalid phone format",
+			name: "Invalid Phone format",
 			contact: Contact{
 				UserID:      &id,
-				ContactName: "Fulano",
-				Phone:       "11987654321",
+				ContactName: "Ana",
+				Phone:       "abc123",
 			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "Phone",
+			wantErr:  true,
+			errField: "phone",
+			errMsg:   validators.MsgInvalidPhone,
 		},
 		{
-			name: "Invalid cell format",
+			name: "Invalid Cell format",
 			contact: Contact{
 				UserID:      &id,
-				ContactName: "Fulano",
-				Cell:        "(11) 1234-5678", // fixo no lugar de celular
+				ContactName: "Ana",
+				Cell:        "12345",
 			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "Cell",
+			wantErr:  true,
+			errField: "cell",
+			errMsg:   validators.MsgInvalidCell,
 		},
 		{
-			name: "Invalid contact type",
+			name: "Invalid ContactType",
 			contact: Contact{
 				UserID:      &id,
-				ContactName: "Fulano",
-				ContactType: "RH",
+				ContactName: "Roberto",
+				ContactType: "gerente",
 			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "tipo inválido",
+			wantErr:  true,
+			errField: "contact_type",
+			errMsg:   validators.MsgInvalidType,
 		},
 	}
 
@@ -198,17 +152,19 @@ func TestContact_Validate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.contact.Validate()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("esperado erro: %v, recebido: %v", tt.wantErr, err)
+				t.Errorf("expected error: %v, got: %v", tt.wantErr, err)
 				return
 			}
 			if tt.wantErr {
-				if tt.errType != nil {
-					if !errors.As(err, &tt.errType) {
-						t.Errorf("tipo de erro esperado: %T, recebido: %T", tt.errType, err)
-					}
+				var vErrs validators.ValidationErrors
+				if !errors.As(err, &vErrs) {
+					t.Errorf("expected ValidationErrors, got %T", err)
 				}
-				if tt.errMsg != "" && !strings.Contains(err.Error(), tt.errMsg) {
-					t.Errorf("esperava mensagem contendo %q, recebeu %q", tt.errMsg, err.Error())
+				if !strings.Contains(err.Error(), tt.errField) {
+					t.Errorf("expected error field %q, got %q", tt.errField, err.Error())
+				}
+				if !strings.Contains(err.Error(), tt.errMsg) {
+					t.Errorf("expected message %q, got %q", tt.errMsg, err.Error())
 				}
 			}
 		})

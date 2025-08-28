@@ -70,7 +70,7 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 				"client_id":   utils.Int64OrNil(address.ClientID),
 				"supplier_id": utils.Int64OrNil(address.SupplierID),
 			})
-			return nil, err_msg.ErrDbInvalidForeignKey
+			return nil, err_msg.ErrInvalidForeignKey
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
@@ -126,7 +126,7 @@ func (r *addressRepository) CreateTx(ctx context.Context, tx pgx.Tx, address *mo
 				"client_id":   utils.Int64OrNil(address.ClientID),
 				"supplier_id": utils.Int64OrNil(address.SupplierID),
 			})
-			return nil, err_msg.ErrDbInvalidForeignKey
+			return nil, err_msg.ErrInvalidForeignKey
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
@@ -412,7 +412,7 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 			r.logger.Warn(ctx, ref+"violação de chave estrangeira", map[string]any{
 				"address_id": address.ID,
 			})
-			return err_msg.ErrDbInvalidForeignKey
+			return err_msg.ErrInvalidForeignKey
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{

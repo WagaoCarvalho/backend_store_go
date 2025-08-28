@@ -11,7 +11,7 @@ import (
 	"time"
 
 	mock_supplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/supplier"
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -27,7 +27,9 @@ func strPtr(s string) *string {
 
 func TestSupplierHandler_Create(t *testing.T) {
 	mockService := new(mock_supplier.MockSupplierService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewSupplierHandler(mockService, logger)
 
 	t.Run("Sucesso ao criar fornecedor", func(t *testing.T) {
@@ -118,7 +120,9 @@ func TestSupplierHandler_Create(t *testing.T) {
 func TestSupplierHandler_GetAll(t *testing.T) {
 	t.Run("Sucesso ao obter todos os fornecedores", func(t *testing.T) {
 		mockService := new(mock_supplier.MockSupplierService)
-		logger := logger.NewLoggerAdapter(logrus.New())
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(baseLogger)
 		handler := NewSupplierHandler(mockService, logger)
 
 		expectedSuppliers := []*models.Supplier{
@@ -159,7 +163,9 @@ func TestSupplierHandler_GetAll(t *testing.T) {
 
 	t.Run("Erro ao obter fornecedores no service", func(t *testing.T) {
 		mockService := new(mock_supplier.MockSupplierService)
-		logger := logger.NewLoggerAdapter(logrus.New())
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(baseLogger)
 		handler := NewSupplierHandler(mockService, logger)
 
 		mockService.On("GetAll", mock.Anything).Return(nil, errors.New("erro interno")).Once()
@@ -181,7 +187,9 @@ func TestSupplierHandler_GetAll(t *testing.T) {
 
 func TestSupplierHandler_GetByID(t *testing.T) {
 	mockSvc := new(mock_supplier.MockSupplierService)
-	log := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	log := logger.NewLoggerAdapter(baseLogger)
 	handler := NewSupplierHandler(mockSvc, log)
 
 	t.Run("Sucesso ao obter fornecedor por ID", func(t *testing.T) {
@@ -234,7 +242,9 @@ func TestSupplierHandler_GetByID(t *testing.T) {
 		mockSvc := new(mock_supplier.MockSupplierService)
 		mockSvc.On("GetByID", mock.Anything, int64(99)).Return(nil, errors.New("fornecedor não encontrado"))
 
-		log := logger.NewLoggerAdapter(logrus.New())
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
 		handler := NewSupplierHandler(mockSvc, log)
 
 		req := httptest.NewRequest("GET", "/suppliers/99", nil)
@@ -257,7 +267,9 @@ func TestSupplierHandler_GetByID(t *testing.T) {
 		mockSvc := new(mock_supplier.MockSupplierService)
 		mockSvc.On("GetByID", mock.Anything, int64(2)).Return(nil, errors.New("erro inesperado"))
 
-		log := logger.NewLoggerAdapter(logrus.New())
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
 		handler := NewSupplierHandler(mockSvc, log)
 
 		req := httptest.NewRequest("GET", "/suppliers/2", nil)
@@ -279,7 +291,9 @@ func TestSupplierHandler_GetByID(t *testing.T) {
 
 func TestSupplierHandler_GetByName(t *testing.T) {
 	mockService := new(mock_supplier.MockSupplierService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewSupplierHandler(mockService, logger)
 
 	t.Run("Sucesso ao buscar fornecedores por nome parcial", func(t *testing.T) {
@@ -343,7 +357,9 @@ func TestSupplierHandler_GetByName(t *testing.T) {
 
 func TestSupplierHandler_GetVersionByID(t *testing.T) {
 	mockService := new(mock_supplier.MockSupplierService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewSupplierHandler(mockService, logger)
 
 	t.Run("Sucesso ao obter versão do fornecedor", func(t *testing.T) {
@@ -433,7 +449,9 @@ func TestSupplierHandler_GetVersionByID(t *testing.T) {
 
 func TestSupplierHandler_Update(t *testing.T) {
 	mockService := new(mock_supplier.MockSupplierService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewSupplierHandler(mockService, logger)
 
 	t.Run("Sucesso ao atualizar fornecedor", func(t *testing.T) {
@@ -572,7 +590,9 @@ func TestSupplierHandler_Update(t *testing.T) {
 
 func TestSupplierHandler_Enable(t *testing.T) {
 	mockService := new(mock_supplier.MockSupplierService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewSupplierHandler(mockService, logger)
 
 	t.Run("Sucesso ao habilitar fornecedor", func(t *testing.T) {
@@ -721,7 +741,9 @@ func TestSupplierHandler_Enable(t *testing.T) {
 
 func TestSupplierHandler_Disable(t *testing.T) {
 	mockService := new(mock_supplier.MockSupplierService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewSupplierHandler(mockService, logger)
 
 	t.Run("Sucesso ao desabilitar fornecedor", func(t *testing.T) {
@@ -867,7 +889,9 @@ func TestSupplierHandler_Disable(t *testing.T) {
 
 func TestSupplierHandler_Delete(t *testing.T) {
 	mockService := new(mock_supplier.MockSupplierService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewSupplierHandler(mockService, logger)
 
 	t.Run("Sucesso ao deletar fornecedor", func(t *testing.T) {

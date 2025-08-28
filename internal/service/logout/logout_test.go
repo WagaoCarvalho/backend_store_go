@@ -1,9 +1,9 @@
 package auth
 
 import (
+	"bytes"
 	"context"
 	"errors"
-	"io"
 	"testing"
 	"time"
 
@@ -58,7 +58,7 @@ func generateTestToken(secret string, exp time.Time) string {
 func TestLogoutService_Logout(t *testing.T) {
 	ctx := context.Background()
 	log := logrus.New()
-	log.SetOutput(io.Discard)
+	log.Out = &bytes.Buffer{}
 	loggerAdapter := logger.NewLoggerAdapter(log)
 	secret := "test-secret"
 

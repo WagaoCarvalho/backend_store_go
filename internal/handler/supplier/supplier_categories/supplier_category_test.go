@@ -21,7 +21,9 @@ import (
 
 func TestSupplierCategoryHandler_Create(t *testing.T) {
 	mockSvc := new(mock_supplier.MockSupplierCategoryService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 	t.Run("Sucesso", func(t *testing.T) {
@@ -87,7 +89,9 @@ func TestSupplierCategoryHandler_Create(t *testing.T) {
 
 func TestSupplierCategoryHandler_GetByID(t *testing.T) {
 	mockSvc := new(mock_supplier.MockSupplierCategoryService)
-	log := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	log := logger.NewLoggerAdapter(baseLogger)
 	handler := NewSupplierCategoryHandler(mockSvc, log)
 
 	t.Run("Sucesso ao buscar por ID", func(t *testing.T) {
@@ -174,7 +178,9 @@ func TestSupplierCategoryHandler_GetByID(t *testing.T) {
 
 func TestSupplierCategoryHandler_GetAll(t *testing.T) {
 	mockSvc := new(mock_supplier.MockSupplierCategoryService)
-	log := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	log := logger.NewLoggerAdapter(baseLogger)
 	handler := NewSupplierCategoryHandler(mockSvc, log)
 
 	t.Run("Sucesso ao buscar todas as categorias", func(t *testing.T) {
@@ -211,7 +217,9 @@ func TestSupplierCategoryHandler_GetAll(t *testing.T) {
 		mockSvc := new(mock_supplier.MockSupplierCategoryService)
 		mockSvc.On("GetAll", mock.Anything).Return(nil, errors.New("erro inesperado"))
 
-		logger := logger.NewLoggerAdapter(logrus.New())
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(baseLogger)
 		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		req := httptest.NewRequest("GET", "/supplier-categories", nil)
@@ -232,7 +240,9 @@ func TestSupplierCategoryHandler_GetAll(t *testing.T) {
 }
 
 func TestSupplierCategoryHandler_Update(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := new(mock_supplier.MockSupplierCategoryService)
@@ -341,7 +351,9 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 }
 
 func TestSupplierCategoryHandler_Delete(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := new(mock_supplier.MockSupplierCategoryService)

@@ -8,7 +8,7 @@ import (
 	pass "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	logger "github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	utils_validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
+	val_contact "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/contact"
 
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 )
@@ -44,11 +44,11 @@ func (s *loginService) Login(ctx context.Context, credentials model.LoginCredent
 		"email": credentials.Email,
 	})
 
-	if !utils_validators.IsValidEmail(credentials.Email) {
-		s.logger.Error(ctx, err_msg.ErrInvalidEmailFormat, ref+logger.LogEmailInvalid, map[string]any{
+	if !val_contact.IsValidEmail(credentials.Email) {
+		s.logger.Error(ctx, err_msg.ErrEmailFormat, ref+logger.LogEmailInvalid, map[string]any{
 			"email": credentials.Email,
 		})
-		return "", err_msg.ErrInvalidEmailFormat
+		return "", err_msg.ErrEmailFormat
 	}
 
 	user, err := s.userRepo.GetByEmail(ctx, credentials.Email)
@@ -57,7 +57,7 @@ func (s *loginService) Login(ctx context.Context, credentials model.LoginCredent
 		s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 			"email": credentials.Email,
 		})
-		return "", err_msg.ErrInvalidCredentials
+		return "", err_msg.ErrCredentials
 	}
 
 	if err := s.hasher.Compare(user.Password, credentials.Password); err != nil {
@@ -65,7 +65,7 @@ func (s *loginService) Login(ctx context.Context, credentials model.LoginCredent
 			"user_id": user.UID,
 			"email":   credentials.Email,
 		})
-		return "", err_msg.ErrInvalidCredentials
+		return "", err_msg.ErrCredentials
 	}
 
 	if !user.Status {

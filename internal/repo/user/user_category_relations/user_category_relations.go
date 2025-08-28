@@ -58,7 +58,7 @@ func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation 
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, err_msg.ErrDbInvalidForeignKey
+			return nil, err_msg.ErrInvalidForeignKey
 
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
@@ -104,7 +104,7 @@ func (r *userCategoryRelationRepositories) CreateTx(ctx context.Context, tx pgx.
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, err_msg.ErrDbInvalidForeignKey
+			return nil, err_msg.ErrInvalidForeignKey
 
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{

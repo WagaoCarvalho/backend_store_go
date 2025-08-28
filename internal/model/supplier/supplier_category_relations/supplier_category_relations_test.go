@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
-	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 
 	"github.com/stretchr/testify/assert"
 )

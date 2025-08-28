@@ -18,7 +18,7 @@ import (
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
 func newRequestWithVars(method, url string, body []byte, vars map[string]string) *http.Request {
@@ -27,7 +27,9 @@ func newRequestWithVars(method, url string, body []byte, vars map[string]string)
 }
 
 func TestAddressHandler_Create(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
@@ -100,7 +102,7 @@ func TestAddressHandler_Create(t *testing.T) {
 			PostalCode: "99999-999",
 		}
 
-		mockService.On("Create", mock.Anything, input).Return((*models.Address)(nil), err_msg.ErrDbInvalidForeignKey)
+		mockService.On("Create", mock.Anything, input).Return((*models.Address)(nil), err_msg.ErrInvalidForeignKey)
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer(body))
@@ -149,7 +151,9 @@ func TestAddressHandler_Create(t *testing.T) {
 }
 
 func TestAddressHandler_GetByID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("deve retornar endereço com sucesso", func(t *testing.T) {
 		mockService := new(mock_address.MockAddressService)
@@ -215,7 +219,9 @@ func TestAddressHandler_GetByID(t *testing.T) {
 }
 
 func TestAddressHandler_GetByUserID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockService := new(mock_address.MockAddressService)
@@ -266,7 +272,9 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 }
 
 func TestAddressHandler_GetByClientID(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
@@ -336,7 +344,9 @@ func TestAddressHandler_GetByClientID(t *testing.T) {
 }
 
 func TestAddressHandler_GetBySupplierID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockService := new(mock_address.MockAddressService)
@@ -397,7 +407,9 @@ func TestAddressHandler_GetBySupplierID(t *testing.T) {
 }
 
 func TestAddressHandler_Update(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -483,7 +495,9 @@ func TestAddressHandler_Update(t *testing.T) {
 }
 
 func TestAddressHandler_Delete(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
@@ -529,7 +543,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 		mockSvc := new(mock_address.MockAddressService)
 		handler := NewAddressHandler(mockSvc, logAdapter)
 
-		mockSvc.On("Delete", mock.Anything, int64(99)).Return(validators.ErrNotFound).Once()
+		mockSvc.On("Delete", mock.Anything, int64(99)).Return(err_msg.ErrNotFound).Once()
 
 		req := newRequestWithVars("DELETE", "/addresses/99", nil, map[string]string{"id": "99"})
 		w := httptest.NewRecorder()
@@ -540,7 +554,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-		assert.Contains(t, w.Body.String(), validators.ErrNotFound.Error())
+		assert.Contains(t, w.Body.String(), err_msg.ErrNotFound.Error())
 
 		mockSvc.AssertExpectations(t)
 	})

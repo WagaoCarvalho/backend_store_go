@@ -1,9 +1,9 @@
 package auth
 
 import (
+	"bytes"
 	"context"
 	"errors"
-	"io"
 	"testing"
 	"time"
 
@@ -25,7 +25,6 @@ func (m *mockUserRepo) GetByEmail(ctx context.Context, email string) (*models_us
 	return args.Get(0).(*models_user.User), args.Error(1)
 }
 
-// Mock do PasswordHasher
 type MockHasher struct {
 	mock.Mock
 }
@@ -53,7 +52,7 @@ func (m *mockTokenGen) Generate(uid int64, email string) (string, error) {
 
 func TestLoginService_Login(t *testing.T) {
 	log := logrus.New()
-	log.SetOutput(io.Discard)
+	log.Out = &bytes.Buffer{}
 	adapter := logger.NewLoggerAdapter(log)
 
 	mockRepo := new(mock_user.MockUserRepository)
@@ -86,7 +85,7 @@ func TestLoginService_Login(t *testing.T) {
 			Email:    "invalid",
 			Password: "123",
 		})
-		assert.ErrorIs(t, err, err_msg.ErrInvalidEmailFormat)
+		assert.ErrorIs(t, err, err_msg.ErrEmailFormat)
 		assert.Empty(t, token)
 	})
 
@@ -99,7 +98,7 @@ func TestLoginService_Login(t *testing.T) {
 		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "123"})
 		elapsed := time.Since(start)
 
-		assert.ErrorIs(t, err, err_msg.ErrInvalidCredentials)
+		assert.ErrorIs(t, err, err_msg.ErrCredentials)
 		assert.Empty(t, token)
 		assert.GreaterOrEqual(t, elapsed.Milliseconds(), int64(1000))
 		mockRepo.AssertExpectations(t)
@@ -115,7 +114,7 @@ func TestLoginService_Login(t *testing.T) {
 
 		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "wrong"})
 
-		assert.ErrorIs(t, err, err_msg.ErrInvalidCredentials)
+		assert.ErrorIs(t, err, err_msg.ErrCredentials)
 		assert.Empty(t, token)
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)

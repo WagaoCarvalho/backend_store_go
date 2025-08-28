@@ -43,7 +43,7 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	createdProduct, err := h.service.Create(r.Context(), &product)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrDbInvalidForeignKey) {
+		if errors.Is(err, err_msg.ErrInvalidForeignKey) {
 			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
 				"erro": err.Error(),
 			})

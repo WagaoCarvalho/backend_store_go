@@ -24,7 +24,7 @@ import (
 )
 
 func TestProductHandler_Create(t *testing.T) {
-	// Silenciar logs
+
 	log := logrus.New()
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
@@ -96,7 +96,7 @@ func TestProductHandler_Create(t *testing.T) {
 			StockQuantity: 10,
 		}
 
-		mockService.On("Create", mock.Anything, input).Return((*models.Product)(nil), err_msg.ErrDbInvalidForeignKey)
+		mockService.On("Create", mock.Anything, input).Return((*models.Product)(nil), err_msg.ErrInvalidForeignKey)
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPost, "/products", bytes.NewBuffer(body))
@@ -143,7 +143,7 @@ func TestProductHandler_Create(t *testing.T) {
 }
 
 func TestProductHandler_GetAll(t *testing.T) {
-	// Silenciar logs
+
 	log := logrus.New()
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
@@ -211,7 +211,7 @@ func TestProductHandler_GetAll(t *testing.T) {
 }
 
 func TestProductHandler_GetVersionByID(t *testing.T) {
-	// Silenciar logs
+
 	log := logrus.New()
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
@@ -539,7 +539,7 @@ func TestProductHandler_DisableProduct(t *testing.T) {
 }
 
 func TestProductHandler_GetById(t *testing.T) {
-	// Silenciar logs
+
 	log := logrus.New()
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
@@ -631,7 +631,7 @@ func TestProductHandler_GetById(t *testing.T) {
 }
 
 func TestProductHandler_GetByName(t *testing.T) {
-	// Silenciar logs
+
 	log := logrus.New()
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
@@ -1005,7 +1005,7 @@ func TestProductHandler_Delete(t *testing.T) {
 }
 
 func TestProductHandler_UpdateStock(t *testing.T) {
-	// Silenciar logs
+
 	log := logrus.New()
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
@@ -1135,7 +1135,7 @@ func TestProductHandler_UpdateStock(t *testing.T) {
 }
 
 func TestProductHandler_IncreaseStock(t *testing.T) {
-	// Função auxiliar para criar logger silenciado
+
 	newLogger := func() *logger.LoggerAdapter {
 		log := logrus.New()
 		log.Out = &bytes.Buffer{}
@@ -1364,7 +1364,7 @@ func TestProductHandler_DecreaseStock(t *testing.T) {
 }
 
 func TestProductHandler_GetStock(t *testing.T) {
-	// Função auxiliar para criar logger silenciado
+
 	newLogger := func() *logger.LoggerAdapter {
 		log := logrus.New()
 		log.Out = &bytes.Buffer{}
@@ -1509,7 +1509,7 @@ func TestProductHandler_EnableDiscount(t *testing.T) {
 	t.Run("Method Not Allowed", func(t *testing.T) {
 		_, handler := setup()
 
-		req := httptest.NewRequest(http.MethodGet, "/product/discount/enable/1", nil) // GET não permitido
+		req := httptest.NewRequest(http.MethodGet, "/product/discount/enable/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 

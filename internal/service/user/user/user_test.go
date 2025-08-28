@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -30,7 +31,9 @@ func (m *MockHasher) Compare(_, _ string) error {
 }
 
 func TestUserService_Create(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New()) // logger real
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -144,7 +147,9 @@ func TestUserService_Create(t *testing.T) {
 }
 
 func TestUserService_GetAll(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -194,7 +199,9 @@ func TestUserService_GetAll(t *testing.T) {
 }
 
 func TestUserService_GetByID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -258,7 +265,9 @@ func TestUserService_GetByID(t *testing.T) {
 }
 
 func TestUserService_GetVersionByID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -321,7 +330,9 @@ func TestUserService_GetVersionByID(t *testing.T) {
 }
 
 func TestUserService_GetByEmail(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -376,7 +387,9 @@ func TestUserService_GetByEmail(t *testing.T) {
 }
 
 func TestUserService_GetByName(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -439,7 +452,9 @@ func TestUserService_GetByName(t *testing.T) {
 }
 
 func TestUserService_Update(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -570,7 +585,9 @@ func TestUserService_Update(t *testing.T) {
 }
 
 func TestUserService_Disable(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -615,7 +632,9 @@ func TestUserService_Disable(t *testing.T) {
 }
 
 func TestUserService_Enable(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -673,7 +692,9 @@ func TestUserService_Enable(t *testing.T) {
 }
 
 func TestUserService_Delete(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,

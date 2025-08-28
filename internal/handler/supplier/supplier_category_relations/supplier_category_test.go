@@ -20,7 +20,9 @@ import (
 )
 
 func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success - relação criada", func(t *testing.T) {
 		mockService := new(mock_supplier.MockSupplierCategoryRelationService)
@@ -95,7 +97,7 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 
 		mockService.
 			On("Create", mock.Anything, int64(99), int64(88)).
-			Return(nil, false, err_msg.ErrDbInvalidForeignKey)
+			Return(nil, false, err_msg.ErrInvalidForeignKey)
 
 		body, _ := json.Marshal(relation)
 		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
@@ -168,7 +170,9 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 }
 
 func TestSupplierCategoryRelationHandler_GetBySupplierID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("erro - id inválido", func(t *testing.T) {
 		mockService := new(mock_supplier.MockSupplierCategoryRelationService)
@@ -257,7 +261,9 @@ func TestSupplierCategoryRelationHandler_GetBySupplierID(t *testing.T) {
 }
 
 func TestSupplierCategoryRelationHandler_GetByCategoryID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("erro - id inválido", func(t *testing.T) {
 		mockService := new(mock_supplier.MockSupplierCategoryRelationService)
@@ -343,7 +349,9 @@ func TestSupplierCategoryRelationHandler_GetByCategoryID(t *testing.T) {
 }
 
 func TestSupplierCategoryRelationHandler_DeleteByID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("erro - ids inválidos", func(t *testing.T) {
 		mockService := new(mock_supplier.MockSupplierCategoryRelationService)
@@ -425,7 +433,9 @@ func TestSupplierCategoryRelationHandler_DeleteByID(t *testing.T) {
 }
 
 func TestSupplierCategoryRelationHandler_DeleteAllBySupplierID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("erro - id inválido", func(t *testing.T) {
 		mockService := new(mock_supplier.MockSupplierCategoryRelationService)
@@ -498,7 +508,9 @@ func TestSupplierCategoryRelationHandler_DeleteAllBySupplierID(t *testing.T) {
 }
 
 func TestSupplierCategoryRelationHandler_HasSupplierCategoryRelation(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success - relação existe", func(t *testing.T) {
 		mockService := new(mock_supplier.MockSupplierCategoryRelationService)

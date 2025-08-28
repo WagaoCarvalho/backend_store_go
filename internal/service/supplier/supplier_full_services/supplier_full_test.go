@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"testing"
@@ -12,7 +13,7 @@ import (
 	repo_supplier_cat_rel "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
 	model_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	model_supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier"
+	model_supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
 	model_supplier_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
 	model_supplier_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
 	model_full "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
@@ -23,12 +24,14 @@ import (
 )
 
 func TestCreateFull_Validation(t *testing.T) {
-	// Setup dos mocks
+
 	mockSupplierRepo := new(mock_supplier.MockSupplierFullRepository)
 	mockAddressRepo := new(mock_address.MockAddressRepository)
 	mockContactRepo := new(mock_contact.MockContactRepository)
 	mockRelationRepo := new(repo_supplier_cat_rel.MockSupplierCategoryRelationRepo)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	service := NewSupplierFullService(
 		mockSupplierRepo,
@@ -108,7 +111,7 @@ func TestCreateFull_Validation(t *testing.T) {
 	t.Run("deve_falhar_quando_supplier_invalido", func(t *testing.T) {
 		invalidSupplier := &model_full.SupplierFull{
 			Supplier: &model_supplier.Supplier{
-				Name: "", // nome inválido
+				Name: "",
 			},
 			Address:    &model_address.Address{Street: "Rua Teste"},
 			Contact:    &model_contact.Contact{Phone: "1112345678"},
@@ -129,7 +132,9 @@ func TestCreateFull_Validation(t *testing.T) {
 }
 
 func TestSupplierService_CreateFull(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_supplier.MockSupplierFullRepository,
@@ -237,10 +242,8 @@ func TestSupplierService_CreateFull(t *testing.T) {
 	t.Run("erro_ao_fazer_rollback", func(t *testing.T) {
 		mockSupplierRepo, mockAddressRepo, mockContactRepo, mockRelationRepo, mockTx, supplierService := setup()
 
-		// Configuração dos mocks
 		mockSupplierRepo.On("BeginTx", mock.Anything).Return(mockTx, nil)
 
-		// Mock das criações bem-sucedidas
 		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
 			Return(&model_supplier.Supplier{ID: 1}, nil)
 
@@ -250,14 +253,11 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
 			Return(&model_contact.Contact{ID: 1}, nil)
 
-		// Mock com falha na criação da relação
 		mockRelationRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
 			Return(nil, errors.New("erro ao criar relação"))
 
-		// Mock com falha no rollback
 		mockTx.On("Rollback", mock.Anything).Return(errors.New("erro ao dar rollback"))
 
-		// Dados de entrada
 		cpf := "12345678900"
 		supplierFull := &model_full.SupplierFull{
 			Supplier: &model_supplier.Supplier{
@@ -282,10 +282,8 @@ func TestSupplierService_CreateFull(t *testing.T) {
 			},
 		}
 
-		// Execução
 		_, err := supplierService.CreateFull(context.Background(), supplierFull)
 
-		// Verificações
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao criar relação")
 		assert.Contains(t, err.Error(), "rollback error")
@@ -300,35 +298,27 @@ func TestSupplierService_CreateFull(t *testing.T) {
 	t.Run("erro_ao_commitar_transacao", func(t *testing.T) {
 		mockSupplierRepo, mockAddressRepo, mockContactRepo, mockRelationRepo, mockTx, supplierService := setup()
 
-		// Mock da transação
 		mockSupplierRepo.On("BeginTx", mock.Anything).Return(mockTx, nil)
 
-		// Mock da criação do fornecedor
 		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
 			Return(&model_supplier.Supplier{
 				ID:   1,
 				Name: "Fornecedor Teste",
 			}, nil)
 
-		// Mock da criação do endereço
 		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
 			Return(&model_address.Address{ID: 1}, nil)
 
-		// Mock da criação do contato
 		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
 			Return(&model_contact.Contact{ID: 1}, nil)
 
-		// Mock da criação da relação com categoria
 		mockRelationRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
 			Return(&model_supplier_cat_rel.SupplierCategoryRelations{SupplierID: 1, CategoryID: 1}, nil)
 
-		// Mock do commit que falha
 		mockTx.On("Commit", mock.Anything).Return(errors.New("erro ao commitar transação"))
 
-		// Mock do rollback que deve ser chamado após erro no commit
 		mockTx.On("Rollback", mock.Anything).Return(nil).Once()
 
-		// Dados de entrada
 		cpf := "12345678900"
 		supplierFull := &model_full.SupplierFull{
 			Supplier: &model_supplier.Supplier{
@@ -353,14 +343,11 @@ func TestSupplierService_CreateFull(t *testing.T) {
 			},
 		}
 
-		// Execução
 		_, err := supplierService.CreateFull(context.Background(), supplierFull)
 
-		// Verificações
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao commitar transação")
 
-		// Verificações de expectativa
 		mockSupplierRepo.AssertExpectations(t)
 		mockAddressRepo.AssertExpectations(t)
 		mockContactRepo.AssertExpectations(t)
@@ -369,10 +356,9 @@ func TestSupplierService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("erro_ao_fazer_rollback_apos_commit_falhar", func(t *testing.T) {
-		// Setup
+
 		mockSupplierRepo, mockAddressRepo, mockContactRepo, mockRelationRepo, mockTx, supplierService := setup()
 
-		// Dados válidos
 		cpf := "12345678900"
 		supplierFull := &model_full.SupplierFull{
 			Supplier: &model_supplier.Supplier{
@@ -397,7 +383,6 @@ func TestSupplierService_CreateFull(t *testing.T) {
 			},
 		}
 
-		// Configuração dos mocks
 		mockSupplierRepo.On("BeginTx", mock.Anything).Return(mockTx, nil)
 
 		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
@@ -409,22 +394,17 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
 			Return(&model_contact.Contact{ID: 1}, nil)
 
-		// Aqui erro na criação da relação, mas retorna nil erro para simular sucesso
 		mockRelationRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
 			Return(nil, nil)
 
-		// Mock do commit que falha
 		commitError := errors.New("erro no commit")
 		mockTx.On("Commit", mock.Anything).Return(commitError)
 
-		// Mock do rollback que também falha
 		rollbackError := errors.New("erro no rollback")
 		mockTx.On("Rollback", mock.Anything).Return(rollbackError)
 
-		// Execução
 		_, err := supplierService.CreateFull(context.Background(), supplierFull)
 
-		// Verificações
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao commitar transação")
 		assert.Contains(t, err.Error(), "erro no commit")
@@ -453,7 +433,6 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
 			Return(nil, errors.New("erro ao criar endereço"))
 
-		// Relação pode ou não ser chamada, pode usar Maybe()
 		mockRelationRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
 			Return(nil, nil).
 			Maybe()
@@ -680,7 +659,7 @@ func TestSupplierService_CreateFull(t *testing.T) {
 				Status: true,
 			},
 			Address: &model_address.Address{
-				Street: "", // força falha de validação
+				Street: "",
 			},
 			Contact: &model_contact.Contact{
 				ContactName: "Ari",
@@ -726,7 +705,7 @@ func TestSupplierService_CreateFull(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			Contact: &model_contact.Contact{
-				Phone: "invalido", // força erro de validação
+				Phone: "invalido",
 			},
 		}
 
@@ -757,7 +736,7 @@ func TestSupplierService_CreateFull(t *testing.T) {
 				Status: true,
 			},
 			Categories: []model_supplier_categories.SupplierCategory{
-				{ID: 0}, // força falha na relação categoria
+				{ID: 0},
 			},
 			Address: &model_address.Address{
 				Street:     "Rua A",

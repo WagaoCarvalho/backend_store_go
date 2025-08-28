@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"testing"
@@ -15,7 +16,9 @@ import (
 )
 
 func TestUserCategoryService_Create(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(mock_user_cat.MockUserCategoryRepository)
@@ -67,7 +70,9 @@ func TestUserCategoryService_Create(t *testing.T) {
 }
 
 func TestUserCategoryService_GetAll(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(mock_user_cat.MockUserCategoryRepository)
@@ -101,7 +106,9 @@ func TestUserCategoryService_GetAll(t *testing.T) {
 }
 
 func TestUserCategoryService_GetById(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	mockRepo := new(mock_user_cat.MockUserCategoryRepository)
 	service := NewUserCategoryService(mockRepo, logger)
 
@@ -160,7 +167,9 @@ func TestUserCategoryService_GetById(t *testing.T) {
 }
 
 func TestUserCategoryService_Update(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	mockRepo := new(mock_user_cat.MockUserCategoryRepository)
 	service := NewUserCategoryService(mockRepo, logger)
 
@@ -252,7 +261,9 @@ func TestUserCategoryService_Update(t *testing.T) {
 }
 
 func TestUserCategoryService_Delete(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	mockRepo := new(mock_user_cat.MockUserCategoryRepository)
 	service := NewUserCategoryService(mockRepo, logger)
 

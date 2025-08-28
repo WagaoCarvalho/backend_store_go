@@ -4,7 +4,8 @@ import (
 	"strings"
 	"time"
 
-	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
+	val_cpf_cnpj "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/cpf_cnpj"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
 type Supplier struct {
@@ -33,14 +34,14 @@ func (s *Supplier) Validate() error {
 
 	if s.CPF != nil {
 		cpf := strings.TrimSpace(*s.CPF)
-		if !validators.IsValidCPF(cpf) {
+		if !val_cpf_cnpj.IsValidCPF(cpf) {
 			return &validators.ValidationError{Field: "CPF", Message: "CPF inválido"}
 		}
 	}
 
 	if s.CNPJ != nil {
 		cnpj := strings.TrimSpace(*s.CNPJ)
-		if !validators.IsValidCNPJ(cnpj) {
+		if !val_cpf_cnpj.IsValidCNPJ(cnpj) {
 			return &validators.ValidationError{Field: "CNPJ", Message: "CNPJ inválido"}
 		}
 	}

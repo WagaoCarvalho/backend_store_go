@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"testing"
@@ -16,7 +17,9 @@ import (
 )
 
 func Test_Create(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mock
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(repo.MockUserCategoryRelationRepo)
@@ -101,13 +104,13 @@ func Test_Create(t *testing.T) {
 
 		mockRepo.
 			On("Create", mock.Anything, mock.Anything).
-			Return(nil, err_msg.ErrDbInvalidForeignKey)
+			Return(nil, err_msg.ErrInvalidForeignKey)
 
 		rel, wasCreated, err := service.Create(context.Background(), userID, categoryID)
 
 		assert.Nil(t, rel)
 		assert.False(t, wasCreated)
-		assert.ErrorIs(t, err, err_msg.ErrDbInvalidForeignKey)
+		assert.ErrorIs(t, err, err_msg.ErrInvalidForeignKey)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -125,7 +128,9 @@ func Test_Create(t *testing.T) {
 }
 
 func Test_GetAllRelationsByUserID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mock
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(repo.MockUserCategoryRelationRepo)
@@ -166,7 +171,9 @@ func Test_GetAllRelationsByUserID(t *testing.T) {
 }
 
 func Test_HasUserCategoryRelation(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New()) // ou mock logger
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success_ExistsTrue", func(t *testing.T) {
 		mockRepo := new(repo.MockUserCategoryRelationRepo)
@@ -227,7 +234,9 @@ func Test_HasUserCategoryRelation(t *testing.T) {
 }
 
 func Test_Delete(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mock
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	mockRepo := new(repo.MockUserCategoryRelationRepo)
 	service := NewUserCategoryRelationServices(mockRepo, logger)
 
@@ -273,7 +282,9 @@ func Test_Delete(t *testing.T) {
 }
 
 func Test_DeleteAll(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New()) // logger real ou mock
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	mockRepo := new(repo.MockUserCategoryRelationRepo)
 	service := NewUserCategoryRelationServices(mockRepo, logger)
 

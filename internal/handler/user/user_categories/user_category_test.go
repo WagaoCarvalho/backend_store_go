@@ -21,7 +21,9 @@ import (
 
 func TestUserCategoryHandler_Create(t *testing.T) {
 	mockSvc := new(mock_user_cat.MockUserCategoryService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewUserCategoryHandler(mockSvc, logger)
 
 	t.Run("Success", func(t *testing.T) {
@@ -92,7 +94,9 @@ func TestUserCategoryHandler_Create(t *testing.T) {
 
 func TestUserCategoryHandler_GetById(t *testing.T) {
 	mockSvc := new(mock_user_cat.MockUserCategoryService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewUserCategoryHandler(mockSvc, logger)
 
 	t.Run("Success", func(t *testing.T) {
@@ -180,7 +184,9 @@ func TestUserCategoryHandler_GetById(t *testing.T) {
 func TestUserCategoryHandler_GetAll(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := new(mock_user_cat.MockUserCategoryService)
-		logger := logger.NewLoggerAdapter(logrus.New())
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(baseLogger)
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		expected := []*model.UserCategory{{ID: 1, Name: "Categoria"}}
@@ -216,7 +222,9 @@ func TestUserCategoryHandler_GetAll(t *testing.T) {
 
 	t.Run("ServiceError", func(t *testing.T) {
 		mockSvc := new(mock_user_cat.MockUserCategoryService)
-		logger := logger.NewLoggerAdapter(logrus.New())
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(baseLogger)
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		mockSvc.On("GetAll", mock.Anything).Return(([]*model.UserCategory)(nil), errors.New("erro de banco"))
@@ -241,7 +249,9 @@ func TestUserCategoryHandler_GetAll(t *testing.T) {
 }
 
 func TestUserCategoryHandler_Update(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := new(mock_user_cat.MockUserCategoryService)
@@ -359,7 +369,9 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 }
 
 func TestUserCategoryHandler_Delete(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := new(mock_user_cat.MockUserCategoryService)

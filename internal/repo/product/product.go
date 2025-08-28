@@ -94,7 +94,7 @@ func (r *productRepository) Create(ctx context.Context, product *models.Product)
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"supplier_id": utils.Int64OrNil(product.SupplierID),
 			})
-			return nil, err_msg.ErrDbInvalidForeignKey
+			return nil, err_msg.ErrInvalidForeignKey
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{

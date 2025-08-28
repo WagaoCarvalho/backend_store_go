@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"testing"
@@ -68,7 +69,9 @@ func TestCreateFull_Validation(t *testing.T) {
 	mockContactRepo := new(mock_contact.MockContactRepository)
 	mockRelationRepo := new(mock_user_cat_rel.MockUserCategoryRelationRepo)
 	mockHasher := new(MockHasher)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	service := NewUserFullService(
 		mockUserRepo,
@@ -162,7 +165,9 @@ func TestCreateFull_Validation(t *testing.T) {
 }
 
 func TestUserService_CreateFull(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user_full.MockUserFullRepository,

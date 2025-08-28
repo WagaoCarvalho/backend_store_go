@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"net/http"
 	"net/http/httptest"
@@ -22,7 +23,9 @@ func (m *MockLogoutService) Logout(ctx context.Context, token string) error {
 }
 
 func TestLogoutHandler_Logout(t *testing.T) {
-	logAdapter := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := new(MockLogoutService)

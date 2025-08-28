@@ -5,7 +5,8 @@ import (
 
 	"unicode"
 
-	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
+	val_contact "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/contact"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
 type User struct {
@@ -35,7 +36,7 @@ func (u *User) Validate() error {
 	if len(u.Email) > 100 {
 		return &validators.ValidationError{Field: "Email", Message: "máximo de 100 caracteres"}
 	}
-	if !validators.IsValidEmail(u.Email) {
+	if !val_contact.IsValidEmail(u.Email) {
 		return &validators.ValidationError{Field: "Email", Message: "email inválido"}
 	}
 

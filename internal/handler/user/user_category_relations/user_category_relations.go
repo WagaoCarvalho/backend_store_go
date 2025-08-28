@@ -43,7 +43,7 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 
 	created, wasCreated, err := h.service.Create(ctx, relation.UserID, relation.CategoryID)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrDbInvalidForeignKey) {
+		if errors.Is(err, err_msg.ErrInvalidForeignKey) {
 			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]interface{}{
 				"user_id":     relation.UserID,
 				"category_id": relation.CategoryID,

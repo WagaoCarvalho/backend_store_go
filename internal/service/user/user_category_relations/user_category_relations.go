@@ -82,12 +82,12 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 
 			return nil, false, err_msg.ErrRelationExists
 
-		case errors.Is(err, err_msg.ErrDbInvalidForeignKey):
+		case errors.Is(err, err_msg.ErrInvalidForeignKey):
 			s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 				"user_id":     userID,
 				"category_id": categoryID,
 			})
-			return nil, false, err_msg.ErrDbInvalidForeignKey
+			return nil, false, err_msg.ErrInvalidForeignKey
 
 		default:
 			s.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{

@@ -4,7 +4,8 @@ import (
 	"strings"
 	"time"
 
-	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
+	val_address "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/address"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
 type Address struct {
@@ -22,56 +23,58 @@ type Address struct {
 }
 
 func (a *Address) Validate() error {
+	var errs validators.ValidationErrors
 
+	// --- Associação ---
 	if !validators.ValidateSingleNonNil(a.UserID, a.ClientID, a.SupplierID) {
-		return &validators.ValidationError{
+		errs = append(errs, validators.ValidationError{
 			Field:   "UserID/ClientID/SupplierID",
-			Message: "exatamente um deve ser informado",
-		}
+			Message: validators.MsgInvalidAssociation,
+		})
 	}
 
 	// --- Street ---
 	if validators.IsBlank(a.Street) {
-		return &validators.ValidationError{Field: "Street", Message: "campo obrigatório"}
-	}
-	if len(a.Street) < 3 {
-		return &validators.ValidationError{Field: "Street", Message: "mínimo de 3 caracteres"}
-	}
-	if len(a.Street) > 100 {
-		return &validators.ValidationError{Field: "Street", Message: "máximo de 100 caracteres"}
+		errs = append(errs, validators.ValidationError{Field: "street", Message: validators.MsgRequiredField})
+	} else {
+		if len(a.Street) < 3 {
+			errs = append(errs, validators.ValidationError{Field: "street", Message: validators.MsgMin3})
+		}
+		if len(a.Street) > 100 {
+			errs = append(errs, validators.ValidationError{Field: "street", Message: validators.MsgMax100})
+		}
 	}
 
 	// --- City ---
 	if validators.IsBlank(a.City) {
-		return &validators.ValidationError{Field: "City", Message: "campo obrigatório"}
-	}
-	if len(a.City) < 2 {
-		return &validators.ValidationError{Field: "City", Message: "mínimo de 2 caracteres"}
+		errs = append(errs, validators.ValidationError{Field: "city", Message: validators.MsgRequiredField})
+	} else if len(a.City) < 2 {
+		errs = append(errs, validators.ValidationError{Field: "city", Message: validators.MsgMin2})
 	}
 
 	// --- State ---
 	if validators.IsBlank(a.State) {
-		return &validators.ValidationError{Field: "State", Message: "campo obrigatório"}
-	}
-	if !validators.IsValidBrazilianState(a.State) {
-		return &validators.ValidationError{Field: "State", Message: "estado inválido"}
+		errs = append(errs, validators.ValidationError{Field: "state", Message: validators.MsgRequiredField})
+	} else if !val_address.IsValidBrazilianState(a.State) {
+		errs = append(errs, validators.ValidationError{Field: "state", Message: validators.MsgInvalidState})
 	}
 
 	// --- Country ---
 	if validators.IsBlank(a.Country) {
-		return &validators.ValidationError{Field: "Country", Message: "campo obrigatório"}
-	}
-	if strings.ToLower(strings.TrimSpace(a.Country)) != "brasil" {
-		return &validators.ValidationError{Field: "Country", Message: "país não suportado"}
+		errs = append(errs, validators.ValidationError{Field: "country", Message: validators.MsgRequiredField})
+	} else if !strings.EqualFold(strings.TrimSpace(a.Country), "Brasil") {
+		errs = append(errs, validators.ValidationError{Field: "country", Message: validators.MsgInvalidCountry})
 	}
 
 	// --- PostalCode ---
 	if validators.IsBlank(a.PostalCode) {
-		return &validators.ValidationError{Field: "PostalCode", Message: "campo obrigatório"}
-	}
-	if !validators.IsValidPostalCode(a.PostalCode) {
-		return &validators.ValidationError{Field: "PostalCode", Message: "formato inválido (ex: 12345678)"}
+		errs = append(errs, validators.ValidationError{Field: "postal_code", Message: validators.MsgRequiredField})
+	} else if !val_address.IsValidPostalCode(a.PostalCode) {
+		errs = append(errs, validators.ValidationError{Field: "postal_code", Message: validators.MsgInvalidPostalCode})
 	}
 
+	if errs.HasErrors() {
+		return errs
+	}
 	return nil
 }

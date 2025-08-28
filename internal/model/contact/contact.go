@@ -4,7 +4,8 @@ import (
 	"strings"
 	"time"
 
-	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
+	val_contact "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/contact"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
 type Contact struct {
@@ -23,48 +24,58 @@ type Contact struct {
 }
 
 func (c *Contact) Validate() error {
+	var errs validators.ValidationErrors
+
+	// --- Associação ---
 	if !validators.ValidateSingleNonNil(c.UserID, c.ClientID, c.SupplierID) {
-		return &validators.ValidationError{
+		errs = append(errs, validators.ValidationError{
 			Field:   "UserID/ClientID/SupplierID",
-			Message: "exatamente um deve ser informado",
+			Message: validators.MsgInvalidAssociation,
+		})
+	}
+
+	// ContactName
+	if validators.IsBlank(c.ContactName) {
+		errs = append(errs, validators.ValidationError{Field: "contact_name", Message: validators.MsgRequiredField})
+	} else {
+		if len(c.ContactName) < 3 {
+			errs = append(errs, validators.ValidationError{Field: "contact_name", Message: validators.MsgMin3})
+		}
+		if len(c.ContactName) > 100 {
+			errs = append(errs, validators.ValidationError{Field: "contact_name", Message: validators.MsgMax100})
 		}
 	}
 
-	if validators.IsBlank(c.ContactName) {
-		return &validators.ValidationError{Field: "ContactName", Message: "campo obrigatório"}
-	}
-	if len(c.ContactName) < 3 {
-		return &validators.ValidationError{Field: "ContactName", Message: "mínimo de 3 caracteres"}
-	}
-	if len(c.ContactName) > 100 {
-		return &validators.ValidationError{Field: "ContactName", Message: "máximo de 100 caracteres"}
-	}
-
+	// ContactPosition
 	if len(c.ContactPosition) > 100 {
-		return &validators.ValidationError{Field: "ContactPosition", Message: "máximo de 100 caracteres"}
+		errs = append(errs, validators.ValidationError{Field: "contact_position", Message: validators.MsgMax100})
 	}
 
+	// Email
 	if !validators.IsBlank(c.Email) {
-		if !validators.IsValidEmail(c.Email) {
-			return &validators.ValidationError{Field: "Email", Message: "formato inválido"}
+		if !val_contact.IsValidEmail(c.Email) {
+			errs = append(errs, validators.ValidationError{Field: "email", Message: validators.MsgInvalidFormat})
 		}
 		if len(c.Email) > 100 {
-			return &validators.ValidationError{Field: "Email", Message: "máximo de 100 caracteres"}
+			errs = append(errs, validators.ValidationError{Field: "email", Message: validators.MsgMax100})
 		}
 	}
 
+	// Phone
 	if !validators.IsBlank(c.Phone) {
-		if !validators.IsValidPhone(c.Phone) {
-			return &validators.ValidationError{Field: "Phone", Message: "formato inválido (ex: 1112345678)"}
+		if !val_contact.IsValidPhone(c.Phone) {
+			errs = append(errs, validators.ValidationError{Field: "phone", Message: validators.MsgInvalidPhone})
 		}
 	}
 
+	// Cell
 	if !validators.IsBlank(c.Cell) {
-		if !validators.IsValidCell(c.Cell) {
-			return &validators.ValidationError{Field: "Cell", Message: "formato inválido (ex: 11912345678)"}
+		if !val_contact.IsValidCell(c.Cell) {
+			errs = append(errs, validators.ValidationError{Field: "cell", Message: validators.MsgInvalidCell})
 		}
 	}
 
+	// ContactType
 	if !validators.IsBlank(c.ContactType) {
 		validTypes := map[string]bool{
 			"principal":  true,
@@ -74,9 +85,12 @@ func (c *Contact) Validate() error {
 		}
 		normalized := strings.ToLower(strings.TrimSpace(c.ContactType))
 		if !validTypes[normalized] {
-			return &validators.ValidationError{Field: "ContactType", Message: "tipo inválido"}
+			errs = append(errs, validators.ValidationError{Field: "contact_type", Message: validators.MsgInvalidType})
 		}
 	}
 
+	if len(errs) > 0 {
+		return errs
+	}
 	return nil
 }

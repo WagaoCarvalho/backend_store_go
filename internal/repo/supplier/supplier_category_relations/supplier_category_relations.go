@@ -55,7 +55,7 @@ func (r *supplierCategoryRelationRepo) Create(ctx context.Context, rel *models.S
 				"supplier_id": rel.SupplierID,
 				"category_id": rel.CategoryID,
 			})
-			return nil, err_msg.ErrDbInvalidForeignKey
+			return nil, err_msg.ErrInvalidForeignKey
 
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
@@ -104,7 +104,7 @@ func (r *supplierCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, 
 				"supplier_id": relation.SupplierID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, err_msg.ErrDbInvalidForeignKey
+			return nil, err_msg.ErrInvalidForeignKey
 
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
@@ -236,7 +236,7 @@ func (r *supplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, c
 				"supplier_id": supplierID,
 				"category_id": categoryID,
 			})
-			return err_msg.ErrDbInvalidForeignKey
+			return err_msg.ErrInvalidForeignKey
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 				"supplier_id": supplierID,
@@ -271,7 +271,7 @@ func (r *supplierCategoryRelationRepo) DeleteAllBySupplierId(ctx context.Context
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"supplier_id": supplierID,
 			})
-			return err_msg.ErrDbInvalidForeignKey
+			return err_msg.ErrInvalidForeignKey
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 				"supplier_id": supplierID,

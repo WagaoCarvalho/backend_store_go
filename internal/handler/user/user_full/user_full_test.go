@@ -22,7 +22,9 @@ import (
 
 func TestUserHandler_CreateFull(t *testing.T) {
 	mockService := new(service.MockUserFullService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewUserFullHandler(mockService, logger)
 
 	t.Run("Sucesso ao criar usuário completo", func(t *testing.T) {

@@ -21,7 +21,9 @@ import (
 )
 
 func TestUserCategoryRelationHandler_Create(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success - relação criada", func(t *testing.T) {
 		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
@@ -110,7 +112,9 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 }
 
 func TestUserCategoryRelationHandler_Create_ForeignKeyInvalid(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 	handler := NewUserCategoryRelationHandler(mockService, logger)
 
@@ -118,7 +122,7 @@ func TestUserCategoryRelationHandler_Create_ForeignKeyInvalid(t *testing.T) {
 
 	mockService.
 		On("Create", mock.Anything, int64(1), int64(999)).
-		Return(nil, false, err_msg.ErrDbInvalidForeignKey)
+		Return(nil, false, err_msg.ErrInvalidForeignKey)
 
 	req := httptest.NewRequest(http.MethodPost, "/relations", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -127,13 +131,14 @@ func TestUserCategoryRelationHandler_Create_ForeignKeyInvalid(t *testing.T) {
 	handler.Create(rec, req)
 
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
-	assert.Contains(t, rec.Body.String(), err_msg.ErrDbInvalidForeignKey.Error())
+	assert.Contains(t, rec.Body.String(), err_msg.ErrInvalidForeignKey.Error())
 	mockService.AssertExpectations(t)
 }
 
 func TestUserCategoryRelationHandler_GetAllRelationsByUserID(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
-
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	t.Run("success - retorna todas as relações do usuário", func(t *testing.T) {
 		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
 		handler := NewUserCategoryRelationHandler(mockService, logger)
@@ -197,7 +202,9 @@ func TestUserCategoryRelationHandler_GetAllRelationsByUserID(t *testing.T) {
 }
 
 func TestUserCategoryRelationHandler_HasUserCategoryRelation(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success - relação existe", func(t *testing.T) {
 		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
@@ -300,7 +307,9 @@ func TestUserCategoryRelationHandler_HasUserCategoryRelation(t *testing.T) {
 }
 
 func TestUserCategoryRelationHandler_Delete(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success - relação deletada com sucesso", func(t *testing.T) {
 		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)
@@ -371,7 +380,9 @@ func TestUserCategoryRelationHandler_Delete(t *testing.T) {
 }
 
 func TestUserCategoryRelationHandler_DeleteAll(t *testing.T) {
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success - todas as relações deletadas com sucesso", func(t *testing.T) {
 		mockService := new(mock_user_cat_rel.MockUserCategoryRelationService)

@@ -1,8 +1,13 @@
 package models
 
 import (
-	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
+	val_contact "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/contact"
+	val_pass "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/password"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
+
+// variável de função que pode ser sobrescrita em testes
+var validateStrongPassword = val_pass.ValidateStrongPassword
 
 type LoginCredentials struct {
 	Email    string `json:"email"`
@@ -10,21 +15,34 @@ type LoginCredentials struct {
 }
 
 func (c *LoginCredentials) Validate() error {
+	var errs validators.ValidationErrors
+
+	// Email
 	if validators.IsBlank(c.Email) {
-		return &validators.ValidationError{Field: "Email", Message: "campo obrigatório"}
+		errs = append(errs, validators.ValidationError{Field: "email", Message: validators.MsgRequiredField})
+	} else if len(c.Email) > 100 {
+		errs = append(errs, validators.ValidationError{Field: "email", Message: validators.MsgMax100})
+	} else if !val_contact.IsValidEmail(c.Email) {
+		errs = append(errs, validators.ValidationError{Field: "email", Message: validators.MsgInvalidEmail})
 	}
 
-	if len(c.Email) > 100 {
-		return &validators.ValidationError{Field: "Email", Message: "máximo de 100 caracteres"}
+	// Password
+	if validators.IsBlank(c.Password) {
+		errs = append(errs, validators.ValidationError{Field: "password", Message: validators.MsgRequiredField})
+	} else {
+		if err := validateStrongPassword(c.Password); err != nil {
+			// Presume que ValidateStrongPassword retorna ValidationError
+			if vErr, ok := err.(validators.ValidationError); ok {
+				errs = append(errs, vErr)
+			} else {
+				// Se retornar erro genérico, adiciona com campo password
+				errs = append(errs, validators.ValidationError{Field: "password", Message: err.Error()})
+			}
+		}
 	}
 
-	if !validators.IsValidEmail(c.Email) {
-		return &validators.ValidationError{Field: "Email", Message: "email inválido"}
+	if errs.HasErrors() {
+		return errs
 	}
-
-	if err := validators.ValidateStrongPassword(c.Password); err != nil {
-		return err
-	}
-
 	return nil
 }

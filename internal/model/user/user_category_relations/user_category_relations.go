@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
 type UserCategoryRelations struct {

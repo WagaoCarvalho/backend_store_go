@@ -21,7 +21,9 @@ import (
 
 func TestUserHandler_Create(t *testing.T) {
 	mockService := new(mock_user.MockUserService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao criar usuário", func(t *testing.T) {
@@ -105,7 +107,9 @@ func TestUserHandler_Create(t *testing.T) {
 
 func TestUserHandler_GetAll(t *testing.T) {
 	mockService := new(mock_user.MockUserService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao buscar todos usuários", func(t *testing.T) {
@@ -144,7 +148,9 @@ func TestUserHandler_GetAll(t *testing.T) {
 
 func TestUserHandler_GetByID(t *testing.T) {
 	mockService := new(mock_user.MockUserService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao buscar usuário por ID", func(t *testing.T) {
@@ -211,7 +217,9 @@ func TestUserHandler_GetByID(t *testing.T) {
 
 func TestUserHandler_GetVersionByID(t *testing.T) {
 	mockService := new(mock_user.MockUserService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao obter versão por ID", func(t *testing.T) {
@@ -272,7 +280,9 @@ func TestUserHandler_GetVersionByID(t *testing.T) {
 
 func TestUserHandler_GetByEmail(t *testing.T) {
 	mockService := new(mock_user.MockUserService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao buscar usuário por email", func(t *testing.T) {
@@ -329,7 +339,9 @@ func TestUserHandler_GetByEmail(t *testing.T) {
 
 func TestUserHandler_GetByName(t *testing.T) {
 	mockService := new(mock_user.MockUserService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao buscar usuários por nome parcial", func(t *testing.T) {
@@ -393,7 +405,9 @@ func TestUserHandler_GetByName(t *testing.T) {
 
 func TestUserHandler_Update(t *testing.T) {
 	mockService := new(mock_user.MockUserService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao atualizar usuário", func(t *testing.T) {
@@ -532,7 +546,9 @@ func TestUserHandler_Update(t *testing.T) {
 
 func TestUserHandler_Disable(t *testing.T) {
 	mockService := new(mock_user.MockUserService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao desabilitar usuário", func(t *testing.T) {
@@ -676,7 +692,9 @@ func TestUserHandler_Disable(t *testing.T) {
 
 func TestUserHandler_Enable(t *testing.T) {
 	mockService := new(mock_user.MockUserService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao habilitar usuário", func(t *testing.T) {
@@ -823,7 +841,9 @@ func TestUserHandler_Enable(t *testing.T) {
 
 func TestUserHandler_Delete(t *testing.T) {
 	mockService := new(mock_user.MockUserService)
-	logger := logger.NewLoggerAdapter(logrus.New())
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao deletar usuário", func(t *testing.T) {

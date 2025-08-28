@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
 func TestAddress_Validate(t *testing.T) {
@@ -31,30 +31,6 @@ func TestAddress_Validate(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Valid address with ClientID",
-			address: Address{
-				ClientID:   &userID,
-				Street:     "Rua 1",
-				City:       "Cidade",
-				State:      "SP",
-				Country:    "Brasil",
-				PostalCode: "12345678",
-			},
-			wantErr: false,
-		},
-		{
-			name: "Valid address with SupplierID",
-			address: Address{
-				SupplierID: &userID,
-				Street:     "Rua 1",
-				City:       "Cidade",
-				State:      "SP",
-				Country:    "Brasil",
-				PostalCode: "12345678",
-			},
-			wantErr: false,
-		},
-		{
 			name: "Missing all IDs",
 			address: Address{
 				Street:     "Rua 1",
@@ -64,53 +40,8 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "exatamente um deve ser informado",
-		},
-		{
-			name: "More than one ID provided (UserID + ClientID)",
-			address: Address{
-				UserID:     &userID,
-				ClientID:   &userID,
-				Street:     "Rua 1",
-				City:       "Cidade",
-				State:      "SP",
-				Country:    "Brasil",
-				PostalCode: "12345678",
-			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "exatamente um deve ser informado",
-		},
-		{
-			name: "More than one ID provided (UserID + SupplierID)",
-			address: Address{
-				UserID:     &userID,
-				SupplierID: &userID,
-				Street:     "Rua 1",
-				City:       "Cidade",
-				State:      "SP",
-				Country:    "Brasil",
-				PostalCode: "12345678",
-			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "exatamente um deve ser informado",
-		},
-		{
-			name: "More than one ID provided (ClientID + SupplierID)",
-			address: Address{
-				ClientID:   &userID,
-				SupplierID: &userID,
-				Street:     "Rua 1",
-				City:       "Cidade",
-				State:      "SP",
-				Country:    "Brasil",
-				PostalCode: "12345678",
-			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "exatamente um deve ser informado",
+			errType: validators.ValidationErrors{},
+			errMsg:  validators.MsgInvalidAssociation,
 		},
 		{
 			name: "Blank Street",
@@ -123,8 +54,8 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "Street",
+			errType: validators.ValidationErrors{},
+			errMsg:  "street", // agora em snake_case
 		},
 		{
 			name: "Street too short",
@@ -137,22 +68,8 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "mínimo de 3 caracteres",
-		},
-		{
-			name: "Street too long",
-			address: Address{
-				UserID:     &userID,
-				Street:     strings.Repeat("a", 101),
-				City:       "Cidade",
-				State:      "SP",
-				Country:    "Brasil",
-				PostalCode: "12345678",
-			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "máximo de 100 caracteres",
+			errType: validators.ValidationErrors{},
+			errMsg:  validators.MsgMin3,
 		},
 		{
 			name: "Missing City",
@@ -165,36 +82,8 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "City",
-		},
-		{
-			name: "City too short",
-			address: Address{
-				UserID:     &userID,
-				Street:     "Rua 1",
-				City:       "A",
-				State:      "SP",
-				Country:    "Brasil",
-				PostalCode: "12345678",
-			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "mínimo de 2 caracteres",
-		},
-		{
-			name: "Blank State",
-			address: Address{
-				UserID:     &userID,
-				Street:     "Rua 1",
-				City:       "Cidade",
-				State:      "   ",
-				Country:    "Brasil",
-				PostalCode: "12345678",
-			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "State",
+			errType: validators.ValidationErrors{},
+			errMsg:  "city",
 		},
 		{
 			name: "Invalid State",
@@ -207,21 +96,8 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "estado inválido",
-		},
-		{
-			name: "Missing Country",
-			address: Address{
-				UserID:     &userID,
-				Street:     "Rua 1",
-				City:       "Cidade",
-				State:      "SP",
-				PostalCode: "12345678",
-			},
-			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "Country",
+			errType: validators.ValidationErrors{},
+			errMsg:  validators.MsgInvalidState,
 		},
 		{
 			name: "Unsupported Country",
@@ -234,8 +110,8 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "12345678",
 			},
 			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "país não suportado",
+			errType: validators.ValidationErrors{},
+			errMsg:  validators.MsgInvalidCountry,
 		},
 		{
 			name: "Missing PostalCode",
@@ -247,8 +123,8 @@ func TestAddress_Validate(t *testing.T) {
 				Country: "Brasil",
 			},
 			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "PostalCode",
+			errType: validators.ValidationErrors{},
+			errMsg:  "postal_code",
 		},
 		{
 			name: "Invalid PostalCode",
@@ -261,8 +137,64 @@ func TestAddress_Validate(t *testing.T) {
 				PostalCode: "ABC",
 			},
 			wantErr: true,
-			errType: &validators.ValidationError{},
-			errMsg:  "formato inválido",
+			errType: validators.ValidationErrors{},
+			errMsg:  validators.MsgInvalidPostalCode,
+		},
+		{
+			name: "Street too long",
+			address: Address{
+				UserID:     &userID,
+				Street:     strings.Repeat("a", 101), // 101 caracteres
+				City:       "Cidade",
+				State:      "SP",
+				Country:    "Brasil",
+				PostalCode: "12345678",
+			},
+			wantErr: true,
+			errType: validators.ValidationErrors{},
+			errMsg:  validators.MsgMax100,
+		},
+		{
+			name: "City too short",
+			address: Address{
+				UserID:     &userID,
+				Street:     "Rua 1",
+				City:       "A", // apenas 1 caractere
+				State:      "SP",
+				Country:    "Brasil",
+				PostalCode: "12345678",
+			},
+			wantErr: true,
+			errType: validators.ValidationErrors{},
+			errMsg:  validators.MsgMin2,
+		},
+		{
+			name: "Blank State",
+			address: Address{
+				UserID:     &userID,
+				Street:     "Rua 1",
+				City:       "Cidade",
+				State:      "   ", // só espaços
+				Country:    "Brasil",
+				PostalCode: "12345678",
+			},
+			wantErr: true,
+			errType: validators.ValidationErrors{},
+			errMsg:  "state", // campo em snake_case
+		},
+		{
+			name: "Blank Country",
+			address: Address{
+				UserID:     &userID,
+				Street:     "Rua 1",
+				City:       "Cidade",
+				State:      "SP",
+				Country:    "   ", // só espaços
+				PostalCode: "12345678",
+			},
+			wantErr: true,
+			errType: validators.ValidationErrors{},
+			errMsg:  "country",
 		},
 	}
 

@@ -1,6 +1,7 @@
 package services_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"testing"
@@ -19,6 +20,7 @@ import (
 func TestSupplierCategoryRelationService_Create(t *testing.T) {
 	ctx := context.Background()
 	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
 	log := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success", func(t *testing.T) {
@@ -117,6 +119,7 @@ func TestSupplierCategoryRelationService_Create(t *testing.T) {
 func TestSupplierCategoryRelationService_GetBySupplierId(t *testing.T) {
 	ctx := context.Background()
 	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
 	log := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success", func(t *testing.T) {
@@ -162,6 +165,7 @@ func TestSupplierCategoryRelationService_GetBySupplierId(t *testing.T) {
 func TestSupplierCategoryRelationService_GetByCategoryId(t *testing.T) {
 	ctx := context.Background()
 	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
 	log := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success", func(t *testing.T) {
@@ -207,6 +211,7 @@ func TestSupplierCategoryRelationService_GetByCategoryId(t *testing.T) {
 func TestSupplierCategoryRelationService_HasRelation(t *testing.T) {
 	ctx := context.Background()
 	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
 	log := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success - relation exists", func(t *testing.T) {
@@ -266,6 +271,7 @@ func TestSupplierCategoryRelationService_HasRelation(t *testing.T) {
 func TestSupplierCategoryRelationService_DeleteById(t *testing.T) {
 	ctx := context.Background()
 	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
 	log := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success", func(t *testing.T) {
@@ -337,6 +343,7 @@ func TestSupplierCategoryRelationService_DeleteById(t *testing.T) {
 func TestSupplierCategoryRelationService_DeleteAllBySupplierId(t *testing.T) {
 	ctx := context.Background()
 	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
 	log := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success", func(t *testing.T) {
