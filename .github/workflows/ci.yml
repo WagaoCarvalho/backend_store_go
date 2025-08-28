@@ -1,4 +1,4 @@
-name: Go Test Coverage
+name: Go CI
 
 on:
   push:
@@ -9,19 +9,20 @@ on:
       - main
 
 jobs:
-  test:
-    name: Test with coverage
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out repository
+      # 1. Clona o repositório
+      - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Configura Go
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23.4'
+          go-version: 1.23.4
 
+      # 3. Cache de módulos Go
       - name: Cache Go modules
         uses: actions/cache@v3
         with:
@@ -32,18 +33,29 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
+      # 4. Instala dependências
       - name: Install dependencies
         run: go mod tidy
 
-      - name: Run vet
+      # 5. Rodar golangci-lint
+      - name: Run linters
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.55.2
+          args: run --timeout 5m
+
+      # 6. Rodar go vet
+      - name: Run go vet
         run: go vet ./...
 
+      # 7. Rodar testes com cobertura
       - name: Run tests with coverage
         run: go test -covermode=atomic -coverprofile=coverage.out ./...
 
+      # 8. Upload cobertura para Codecov (opcional)
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           files: coverage.out
-          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }} # necessário apenas para repositórios privados
