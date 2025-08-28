@@ -14,7 +14,11 @@ const (
 	MsgInvalidPhone  = "formato inválido (ex: 1112345678)"
 	MsgInvalidCell   = "formato inválido (ex: 11912345678)"
 	MsgInvalidType   = "tipo inválido"
-	MsgExactlyOneID  = "exatamente um deve ser informado"
+	MsgOneIDRequired = "exatamente um deve ser informado"
 
 	MsgInvalidEmail = "email inválido"
+
+	MsgCostNonNegative = "preço de custo não pode ser negativo"
+	MsgSaleNonNegative = "preço de venda não pode ser negativo"
+	MsgStockNegative   = "estoque não pode ser negativo"
 )

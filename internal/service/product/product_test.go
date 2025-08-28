@@ -16,6 +16,7 @@ import (
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
+	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
 func newTestLogger() *logger.LoggerAdapter {
@@ -70,13 +71,29 @@ func TestProductService_Create(t *testing.T) {
 		log := newTestLogger()
 		service := NewProductService(mockRepo, log)
 
-		input := &models.Product{}
+		input := &models.Product{
+			Status: true,
+		}
 
 		created, err := service.Create(ctx, input)
 
 		assert.Nil(t, created)
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, models.ErrInvalidProductName))
+
+		// Verifica se todos os campos obrigatórios estão na lista de erros
+		var vErrs validators.ValidationErrors
+		if ok := errors.As(err, &vErrs); ok {
+			fields := map[string]bool{}
+			for _, e := range vErrs {
+				fields[e.Field] = true
+			}
+			assert.True(t, fields["product_name"], "esperado erro no campo 'product_name'")
+			assert.True(t, fields["manufacturer"], "esperado erro no campo 'manufacturer'")
+			assert.True(t, fields["supplier_id"], "esperado erro no campo 'supplier_id'")
+		} else {
+			t.Fatalf("erro esperado ser ValidationErrors, got: %v", err)
+		}
+
 		mockRepo.AssertNotCalled(t, "Create")
 	})
 
@@ -390,7 +407,8 @@ func TestProductService_Update(t *testing.T) {
 		updated, err := service.Update(ctx, input)
 
 		assert.Nil(t, updated)
-		assert.ErrorIs(t, err, models.ErrInvalidProductName)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "product_name")
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
