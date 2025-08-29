@@ -1,38 +1,28 @@
-# Arquivo: .golangci.yml
 run:
   timeout: 5m
-  skip-dirs:
-    - run                # Ignora diretório problemático
-    - vendor             # Ignora vendor
-  skip-files:
-    - ".*_test.go"       # Ignora arquivos de teste se desejar (opcional)
   tests: true
 
 linters:
   enable:
     - govet
-    - errcheck
     - staticcheck
-    - gosimple
-    - unused
-    - deadcode
-    - structcheck
     - gofmt
     - goimports
-    - gocritic
-    - ineffassign
-    - typecheck
+    - unused
     - depguard
-    - prealloc
+    - errcheck
+    - revive
 
 issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
+  exclude-files:
+    - ".*\\.gen\\.go$"
+    - ".*_mock\\.go$"
+  exclude-dirs:
+    - "infra/mock"
+    - "logs"
+    - "cmd/http"
 
 output:
-  format: github-actions
-  sort-by: severity
-  print-issued-lines: true
-  print-linter-name: true
+  format: colored-line-number
+  max-issues-per-linter: 0
+  max-same-issues: 0
