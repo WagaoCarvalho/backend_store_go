@@ -9,11 +9,11 @@ import (
 	"testing"
 
 	service "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/user"
-	model_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
-	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
-	model_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
-	model_user_full "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
+	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
+	modelUser "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	modelCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
+	modelUserFull "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -30,20 +30,20 @@ func TestUserHandler_CreateFull(t *testing.T) {
 	t.Run("Sucesso ao criar usuário completo", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		expectedUser := &model_user_full.UserFull{
-			User: &model_user.User{
+		expectedUser := &modelUserFull.UserFull{
+			User: &modelUser.User{
 				UID:      1,
 				Username: "testuser",
 				Email:    "test@example.com",
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street: "Rua A",
 				City:   "Cidade B",
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				Phone: "123456789",
 			},
-			Categories: []model_categories.UserCategory{
+			Categories: []modelCategories.UserCategory{
 				{ID: 1},
 			},
 		}
@@ -70,7 +70,7 @@ func TestUserHandler_CreateFull(t *testing.T) {
 
 		mockService.On("CreateFull",
 			mock.Anything,
-			mock.MatchedBy(func(u *model_user_full.UserFull) bool {
+			mock.MatchedBy(func(u *modelUserFull.UserFull) bool {
 				return u.User.Username == "testuser" &&
 					u.User.Email == "test@example.com" &&
 					u.Address != nil && u.Address.Street == "Rua A" &&
@@ -119,7 +119,7 @@ func TestUserHandler_CreateFull(t *testing.T) {
 		}
 		body, _ := json.Marshal(requestBody)
 
-		mockService.On("CreateFull", mock.Anything, mock.MatchedBy(func(u *model_user_full.UserFull) bool {
+		mockService.On("CreateFull", mock.Anything, mock.MatchedBy(func(u *modelUserFull.UserFull) bool {
 			return u.User.Username == "failuser" && u.User.Email == "fail@example.com"
 		})).Return(nil, errors.New("erro ao criar usuário completo")).Once()
 

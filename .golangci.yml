@@ -13,6 +13,62 @@ linters:
     - errcheck
     - revive
 
+linters-settings:
+  depguard:
+    rules:
+      handler:
+        deny:
+          - pkg: github.com/WagaoCarvalho/backend_store_go/internal/repo
+            desc: "Handler não deve acessar Repository direto, só via Service"
+          - pkg: github.com/WagaoCarvalho/backend_store_go/internal/model
+            desc: "Handler não deve depender de Models"
+          - pkg: github.com/jackc/pgx/v5
+            desc: "Handler não deve acessar DB"
+        allow:
+          - context
+          - fmt
+          - net/http
+          - strings
+          - github.com/WagaoCarvalho/backend_store_go/internal/service
+          - github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils
+          - github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger
+
+      service:
+        deny:
+          - pkg: github.com/WagaoCarvalho/backend_store_go/internal/handler
+            desc: "Service não deve depender de Handler"
+        allow:
+          - context
+          - errors
+          - time
+          - github.com/WagaoCarvalho/backend_store_go/internal/repo
+          - github.com/WagaoCarvalho/backend_store_go/internal/model
+          - github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger
+          - github.com/WagaoCarvalho/backend_store_go/internal/pkg/err
+
+      repository:
+        deny:
+          - pkg: github.com/WagaoCarvalho/backend_store_go/internal/handler
+            desc: "Repository não deve depender de Handler"
+          - pkg: github.com/WagaoCarvalho/backend_store_go/internal/service
+            desc: "Repository não deve depender de Service"
+        allow:
+          - context
+          - errors
+          - time
+          - github.com/jackc/pgx/v5
+          - github.com/jackc/pgx/v5/pgxpool
+          - github.com/WagaoCarvalho/backend_store_go/internal/model
+          - github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger
+          - github.com/WagaoCarvalho/backend_store_go/internal/pkg/err
+
+      pkg:
+        allow:
+          - context
+          - errors
+          - fmt
+          - time
+
 issues:
   exclude-files:
     - ".*\\.gen\\.go$"
@@ -23,6 +79,7 @@ issues:
     - "cmd/http"
 
 output:
-  format: colored-line-number
-  max-issues-per-linter: 0
-  max-same-issues: 0
+  formats:
+    - format: colored-line-number
+      max-issues-per-linter: 0
+      max-same-issues: 0

@@ -5,14 +5,14 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	handlers "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user_full"
-	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
+	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
-	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
-	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
-	repo_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
-	repo_user "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_full_repositories"
+	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
+	repoContact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
+	repoUserCatRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
+	repoUser "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_full_repositories"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_full_services"
 
 	"github.com/gorilla/mux"
@@ -25,10 +25,10 @@ func RegisterUserFullRoutes(
 	log *logger.LoggerAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repo_user := repo_user.NewUserRepository(db, log)
-	repo_address := repo_address.NewAddressRepository(db, log)
-	repo_contact := repo_contact.NewContactRepository(db, log)
-	repo_user_cat_rel := repo_user_cat_rel.NewUserCategoryRelationRepositories(db, log)
+	repo_user := repoUser.NewUserRepository(db, log)
+	repo_address := repoAddress.NewAddressRepository(db, log)
+	repo_contact := repoContact.NewContactRepository(db, log)
+	repo_user_cat_rel := repoUserCatRel.NewUserCategoryRelationRepositories(db, log)
 	hasher := auth.BcryptHasher{}
 
 	userService := service.NewUserFullService(repo_user, repo_address, repo_contact, repo_user_cat_rel, log, hasher)
@@ -36,7 +36,7 @@ func RegisterUserFullRoutes(
 
 	// Config JWT
 	jwtCfg := config.LoadJwtConfig()
-	jwtManager := jwt_auth.NewJWTManager(
+	jwtManager := jwtAuth.NewJWTManager(
 		jwtCfg.SecretKey,
 		jwtCfg.TokenDuration,
 		jwtCfg.Issuer,

@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	err_msg_pg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	logger "github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 
@@ -66,13 +66,13 @@ func (r *contactRepository) Create(ctx context.Context, contact *models.Contact)
 	).Scan(&contact.ID, &contact.CreatedAt, &contact.UpdatedAt)
 
 	if err != nil {
-		if err_msg_pg.IsForeignKeyViolation(err) {
+		if errMsgPg.IsForeignKeyViolation(err) {
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"user_id":     utils.Int64OrNil(contact.UserID),
 				"client_id":   utils.Int64OrNil(contact.ClientID),
 				"supplier_id": utils.Int64OrNil(contact.SupplierID),
 			})
-			return nil, err_msg.ErrInvalidForeignKey
+			return nil, errMsg.ErrInvalidForeignKey
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
@@ -82,7 +82,7 @@ func (r *contactRepository) Create(ctx context.Context, contact *models.Contact)
 			"contact_name": contact.ContactName,
 			"email":        contact.Email,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
@@ -127,13 +127,13 @@ func (r *contactRepository) CreateTx(ctx context.Context, tx pgx.Tx, contact *mo
 	).Scan(&contact.ID, &contact.CreatedAt, &contact.UpdatedAt)
 
 	if err != nil {
-		if err_msg_pg.IsForeignKeyViolation(err) {
+		if errMsgPg.IsForeignKeyViolation(err) {
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"user_id":     utils.Int64OrNil(contact.UserID),
 				"client_id":   utils.Int64OrNil(contact.ClientID),
 				"supplier_id": utils.Int64OrNil(contact.SupplierID),
 			})
-			return nil, err_msg.ErrInvalidForeignKey
+			return nil, errMsg.ErrInvalidForeignKey
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
@@ -143,7 +143,7 @@ func (r *contactRepository) CreateTx(ctx context.Context, tx pgx.Tx, contact *mo
 			"contact_name": contact.ContactName,
 			"email":        contact.Email,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
@@ -193,13 +193,13 @@ func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Cont
 			r.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
 				"contact_id": id,
 			})
-			return nil, err_msg.ErrNotFound
+			return nil, errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"contact_id": id,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -233,7 +233,7 @@ func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": userID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
 
@@ -257,7 +257,7 @@ func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, map[string]any{
 				"user_id": userID,
 			})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrScan, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 		}
 		contacts = append(contacts, &contact)
 	}
@@ -266,7 +266,7 @@ func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": userID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -297,7 +297,7 @@ func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) (
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"client_id": clientID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
 
@@ -321,7 +321,7 @@ func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) (
 			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, map[string]any{
 				"client_id": clientID,
 			})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrScan, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 		}
 		contacts = append(contacts, &contact)
 	}
@@ -330,7 +330,7 @@ func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) (
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"client_id": clientID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -361,7 +361,7 @@ func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int6
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"supplier_id": supplierID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
 
@@ -385,7 +385,7 @@ func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int6
 			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, map[string]any{
 				"supplier_id": supplierID,
 			})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrScan, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 		}
 		contacts = append(contacts, &contact)
 	}
@@ -394,7 +394,7 @@ func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int6
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"supplier_id": supplierID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -454,14 +454,14 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 			"supplier_id": utils.Int64OrNil(contact.SupplierID),
 			"email":       contact.Email,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
 		r.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
 			"contact_id": contact.ID,
 		})
-		return err_msg.ErrNotFound
+		return errMsg.ErrNotFound
 	}
 
 	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -485,14 +485,14 @@ func (r *contactRepository) Delete(ctx context.Context, id int64) error {
 		r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"contact_id": id,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
 
 	if result.RowsAffected() == 0 {
 		r.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
 			"contact_id": id,
 		})
-		return err_msg.ErrNotFound
+		return errMsg.ErrNotFound
 	}
 
 	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{

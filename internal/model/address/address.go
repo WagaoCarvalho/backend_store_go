@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	val_address "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/address"
+	valAddress "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/address"
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
@@ -55,7 +55,7 @@ func (a *Address) Validate() error {
 	// --- State ---
 	if validators.IsBlank(a.State) {
 		errs = append(errs, validators.ValidationError{Field: "state", Message: validators.MsgRequiredField})
-	} else if !val_address.IsValidBrazilianState(a.State) {
+	} else if !valAddress.IsValidBrazilianState(a.State) {
 		errs = append(errs, validators.ValidationError{Field: "state", Message: validators.MsgInvalidState})
 	}
 
@@ -69,7 +69,7 @@ func (a *Address) Validate() error {
 	// --- PostalCode ---
 	if validators.IsBlank(a.PostalCode) {
 		errs = append(errs, validators.ValidationError{Field: "postal_code", Message: validators.MsgRequiredField})
-	} else if !val_address.IsValidPostalCode(a.PostalCode) {
+	} else if !valAddress.IsValidPostalCode(a.PostalCode) {
 		errs = append(errs, validators.ValidationError{Field: "postal_code", Message: validators.MsgInvalidPostalCode})
 	}
 

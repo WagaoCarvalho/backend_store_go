@@ -5,9 +5,9 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/address"
-	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
+	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	jwt_middlewares "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
+	jwtMiddlewares "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/address"
 
@@ -19,7 +19,7 @@ func RegisterAddressRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
 	log *logger.LoggerAdapter,
-	blacklist jwt_middlewares.TokenBlacklist,
+	blacklist jwtMiddlewares.TokenBlacklist,
 ) {
 	repo := repo.NewAddressRepository(db, log)
 	service := service.NewAddressService(repo, log)
@@ -29,7 +29,7 @@ func RegisterAddressRoutes(
 	jwtCfg := config.LoadJwtConfig()
 
 	// Instanciar JWTManager que implementa JWTService
-	jwtManager := jwt_auth.NewJWTManager(
+	jwtManager := jwtAuth.NewJWTManager(
 		jwtCfg.SecretKey,
 		jwtCfg.TokenDuration,
 		jwtCfg.Issuer,
@@ -37,7 +37,7 @@ func RegisterAddressRoutes(
 	)
 
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(jwt_middlewares.IsAuthByBearerToken(blacklist, log, jwtManager))
+	s.Use(jwtMiddlewares.IsAuthByBearerToken(blacklist, log, jwtManager))
 
 	s.HandleFunc("/addresses", handler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/address/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)

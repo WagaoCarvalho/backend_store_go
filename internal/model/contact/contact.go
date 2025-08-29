@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	val_contact "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/contact"
+	valContact "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/contact"
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
@@ -53,7 +53,7 @@ func (c *Contact) Validate() error {
 
 	// Email
 	if !validators.IsBlank(c.Email) {
-		if !val_contact.IsValidEmail(c.Email) {
+		if !valContact.IsValidEmail(c.Email) {
 			errs = append(errs, validators.ValidationError{Field: "email", Message: validators.MsgInvalidFormat})
 		}
 		if len(c.Email) > 100 {
@@ -63,14 +63,14 @@ func (c *Contact) Validate() error {
 
 	// Phone
 	if !validators.IsBlank(c.Phone) {
-		if !val_contact.IsValidPhone(c.Phone) {
+		if !valContact.IsValidPhone(c.Phone) {
 			errs = append(errs, validators.ValidationError{Field: "phone", Message: validators.MsgInvalidPhone})
 		}
 	}
 
 	// Cell
 	if !validators.IsBlank(c.Cell) {
-		if !val_contact.IsValidCell(c.Cell) {
+		if !valContact.IsValidCell(c.Cell) {
 			errs = append(errs, validators.ValidationError{Field: "cell", Message: validators.MsgInvalidCell})
 		}
 	}

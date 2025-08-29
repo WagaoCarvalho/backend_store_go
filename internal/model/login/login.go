@@ -1,13 +1,13 @@
 package models
 
 import (
-	val_contact "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/contact"
-	val_pass "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/password"
+	valContact "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/contact"
+	valPass "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/password"
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
 // variável de função que pode ser sobrescrita em testes
-var validateStrongPassword = val_pass.ValidateStrongPassword
+var validateStrongPassword = valPass.ValidateStrongPassword
 
 type LoginCredentials struct {
 	Email    string `json:"email"`
@@ -22,7 +22,7 @@ func (c *LoginCredentials) Validate() error {
 		errs = append(errs, validators.ValidationError{Field: "email", Message: validators.MsgRequiredField})
 	} else if len(c.Email) > 100 {
 		errs = append(errs, validators.ValidationError{Field: "email", Message: validators.MsgMax100})
-	} else if !val_contact.IsValidEmail(c.Email) {
+	} else if !valContact.IsValidEmail(c.Email) {
 		errs = append(errs, validators.ValidationError{Field: "email", Message: validators.MsgInvalidEmail})
 	}
 

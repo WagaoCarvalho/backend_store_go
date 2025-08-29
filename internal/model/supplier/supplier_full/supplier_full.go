@@ -4,17 +4,17 @@ import (
 	"errors"
 	"fmt"
 
-	models_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
-	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	models_supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
-	models_supplier_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	modelsAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	modelsContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
+	modelsSupplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
+	modelsSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
 )
 
 type SupplierFull struct {
-	Supplier   *models_supplier.Supplier                     `json:"supplier"`
-	Categories []models_supplier_categories.SupplierCategory `json:"categories"`
-	Address    *models_address.Address                       `json:"address"`
-	Contact    *models_contact.Contact                       `json:"contact"`
+	Supplier   *modelsSupplier.Supplier                    `json:"supplier"`
+	Categories []modelsSupplierCategories.SupplierCategory `json:"categories"`
+	Address    *modelsAddress.Address                      `json:"address"`
+	Contact    *modelsContact.Contact                      `json:"contact"`
 }
 
 func (uf *SupplierFull) Validate() error {

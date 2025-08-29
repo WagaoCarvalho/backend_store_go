@@ -7,8 +7,8 @@ import (
 	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
-	err_msg_pg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -90,11 +90,11 @@ func (r *productRepository) Create(ctx context.Context, product *models.Product)
 	).Scan(&product.ID, &product.CreatedAt, &product.UpdatedAt)
 
 	if err != nil {
-		if err_msg_pg.IsForeignKeyViolation(err) {
+		if errMsgPg.IsForeignKeyViolation(err) {
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"supplier_id": utils.Int64OrNil(product.SupplierID),
 			})
-			return nil, err_msg.ErrInvalidForeignKey
+			return nil, errMsg.ErrInvalidForeignKey
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
@@ -108,7 +108,7 @@ func (r *productRepository) Create(ctx context.Context, product *models.Product)
 			"allow_discount":       product.AllowDiscount,
 			"max_discount_percent": product.MaxDiscountPercent,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
@@ -141,7 +141,7 @@ func (r *productRepository) GetAll(ctx context.Context, limit, offset int) ([]*m
 			"limit":  limit,
 			"offset": offset,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
 
@@ -167,14 +167,14 @@ func (r *productRepository) GetAll(ctx context.Context, limit, offset int) ([]*m
 		)
 		if err != nil {
 			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, nil)
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 		}
 		products = append(products, &p)
 	}
 
 	if err = rows.Err(); err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogIterateError, nil)
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -218,11 +218,11 @@ func (r *productRepository) GetById(ctx context.Context, id int64) (*models.Prod
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"id": id})
-			return nil, err_msg.ErrNotFound
+			return nil, errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogQueryError, map[string]any{"id": id})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{"id": id})
@@ -246,7 +246,7 @@ func (r *productRepository) GetByName(ctx context.Context, name string) ([]*mode
 	rows, err := r.db.Query(ctx, query, name)
 	if err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"name": name})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
 
@@ -271,14 +271,14 @@ func (r *productRepository) GetByName(ctx context.Context, name string) ([]*mode
 		)
 		if err != nil {
 			r.logger.Error(ctx, err, ref+logger.LogScanError, nil)
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 		}
 		products = append(products, &p)
 	}
 
 	if err = rows.Err(); err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogIterateError, nil)
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{"count": len(products)})
@@ -302,7 +302,7 @@ func (r *productRepository) GetByManufacturer(ctx context.Context, manufacturer 
 	rows, err := r.db.Query(ctx, query, manufacturer)
 	if err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"manufacturer": manufacturer})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
 
@@ -326,14 +326,14 @@ func (r *productRepository) GetByManufacturer(ctx context.Context, manufacturer 
 			&p.UpdatedAt,
 		); err != nil {
 			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, nil)
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 		}
 		products = append(products, &p)
 	}
 
 	if err = rows.Err(); err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogIterateError, nil)
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{"count": len(products)})
@@ -355,13 +355,13 @@ func (r *productRepository) GetVersionByID(ctx context.Context, id int64) (int64
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": id,
 			})
-			return 0, err_msg.ErrNotFound
+			return 0, errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"product_id": id,
 		})
-		return 0, fmt.Errorf("%w: %v", err_msg.ErrGetVersion, err)
+		return 0, fmt.Errorf("%w: %v", errMsg.ErrGetVersion, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -393,13 +393,13 @@ func (r *productRepository) EnableProduct(ctx context.Context, uid int64) error 
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": uid,
 			})
-			return err_msg.ErrNotFound
+			return errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogEnableError, map[string]any{
 			"product_id": uid,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrEnable, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrEnable, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogEnableSuccess, map[string]any{
@@ -431,13 +431,13 @@ func (r *productRepository) DisableProduct(ctx context.Context, uid int64) error
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": uid,
 			})
-			return err_msg.ErrNotFound
+			return errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogDisableError, map[string]any{
 			"product_id": uid,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrDisable, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrDisable, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogDisableSuccess, map[string]any{
@@ -501,13 +501,13 @@ func (r *productRepository) Update(ctx context.Context, product *models.Product)
 				"id":      product.ID,
 				"version": product.Version,
 			})
-			return nil, err_msg.ErrVersionConflict
+			return nil, errMsg.ErrVersionConflict
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"id": product.ID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -531,14 +531,14 @@ func (r *productRepository) Delete(ctx context.Context, id int64) error {
 		r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"id": id,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
 
 	if tag.RowsAffected() == 0 {
 		r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 			"id": id,
 		})
-		return err_msg.ErrNotFound
+		return errMsg.ErrNotFound
 	}
 
 	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
@@ -570,14 +570,14 @@ func (r *productRepository) UpdateStock(ctx context.Context, id int64, quantity 
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": id,
 			})
-			return err_msg.ErrNotFound
+			return errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"product_id": id,
 			"quantity":   quantity,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -610,14 +610,14 @@ func (r *productRepository) IncreaseStock(ctx context.Context, id int64, amount 
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": id,
 			})
-			return err_msg.ErrNotFound
+			return errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"product_id":     id,
 			"stock_quantity": amount,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -652,14 +652,14 @@ func (r *productRepository) DecreaseStock(ctx context.Context, id int64, amount 
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": id,
 			})
-			return err_msg.ErrNotFound
+			return errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"product_id":     id,
 			"stock_quantity": amount,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -689,7 +689,7 @@ func (r *productRepository) GetStock(ctx context.Context, id int64) (int, error)
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": id,
 			})
-			return 0, err_msg.ErrNotFound
+			return 0, errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
@@ -727,13 +727,13 @@ func (r *productRepository) EnableDiscount(ctx context.Context, id int64) error 
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": id,
 			})
-			return err_msg.ErrNotFound
+			return errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogEnableError, map[string]any{
 			"product_id": id,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrProductEnableDiscount, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrProductEnableDiscount, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogEnableSuccess, map[string]any{
@@ -765,13 +765,13 @@ func (r *productRepository) DisableDiscount(ctx context.Context, id int64) error
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"product_id": id,
 			})
-			return err_msg.ErrNotFound
+			return errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"product_id": id,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrProductDisableDiscount, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrProductDisableDiscount, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -814,17 +814,17 @@ func (r *productRepository) ApplyDiscount(ctx context.Context, id int64, percent
 			errCheck := r.db.QueryRow(ctx, checkQuery, id).Scan(&exists)
 			if errCheck != nil || exists == 0 {
 				r.logger.Warn(ctx, ref+"produto não encontrado", map[string]any{"product_id": id})
-				return nil, err_msg.ErrNotFound
+				return nil, errMsg.ErrNotFound
 			}
 			r.logger.Warn(ctx, ref+"desconto não permitido", map[string]any{"product_id": id})
-			return nil, err_msg.ErrProductDiscountNotAllowed
+			return nil, errMsg.ErrProductDiscountNotAllowed
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"product_id": id,
 			"percent":    percent,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrProductApplyDiscount, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrProductApplyDiscount, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{

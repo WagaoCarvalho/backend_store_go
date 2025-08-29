@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	mock_supplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/supplier"
+	mockSupplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/supplier"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/gorilla/mux"
@@ -26,7 +26,7 @@ func strPtr(s string) *string {
 }
 
 func TestSupplierHandler_Create(t *testing.T) {
-	mockService := new(mock_supplier.MockSupplierService)
+	mockService := new(mockSupplier.MockSupplierService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -119,7 +119,7 @@ func TestSupplierHandler_Create(t *testing.T) {
 
 func TestSupplierHandler_GetAll(t *testing.T) {
 	t.Run("Sucesso ao obter todos os fornecedores", func(t *testing.T) {
-		mockService := new(mock_supplier.MockSupplierService)
+		mockService := new(mockSupplier.MockSupplierService)
 		baseLogger := logrus.New()
 		baseLogger.Out = &bytes.Buffer{}
 		logger := logger.NewLoggerAdapter(baseLogger)
@@ -162,7 +162,7 @@ func TestSupplierHandler_GetAll(t *testing.T) {
 	})
 
 	t.Run("Erro ao obter fornecedores no service", func(t *testing.T) {
-		mockService := new(mock_supplier.MockSupplierService)
+		mockService := new(mockSupplier.MockSupplierService)
 		baseLogger := logrus.New()
 		baseLogger.Out = &bytes.Buffer{}
 		logger := logger.NewLoggerAdapter(baseLogger)
@@ -186,7 +186,7 @@ func TestSupplierHandler_GetAll(t *testing.T) {
 }
 
 func TestSupplierHandler_GetByID(t *testing.T) {
-	mockSvc := new(mock_supplier.MockSupplierService)
+	mockSvc := new(mockSupplier.MockSupplierService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	log := logger.NewLoggerAdapter(baseLogger)
@@ -239,7 +239,7 @@ func TestSupplierHandler_GetByID(t *testing.T) {
 	})
 
 	t.Run("Fornecedor não encontrado", func(t *testing.T) {
-		mockSvc := new(mock_supplier.MockSupplierService)
+		mockSvc := new(mockSupplier.MockSupplierService)
 		mockSvc.On("GetByID", mock.Anything, int64(99)).Return(nil, errors.New("fornecedor não encontrado"))
 
 		baseLogger := logrus.New()
@@ -264,7 +264,7 @@ func TestSupplierHandler_GetByID(t *testing.T) {
 	})
 
 	t.Run("Erro interno ao buscar fornecedor", func(t *testing.T) {
-		mockSvc := new(mock_supplier.MockSupplierService)
+		mockSvc := new(mockSupplier.MockSupplierService)
 		mockSvc.On("GetByID", mock.Anything, int64(2)).Return(nil, errors.New("erro inesperado"))
 
 		baseLogger := logrus.New()
@@ -290,7 +290,7 @@ func TestSupplierHandler_GetByID(t *testing.T) {
 }
 
 func TestSupplierHandler_GetByName(t *testing.T) {
-	mockService := new(mock_supplier.MockSupplierService)
+	mockService := new(mockSupplier.MockSupplierService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -327,7 +327,7 @@ func TestSupplierHandler_GetByName(t *testing.T) {
 	t.Run("Erro fornecedor não encontrado", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetByName", mock.Anything, "notfound").Return(nil, err_msg.ErrNotFound).Once()
+		mockService.On("GetByName", mock.Anything, "notfound").Return(nil, errMsg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/suppliers/name/notfound", nil)
 		req = mux.SetURLVars(req, map[string]string{"name": "notfound"})
@@ -356,7 +356,7 @@ func TestSupplierHandler_GetByName(t *testing.T) {
 }
 
 func TestSupplierHandler_GetVersionByID(t *testing.T) {
-	mockService := new(mock_supplier.MockSupplierService)
+	mockService := new(mockSupplier.MockSupplierService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -406,7 +406,7 @@ func TestSupplierHandler_GetVersionByID(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		mockService.On("GetVersionByID", mock.Anything, int64(2)).
-			Return(int64(0), err_msg.ErrNotFound).Once()
+			Return(int64(0), errMsg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/suppliers/2/version", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "2"})
@@ -419,7 +419,7 @@ func TestSupplierHandler_GetVersionByID(t *testing.T) {
 		var resp utils.DefaultResponse
 		err := json.Unmarshal(rec.Body.Bytes(), &resp)
 		assert.NoError(t, err)
-		assert.Equal(t, err_msg.ErrNotFound.Error(), resp.Message)
+		assert.Equal(t, errMsg.ErrNotFound.Error(), resp.Message)
 
 		mockService.AssertExpectations(t)
 	})
@@ -448,7 +448,7 @@ func TestSupplierHandler_GetVersionByID(t *testing.T) {
 }
 
 func TestSupplierHandler_Update(t *testing.T) {
-	mockService := new(mock_supplier.MockSupplierService)
+	mockService := new(mockSupplier.MockSupplierService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -548,7 +548,7 @@ func TestSupplierHandler_Update(t *testing.T) {
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == supplierID && s.Version == 2
-		})).Return(nil, err_msg.ErrVersionConflict).Once()
+		})).Return(nil, errMsg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -589,7 +589,7 @@ func TestSupplierHandler_Update(t *testing.T) {
 }
 
 func TestSupplierHandler_Enable(t *testing.T) {
-	mockService := new(mock_supplier.MockSupplierService)
+	mockService := new(mockSupplier.MockSupplierService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -685,7 +685,7 @@ func TestSupplierHandler_Enable(t *testing.T) {
 		}, nil).Once()
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == 1 && s.Version == 1
-		})).Return(nil, err_msg.ErrVersionConflict).Once()
+		})).Return(nil, errMsg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/enable", bytes.NewReader([]byte(`{"version":1}`)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -740,7 +740,7 @@ func TestSupplierHandler_Enable(t *testing.T) {
 }
 
 func TestSupplierHandler_Disable(t *testing.T) {
-	mockService := new(mock_supplier.MockSupplierService)
+	mockService := new(mockSupplier.MockSupplierService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -836,7 +836,7 @@ func TestSupplierHandler_Disable(t *testing.T) {
 		}, nil).Once()
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == 1 && s.Version == 1
-		})).Return(nil, err_msg.ErrVersionConflict).Once()
+		})).Return(nil, errMsg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/disable", bytes.NewReader([]byte(`{"version":1}`)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -888,7 +888,7 @@ func TestSupplierHandler_Disable(t *testing.T) {
 }
 
 func TestSupplierHandler_Delete(t *testing.T) {
-	mockService := new(mock_supplier.MockSupplierService)
+	mockService := new(mockSupplier.MockSupplierService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)

@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_categories"
@@ -153,7 +153,7 @@ func (h *UserCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	updatedCategory, err := h.service.Update(ctx, category)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrNotFound) {
+		if errors.Is(err, errMsg.ErrNotFound) {
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]interface{}{
 				"id": id,
 			})

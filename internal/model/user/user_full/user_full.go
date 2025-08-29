@@ -4,17 +4,17 @@ import (
 	"errors"
 	"fmt"
 
-	models_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
-	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	models_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
-	models_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
+	modelsAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	modelsContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
+	modelsUser "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	modelsUserCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 )
 
 type UserFull struct {
-	User       *models_user.User                     `json:"user"`
-	Categories []models_user_categories.UserCategory `json:"categories"`
-	Address    *models_address.Address               `json:"address"`
-	Contact    *models_contact.Contact               `json:"contact"`
+	User       *modelsUser.User                    `json:"user"`
+	Categories []modelsUserCategories.UserCategory `json:"categories"`
+	Address    *modelsAddress.Address              `json:"address"`
+	Contact    *modelsContact.Contact              `json:"contact"`
 }
 
 func (uf *UserFull) Validate() error {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user"
-	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
+	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
@@ -33,7 +33,7 @@ func RegisterUserRoutes(
 
 	// Config JWT
 	jwtCfg := config.LoadJwtConfig()
-	jwtManager := jwt_auth.NewJWTManager(
+	jwtManager := jwtAuth.NewJWTManager(
 		jwtCfg.SecretKey,
 		jwtCfg.TokenDuration,
 		jwtCfg.Issuer,

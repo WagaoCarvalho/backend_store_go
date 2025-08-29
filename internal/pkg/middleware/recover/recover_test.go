@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Mock simples do LoggerAdapter só para capturar chamadas do método Error
 type mockLoggerAdapter struct {
 	errorCalled bool
 	lastCtx     context.Context
@@ -21,15 +20,15 @@ type mockLoggerAdapter struct {
 }
 
 func (m *mockLoggerAdapter) WithContext(ctx context.Context) *logrus.Entry {
-	return nil // não usado no teste
+	return nil
 }
 
 func (m *mockLoggerAdapter) Info(ctx context.Context, msg string, extraFields map[string]interface{}) {
-	// Não usado aqui
+
 }
 
 func (m *mockLoggerAdapter) Warn(ctx context.Context, msg string, extraFields map[string]interface{}) {
-	//m.warnCalled = true
+
 	m.lastCtx = ctx
 	m.lastMsg = msg
 	m.lastFields = extraFields
@@ -67,7 +66,7 @@ func TestRecoverMiddleware(t *testing.T) {
 	})
 
 	t.Run("Deve continuar normalmente quando não houver panic", func(t *testing.T) {
-		mockLog.errorCalled = false // reset
+		mockLog.errorCalled = false
 		called := false
 		normalHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			called = true

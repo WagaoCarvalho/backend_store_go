@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	mock_user "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/user"
+	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/user"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -20,7 +20,7 @@ import (
 )
 
 func TestUserHandler_Create(t *testing.T) {
-	mockService := new(mock_user.MockUserService)
+	mockService := new(mockUser.MockUserService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -106,7 +106,7 @@ func TestUserHandler_Create(t *testing.T) {
 }
 
 func TestUserHandler_GetAll(t *testing.T) {
-	mockService := new(mock_user.MockUserService)
+	mockService := new(mockUser.MockUserService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -147,7 +147,7 @@ func TestUserHandler_GetAll(t *testing.T) {
 }
 
 func TestUserHandler_GetByID(t *testing.T) {
-	mockService := new(mock_user.MockUserService)
+	mockService := new(mockUser.MockUserService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -216,7 +216,7 @@ func TestUserHandler_GetByID(t *testing.T) {
 }
 
 func TestUserHandler_GetVersionByID(t *testing.T) {
-	mockService := new(mock_user.MockUserService)
+	mockService := new(mockUser.MockUserService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -250,7 +250,7 @@ func TestUserHandler_GetVersionByID(t *testing.T) {
 	t.Run("Erro usuário não encontrado", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetVersionByID", mock.Anything, int64(999)).Return(int64(0), err_msg.ErrNotFound).Once()
+		mockService.On("GetVersionByID", mock.Anything, int64(999)).Return(int64(0), errMsg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/users/999/version", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "999"})
@@ -279,7 +279,7 @@ func TestUserHandler_GetVersionByID(t *testing.T) {
 }
 
 func TestUserHandler_GetByEmail(t *testing.T) {
-	mockService := new(mock_user.MockUserService)
+	mockService := new(mockUser.MockUserService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -338,7 +338,7 @@ func TestUserHandler_GetByEmail(t *testing.T) {
 }
 
 func TestUserHandler_GetByName(t *testing.T) {
-	mockService := new(mock_user.MockUserService)
+	mockService := new(mockUser.MockUserService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -404,7 +404,7 @@ func TestUserHandler_GetByName(t *testing.T) {
 }
 
 func TestUserHandler_Update(t *testing.T) {
-	mockService := new(mock_user.MockUserService)
+	mockService := new(mockUser.MockUserService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -504,7 +504,7 @@ func TestUserHandler_Update(t *testing.T) {
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
 			return u.UID == userID && u.Version == 2
-		})).Return(nil, err_msg.ErrVersionConflict).Once()
+		})).Return(nil, errMsg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -545,7 +545,7 @@ func TestUserHandler_Update(t *testing.T) {
 }
 
 func TestUserHandler_Disable(t *testing.T) {
-	mockService := new(mock_user.MockUserService)
+	mockService := new(mockUser.MockUserService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -638,7 +638,7 @@ func TestUserHandler_Disable(t *testing.T) {
 			Version: 2,
 		}, nil).Once()
 
-		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, err_msg.ErrVersionConflict).Once()
+		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, errMsg.ErrVersionConflict).Once()
 
 		body := `{"version": 2}`
 		req := httptest.NewRequest(http.MethodPatch, "/users/4/disable", strings.NewReader(body))
@@ -691,7 +691,7 @@ func TestUserHandler_Disable(t *testing.T) {
 }
 
 func TestUserHandler_Enable(t *testing.T) {
-	mockService := new(mock_user.MockUserService)
+	mockService := new(mockUser.MockUserService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -759,7 +759,7 @@ func TestUserHandler_Enable(t *testing.T) {
 		}, nil).Once()
 
 		// Update retorna erro de conflito de versão
-		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, err_msg.ErrVersionConflict).Once()
+		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, errMsg.ErrVersionConflict).Once()
 
 		body := `{"version": 5}`
 		req := httptest.NewRequest(http.MethodPatch, "/users/3/enable", strings.NewReader(body))
@@ -840,7 +840,7 @@ func TestUserHandler_Enable(t *testing.T) {
 }
 
 func TestUserHandler_Delete(t *testing.T) {
-	mockService := new(mock_user.MockUserService)
+	mockService := new(mockUser.MockUserService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)

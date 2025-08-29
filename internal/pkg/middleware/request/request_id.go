@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	contextutils "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/context_utils"
+	contextUtils "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/context_utils"
 	"github.com/google/uuid"
 )
 
@@ -15,7 +15,7 @@ func RequestIDMiddleware() func(http.Handler) http.Handler {
 				requestID = uuid.New().String()
 			}
 
-			ctx := contextutils.SetRequestID(r.Context(), requestID)
+			ctx := contextUtils.SetRequestID(r.Context(), requestID)
 			w.Header().Set("X-Request-ID", requestID)
 
 			next.ServeHTTP(w, r.WithContext(ctx))

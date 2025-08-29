@@ -5,7 +5,7 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user_categories"
-	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
+	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories"
@@ -28,7 +28,7 @@ func RegisterUserCategoryRoutes(
 	jwtCfg := config.LoadJwtConfig()
 
 	// Criar jwtManager que implementa JWTService
-	jwtManager := jwt_auth.NewJWTManager(
+	jwtManager := jwtAuth.NewJWTManager(
 		jwtCfg.SecretKey,
 		jwtCfg.TokenDuration,
 		jwtCfg.Issuer,

@@ -8,9 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	mock_user_cat "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/user"
+	mockUserCat "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/user"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/gorilla/mux"
@@ -20,7 +20,7 @@ import (
 )
 
 func TestUserCategoryHandler_Create(t *testing.T) {
-	mockSvc := new(mock_user_cat.MockUserCategoryService)
+	mockSvc := new(mockUserCat.MockUserCategoryService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -93,7 +93,7 @@ func TestUserCategoryHandler_Create(t *testing.T) {
 }
 
 func TestUserCategoryHandler_GetById(t *testing.T) {
-	mockSvc := new(mock_user_cat.MockUserCategoryService)
+	mockSvc := new(mockUserCat.MockUserCategoryService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -125,7 +125,7 @@ func TestUserCategoryHandler_GetById(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockSvc := new(mock_user_cat.MockUserCategoryService)
+		mockSvc := new(mockUserCat.MockUserCategoryService)
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		mockSvc.On("GetByID", mock.Anything, int64(42)).Return(nil, errors.New("erro inesperado"))
@@ -183,7 +183,7 @@ func TestUserCategoryHandler_GetById(t *testing.T) {
 
 func TestUserCategoryHandler_GetAll(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		mockSvc := new(mock_user_cat.MockUserCategoryService)
+		mockSvc := new(mockUserCat.MockUserCategoryService)
 		baseLogger := logrus.New()
 		baseLogger.Out = &bytes.Buffer{}
 		logger := logger.NewLoggerAdapter(baseLogger)
@@ -221,7 +221,7 @@ func TestUserCategoryHandler_GetAll(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockSvc := new(mock_user_cat.MockUserCategoryService)
+		mockSvc := new(mockUserCat.MockUserCategoryService)
 		baseLogger := logrus.New()
 		baseLogger.Out = &bytes.Buffer{}
 		logger := logger.NewLoggerAdapter(baseLogger)
@@ -254,7 +254,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
-		mockSvc := new(mock_user_cat.MockUserCategoryService)
+		mockSvc := new(mockUserCat.MockUserCategoryService)
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		category := &model.UserCategory{ID: 1, Name: "Atualizada"}
@@ -283,7 +283,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		mockSvc := new(mock_user_cat.MockUserCategoryService)
+		mockSvc := new(mockUserCat.MockUserCategoryService)
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		category := &model.UserCategory{Name: "Inexistente"}
@@ -294,7 +294,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 
 		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(c *model.UserCategory) bool {
 			return c.ID == 999
-		})).Return(nil, err_msg.ErrNotFound)
+		})).Return(nil, errMsg.ErrNotFound)
 
 		handler.Update(w, req)
 
@@ -310,7 +310,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		handler := NewUserCategoryHandler(new(mock_user_cat.MockUserCategoryService), logger)
+		handler := NewUserCategoryHandler(new(mockUserCat.MockUserCategoryService), logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("PUT", "/categories/abc", bytes.NewBuffer([]byte("{}"))), map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
@@ -327,7 +327,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 	})
 
 	t.Run("InvalidJSON", func(t *testing.T) {
-		handler := NewUserCategoryHandler(new(mock_user_cat.MockUserCategoryService), logger)
+		handler := NewUserCategoryHandler(new(mockUserCat.MockUserCategoryService), logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("PUT", "/categories/1", bytes.NewBuffer([]byte("{invalid"))), map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
@@ -344,7 +344,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 	})
 
 	t.Run("UpdateError", func(t *testing.T) {
-		mockSvc := new(mock_user_cat.MockUserCategoryService)
+		mockSvc := new(mockUserCat.MockUserCategoryService)
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		category := &model.UserCategory{ID: 2, Name: "Falha"}
@@ -374,7 +374,7 @@ func TestUserCategoryHandler_Delete(t *testing.T) {
 	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
-		mockSvc := new(mock_user_cat.MockUserCategoryService)
+		mockSvc := new(mockUserCat.MockUserCategoryService)
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil)
@@ -391,7 +391,7 @@ func TestUserCategoryHandler_Delete(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		handler := NewUserCategoryHandler(new(mock_user_cat.MockUserCategoryService), logger)
+		handler := NewUserCategoryHandler(new(mockUserCat.MockUserCategoryService), logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/categories/abc", nil), map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
@@ -408,7 +408,7 @@ func TestUserCategoryHandler_Delete(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockSvc := new(mock_user_cat.MockUserCategoryService)
+		mockSvc := new(mockUserCat.MockUserCategoryService)
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		mockSvc.On("Delete", mock.Anything, int64(10)).Return(errors.New("erro ao deletar"))

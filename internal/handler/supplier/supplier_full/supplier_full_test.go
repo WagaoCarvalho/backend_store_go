@@ -8,12 +8,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	mock_supplier_full "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/supplier"
-	model_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
-	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	model_supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
-	model_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
-	model_supplier_full "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
+	mockSupplierFull "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/supplier"
+	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
+	modelSupplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
+	modelCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	modelSupplier_full "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +21,7 @@ import (
 )
 
 func TestSupplierHandler_CreateFull(t *testing.T) {
-	mockService := new(mock_supplier_full.MockSupplierFullService)
+	mockService := new(mockSupplierFull.MockSupplierFullService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -31,20 +31,20 @@ func TestSupplierHandler_CreateFull(t *testing.T) {
 	t.Run("Sucesso ao criar fornecedor completo", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		expectedSupplier := &model_supplier_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
+		expectedSupplier := &modelSupplier_full.SupplierFull{
+			Supplier: &modelSupplier.Supplier{
 				ID:   1,
 				Name: "Fornecedor A",
 				CNPJ: &cnpj,
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street: "Rua A",
 				City:   "Cidade B",
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				Phone: "123456789",
 			},
-			Categories: []model_categories.SupplierCategory{
+			Categories: []modelCategories.SupplierCategory{
 				{ID: 1},
 			},
 		}
@@ -70,7 +70,7 @@ func TestSupplierHandler_CreateFull(t *testing.T) {
 
 		mockService.On("CreateFull",
 			mock.Anything, // aceita qualquer tipo que implemente context.Context
-			mock.MatchedBy(func(s *model_supplier_full.SupplierFull) bool {
+			mock.MatchedBy(func(s *modelSupplier_full.SupplierFull) bool {
 				return s.Supplier.Name == "Fornecedor A" &&
 					s.Supplier.CNPJ != nil &&
 					*s.Supplier.CNPJ == "12.345.678/0001-90" &&
@@ -123,7 +123,7 @@ func TestSupplierHandler_CreateFull(t *testing.T) {
 
 		mockService.On("CreateFull",
 			mock.Anything, // <- Corrigido: agora aceita qualquer context.Context
-			mock.MatchedBy(func(s *model_supplier_full.SupplierFull) bool {
+			mock.MatchedBy(func(s *modelSupplier_full.SupplierFull) bool {
 				return s != nil &&
 					s.Supplier != nil &&
 					s.Supplier.Name == "Fornecedor Falha" &&

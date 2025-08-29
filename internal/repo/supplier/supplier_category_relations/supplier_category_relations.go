@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
-	err_msg_db "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsgDb "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -43,26 +43,26 @@ func (r *supplierCategoryRelationRepo) Create(ctx context.Context, rel *models.S
 	err := r.db.QueryRow(ctx, query, rel.SupplierID, rel.CategoryID).Scan(&rel.CreatedAt)
 	if err != nil {
 		switch {
-		case err_msg_db.IsDuplicateKey(err):
+		case errMsgDb.IsDuplicateKey(err):
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyHasExists, map[string]any{
 				"supplier_id": rel.SupplierID,
 				"category_id": rel.CategoryID,
 			})
-			return nil, err_msg.ErrRelationExists
+			return nil, errMsg.ErrRelationExists
 
-		case err_msg_db.IsForeignKeyViolation(err):
+		case errMsgDb.IsForeignKeyViolation(err):
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"supplier_id": rel.SupplierID,
 				"category_id": rel.CategoryID,
 			})
-			return nil, err_msg.ErrInvalidForeignKey
+			return nil, errMsg.ErrInvalidForeignKey
 
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 				"supplier_id": rel.SupplierID,
 				"category_id": rel.CategoryID,
 			})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 		}
 	}
 
@@ -92,26 +92,26 @@ func (r *supplierCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, 
 
 	if err != nil {
 		switch {
-		case err_msg_db.IsDuplicateKey(err):
+		case errMsgDb.IsDuplicateKey(err):
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyHasExists, map[string]any{
 				"supplier_id": relation.SupplierID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, err_msg.ErrRelationExists
+			return nil, errMsg.ErrRelationExists
 
-		case err_msg_db.IsForeignKeyViolation(err):
+		case errMsgDb.IsForeignKeyViolation(err):
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"supplier_id": relation.SupplierID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, err_msg.ErrInvalidForeignKey
+			return nil, errMsg.ErrInvalidForeignKey
 
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 				"supplier_id": relation.SupplierID,
 				"category_id": relation.CategoryID,
 			})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 		}
 	}
 
@@ -141,7 +141,7 @@ func (r *supplierCategoryRelationRepo) HasRelation(ctx context.Context, supplier
 			"supplier_id": supplierID,
 			"category_id": categoryID,
 		})
-		return false, fmt.Errorf("%w: %v", err_msg.ErrRelationCheck, err)
+		return false, fmt.Errorf("%w: %v", errMsg.ErrRelationCheck, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogVerificationSuccess, map[string]any{
@@ -163,7 +163,7 @@ func (r *supplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supp
 	rows, err := r.db.Query(ctx, query, supplierID)
 	if err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"supplier_id": supplierID})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
 
@@ -172,14 +172,14 @@ func (r *supplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supp
 		rel := new(models.SupplierCategoryRelations)
 		if err := rows.Scan(&rel.SupplierID, &rel.CategoryID, &rel.CreatedAt); err != nil {
 			r.logger.Error(ctx, err, ref+logger.LogScanError, map[string]any{"supplier_id": supplierID})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrScan, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 		}
 		rels = append(rels, rel)
 	}
 
 	if err := rows.Err(); err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogIterateError, map[string]any{"supplier_id": supplierID})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrScan, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{"supplier_id": supplierID, "count": len(rels)})
@@ -198,7 +198,7 @@ func (r *supplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, cate
 	rows, err := r.db.Query(ctx, query, categoryID)
 	if err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"category_id": categoryID})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
 
@@ -207,14 +207,14 @@ func (r *supplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, cate
 		rel := new(models.SupplierCategoryRelations)
 		if err := rows.Scan(&rel.SupplierID, &rel.CategoryID, &rel.CreatedAt); err != nil {
 			r.logger.Error(ctx, err, ref+logger.LogScanError, map[string]any{"category_id": categoryID})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrScan, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 		}
 		rels = append(rels, rel)
 	}
 
 	if err := rows.Err(); err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogIterateError, map[string]any{"category_id": categoryID})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrScan, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{"category_id": categoryID, "count": len(rels)})
@@ -231,23 +231,23 @@ func (r *supplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, c
 	cmd, err := r.db.Exec(ctx, query, supplierID, categoryID)
 	if err != nil {
 		switch {
-		case err_msg_db.IsForeignKeyViolation(err):
+		case errMsgDb.IsForeignKeyViolation(err):
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"supplier_id": supplierID,
 				"category_id": categoryID,
 			})
-			return err_msg.ErrInvalidForeignKey
+			return errMsg.ErrInvalidForeignKey
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 				"supplier_id": supplierID,
 				"category_id": categoryID,
 			})
-			return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
+			return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 		}
 	}
 
 	if cmd.RowsAffected() == 0 {
-		return err_msg.ErrNotFound
+		return errMsg.ErrNotFound
 	}
 
 	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
@@ -267,16 +267,16 @@ func (r *supplierCategoryRelationRepo) DeleteAllBySupplierId(ctx context.Context
 	_, err := r.db.Exec(ctx, query, supplierID)
 	if err != nil {
 		switch {
-		case err_msg_db.IsForeignKeyViolation(err):
+		case errMsgDb.IsForeignKeyViolation(err):
 			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"supplier_id": supplierID,
 			})
-			return err_msg.ErrInvalidForeignKey
+			return errMsg.ErrInvalidForeignKey
 		default:
 			r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 				"supplier_id": supplierID,
 			})
-			return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
+			return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 		}
 	}
 

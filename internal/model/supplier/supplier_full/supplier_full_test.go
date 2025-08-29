@@ -3,10 +3,10 @@ package models
 import (
 	"testing"
 
-	models_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
-	models_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	models_supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
-	models_supplier_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	modelsAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	modelsContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
+	modelsSupplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
+	modelsSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,24 +24,24 @@ func TestSupplierFull_Validate(t *testing.T) {
 		{
 			name: "endereço nulo",
 			input: SupplierFull{
-				Supplier: &models_supplier.Supplier{},
+				Supplier: &modelsSupplier.Supplier{},
 			},
 			wantErr: "endereço é obrigatório",
 		},
 		{
 			name: "contato nulo",
 			input: SupplierFull{
-				Supplier: &models_supplier.Supplier{},
-				Address:  &models_address.Address{},
+				Supplier: &modelsSupplier.Supplier{},
+				Address:  &modelsAddress.Address{},
 			},
 			wantErr: "contato é obrigatório",
 		},
 		{
 			name: "sem categorias",
 			input: SupplierFull{
-				Supplier: &models_supplier.Supplier{},
-				Address:  &models_address.Address{},
-				Contact:  &models_contact.Contact{},
+				Supplier: &modelsSupplier.Supplier{},
+				Address:  &modelsAddress.Address{},
+				Contact:  &modelsContact.Contact{},
 			},
 			wantErr: "pelo menos uma categoria é obrigatória",
 		},
@@ -49,10 +49,10 @@ func TestSupplierFull_Validate(t *testing.T) {
 			name: "fornecedor inválido",
 			input: SupplierFull{
 				// cria um Supplier vazio -> Validate dele deve falhar
-				Supplier: &models_supplier.Supplier{},
-				Address:  &models_address.Address{},
-				Contact:  &models_contact.Contact{},
-				Categories: []models_supplier_categories.SupplierCategory{
+				Supplier: &modelsSupplier.Supplier{},
+				Address:  &modelsAddress.Address{},
+				Contact:  &modelsContact.Contact{},
+				Categories: []modelsSupplierCategories.SupplierCategory{
 					{},
 				},
 			},
@@ -61,19 +61,19 @@ func TestSupplierFull_Validate(t *testing.T) {
 		{
 			name: "tudo válido",
 			input: SupplierFull{
-				Supplier: &models_supplier.Supplier{
+				Supplier: &modelsSupplier.Supplier{
 					// preencha com dados mínimos válidos
 					Name: "Fornecedor Teste",
 				},
-				Address: &models_address.Address{
+				Address: &modelsAddress.Address{
 					Street: "Rua X",
 					City:   "São Paulo",
 				},
-				Contact: &models_contact.Contact{
+				Contact: &modelsContact.Contact{
 					ContactName: "Maria",
 					Email:       "maria@example.com",
 				},
-				Categories: []models_supplier_categories.SupplierCategory{
+				Categories: []modelsSupplierCategories.SupplierCategory{
 					{Name: "Categoria Teste"},
 				},
 			},

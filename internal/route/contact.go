@@ -5,9 +5,9 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/contact"
-	jwt_auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
+	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	jwt_middleware "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
+	jwtMiddleware "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/contact"
 
@@ -19,7 +19,7 @@ func RegisterContactRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
 	log *logger.LoggerAdapter,
-	blacklist jwt_middleware.TokenBlacklist,
+	blacklist jwtMiddleware.TokenBlacklist,
 ) {
 	repo := repo.NewContactRepository(db, log)
 	service := service.NewContactService(repo, log)
@@ -29,7 +29,7 @@ func RegisterContactRoutes(
 	jwtCfg := config.LoadJwtConfig()
 
 	// Instancia um JWTManager (implementa JWTService)
-	jwtManager := jwt_auth.NewJWTManager(
+	jwtManager := jwtAuth.NewJWTManager(
 		jwtCfg.SecretKey,
 		jwtCfg.TokenDuration,
 		jwtCfg.Issuer,
@@ -37,7 +37,7 @@ func RegisterContactRoutes(
 	)
 
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(jwt_middleware.IsAuthByBearerToken(blacklist, log, jwtManager)) // <- agora com JWTService válido
+	s.Use(jwtMiddleware.IsAuthByBearerToken(blacklist, log, jwtManager)) // <- agora com JWTService válido
 
 	s.HandleFunc("/contact", handler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/contact/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)

@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
@@ -41,7 +41,7 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	createdAddress, err := h.service.Create(r.Context(), &address)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrInvalidForeignKey) {
+		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
 			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
 				"erro": err.Error(),
 			})
@@ -274,17 +274,17 @@ func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	err = h.service.Delete(r.Context(), id)
 	if err != nil {
 		switch {
-		case errors.Is(err, err_msg.ErrNotFound):
+		case errors.Is(err, errMsg.ErrNotFound):
 			h.logger.Warn(r.Context(), ref+logger.LogNotFound, map[string]any{
 				"address_id": id,
 				"erro":       err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusNotFound)
-		case errors.Is(err, err_msg.ErrID):
+		case errors.Is(err, errMsg.ErrID):
 			h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{
 				"erro": err.Error(),
 			})
-			utils.ErrorResponse(w, err_msg.ErrID, http.StatusBadRequest)
+			utils.ErrorResponse(w, errMsg.ErrID, http.StatusBadRequest)
 		default:
 			h.logger.Error(r.Context(), err, ref+logger.LogDeleteError, map[string]any{
 				"address_id": id,

@@ -9,13 +9,13 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	cors "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/cors"
 	logging "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/logging"
-	rate_limiter "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/rate_limiter"
+	rateLimiter "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/rate_limiter"
 	recover "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/recover"
 	request "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/request"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db_postgres"
-	routes_product "github.com/WagaoCarvalho/backend_store_go/internal/route/product"
-	routes_supplier "github.com/WagaoCarvalho/backend_store_go/internal/route/supplier"
-	routes_user "github.com/WagaoCarvalho/backend_store_go/internal/route/user"
+	routesProduct "github.com/WagaoCarvalho/backend_store_go/internal/route/product"
+	routesSupplier "github.com/WagaoCarvalho/backend_store_go/internal/route/supplier"
+	routesUser "github.com/WagaoCarvalho/backend_store_go/internal/route/user"
 	"github.com/gorilla/mux"
 )
 
@@ -25,7 +25,7 @@ func NewRouter(log *logger.LoggerAdapter) *mux.Router {
 	r.Use(request.RequestIDMiddleware())
 	r.Use(recover.RecoverMiddleware(log))
 	r.Use(logging.LoggingMiddleware(log))
-	r.Use(rate_limiter.RateLimiter)
+	r.Use(rateLimiter.RateLimiter)
 	r.Use(cors.CORS)
 
 	db, err := repo.Connect(&repo.RealPgxPool{})
@@ -40,19 +40,19 @@ func NewRouter(log *logger.LoggerAdapter) *mux.Router {
 	RegisterLoginRoutes(r, db, log, blacklist)
 
 	//Suupliers
-	routes_supplier.RegisterSupplierRoutes(r, db, log, blacklist)
-	routes_supplier.RegisterSupplierFullRoutes(r, db, log, blacklist)
-	routes_supplier.RegisterSupplierCategoryRoutes(r, db, log, blacklist)
-	routes_supplier.RegisterSupplierCategoryRelationRoutes(r, db, log, blacklist)
+	routesSupplier.RegisterSupplierRoutes(r, db, log, blacklist)
+	routesSupplier.RegisterSupplierFullRoutes(r, db, log, blacklist)
+	routesSupplier.RegisterSupplierCategoryRoutes(r, db, log, blacklist)
+	routesSupplier.RegisterSupplierCategoryRelationRoutes(r, db, log, blacklist)
 
 	//Users
-	routes_user.RegisterUserRoutes(r, db, log, blacklist)
-	routes_user.RegisterUserFullRoutes(r, db, log, blacklist)
-	routes_user.RegisterUserCategoryRoutes(r, db, log, blacklist)
-	routes_user.RegisterUserCategoryRelationRoutes(r, db, log, blacklist)
+	routesUser.RegisterUserRoutes(r, db, log, blacklist)
+	routesUser.RegisterUserFullRoutes(r, db, log, blacklist)
+	routesUser.RegisterUserCategoryRoutes(r, db, log, blacklist)
+	routesUser.RegisterUserCategoryRelationRoutes(r, db, log, blacklist)
 
 	//Products
-	routes_product.RegisterProductRoutes(r, db, log, blacklist)
+	routesProduct.RegisterProductRoutes(r, db, log, blacklist)
 
 	//Adressess
 	RegisterAddressRoutes(r, db, log, blacklist)

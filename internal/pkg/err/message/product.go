@@ -1,8 +1,6 @@
 package err
 
-import (
-	"errors"
-)
+import "errors"
 
 var (
 	ErrProductEnableDiscount     = errors.New("erro ao ativar desconto")

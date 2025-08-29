@@ -7,7 +7,7 @@ import (
 	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -61,7 +61,7 @@ func (r *userRepository) Create(ctx context.Context, user *models.User) (*models
 			"email":    user.Email,
 			"status":   user.Status,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
@@ -85,7 +85,7 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogGetError, nil)
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
 
@@ -101,14 +101,14 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 			&user.UpdatedAt,
 		); err != nil {
 			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, nil)
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrScan, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 		}
 		users = append(users, &user)
 	}
 
 	if err := rows.Err(); err != nil {
 		r.logger.Error(ctx, err, ref+logger.LogIterateError, nil)
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrIterate, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrIterate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -146,13 +146,13 @@ func (r *userRepository) GetByID(ctx context.Context, uid int64) (*models.User, 
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id": uid,
 			})
-			return nil, err_msg.ErrNotFound
+			return nil, errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": uid,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -177,13 +177,13 @@ func (r *userRepository) GetVersionByID(ctx context.Context, id int64) (int64, e
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id": id,
 			})
-			return 0, err_msg.ErrNotFound
+			return 0, errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": id,
 		})
-		return 0, fmt.Errorf("%w: %v", err_msg.ErrGetVersion, err)
+		return 0, fmt.Errorf("%w: %v", errMsg.ErrGetVersion, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -223,13 +223,13 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"email": email,
 			})
-			return nil, err_msg.ErrNotFound
+			return nil, errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"email": email,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -258,7 +258,7 @@ func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.
 		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"username_partial": name,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
 
@@ -276,7 +276,7 @@ func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.
 			r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 				"username_partial": name,
 			})
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 		}
 		users = append(users, user)
 	}
@@ -285,7 +285,7 @@ func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.
 		r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 			"username_partial": name,
 		})
-		return nil, err_msg.ErrNotFound
+		return nil, errMsg.ErrNotFound
 	}
 
 	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -328,24 +328,24 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) (*models
 				r.logger.Error(ctx, checkErr, ref+logger.LogUpdateError, map[string]any{
 					"user_id": user.UID,
 				})
-				return nil, fmt.Errorf("%w: erro ao verificar existência: %v", err_msg.ErrUpdate, checkErr)
+				return nil, fmt.Errorf("%w: erro ao verificar existência: %v", errMsg.ErrUpdate, checkErr)
 			}
 			if !exists {
 				r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 					"user_id": user.UID,
 				})
-				return nil, err_msg.ErrNotFound
+				return nil, errMsg.ErrNotFound
 			}
 			r.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"user_id": user.UID,
 			})
-			return nil, err_msg.ErrVersionConflict
+			return nil, errMsg.ErrVersionConflict
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"user_id": user.UID,
 		})
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -376,13 +376,13 @@ func (r *userRepository) Disable(ctx context.Context, uid int64) error {
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id": uid,
 			})
-			return err_msg.ErrNotFound
+			return errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogDisableError, map[string]any{
 			"user_id": uid,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrDisable, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrDisable, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogDisableSuccess, map[string]any{
@@ -414,13 +414,13 @@ func (r *userRepository) Enable(ctx context.Context, uid int64) error {
 			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id": uid,
 			})
-			return err_msg.ErrNotFound
+			return errMsg.ErrNotFound
 		}
 
 		r.logger.Error(ctx, err, ref+logger.LogEnableError, map[string]any{
 			"user_id": uid,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrEnable, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrEnable, err)
 	}
 
 	r.logger.Info(ctx, ref+logger.LogEnableSuccess, map[string]any{
@@ -444,14 +444,14 @@ func (r *userRepository) Delete(ctx context.Context, uid int64) error {
 		r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"user_id": uid,
 		})
-		return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
 
 	if result.RowsAffected() == 0 {
 		r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 			"user_id": uid,
 		})
-		return err_msg.ErrNotFound
+		return errMsg.ErrNotFound
 	}
 
 	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
