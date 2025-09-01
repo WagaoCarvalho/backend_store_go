@@ -16,7 +16,7 @@ import (
 type ProductService interface {
 	Create(ctx context.Context, product *models.Product) (*models.Product, error)
 	GetAll(ctx context.Context, limit, offset int) ([]*models.Product, error)
-	GetById(ctx context.Context, id int64) (*models.Product, error)
+	GetByID(ctx context.Context, id int64) (*models.Product, error)
 	GetByName(ctx context.Context, name string) ([]*models.Product, error)
 	GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error)
 	GetVersionByID(ctx context.Context, uid int64) (int64, error)
@@ -101,8 +101,8 @@ func (s *productService) GetAll(ctx context.Context, limit, offset int) ([]*mode
 	return products, nil
 }
 
-func (s *productService) GetById(ctx context.Context, id int64) (*models.Product, error) {
-	ref := "[productService - GetById] - "
+func (s *productService) GetByID(ctx context.Context, id int64) (*models.Product, error) {
+	ref := "[productService - GetByID] - "
 	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"product_id": id,
 	})
@@ -114,7 +114,7 @@ func (s *productService) GetById(ctx context.Context, id int64) (*models.Product
 		return nil, errors.New("ID inválido")
 	}
 
-	product, err := s.repo.GetById(ctx, id)
+	product, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"product_id": id,

@@ -200,7 +200,7 @@ func TestSupplierCategoryRelationHandler_GetBySupplierID(t *testing.T) {
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
 		mockService.
-			On("GetBySupplierId", mock.Anything, int64(123)).
+			On("GetBySupplierID", mock.Anything, int64(123)).
 			Return(nil, errors.New("erro no banco"))
 
 		req := httptest.NewRequest(http.MethodGet, "/supplier-category-relations/123", nil)
@@ -229,7 +229,7 @@ func TestSupplierCategoryRelationHandler_GetBySupplierID(t *testing.T) {
 		}
 
 		mockService.
-			On("GetBySupplierId", mock.Anything, int64(123)).
+			On("GetBySupplierID", mock.Anything, int64(123)).
 			Return(expectedRelations, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/supplier-category-relations/123", nil)
@@ -290,7 +290,7 @@ func TestSupplierCategoryRelationHandler_GetByCategoryID(t *testing.T) {
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
 		mockService.
-			On("GetByCategoryId", mock.Anything, int64(456)).
+			On("GetByCategoryID", mock.Anything, int64(456)).
 			Return(nil, errors.New("erro no banco"))
 
 		req := httptest.NewRequest(http.MethodGet, "/supplier-category-relations/category/456", nil)
@@ -319,7 +319,7 @@ func TestSupplierCategoryRelationHandler_GetByCategoryID(t *testing.T) {
 		}
 
 		mockService.
-			On("GetByCategoryId", mock.Anything, int64(456)).
+			On("GetByCategoryID", mock.Anything, int64(456)).
 			Return(expectedRelations, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/supplier-category-relations/category/456", nil)
@@ -381,7 +381,7 @@ func TestSupplierCategoryRelationHandler_DeleteByID(t *testing.T) {
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
 		mockService.
-			On("DeleteById", mock.Anything, int64(123), int64(456)).
+			On("DeleteByID", mock.Anything, int64(123), int64(456)).
 			Return(errors.New("erro ao deletar"))
 
 		req := httptest.NewRequest(http.MethodDelete, "/supplier-category-relations/123/456", nil)
@@ -408,7 +408,7 @@ func TestSupplierCategoryRelationHandler_DeleteByID(t *testing.T) {
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
 		mockService.
-			On("DeleteById", mock.Anything, int64(123), int64(456)).
+			On("DeleteByID", mock.Anything, int64(123), int64(456)).
 			Return(nil)
 
 		req := httptest.NewRequest(http.MethodDelete, "/supplier-category-relations/123/456", nil)
@@ -462,7 +462,7 @@ func TestSupplierCategoryRelationHandler_DeleteAllBySupplierID(t *testing.T) {
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
 		mockService.
-			On("DeleteAllBySupplierId", mock.Anything, int64(123)).
+			On("DeleteAllBySupplierID", mock.Anything, int64(123)).
 			Return(errors.New("erro ao deletar todas relações"))
 
 		req := httptest.NewRequest(http.MethodDelete, "/supplier-category-relations/123", nil)
@@ -486,7 +486,7 @@ func TestSupplierCategoryRelationHandler_DeleteAllBySupplierID(t *testing.T) {
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
 		mockService.
-			On("DeleteAllBySupplierId", mock.Anything, int64(123)).
+			On("DeleteAllBySupplierID", mock.Anything, int64(123)).
 			Return(nil)
 
 		req := httptest.NewRequest(http.MethodDelete, "/supplier-category-relations/123", nil)

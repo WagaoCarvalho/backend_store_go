@@ -14,7 +14,7 @@ import (
 )
 
 type LoginService interface {
-	Login(ctx context.Context, credentials model.LoginCredentials) (string, error)
+	Login(ctx context.Context, credentials model.LoginCredentials) (*model.AuthResponse, error)
 }
 
 type TokenGenerator interface {
@@ -37,7 +37,7 @@ func NewLoginService(repo repo.UserRepository, logger *logger.LogAdapter, jwt To
 	}
 }
 
-func (s *loginService) Login(ctx context.Context, credentials model.LoginCredentials) (string, error) {
+func (s *loginService) Login(ctx context.Context, credentials model.LoginCredentials) (*model.AuthResponse, error) {
 	const ref = "[loginService - Login] - "
 
 	s.logger.Info(ctx, ref+logger.LogLoginInit, map[string]any{
@@ -48,7 +48,7 @@ func (s *loginService) Login(ctx context.Context, credentials model.LoginCredent
 		s.logger.Error(ctx, err_msg.ErrEmailFormat, ref+logger.LogEmailInvalid, map[string]any{
 			"email": credentials.Email,
 		})
-		return "", err_msg.ErrEmailFormat
+		return nil, err_msg.ErrEmailFormat
 	}
 
 	user, err := s.userRepo.GetByEmail(ctx, credentials.Email)
@@ -57,7 +57,7 @@ func (s *loginService) Login(ctx context.Context, credentials model.LoginCredent
 		s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 			"email": credentials.Email,
 		})
-		return "", err_msg.ErrCredentials
+		return nil, err_msg.ErrCredentials
 	}
 
 	if err := s.hasher.Compare(user.Password, credentials.Password); err != nil {
@@ -65,7 +65,7 @@ func (s *loginService) Login(ctx context.Context, credentials model.LoginCredent
 			"user_id": user.UID,
 			"email":   credentials.Email,
 		})
-		return "", err_msg.ErrCredentials
+		return nil, err_msg.ErrCredentials
 	}
 
 	if !user.Status {
@@ -73,7 +73,7 @@ func (s *loginService) Login(ctx context.Context, credentials model.LoginCredent
 			"user_id": user.UID,
 			"email":   user.Email,
 		})
-		return "", err_msg.ErrAccountDisabled
+		return nil, err_msg.ErrAccountDisabled
 	}
 
 	token, err := s.jwtManager.Generate(user.UID, user.Email)
@@ -82,7 +82,7 @@ func (s *loginService) Login(ctx context.Context, credentials model.LoginCredent
 			"user_id": user.UID,
 			"email":   user.Email,
 		})
-		return "", err_msg.ErrTokenGeneration
+		return nil, err_msg.ErrTokenGeneration
 	}
 
 	s.logger.Info(ctx, ref+logger.LogLoginSuccess, map[string]any{
@@ -90,5 +90,9 @@ func (s *loginService) Login(ctx context.Context, credentials model.LoginCredent
 		"email":   user.Email,
 	})
 
-	return token, nil
+	return &model.AuthResponse{
+		AccessToken: token,    // JWT gerado
+		TokenType:   "Bearer", // normalmente "Bearer"
+		ExpiresIn:   3600,     // por exemplo, 1 hora em segundos
+	}, nil
 }

@@ -113,7 +113,7 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - GetById] "
+	ref := "[productHandler - GetByID] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
@@ -127,7 +127,7 @@ func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.service.GetById(ctx, id)
+	product, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"product_id": id,

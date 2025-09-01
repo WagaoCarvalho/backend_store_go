@@ -59,7 +59,7 @@ func (h *UserCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserCategoryHandler) GetById(w http.ResponseWriter, r *http.Request) {
+func (h *UserCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	ref := "[UserCategoryHandler - GetById] "
 	ctx := r.Context()
 

@@ -116,7 +116,7 @@ func TestSupplierCategoryRelationService_Create(t *testing.T) {
 	})
 }
 
-func TestSupplierCategoryRelationService_GetBySupplierId(t *testing.T) {
+func TestSupplierCategoryRelationService_GetBySupplierID(t *testing.T) {
 	ctx := context.Background()
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
@@ -133,7 +133,7 @@ func TestSupplierCategoryRelationService_GetBySupplierId(t *testing.T) {
 
 		mockRepo.On("GetBySupplierID", ctx, supplierID).Return(expected, nil)
 
-		result, err := svc.GetBySupplierId(ctx, supplierID)
+		result, err := svc.GetBySupplierID(ctx, supplierID)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expected, result)
@@ -144,7 +144,7 @@ func TestSupplierCategoryRelationService_GetBySupplierId(t *testing.T) {
 		mockRepo := new(mock_supplier_cat_rel.MockSupplierCategoryRelationRepo)
 		svc := service.NewSupplierCategoryRelationService(mockRepo, log)
 
-		_, err := svc.GetBySupplierId(ctx, 0)
+		_, err := svc.GetBySupplierID(ctx, 0)
 		assert.ErrorIs(t, err, err_msg.ErrInvalidData)
 	})
 
@@ -156,13 +156,13 @@ func TestSupplierCategoryRelationService_GetBySupplierId(t *testing.T) {
 
 		mockRepo.On("GetBySupplierID", ctx, supplierID).Return(([]*models.SupplierCategoryRelations)(nil), errors.New("db error"))
 
-		_, err := svc.GetBySupplierId(ctx, supplierID)
+		_, err := svc.GetBySupplierID(ctx, supplierID)
 		assert.Error(t, err)
 		mockRepo.AssertExpectations(t)
 	})
 }
 
-func TestSupplierCategoryRelationService_GetByCategoryId(t *testing.T) {
+func TestSupplierCategoryRelationService_GetByCategoryID(t *testing.T) {
 	ctx := context.Background()
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
@@ -179,7 +179,7 @@ func TestSupplierCategoryRelationService_GetByCategoryId(t *testing.T) {
 
 		mockRepo.On("GetByCategoryID", ctx, categoryID).Return(expected, nil)
 
-		result, err := svc.GetByCategoryId(ctx, categoryID)
+		result, err := svc.GetByCategoryID(ctx, categoryID)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expected, result)
@@ -190,7 +190,7 @@ func TestSupplierCategoryRelationService_GetByCategoryId(t *testing.T) {
 		mockRepo := new(mock_supplier_cat_rel.MockSupplierCategoryRelationRepo)
 		svc := service.NewSupplierCategoryRelationService(mockRepo, log)
 
-		_, err := svc.GetByCategoryId(ctx, -1)
+		_, err := svc.GetByCategoryID(ctx, -1)
 		assert.ErrorIs(t, err, err_msg.ErrInvalidData)
 	})
 
@@ -202,7 +202,7 @@ func TestSupplierCategoryRelationService_GetByCategoryId(t *testing.T) {
 
 		mockRepo.On("GetByCategoryID", ctx, categoryID).Return(([]*models.SupplierCategoryRelations)(nil), errors.New("db error"))
 
-		_, err := svc.GetByCategoryId(ctx, categoryID)
+		_, err := svc.GetByCategoryID(ctx, categoryID)
 		assert.Error(t, err)
 		mockRepo.AssertExpectations(t)
 	})
@@ -268,7 +268,7 @@ func TestSupplierCategoryRelationService_HasRelation(t *testing.T) {
 	})
 }
 
-func TestSupplierCategoryRelationService_DeleteById(t *testing.T) {
+func TestSupplierCategoryRelationService_DeleteByID(t *testing.T) {
 	ctx := context.Background()
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
@@ -283,7 +283,7 @@ func TestSupplierCategoryRelationService_DeleteById(t *testing.T) {
 
 		mockRepo.On("Delete", ctx, supplierID, categoryID).Return(nil)
 
-		err := svc.DeleteById(ctx, supplierID, categoryID)
+		err := svc.DeleteByID(ctx, supplierID, categoryID)
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
 	})
@@ -305,7 +305,7 @@ func TestSupplierCategoryRelationService_DeleteById(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				err := svc.DeleteById(ctx, tt.supplierID, tt.categoryID)
+				err := svc.DeleteByID(ctx, tt.supplierID, tt.categoryID)
 				assert.ErrorIs(t, err, err_msg.ErrInvalidData)
 			})
 		}
@@ -320,7 +320,7 @@ func TestSupplierCategoryRelationService_DeleteById(t *testing.T) {
 
 		mockRepo.On("Delete", ctx, supplierID, categoryID).Return(err_msg.ErrNotFound)
 
-		err := svc.DeleteById(ctx, supplierID, categoryID)
+		err := svc.DeleteByID(ctx, supplierID, categoryID)
 		assert.ErrorIs(t, err, err_msg.ErrNotFound)
 		mockRepo.AssertExpectations(t)
 	})
@@ -334,13 +334,13 @@ func TestSupplierCategoryRelationService_DeleteById(t *testing.T) {
 
 		mockRepo.On("Delete", ctx, supplierID, categoryID).Return(errors.New("db error"))
 
-		err := svc.DeleteById(ctx, supplierID, categoryID)
+		err := svc.DeleteByID(ctx, supplierID, categoryID)
 		assert.ErrorIs(t, err, err_msg.ErrDelete)
 		mockRepo.AssertExpectations(t)
 	})
 }
 
-func TestSupplierCategoryRelationService_DeleteAllBySupplierId(t *testing.T) {
+func TestSupplierCategoryRelationService_DeleteAllBySupplierID(t *testing.T) {
 	ctx := context.Background()
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
@@ -352,9 +352,9 @@ func TestSupplierCategoryRelationService_DeleteAllBySupplierId(t *testing.T) {
 
 		supplierID := int64(1)
 
-		mockRepo.On("DeleteAllBySupplierId", ctx, supplierID).Return(nil)
+		mockRepo.On("DeleteAllBySupplierID", ctx, supplierID).Return(nil)
 
-		err := svc.DeleteAllBySupplierId(ctx, supplierID)
+		err := svc.DeleteAllBySupplierID(ctx, supplierID)
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
 	})
@@ -363,7 +363,7 @@ func TestSupplierCategoryRelationService_DeleteAllBySupplierId(t *testing.T) {
 		mockRepo := new(mock_supplier_cat_rel.MockSupplierCategoryRelationRepo)
 		svc := service.NewSupplierCategoryRelationService(mockRepo, log)
 
-		err := svc.DeleteAllBySupplierId(ctx, 0)
+		err := svc.DeleteAllBySupplierID(ctx, 0)
 		assert.ErrorIs(t, err, err_msg.ErrInvalidData)
 	})
 
@@ -373,9 +373,9 @@ func TestSupplierCategoryRelationService_DeleteAllBySupplierId(t *testing.T) {
 
 		supplierID := int64(99)
 
-		mockRepo.On("DeleteAllBySupplierId", ctx, supplierID).Return(errors.New("db error"))
+		mockRepo.On("DeleteAllBySupplierID", ctx, supplierID).Return(errors.New("db error"))
 
-		err := svc.DeleteAllBySupplierId(ctx, supplierID)
+		err := svc.DeleteAllBySupplierID(ctx, supplierID)
 		assert.Error(t, err)
 		mockRepo.AssertExpectations(t)
 	})

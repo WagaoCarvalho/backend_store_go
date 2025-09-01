@@ -1,11 +1,10 @@
 package handler
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/login"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/login"
@@ -36,8 +35,9 @@ func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var credentials models.LoginCredentials
-	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {
+	// ler DTO
+	var credentialsDTO dto.LoginCredentialsDTO
+	if err := utils.FromJSON(r.Body, &credentialsDTO); err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
@@ -45,7 +45,11 @@ func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.service.Login(r.Context(), credentials)
+	// converter DTO para model
+	credentials := credentialsDTO.ToModel()
+
+	// chamar service
+	authResp, err := h.service.Login(r.Context(), *credentials)
 	if err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{
 			"erro": err.Error(),
@@ -54,11 +58,15 @@ func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// converter model para DTO de resposta
+	authRespDTO := dto.ToAuthResponseDTO(authResp)
+
 	h.logger.Info(r.Context(), ref+logger.LogLoginSuccess, nil)
 
+	// retornar JSON
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Login realizado com sucesso",
-		Data:    map[string]string{"token": token},
+		Data:    authRespDTO, // compatível com JSON
 	})
 }

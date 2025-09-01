@@ -27,7 +27,7 @@ func (m *ProductServiceMock) GetAll(ctx context.Context, limit, offset int) ([]*
 	return nil, args.Error(1)
 }
 
-func (m *ProductServiceMock) GetById(ctx context.Context, id int64) (*models.Product, error) {
+func (m *ProductServiceMock) GetByID(ctx context.Context, id int64) (*models.Product, error) {
 	args := m.Called(ctx, id)
 	if prod, ok := args.Get(0).(*models.Product); ok {
 		return prod, args.Error(1)

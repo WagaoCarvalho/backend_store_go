@@ -168,7 +168,7 @@ func TestProductService_GetAll(t *testing.T) {
 	})
 }
 
-func TestProductService_GetById(t *testing.T) {
+func TestProductService_GetByID(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("sucesso", func(t *testing.T) {
@@ -185,10 +185,10 @@ func TestProductService_GetById(t *testing.T) {
 		}
 
 		mockRepo.
-			On("GetById", ctx, id).
+			On("GetByID", ctx, id).
 			Return(expectedProduct, nil)
 
-		result, err := service.GetById(ctx, id)
+		result, err := service.GetByID(ctx, id)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
@@ -205,12 +205,12 @@ func TestProductService_GetById(t *testing.T) {
 
 		id := int64(0)
 
-		result, err := service.GetById(ctx, id)
+		result, err := service.GetByID(ctx, id)
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "ID inválido")
-		mockRepo.AssertNotCalled(t, "GetById")
+		mockRepo.AssertNotCalled(t, "GetByID")
 	})
 
 	t.Run("erro do repositório", func(t *testing.T) {
@@ -222,10 +222,10 @@ func TestProductService_GetById(t *testing.T) {
 		mockErr := errors.New("erro ao buscar produto")
 
 		mockRepo.
-			On("GetById", ctx, id).
+			On("GetByID", ctx, id).
 			Return(nil, mockErr)
 
-		result, err := service.GetById(ctx, id)
+		result, err := service.GetByID(ctx, id)
 
 		assert.Nil(t, result)
 		assert.EqualError(t, err, mockErr.Error())

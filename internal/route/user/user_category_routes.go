@@ -39,7 +39,7 @@ func RegisterUserCategoryRoutes(
 	s.Use(jwt.IsAuthByBearerToken(blacklist, log, jwtManager)) // <- passe o jwtManager, não a string SecretKey
 
 	s.HandleFunc("/user-category", userCategoryHandler.Create).Methods(http.MethodPost)
-	s.HandleFunc("/user-category/{id:[0-9]+}", userCategoryHandler.GetById).Methods(http.MethodGet)
+	s.HandleFunc("/user-category/{id:[0-9]+}", userCategoryHandler.GetByID).Methods(http.MethodGet)
 	s.HandleFunc("/user-categories", userCategoryHandler.GetAll).Methods(http.MethodGet)
 	s.HandleFunc("/user-category/{id:[0-9]+}", userCategoryHandler.Update).Methods(http.MethodPut)
 	s.HandleFunc("/user-category/{id:[0-9]+}", userCategoryHandler.Delete).Methods(http.MethodDelete)

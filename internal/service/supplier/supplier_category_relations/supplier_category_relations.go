@@ -13,10 +13,10 @@ import (
 
 type SupplierCategoryRelationService interface {
 	Create(ctx context.Context, supplierID, categoryID int64) (*models.SupplierCategoryRelations, bool, error)
-	GetBySupplierId(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error)
-	GetByCategoryId(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error)
-	DeleteById(ctx context.Context, supplierID, categoryID int64) error
-	DeleteAllBySupplierId(ctx context.Context, supplierID int64) error
+	GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error)
+	GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error)
+	DeleteByID(ctx context.Context, supplierID, categoryID int64) error
+	DeleteAllBySupplierID(ctx context.Context, supplierID int64) error
 	HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error)
 }
 
@@ -81,8 +81,8 @@ func (s *supplierCategoryRelationService) Create(ctx context.Context, supplierID
 	return created, true, nil
 }
 
-func (s *supplierCategoryRelationService) GetBySupplierId(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {
-	ref := "[supplierCategoryRelationService - GetBySupplierId] - "
+func (s *supplierCategoryRelationService) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {
+	ref := "[supplierCategoryRelationService - GetBySupplierID] - "
 
 	if supplierID <= 0 {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
@@ -111,8 +111,8 @@ func (s *supplierCategoryRelationService) GetBySupplierId(ctx context.Context, s
 	return result, nil
 }
 
-func (s *supplierCategoryRelationService) GetByCategoryId(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error) {
-	ref := "[supplierCategoryRelationService - GetByCategoryId] - "
+func (s *supplierCategoryRelationService) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error) {
+	ref := "[supplierCategoryRelationService - GetByCategoryID] - "
 
 	if categoryID <= 0 {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
@@ -141,8 +141,8 @@ func (s *supplierCategoryRelationService) GetByCategoryId(ctx context.Context, c
 	return result, nil
 }
 
-func (s *supplierCategoryRelationService) DeleteById(ctx context.Context, supplierID, categoryID int64) error {
-	ref := "[supplierCategoryRelationService - DeleteById] - "
+func (s *supplierCategoryRelationService) DeleteByID(ctx context.Context, supplierID, categoryID int64) error {
+	ref := "[supplierCategoryRelationService - DeleteByID] - "
 
 	if supplierID <= 0 || categoryID <= 0 {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
@@ -182,8 +182,8 @@ func (s *supplierCategoryRelationService) DeleteById(ctx context.Context, suppli
 	return nil
 }
 
-func (s *supplierCategoryRelationService) DeleteAllBySupplierId(ctx context.Context, supplierID int64) error {
-	ref := "[supplierCategoryRelationService - DeleteAllBySupplierId] - "
+func (s *supplierCategoryRelationService) DeleteAllBySupplierID(ctx context.Context, supplierID int64) error {
+	ref := "[supplierCategoryRelationService - DeleteAllBySupplierID] - "
 
 	if supplierID <= 0 {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
@@ -196,7 +196,7 @@ func (s *supplierCategoryRelationService) DeleteAllBySupplierId(ctx context.Cont
 		"supplier_id": supplierID,
 	})
 
-	err := s.relationRepo.DeleteAllBySupplierId(ctx, supplierID)
+	err := s.relationRepo.DeleteAllBySupplierID(ctx, supplierID)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"supplier_id": supplierID,

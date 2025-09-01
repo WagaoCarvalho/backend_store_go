@@ -60,22 +60,22 @@ func TestLoginService_Login(t *testing.T) {
 		mockHasher.On("Compare", "hashed", password).Return(nil)
 		mockToken.On("Generate", int64(1), email).Return("valid-token", nil)
 
-		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: password})
+		authResp, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: password})
 
 		assert.NoError(t, err)
-		assert.Equal(t, "valid-token", token)
+		assert.Equal(t, "valid-token", authResp.AccessToken)
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)
 		mockToken.AssertExpectations(t)
 	})
 
 	t.Run("email inválido", func(t *testing.T) {
-		token, err := service.Login(context.Background(), models_login.LoginCredentials{
+		authResp, err := service.Login(context.Background(), models_login.LoginCredentials{
 			Email:    "invalid",
 			Password: "123",
 		})
 		assert.ErrorIs(t, err, err_msg.ErrEmailFormat)
-		assert.Empty(t, token)
+		assert.Nil(t, authResp)
 	})
 
 	t.Run("usuário não encontrado", func(t *testing.T) {
@@ -84,11 +84,11 @@ func TestLoginService_Login(t *testing.T) {
 		mockRepo.On("GetByEmail", ctx, email).Return((*models_user.User)(nil), errors.New("not found"))
 
 		start := time.Now()
-		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "123"})
+		authResp, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "123"})
 		elapsed := time.Since(start)
 
 		assert.ErrorIs(t, err, err_msg.ErrCredentials)
-		assert.Empty(t, token)
+		assert.Nil(t, authResp)
 		assert.GreaterOrEqual(t, elapsed.Milliseconds(), int64(1000))
 		mockRepo.AssertExpectations(t)
 	})
@@ -101,10 +101,10 @@ func TestLoginService_Login(t *testing.T) {
 		mockRepo.On("GetByEmail", ctx, email).Return(user, nil)
 		mockHasher.On("Compare", "hashed", "wrong").Return(errors.New("wrong password"))
 
-		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "wrong"})
+		authResp, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "wrong"})
 
 		assert.ErrorIs(t, err, err_msg.ErrCredentials)
-		assert.Empty(t, token)
+		assert.Nil(t, authResp)
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)
 	})
@@ -117,10 +117,10 @@ func TestLoginService_Login(t *testing.T) {
 		mockRepo.On("GetByEmail", ctx, email).Return(user, nil)
 		mockHasher.On("Compare", "hashed", "123").Return(nil)
 
-		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "123"})
+		authResp, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "123"})
 
 		assert.ErrorIs(t, err, err_msg.ErrAccountDisabled)
-		assert.Empty(t, token)
+		assert.Nil(t, authResp)
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)
 	})
@@ -134,10 +134,10 @@ func TestLoginService_Login(t *testing.T) {
 		mockHasher.On("Compare", "hashed", "123").Return(nil)
 		mockToken.On("Generate", int64(3), email).Return("", errors.New("gen error"))
 
-		token, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "123"})
+		authResp, err := service.Login(ctx, models_login.LoginCredentials{Email: email, Password: "123"})
 
 		assert.ErrorIs(t, err, err_msg.ErrTokenGeneration)
-		assert.Empty(t, token)
+		assert.Nil(t, authResp)
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)
 		mockToken.AssertExpectations(t)

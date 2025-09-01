@@ -95,7 +95,7 @@ func (h *SupplierCategoryRelationHandler) GetBySupplierID(w http.ResponseWriter,
 		return
 	}
 
-	relations, err := h.service.GetBySupplierId(ctx, supplierID)
+	relations, err := h.service.GetBySupplierID(ctx, supplierID)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+"Erro ao buscar relações", map[string]any{"supplier_id": supplierID})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
@@ -122,7 +122,7 @@ func (h *SupplierCategoryRelationHandler) GetByCategoryID(w http.ResponseWriter,
 		return
 	}
 
-	relations, err := h.service.GetByCategoryId(ctx, categoryID)
+	relations, err := h.service.GetByCategoryID(ctx, categoryID)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+"Erro ao buscar relações", map[string]any{"category_id": categoryID})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
@@ -154,7 +154,7 @@ func (h *SupplierCategoryRelationHandler) DeleteByID(w http.ResponseWriter, r *h
 		return
 	}
 
-	err := h.service.DeleteById(ctx, supplierID, categoryID)
+	err := h.service.DeleteByID(ctx, supplierID, categoryID)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+"Erro ao excluir relação", map[string]any{
 			"supplier_id": supplierID,
@@ -186,7 +186,7 @@ func (h *SupplierCategoryRelationHandler) DeleteAllBySupplierID(w http.ResponseW
 		return
 	}
 
-	err = h.service.DeleteAllBySupplierId(ctx, supplierID)
+	err = h.service.DeleteAllBySupplierID(ctx, supplierID)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+"Erro ao excluir todas as relações", map[string]any{"supplier_id": supplierID})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)

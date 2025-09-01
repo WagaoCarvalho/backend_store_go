@@ -22,7 +22,7 @@ func (m *MockSupplierCategoryRelationService) Create(ctx context.Context, suppli
 	return rel, args.Bool(1), args.Error(2)
 }
 
-func (m *MockSupplierCategoryRelationService) GetBySupplierId(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {
+func (m *MockSupplierCategoryRelationService) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {
 	args := m.Called(ctx, supplierID)
 
 	var rels []*models.SupplierCategoryRelations
@@ -33,7 +33,7 @@ func (m *MockSupplierCategoryRelationService) GetBySupplierId(ctx context.Contex
 	return rels, args.Error(1)
 }
 
-func (m *MockSupplierCategoryRelationService) GetByCategoryId(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error) {
+func (m *MockSupplierCategoryRelationService) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error) {
 	args := m.Called(ctx, categoryID)
 
 	var rels []*models.SupplierCategoryRelations
@@ -44,12 +44,12 @@ func (m *MockSupplierCategoryRelationService) GetByCategoryId(ctx context.Contex
 	return rels, args.Error(1)
 }
 
-func (m *MockSupplierCategoryRelationService) DeleteById(ctx context.Context, supplierID, categoryID int64) error {
+func (m *MockSupplierCategoryRelationService) DeleteByID(ctx context.Context, supplierID, categoryID int64) error {
 	args := m.Called(ctx, supplierID, categoryID)
 	return args.Error(0)
 }
 
-func (m *MockSupplierCategoryRelationService) DeleteAllBySupplierId(ctx context.Context, supplierID int64) error {
+func (m *MockSupplierCategoryRelationService) DeleteAllBySupplierID(ctx context.Context, supplierID int64) error {
 	args := m.Called(ctx, supplierID)
 	return args.Error(0)
 }

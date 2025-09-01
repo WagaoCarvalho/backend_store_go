@@ -45,7 +45,7 @@ func (m *MockSupplierCategoryRelationRepo) Delete(ctx context.Context, supplierI
 	return args.Error(0)
 }
 
-func (m *MockSupplierCategoryRelationRepo) DeleteAllBySupplierId(ctx context.Context, supplierID int64) error {
+func (m *MockSupplierCategoryRelationRepo) DeleteAllBySupplierID(ctx context.Context, supplierID int64) error {
 	args := m.Called(ctx, supplierID)
 	return args.Error(0)
 }

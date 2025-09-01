@@ -19,7 +19,7 @@ import (
 type ProductRepository interface {
 	Create(ctx context.Context, product *models.Product) (*models.Product, error)
 	GetAll(ctx context.Context, limit, offset int) ([]*models.Product, error)
-	GetById(ctx context.Context, id int64) (*models.Product, error)
+	GetByID(ctx context.Context, id int64) (*models.Product, error)
 	GetByName(ctx context.Context, name string) ([]*models.Product, error)
 	GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error)
 	GetVersionByID(ctx context.Context, id int64) (int64, error)
@@ -184,7 +184,7 @@ func (r *productRepository) GetAll(ctx context.Context, limit, offset int) ([]*m
 	return products, nil
 }
 
-func (r *productRepository) GetById(ctx context.Context, id int64) (*models.Product, error) {
+func (r *productRepository) GetByID(ctx context.Context, id int64) (*models.Product, error) {
 	ref := "[productRepository - GetById] - "
 	r.logger.Info(ctx, ref+logger.LogLoginInit, map[string]any{"id": id})
 

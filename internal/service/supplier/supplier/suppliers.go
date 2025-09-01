@@ -37,16 +37,17 @@ func NewSupplierService(repo repo.SupplierRepository, logger *logger.LogAdapter)
 
 func (s *supplierService) Create(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error) {
 	ref := "[supplierService - Create] - "
-	s.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
-		"name":   supplier.Name,
-		"cnpj":   supplier.CNPJ,
-		"status": supplier.Status,
-	})
 
 	if supplier == nil || supplier.Name == "" {
 		s.logger.Error(ctx, err_msg.ErrInvalidData, ref+logger.LogValidateError, nil)
 		return nil, err_msg.ErrInvalidData
 	}
+
+	s.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
+		"name":   supplier.Name,
+		"cnpj":   supplier.CNPJ,
+		"status": supplier.Status,
+	})
 
 	created, err := s.repo.Create(ctx, supplier)
 	if err != nil {

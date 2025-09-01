@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/login"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/gorilla/mux"
@@ -22,9 +23,10 @@ type MockLoginService struct {
 	mock.Mock
 }
 
-func (m *MockLoginService) Login(ctx context.Context, credentials models.LoginCredentials) (string, error) {
+func (m *MockLoginService) Login(ctx context.Context, credentials models.LoginCredentials) (*models.AuthResponse, error) {
 	args := m.Called(ctx, credentials)
-	return args.String(0), args.Error(1)
+	authResp, _ := args.Get(0).(*models.AuthResponse)
+	return authResp, args.Error(1)
 }
 
 func newLoginRequest(method, url string, body []byte) *http.Request {
@@ -46,9 +48,18 @@ func TestLoginHandler_Login(t *testing.T) {
 			Email:    "user@example.com",
 			Password: "password123",
 		}
-		mockService.On("Login", mock.Anything, creds).Return("valid_token", nil)
 
-		body, _ := json.Marshal(creds)
+		// retornar AuthResponse correto
+		mockService.On("Login", mock.Anything, creds).Return(&models.AuthResponse{
+			AccessToken: "valid_token",
+			TokenType:   "Bearer",
+			ExpiresIn:   3600,
+		}, nil)
+
+		body, _ := json.Marshal(dto.LoginCredentialsDTO{
+			Email:    creds.Email,
+			Password: creds.Password,
+		})
 		req := newLoginRequest(http.MethodPost, "/login", body)
 		w := httptest.NewRecorder()
 
@@ -59,17 +70,17 @@ func TestLoginHandler_Login(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-		type loginResponse struct {
+		var response struct {
 			Status  int                    `json:"status"`
 			Message string                 `json:"message"`
 			Data    map[string]interface{} `json:"data"`
 		}
-
-		var response loginResponse
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		assert.NoError(t, err)
 		assert.Equal(t, "Login realizado com sucesso", response.Message)
-		assert.Equal(t, "valid_token", response.Data["token"])
+		assert.Equal(t, "valid_token", response.Data["access_token"])
+		assert.Equal(t, float64(3600), response.Data["expires_in"]) // json numbers viram float64
+		assert.Equal(t, "Bearer", response.Data["token_type"])
 
 		mockService.AssertExpectations(t)
 	})
@@ -82,7 +93,7 @@ func TestLoginHandler_Login(t *testing.T) {
 			Email:    "user@example.com",
 			Password: "wrongpassword",
 		}
-		mockService.On("Login", mock.Anything, creds).Return("", errors.New("credenciais inválidas"))
+		mockService.On("Login", mock.Anything, creds).Return(nil, errors.New("credenciais inválidas"))
 
 		body, _ := json.Marshal(creds)
 		req := newLoginRequest(http.MethodPost, "/login", body)

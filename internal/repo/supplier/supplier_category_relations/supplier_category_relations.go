@@ -19,7 +19,7 @@ type SupplierCategoryRelationRepository interface {
 	GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error)
 	GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error)
 	Delete(ctx context.Context, supplierID, categoryID int64) error
-	DeleteAllBySupplierId(ctx context.Context, supplierID int64) error
+	DeleteAllBySupplierID(ctx context.Context, supplierID int64) error
 	HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error)
 }
 
@@ -257,7 +257,7 @@ func (r *supplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, c
 	return nil
 }
 
-func (r *supplierCategoryRelationRepo) DeleteAllBySupplierId(ctx context.Context, supplierID int64) error {
+func (r *supplierCategoryRelationRepo) DeleteAllBySupplierID(ctx context.Context, supplierID int64) error {
 	const ref = "[supplierCategoryRelationRepository - DeleteAllBySupplierId] - "
 	const query = `
 		DELETE FROM supplier_category_relations

@@ -93,7 +93,7 @@ func TestUserCategoryHandler_Create(t *testing.T) {
 	})
 }
 
-func TestUserCategoryHandler_GetById(t *testing.T) {
+func TestUserCategoryHandler_GetByID(t *testing.T) {
 	mockSvc := new(mockUserCat.MockUserCategoryService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
@@ -107,7 +107,7 @@ func TestUserCategoryHandler_GetById(t *testing.T) {
 		req := mux.SetURLVars(httptest.NewRequest("GET", "/categories/1", nil), map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		handler.GetById(w, req)
+		handler.GetByID(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
@@ -135,7 +135,7 @@ func TestUserCategoryHandler_GetById(t *testing.T) {
 		req := mux.SetURLVars(httptest.NewRequest("GET", "/categories/42", nil), map[string]string{"id": "42"})
 		w := httptest.NewRecorder()
 
-		handler.GetById(w, req)
+		handler.GetByID(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
@@ -152,7 +152,7 @@ func TestUserCategoryHandler_GetById(t *testing.T) {
 		req := mux.SetURLVars(httptest.NewRequest("GET", "/categories/abc", nil), map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
 
-		handler.GetById(w, req)
+		handler.GetByID(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -169,7 +169,7 @@ func TestUserCategoryHandler_GetById(t *testing.T) {
 		req := mux.SetURLVars(httptest.NewRequest("GET", "/categories/999", nil), map[string]string{"id": "999"})
 		w := httptest.NewRecorder()
 
-		handler.GetById(w, req)
+		handler.GetByID(w, req)
 
 		assert.Equal(t, http.StatusNotFound, w.Code)
 

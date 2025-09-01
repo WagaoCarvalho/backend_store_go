@@ -538,7 +538,7 @@ func TestProductHandler_DisableProduct(t *testing.T) {
 	})
 }
 
-func TestProductHandler_GetById(t *testing.T) {
+func TestProductHandler_GetByID(t *testing.T) {
 
 	log := logrus.New()
 	log.Out = &bytes.Buffer{}
@@ -558,7 +558,7 @@ func TestProductHandler_GetById(t *testing.T) {
 			StockQuantity: 100,
 		}
 
-		mockService.On("GetById", mock.Anything, int64(1)).Return(expected, nil)
+		mockService.On("GetByID", mock.Anything, int64(1)).Return(expected, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/products/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -608,7 +608,7 @@ func TestProductHandler_GetById(t *testing.T) {
 		mockService := new(mockProduct.ProductServiceMock)
 		handler := NewProductHandler(mockService, logAdapter)
 
-		mockService.On("GetById", mock.Anything, int64(1)).Return(nil, errors.New("erro interno"))
+		mockService.On("GetByID", mock.Anything, int64(1)).Return(nil, errors.New("erro interno"))
 
 		req := httptest.NewRequest(http.MethodGet, "/products/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})

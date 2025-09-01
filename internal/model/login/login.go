@@ -14,6 +14,13 @@ type LoginCredentials struct {
 	Password string `json:"password"`
 }
 
+type AuthResponse struct {
+	AccessToken string
+	//RefreshToken string
+	ExpiresIn int64
+	TokenType string
+}
+
 func (c *LoginCredentials) Validate() error {
 	var errs validators.ValidationErrors
 
