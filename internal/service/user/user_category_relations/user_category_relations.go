@@ -21,10 +21,10 @@ type UserCategoryRelationServices interface {
 
 type userCategoryRelationServices struct {
 	relationRepo repo.UserCategoryRelationRepository
-	logger       *logger.LoggerAdapter
+	logger       *logger.LogAdapter
 }
 
-func NewUserCategoryRelationServices(repo repo.UserCategoryRelationRepository, logger *logger.LoggerAdapter) UserCategoryRelationServices {
+func NewUserCategoryRelationServices(repo repo.UserCategoryRelationRepository, logger *logger.LogAdapter) UserCategoryRelationServices {
 	return &userCategoryRelationServices{
 		relationRepo: repo,
 		logger:       logger,

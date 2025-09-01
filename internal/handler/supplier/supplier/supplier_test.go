@@ -19,6 +19,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func strPtr(s string) *string {
@@ -155,7 +156,7 @@ func TestSupplierHandler_GetAll(t *testing.T) {
 		mockService.AssertExpectations(t)
 
 		var response utils.DefaultResponse
-		err := utils.FromJson(rec.Body, &response)
+		err := utils.FromJSON(rec.Body, &response)
 		assert.NoError(t, err)
 		assert.Equal(t, "Fornecedores encontrados", response.Message)
 		assert.Len(t, response.Data.([]any), 2)
@@ -179,7 +180,7 @@ func TestSupplierHandler_GetAll(t *testing.T) {
 		mockService.AssertExpectations(t)
 
 		var response utils.DefaultResponse
-		err := utils.FromJson(rec.Body, &response)
+		err := utils.FromJSON(rec.Body, &response)
 		assert.NoError(t, err)
 		assert.Contains(t, response.Message, "erro ao buscar fornecedores")
 	})
@@ -214,7 +215,8 @@ func TestSupplierHandler_GetByID(t *testing.T) {
 
 		itemBytes, _ := json.Marshal(resp.Data)
 		var result models.Supplier
-		json.Unmarshal(itemBytes, &result)
+		err = json.Unmarshal(itemBytes, &result)
+		require.NoError(t, err)
 
 		assert.Equal(t, expected.ID, result.ID)
 		assert.Equal(t, expected.Name, result.Name)

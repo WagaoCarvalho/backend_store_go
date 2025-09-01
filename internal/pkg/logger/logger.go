@@ -9,7 +9,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-type LoggerConfig struct {
+type LogConfig struct {
 	Environment string
 	LogFile     string
 	Level       logrus.Level
@@ -21,7 +21,7 @@ type Logger interface {
 	Error(ctx context.Context, err error, msg string, extraFields map[string]any)
 }
 
-func NewLogger(cfg LoggerConfig) *logrus.Logger {
+func NewLogger(cfg LogConfig) *logrus.Logger {
 	log := logrus.New()
 	log.SetLevel(cfg.Level)
 

@@ -32,7 +32,7 @@ func main() {
 	}
 
 	// Logger base com rotação
-	rawLogger := logger.NewLogger(logger.LoggerConfig{
+	rawLogger := logger.NewLogger(logger.LogConfig{
 		Environment: configs.App.Env,
 		LogFile:     "logs/app.log",
 		Level:       level,

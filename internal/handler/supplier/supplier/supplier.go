@@ -16,10 +16,10 @@ import (
 
 type SupplierHandler struct {
 	service service.SupplierService
-	logger  *logger.LoggerAdapter
+	logger  *logger.LogAdapter
 }
 
-func NewSupplierHandler(service service.SupplierService, logger *logger.LoggerAdapter) *SupplierHandler {
+func NewSupplierHandler(service service.SupplierService, logger *logger.LogAdapter) *SupplierHandler {
 	return &SupplierHandler{
 		service: service,
 		logger:  logger,
@@ -44,8 +44,8 @@ func (h *SupplierHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Supplier *models.Supplier `json:"supplier"`
 	}
 
-	if err := utils.FromJson(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{
+	if err := utils.FromJSON(r.Body, &requestData); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -73,7 +73,7 @@ func (h *SupplierHandler) Create(w http.ResponseWriter, r *http.Request) {
 		"cnpj":        createdSupplier.CNPJ,
 	})
 
-	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Fornecedor criado com sucesso",
 		Data:    createdSupplier,
@@ -97,7 +97,7 @@ func (h *SupplierHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		"quantidade": len(suppliers),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Fornecedores encontrados",
 		Data:    suppliers,
@@ -143,7 +143,7 @@ func (h *SupplierHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		"name":        supplier.Name,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Fornecedor encontrado",
 		Data:    supplier,
@@ -189,7 +189,7 @@ func (h *SupplierHandler) GetVersionByID(w http.ResponseWriter, r *http.Request)
 		"version":     version,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Versão do fornecedor obtida com sucesso",
 		Data: map[string]int64{
@@ -224,7 +224,7 @@ func (h *SupplierHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 		"count": len(suppliers),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Fornecedores encontrados com sucesso",
 		Data:    suppliers,
@@ -258,8 +258,8 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := utils.FromJson(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{
+	if err := utils.FromJSON(r.Body, &requestData); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
@@ -294,7 +294,7 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"supplier_id": updatedSupplier.ID,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Fornecedor atualizado com sucesso",
 		Data:    updatedSupplier,

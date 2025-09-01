@@ -20,7 +20,7 @@ import (
 func RegisterLoginRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
-	log *logger.LoggerAdapter,
+	log *logger.LogAdapter,
 	blacklist logout.TokenBlacklist,
 ) {
 	userRepo := repo.NewUserRepository(db, log)

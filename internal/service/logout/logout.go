@@ -9,13 +9,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type LogoutService interface {
-	Logout(ctx context.Context, token string) error
-}
-
 type TokenBlacklist interface {
 	Add(ctx context.Context, token string, duration time.Duration) error
 	IsBlacklisted(ctx context.Context, token string) (bool, error)
+}
+
+type LogoutService interface {
+	Logout(ctx context.Context, token string) error
 }
 
 type JWTService interface {
@@ -25,15 +25,15 @@ type JWTService interface {
 
 type logoutService struct {
 	blacklist  TokenBlacklist
-	logger     *logger.LoggerAdapter
+	logger     *logger.LogAdapter
 	jwtService JWTService
 }
 
 func NewLogoutService(
 	blacklist TokenBlacklist,
-	logger *logger.LoggerAdapter,
+	logger *logger.LogAdapter,
 	jwtService JWTService,
-) *logoutService {
+) LogoutService {
 	return &logoutService{
 		blacklist:  blacklist,
 		logger:     logger,

@@ -19,7 +19,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func NewRouter(log *logger.LoggerAdapter) *mux.Router {
+func NewRouter(log *logger.LogAdapter) *mux.Router {
 	r := mux.NewRouter().StrictSlash(true)
 
 	r.Use(request.RequestIDMiddleware())

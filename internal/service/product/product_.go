@@ -38,10 +38,10 @@ type ProductService interface {
 
 type productService struct {
 	repo   repo.ProductRepository
-	logger logger.LoggerAdapterInterface
+	logger logger.LogAdapterInterface
 }
 
-func NewProductService(repo repo.ProductRepository, logger logger.LoggerAdapterInterface) ProductService {
+func NewProductService(repo repo.ProductRepository, logger logger.LogAdapterInterface) ProductService {
 	return &productService{
 		repo:   repo,
 		logger: logger,

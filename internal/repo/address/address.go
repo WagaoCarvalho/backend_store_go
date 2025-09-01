@@ -27,10 +27,10 @@ type AddressRepository interface {
 
 type addressRepository struct {
 	db     *pgxpool.Pool
-	logger logger.LoggerAdapterInterface
+	logger logger.LogAdapterInterface
 }
 
-func NewAddressRepository(db *pgxpool.Pool, logger logger.LoggerAdapterInterface) AddressRepository {
+func NewAddressRepository(db *pgxpool.Pool, logger logger.LogAdapterInterface) AddressRepository {
 	return &addressRepository{db: db, logger: logger}
 }
 

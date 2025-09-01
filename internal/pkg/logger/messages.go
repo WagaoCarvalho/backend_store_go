@@ -84,7 +84,7 @@ const (
 	// Utilitários
 	LogValidateError  = "validação falhou"
 	LogIterateError   = "erro ao iterar"
-	LogParseJsonError = "falha ao fazer parse do json"
+	LogParseJSONError = "falha ao fazer parse do json"
 
 	LogVersionConflict = "Conflito de versão"
 

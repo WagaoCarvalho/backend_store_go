@@ -19,13 +19,13 @@ import (
 func RegisterUserRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
-	log *logger.LoggerAdapter,
+	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repo_user := repo.NewUserRepository(db, log)
+	repoUser := repo.NewUserRepository(db, log)
 	hasher := auth.BcryptHasher{}
 
-	userService := service.NewUserService(repo_user, log, hasher)
+	userService := service.NewUserService(repoUser, log, hasher)
 	handler := handler.NewUserHandler(userService, log)
 
 	// Rota pública

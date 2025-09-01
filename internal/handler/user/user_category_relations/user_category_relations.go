@@ -16,10 +16,10 @@ import (
 
 type UserCategoryRelationHandler struct {
 	service service.UserCategoryRelationServices
-	logger  *logger.LoggerAdapter
+	logger  *logger.LogAdapter
 }
 
-func NewUserCategoryRelationHandler(service service.UserCategoryRelationServices, logger *logger.LoggerAdapter) *UserCategoryRelationHandler {
+func NewUserCategoryRelationHandler(service service.UserCategoryRelationServices, logger *logger.LogAdapter) *UserCategoryRelationHandler {
 	return &UserCategoryRelationHandler{
 		service: service,
 		logger:  logger,
@@ -33,8 +33,8 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]interface{}{})
 
 	var relation *model.UserCategoryRelations
-	if err := utils.FromJson(r.Body, &relation); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]interface{}{
+	if err := utils.FromJSON(r.Body, &relation); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]interface{}{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -80,7 +80,7 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 		"category_id": relation.CategoryID,
 	})
 
-	utils.ToJson(w, status, utils.DefaultResponse{
+	utils.ToJSON(w, status, utils.DefaultResponse{
 		Data:    created,
 		Message: message,
 		Status:  status,
@@ -116,7 +116,7 @@ func (h *UserCategoryRelationHandler) GetAllRelationsByUserID(w http.ResponseWri
 		"total":   len(relations),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Data:    relations,
 		Message: "Relações recuperadas com sucesso",
 		Status:  http.StatusOK,
@@ -165,7 +165,7 @@ func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWri
 		"exists":      exists,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Data:    map[string]bool{"exists": exists},
 		Message: "Verificação concluída com sucesso",
 		Status:  http.StatusOK,

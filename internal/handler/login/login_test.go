@@ -15,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 type MockLoginService struct {
@@ -95,7 +96,8 @@ func TestLoginHandler_Login(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 
 		var response map[string]interface{}
-		json.NewDecoder(resp.Body).Decode(&response)
+		err := json.NewDecoder(resp.Body).Decode(&response)
+		require.NoError(t, err)
 
 		assert.Equal(t, "credenciais inválidas", response["message"])
 
@@ -118,7 +120,8 @@ func TestLoginHandler_Login(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		var response map[string]interface{}
-		json.NewDecoder(resp.Body).Decode(&response)
+		err := json.NewDecoder(resp.Body).Decode(&response)
+		require.NoError(t, err)
 
 		assert.Equal(t, "dados inválidos", response["message"])
 	})
@@ -138,7 +141,8 @@ func TestLoginHandler_Login(t *testing.T) {
 		assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
 
 		var response map[string]interface{}
-		json.NewDecoder(resp.Body).Decode(&response)
+		err := json.NewDecoder(resp.Body).Decode(&response)
+		require.NoError(t, err)
 
 		assert.Contains(t, response["message"], "método GET não permitido")
 	})

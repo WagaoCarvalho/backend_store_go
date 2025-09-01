@@ -17,7 +17,7 @@ import (
 func RegisterUserCategoryRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
-	log *logger.LoggerAdapter,
+	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
 	userCategoryRepo := repo.NewUserCategoryRepository(db, log)

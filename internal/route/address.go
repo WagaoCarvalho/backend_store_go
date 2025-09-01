@@ -18,7 +18,7 @@ import (
 func RegisterAddressRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
-	log *logger.LoggerAdapter,
+	log *logger.LogAdapter,
 	blacklist jwtMiddlewares.TokenBlacklist,
 ) {
 	repo := repo.NewAddressRepository(db, log)

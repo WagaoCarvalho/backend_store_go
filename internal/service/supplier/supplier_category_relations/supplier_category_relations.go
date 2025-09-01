@@ -22,10 +22,10 @@ type SupplierCategoryRelationService interface {
 
 type supplierCategoryRelationService struct {
 	relationRepo repo.SupplierCategoryRelationRepository
-	logger       *logger.LoggerAdapter
+	logger       *logger.LogAdapter
 }
 
-func NewSupplierCategoryRelationService(repository repo.SupplierCategoryRelationRepository, logger *logger.LoggerAdapter) SupplierCategoryRelationService {
+func NewSupplierCategoryRelationService(repository repo.SupplierCategoryRelationRepository, logger *logger.LogAdapter) SupplierCategoryRelationService {
 	return &supplierCategoryRelationService{relationRepo: repository, logger: logger}
 }
 

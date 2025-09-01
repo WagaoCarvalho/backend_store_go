@@ -13,10 +13,10 @@ import (
 
 type SupplierCategoryHandler struct {
 	service service.SupplierCategoryService
-	logger  *logger.LoggerAdapter
+	logger  *logger.LogAdapter
 }
 
-func NewSupplierCategoryHandler(service service.SupplierCategoryService, logger *logger.LoggerAdapter) *SupplierCategoryHandler {
+func NewSupplierCategoryHandler(service service.SupplierCategoryService, logger *logger.LogAdapter) *SupplierCategoryHandler {
 	return &SupplierCategoryHandler{
 		service: service,
 		logger:  logger,
@@ -30,8 +30,8 @@ func (h *SupplierCategoryHandler) Create(w http.ResponseWriter, r *http.Request)
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
 	var category *models.SupplierCategory
-	if err := utils.FromJson(r.Body, &category); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{"erro": err.Error()})
+	if err := utils.FromJSON(r.Body, &category); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
@@ -44,7 +44,7 @@ func (h *SupplierCategoryHandler) Create(w http.ResponseWriter, r *http.Request)
 	}
 
 	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{"category_id": createdCategory.ID})
-	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Data:    createdCategory,
 		Message: "Categoria de fornecedor criada com sucesso",
 		Status:  http.StatusCreated,
@@ -78,7 +78,7 @@ func (h *SupplierCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request
 	}
 
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{"category_id": category.ID})
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Data:    category,
 		Message: "Categoria encontrada com sucesso",
 		Status:  http.StatusOK,
@@ -98,7 +98,7 @@ func (h *SupplierCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request)
 	}
 
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{"total": len(categories)})
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Data:    categories,
 		Message: "Categorias encontradas com sucesso",
 		Status:  http.StatusOK,
@@ -119,8 +119,8 @@ func (h *SupplierCategoryHandler) Update(w http.ResponseWriter, r *http.Request)
 	}
 
 	var category *models.SupplierCategory
-	if err := utils.FromJson(r.Body, &category); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{"erro": err.Error()})
+	if err := utils.FromJSON(r.Body, &category); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
@@ -141,7 +141,7 @@ func (h *SupplierCategoryHandler) Update(w http.ResponseWriter, r *http.Request)
 	}
 
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{"category_id": category.ID})
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Message: "Categoria atualizada com sucesso",
 		Status:  http.StatusOK,
 	})

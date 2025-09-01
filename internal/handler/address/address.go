@@ -15,10 +15,10 @@ import (
 
 type AddressHandler struct {
 	service service.AddressService
-	logger  *logger.LoggerAdapter
+	logger  *logger.LogAdapter
 }
 
-func NewAddressHandler(service service.AddressService, logger *logger.LoggerAdapter) *AddressHandler {
+func NewAddressHandler(service service.AddressService, logger *logger.LogAdapter) *AddressHandler {
 	return &AddressHandler{
 		service: service,
 		logger:  logger,
@@ -31,8 +31,8 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(r.Context(), ref+logger.LogCreateInit, map[string]any{})
 
-	if err := utils.FromJson(r.Body, &address); err != nil {
-		h.logger.Warn(r.Context(), ref+logger.LogParseJsonError, map[string]any{
+	if err := utils.FromJSON(r.Body, &address); err != nil {
+		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -58,7 +58,7 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 		"address_id": createdAddress.ID,
 	})
 
-	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Endereço criado com sucesso",
 		Data:    createdAddress,
@@ -91,7 +91,7 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		"address_id": address.ID,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Endereço encontrado",
 		Data:    address,
@@ -125,7 +125,7 @@ func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 		"count":   len(addresses),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Endereços do usuário encontrados",
 		Data:    addresses,
@@ -159,7 +159,7 @@ func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 		"count":     len(addresses),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Endereços do cliente encontrados",
 		Data:    addresses,
@@ -193,7 +193,7 @@ func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request)
 		"count":       len(addresses),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Endereços do fornecedor encontrados",
 		Data:    addresses,
@@ -214,7 +214,7 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	var address models.Address
 	if err := json.NewDecoder(r.Body).Decode(&address); err != nil {
-		h.logger.Warn(r.Context(), ref+logger.LogParseJsonError, map[string]any{
+		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -247,7 +247,7 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"id": id,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Endereço atualizado com sucesso",
 		Data:    address,

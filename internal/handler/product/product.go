@@ -17,10 +17,10 @@ import (
 
 type ProductHandler struct {
 	service service.ProductService
-	logger  *logger.LoggerAdapter
+	logger  *logger.LogAdapter
 }
 
-func NewProductHandler(service service.ProductService, logger *logger.LoggerAdapter) *ProductHandler {
+func NewProductHandler(service service.ProductService, logger *logger.LogAdapter) *ProductHandler {
 	return &ProductHandler{
 		service: service,
 		logger:  logger,
@@ -33,8 +33,8 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(r.Context(), ref+logger.LogCreateInit, map[string]any{})
 
-	if err := utils.FromJson(r.Body, &product); err != nil {
-		h.logger.Warn(r.Context(), ref+logger.LogParseJsonError, map[string]any{
+	if err := utils.FromJSON(r.Body, &product); err != nil {
+		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -60,7 +60,7 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 		"product_id": createdProduct.ID,
 	})
 
-	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Produto criado com sucesso",
 		Data:    createdProduct,
@@ -105,14 +105,14 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		"total_encontrados": len(products),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Produtos listados com sucesso",
 		Data:    products,
 	})
 }
 
-func (h *ProductHandler) GetById(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	ref := "[productHandler - GetById] "
 	ctx := r.Context()
 
@@ -140,7 +140,7 @@ func (h *ProductHandler) GetById(w http.ResponseWriter, r *http.Request) {
 		"product_id": product.ID,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Produto recuperado com sucesso",
 		Data:    product,
@@ -176,7 +176,7 @@ func (h *ProductHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 		"result_count": len(products),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Produtos recuperados com sucesso",
 		Data:    products,
@@ -223,7 +223,7 @@ func (h *ProductHandler) GetByManufacturer(w http.ResponseWriter, r *http.Reques
 		"count":        len(products),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Produtos encontrados",
 		Data:    products,
@@ -259,7 +259,7 @@ func (h *ProductHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) 
 		"version":    version,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Versão do produto recuperada com sucesso",
 		Data: map[string]any{
@@ -414,7 +414,7 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"product_id": updated.ID,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Produto atualizado com sucesso",
 		Data:    updated,
@@ -449,7 +449,7 @@ func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		"product_id": id,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Produto deletado com sucesso",
 	})
@@ -482,7 +482,7 @@ func (h *ProductHandler) UpdateStock(w http.ResponseWriter, r *http.Request) {
 		Quantity int `json:"quantity"`
 	}
 
-	if err := utils.FromJson(r.Body, &payload); err != nil {
+	if err := utils.FromJSON(r.Body, &payload); err != nil {
 		h.logger.Warn(ctx, ref+"erro ao decodificar payload", map[string]any{
 			"erro": err.Error(),
 		})
@@ -548,7 +548,7 @@ func (h *ProductHandler) IncreaseStock(w http.ResponseWriter, r *http.Request) {
 		Amount int `json:"stock_quantity"`
 	}
 
-	if err := utils.FromJson(r.Body, &payload); err != nil {
+	if err := utils.FromJSON(r.Body, &payload); err != nil {
 		h.logger.Warn(ctx, ref+"erro ao decodificar payload", map[string]any{
 			"erro": err.Error(),
 		})
@@ -614,7 +614,7 @@ func (h *ProductHandler) DecreaseStock(w http.ResponseWriter, r *http.Request) {
 		Amount int `json:"stock_quantity"`
 	}
 
-	if err := utils.FromJson(r.Body, &payload); err != nil {
+	if err := utils.FromJSON(r.Body, &payload); err != nil {
 		h.logger.Warn(ctx, ref+"erro ao decodificar payload", map[string]any{
 			"erro": err.Error(),
 		})
@@ -700,7 +700,7 @@ func (h *ProductHandler) GetStock(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, resp)
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Produtos listados com sucesso",
 		Data:    resp,
@@ -859,5 +859,5 @@ func (h *ProductHandler) ApplyDiscount(w http.ResponseWriter, r *http.Request) {
 		"percent":    payload.Percent,
 	})
 
-	utils.ToJson(w, http.StatusOK, product)
+	utils.ToJSON(w, http.StatusOK, product)
 }

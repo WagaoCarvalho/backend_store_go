@@ -36,7 +36,7 @@ func ErrorResponse(w http.ResponseWriter, err error, statusCode int) {
 	}
 }
 
-func ToJson(w http.ResponseWriter, statusCode int, data any) {
+func ToJSON(w http.ResponseWriter, statusCode int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	if err := json.NewEncoder(w).Encode(data); err != nil {
@@ -45,7 +45,7 @@ func ToJson(w http.ResponseWriter, statusCode int, data any) {
 	}
 }
 
-func FromJson(r io.Reader, target any) error {
+func FromJSON(r io.Reader, target any) error {
 	decoder := json.NewDecoder(r)
 	if err := decoder.Decode(target); err != nil {
 		return fmt.Errorf("erro ao decodificar JSON: %w", err)

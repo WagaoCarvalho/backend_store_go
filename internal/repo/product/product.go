@@ -41,10 +41,10 @@ type ProductRepository interface {
 
 type productRepository struct {
 	db     *pgxpool.Pool
-	logger logger.LoggerAdapterInterface
+	logger logger.LogAdapterInterface
 }
 
-func NewProductRepository(db *pgxpool.Pool, logger logger.LoggerAdapterInterface) ProductRepository {
+func NewProductRepository(db *pgxpool.Pool, logger logger.LogAdapterInterface) ProductRepository {
 	return &productRepository{db: db, logger: logger}
 }
 

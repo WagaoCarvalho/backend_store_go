@@ -16,10 +16,10 @@ import (
 
 type SupplierCategoryRelationHandler struct {
 	service service.SupplierCategoryRelationService
-	logger  *logger.LoggerAdapter
+	logger  *logger.LogAdapter
 }
 
-func NewSupplierCategoryRelationHandler(service service.SupplierCategoryRelationService, logger *logger.LoggerAdapter) *SupplierCategoryRelationHandler {
+func NewSupplierCategoryRelationHandler(service service.SupplierCategoryRelationService, logger *logger.LogAdapter) *SupplierCategoryRelationHandler {
 	return &SupplierCategoryRelationHandler{
 		service: service,
 		logger:  logger,
@@ -33,8 +33,8 @@ func (h *SupplierCategoryRelationHandler) Create(w http.ResponseWriter, r *http.
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
 	var relation *models.SupplierCategoryRelations
-	if err := utils.FromJson(r.Body, &relation); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{
+	if err := utils.FromJSON(r.Body, &relation); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -76,7 +76,7 @@ func (h *SupplierCategoryRelationHandler) Create(w http.ResponseWriter, r *http.
 		"category_id": relation.CategoryID,
 	})
 
-	utils.ToJson(w, status, utils.DefaultResponse{
+	utils.ToJSON(w, status, utils.DefaultResponse{
 		Data:    created,
 		Message: message,
 		Status:  status,
@@ -103,7 +103,7 @@ func (h *SupplierCategoryRelationHandler) GetBySupplierID(w http.ResponseWriter,
 	}
 
 	h.logger.Info(ctx, ref+"Relações retornadas com sucesso", map[string]any{"supplier_id": supplierID})
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Data:    relations,
 		Message: "Relações encontradas",
 		Status:  http.StatusOK,
@@ -130,7 +130,7 @@ func (h *SupplierCategoryRelationHandler) GetByCategoryID(w http.ResponseWriter,
 	}
 
 	h.logger.Info(ctx, ref+"Relações retornadas com sucesso", map[string]any{"category_id": categoryID})
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Data:    relations,
 		Message: "Relações encontradas",
 		Status:  http.StatusOK,
@@ -168,7 +168,7 @@ func (h *SupplierCategoryRelationHandler) DeleteByID(w http.ResponseWriter, r *h
 		"supplier_id": supplierID,
 		"category_id": categoryID,
 	})
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Message: "Relação excluída com sucesso",
 		Status:  http.StatusOK,
 	})
@@ -194,7 +194,7 @@ func (h *SupplierCategoryRelationHandler) DeleteAllBySupplierID(w http.ResponseW
 	}
 
 	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{"supplier_id": supplierID})
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Message: "Relações excluídas com sucesso",
 		Status:  http.StatusOK,
 	})
@@ -236,7 +236,7 @@ func (h *SupplierCategoryRelationHandler) HasSupplierCategoryRelation(w http.Res
 		return
 	}
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Data:    map[string]bool{"exists": hasRelation},
 		Message: "Verificação concluída com sucesso",
 		Status:  http.StatusOK,

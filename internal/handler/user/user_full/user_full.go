@@ -12,10 +12,10 @@ import (
 
 type UserHandler struct {
 	service service.UserFullService
-	logger  *logger.LoggerAdapter
+	logger  *logger.LogAdapter
 }
 
-func NewUserFullHandler(service service.UserFullService, logger *logger.LoggerAdapter) *UserHandler {
+func NewUserFullHandler(service service.UserFullService, logger *logger.LogAdapter) *UserHandler {
 	return &UserHandler{
 		service: service,
 		logger:  logger,
@@ -38,8 +38,8 @@ func (h *UserHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
 
 	var requestData models.UserFull
 
-	if err := utils.FromJson(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{
+	if err := utils.FromJSON(r.Body, &requestData); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -61,7 +61,7 @@ func (h *UserHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
 		"email":    createdUserFull.User.Email,
 	})
 
-	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Usuário criado com sucesso",
 		Data:    createdUserFull,

@@ -29,7 +29,7 @@ func TestErrorResponse(t *testing.T) {
 func TestToJson_Success(t *testing.T) {
 	rr := httptest.NewRecorder()
 	data := map[string]string{"key": "value"}
-	ToJson(rr, http.StatusOK, data)
+	ToJSON(rr, http.StatusOK, data)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 
@@ -43,7 +43,7 @@ func TestFromJson_Success(t *testing.T) {
 	input := `{"name":"Test"}`
 	var result map[string]string
 
-	err := FromJson(bytes.NewBufferString(input), &result)
+	err := FromJSON(bytes.NewBufferString(input), &result)
 	assert.NoError(t, err)
 	assert.Equal(t, "Test", result["name"])
 }
@@ -53,7 +53,7 @@ func TestFromJson_Invalid(t *testing.T) {
 	jsonInput := `{"invalid}`
 	var result map[string]string
 
-	err := FromJson(bytes.NewBufferString(jsonInput), &result)
+	err := FromJSON(bytes.NewBufferString(jsonInput), &result)
 
 	assert.Error(t, err)
 }
@@ -62,7 +62,7 @@ func TestFromJson_Error(t *testing.T) {
 	input := `invalid json`
 	var result map[string]string
 
-	err := FromJson(bytes.NewBufferString(input), &result)
+	err := FromJSON(bytes.NewBufferString(input), &result)
 	assert.Error(t, err)
 }
 
@@ -111,11 +111,11 @@ func (f *failingWriter) Header() http.Header {
 	return f.header
 }
 
-func (f *failingWriter) Write(b []byte) (int, error) {
+func (f *failingWriter) Write(_ []byte) (int, error) {
 	return 0, errors.New("erro simulado no Write")
 }
 
-func (f *failingWriter) WriteHeader(statusCode int) {}
+func (f *failingWriter) WriteHeader(_ int) {}
 
 func TestErrorResponse_EncodeError(t *testing.T) {
 	w := &failingWriter{}
@@ -137,7 +137,7 @@ func TestToJson_EncodeError(t *testing.T) {
 	// Simula um dado qualquer
 	dado := map[string]string{"chave": "valor"}
 
-	ToJson(w, http.StatusOK, dado)
+	ToJSON(w, http.StatusOK, dado)
 
 	// Não esperamos retorno visível, mas sim que não cause pânico e caia no fallback
 	t.Log("TestToJson_EncodeError executado sem crash, fallback de erro acionado")

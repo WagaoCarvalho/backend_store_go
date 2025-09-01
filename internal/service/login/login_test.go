@@ -18,17 +18,6 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 )
 
-type mockUserRepo struct{ mock.Mock }
-
-func (m *mockUserRepo) GetByEmail(ctx context.Context, email string) (*models_user.User, error) {
-	args := m.Called(ctx, email)
-	return args.Get(0).(*models_user.User), args.Error(1)
-}
-
-type MockHasher struct {
-	mock.Mock
-}
-
 type mockHasher struct {
 	mock.Mock
 }

@@ -564,7 +564,7 @@ func TestProductHandler_GetById(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		handler.GetById(w, req)
+		handler.GetByID(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
@@ -588,7 +588,7 @@ func TestProductHandler_GetById(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
 
-		handler.GetById(w, req)
+		handler.GetByID(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
@@ -614,7 +614,7 @@ func TestProductHandler_GetById(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		handler.GetById(w, req)
+		handler.GetByID(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
@@ -1136,7 +1136,7 @@ func TestProductHandler_UpdateStock(t *testing.T) {
 
 func TestProductHandler_IncreaseStock(t *testing.T) {
 
-	newLogger := func() *logger.LoggerAdapter {
+	newLogger := func() *logger.LogAdapter {
 		log := logrus.New()
 		log.Out = &bytes.Buffer{}
 		return logger.NewLoggerAdapter(log)
@@ -1250,7 +1250,7 @@ func TestProductHandler_IncreaseStock(t *testing.T) {
 }
 
 func TestProductHandler_DecreaseStock(t *testing.T) {
-	newLogger := func() *logger.LoggerAdapter {
+	newLogger := func() *logger.LogAdapter {
 		log := logrus.New()
 		log.Out = &bytes.Buffer{}
 		return logger.NewLoggerAdapter(log)
@@ -1365,7 +1365,7 @@ func TestProductHandler_DecreaseStock(t *testing.T) {
 
 func TestProductHandler_GetStock(t *testing.T) {
 
-	newLogger := func() *logger.LoggerAdapter {
+	newLogger := func() *logger.LogAdapter {
 		log := logrus.New()
 		log.Out = &bytes.Buffer{}
 		return logger.NewLoggerAdapter(log)

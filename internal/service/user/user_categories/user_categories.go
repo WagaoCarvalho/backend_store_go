@@ -22,10 +22,10 @@ type UserCategoryService interface {
 
 type userCategoryService struct {
 	repo   repo.UserCategoryRepository
-	logger *logger.LoggerAdapter
+	logger *logger.LogAdapter
 }
 
-func NewUserCategoryService(repo repo.UserCategoryRepository, logger *logger.LoggerAdapter) UserCategoryService {
+func NewUserCategoryService(repo repo.UserCategoryRepository, logger *logger.LogAdapter) UserCategoryService {
 	return &userCategoryService{
 		repo:   repo,
 		logger: logger,

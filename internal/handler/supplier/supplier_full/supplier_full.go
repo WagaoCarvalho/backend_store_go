@@ -12,10 +12,10 @@ import (
 
 type SupplierHandler struct {
 	service service.SupplierFullService
-	logger  *logger.LoggerAdapter
+	logger  *logger.LogAdapter
 }
 
-func NewSupplierFullHandler(service service.SupplierFullService, logger *logger.LoggerAdapter) *SupplierHandler {
+func NewSupplierFullHandler(service service.SupplierFullService, logger *logger.LogAdapter) *SupplierHandler {
 	return &SupplierHandler{
 		service: service,
 		logger:  logger,
@@ -38,8 +38,8 @@ func (h *SupplierHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
 
 	var requestData model.SupplierFull
 
-	if err := utils.FromJson(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{
+	if err := utils.FromJSON(r.Body, &requestData); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -60,7 +60,7 @@ func (h *SupplierHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
 		"name":        createdSupplierFull.Supplier.Name,
 	})
 
-	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Fornecedor criado com sucesso",
 		Data:    createdSupplierFull,

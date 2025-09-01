@@ -19,11 +19,11 @@ type mockLoggerAdapter struct {
 	lastFields  map[string]interface{}
 }
 
-func (m *mockLoggerAdapter) WithContext(ctx context.Context) *logrus.Entry {
+func (m *mockLoggerAdapter) WithContext(_ context.Context) *logrus.Entry {
 	return nil
 }
 
-func (m *mockLoggerAdapter) Info(ctx context.Context, msg string, extraFields map[string]interface{}) {
+func (m *mockLoggerAdapter) Info(_ context.Context, _ string, _ map[string]interface{}) {
 
 }
 
@@ -46,7 +46,7 @@ func TestRecoverMiddleware(t *testing.T) {
 	mockLog := &mockLoggerAdapter{}
 
 	t.Run("Deve retornar 500 quando ocorrer panic", func(t *testing.T) {
-		panicHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		panicHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 			panic("algo deu errado")
 		})
 
@@ -68,10 +68,13 @@ func TestRecoverMiddleware(t *testing.T) {
 	t.Run("Deve continuar normalmente quando não houver panic", func(t *testing.T) {
 		mockLog.errorCalled = false
 		called := false
-		normalHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		normalHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			called = true
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Tudo certo"))
+			if _, err := w.Write([]byte("Tudo certo")); err != nil {
+				// você pode logar ou ignorar, dependendo do teste
+				t.Errorf("erro ao escrever resposta: %v", err)
+			}
 		})
 
 		handler := RecoverMiddleware(mockLog)(normalHandler)

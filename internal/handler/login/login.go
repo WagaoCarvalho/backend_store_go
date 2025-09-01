@@ -13,10 +13,10 @@ import (
 
 type LoginHandler struct {
 	service service.LoginService
-	logger  *logger.LoggerAdapter
+	logger  *logger.LogAdapter
 }
 
-func NewLoginHandler(service service.LoginService, logger *logger.LoggerAdapter) *LoginHandler {
+func NewLoginHandler(service service.LoginService, logger *logger.LogAdapter) *LoginHandler {
 	return &LoginHandler{
 		service: service,
 		logger:  logger,
@@ -38,7 +38,7 @@ func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	var credentials models.LoginCredentials
 	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {
-		h.logger.Warn(r.Context(), ref+logger.LogParseJsonError, map[string]any{
+		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
@@ -56,7 +56,7 @@ func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(r.Context(), ref+logger.LogLoginSuccess, nil)
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Login realizado com sucesso",
 		Data:    map[string]string{"token": token},

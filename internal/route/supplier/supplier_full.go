@@ -21,15 +21,15 @@ import (
 func RegisterSupplierFullRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
-	log *logger.LoggerAdapter,
+	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repo_user := repoSupplier.NewSupplierFullRepository(db, log)
-	repo_address := repoAddress.NewAddressRepository(db, log)
-	repo_contact := repoContact.NewContactRepository(db, log)
-	repo_user_cat_rel := repoSupplierCatRel.NewSupplierCategoryRelationRepo(db, log)
+	repoUser := repoSupplier.NewSupplierFullRepository(db, log)
+	repoAddress := repoAddress.NewAddressRepository(db, log)
+	repoContact := repoContact.NewContactRepository(db, log)
+	repoUserCatRel := repoSupplierCatRel.NewSupplierCategoryRelationRepo(db, log)
 
-	userService := services.NewSupplierFullService(repo_user, repo_address, repo_contact, repo_user_cat_rel, log)
+	userService := services.NewSupplierFullService(repoUser, repoAddress, repoContact, repoUserCatRel, log)
 	handler := handlers.NewSupplierFullHandler(userService, log)
 
 	// Config JWT

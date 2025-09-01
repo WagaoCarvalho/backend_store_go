@@ -24,10 +24,10 @@ type AddressService interface {
 
 type addressService struct {
 	repo   repo.AddressRepository
-	logger *logger.LoggerAdapter
+	logger *logger.LogAdapter
 }
 
-func NewAddressService(repo repo.AddressRepository, logger *logger.LoggerAdapter) AddressService {
+func NewAddressService(repo repo.AddressRepository, logger *logger.LogAdapter) AddressService {
 	return &addressService{
 		repo:   repo,
 		logger: logger,

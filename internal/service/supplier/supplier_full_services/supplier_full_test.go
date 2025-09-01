@@ -807,7 +807,7 @@ func TestSupplierService_CreateFull(t *testing.T) {
 			Return(&model_address.Address{ID: 1}, nil).Once()
 
 		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Run(func(args mock.Arguments) {
+			Run(func(_ mock.Arguments) {
 				panic("panic simulado")
 			}).Once()
 

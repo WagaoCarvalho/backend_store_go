@@ -14,10 +14,10 @@ import (
 
 type ContactHandler struct {
 	service service.ContactService
-	logger  *logger.LoggerAdapter
+	logger  *logger.LogAdapter
 }
 
-func NewContactHandler(service service.ContactService, logger *logger.LoggerAdapter) *ContactHandler {
+func NewContactHandler(service service.ContactService, logger *logger.LogAdapter) *ContactHandler {
 	return &ContactHandler{
 		service: service,
 		logger:  logger,
@@ -30,8 +30,8 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(r.Context(), ref+logger.LogCreateInit, map[string]any{})
 
-	if err := utils.FromJson(r.Body, &contact); err != nil {
-		h.logger.Warn(r.Context(), ref+logger.LogParseJsonError, map[string]any{
+	if err := utils.FromJSON(r.Body, &contact); err != nil {
+		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -65,7 +65,7 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 		"contact_id": createdContact.ID,
 	})
 
-	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Contato criado com sucesso",
 		Data:    createdContact,
@@ -102,7 +102,7 @@ func (h *ContactHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		"contact_id": id,
 	})
 
-	utils.ToJson(w, http.StatusOK, contact)
+	utils.ToJSON(w, http.StatusOK, contact)
 }
 
 func (h *ContactHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
@@ -136,7 +136,7 @@ func (h *ContactHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 		"count":   len(contacts),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Contatos encontrados",
 		Data:    contacts,
@@ -174,7 +174,7 @@ func (h *ContactHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 		"count":     len(contacts),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Contatos encontrados",
 		Data:    contacts,
@@ -212,7 +212,7 @@ func (h *ContactHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request)
 		"count":       len(contacts),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Contatos encontrados",
 		Data:    contacts,
@@ -233,7 +233,7 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	var contact model.Contact
 	if err := json.NewDecoder(r.Body).Decode(&contact); err != nil {
-		h.logger.Warn(r.Context(), ref+logger.LogParseJsonError, map[string]any{
+		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -259,7 +259,7 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"contact_id": id,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Contato atualizado com sucesso",
 		Data:    contact,

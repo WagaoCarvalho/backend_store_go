@@ -18,7 +18,7 @@ import (
 func RegisterContactRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
-	log *logger.LoggerAdapter,
+	log *logger.LogAdapter,
 	blacklist jwtMiddleware.TokenBlacklist,
 ) {
 	repo := repo.NewContactRepository(db, log)

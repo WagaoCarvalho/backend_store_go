@@ -17,7 +17,7 @@ import (
 func RegisterSupplierCategoryRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
-	log *logger.LoggerAdapter,
+	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
 	supplierCategoryRepo := repo.NewSupplierCategoryRepository(db, log)

@@ -25,10 +25,10 @@ type SupplierCategoryRelationRepository interface {
 
 type supplierCategoryRelationRepo struct {
 	db     *pgxpool.Pool
-	logger logger.LoggerAdapterInterface
+	logger logger.LogAdapterInterface
 }
 
-func NewSupplierCategoryRelationRepo(db *pgxpool.Pool, lg logger.LoggerAdapterInterface) SupplierCategoryRelationRepository {
+func NewSupplierCategoryRelationRepo(db *pgxpool.Pool, lg logger.LogAdapterInterface) SupplierCategoryRelationRepository {
 	return &supplierCategoryRelationRepo{db: db, logger: lg}
 }
 

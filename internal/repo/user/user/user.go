@@ -28,10 +28,10 @@ type UserRepository interface {
 
 type userRepository struct {
 	db     *pgxpool.Pool
-	logger logger.LoggerAdapterInterface
+	logger logger.LogAdapterInterface
 }
 
-func NewUserRepository(db *pgxpool.Pool, logger logger.LoggerAdapterInterface) UserRepository {
+func NewUserRepository(db *pgxpool.Pool, logger logger.LogAdapterInterface) UserRepository {
 	return &userRepository{
 		db:     db,
 		logger: logger,

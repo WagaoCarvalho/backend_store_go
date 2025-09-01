@@ -19,7 +19,7 @@ import (
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
-func newTestLogger() *logger.LoggerAdapter {
+func newTestLogger() *logger.LogAdapter {
 	log := logrus.New()
 	log.Out = &bytes.Buffer{}
 	return logger.NewLoggerAdapter(log)

@@ -18,12 +18,12 @@ import (
 func RegisterSupplierRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
-	log *logger.LoggerAdapter,
+	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repo_supplier := repo.NewSupplierRepository(db, log)
+	repoSupplier := repo.NewSupplierRepository(db, log)
 
-	supplierService := service.NewSupplierService(repo_supplier, log)
+	supplierService := service.NewSupplierService(repoSupplier, log)
 	handler := handler.NewSupplierHandler(supplierService, log)
 
 	// Config JWT

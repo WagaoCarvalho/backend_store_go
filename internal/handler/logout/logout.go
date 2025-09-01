@@ -11,10 +11,10 @@ import (
 
 type LogoutHandler struct {
 	service service.LogoutService
-	logger  *logger.LoggerAdapter
+	logger  *logger.LogAdapter
 }
 
-func NewLogoutHandler(service service.LogoutService, logger *logger.LoggerAdapter) *LogoutHandler {
+func NewLogoutHandler(service service.LogoutService, logger *logger.LogAdapter) *LogoutHandler {
 	return &LogoutHandler{
 		service: service,
 		logger:  logger,
@@ -48,7 +48,7 @@ func (h *LogoutHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Logout realizado com sucesso",
 	})

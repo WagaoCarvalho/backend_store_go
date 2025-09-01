@@ -23,7 +23,7 @@ func (m *mockLogger) Info(ctx context.Context, msg string, extraFields map[strin
 	m.lastFields = extraFields
 }
 
-func (m *mockLogger) Error(ctx context.Context, err error, msg string, extraFields map[string]interface{}) {
+func (m *mockLogger) Error(_ context.Context, _ error, _ string, _ map[string]interface{}) {
 	// Pode implementar se precisar para testes futuros
 }
 
@@ -37,7 +37,7 @@ func (m *mockLogger) Warn(ctx context.Context, msg string, extraFields map[strin
 func TestLoggingMiddleware(t *testing.T) {
 	mockLog := &mockLogger{}
 
-	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	next := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 

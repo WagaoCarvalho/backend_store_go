@@ -17,6 +17,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSupplierCategoryHandler_Create(t *testing.T) {
@@ -113,7 +114,8 @@ func TestSupplierCategoryHandler_GetByID(t *testing.T) {
 
 		itemBytes, _ := json.Marshal(resp.Data)
 		var result models.SupplierCategory
-		json.Unmarshal(itemBytes, &result)
+		err = json.Unmarshal(itemBytes, &result)
+		require.NoError(t, err)
 
 		assert.Equal(t, expected.ID, result.ID)
 		assert.Equal(t, expected.Name, result.Name)
@@ -204,7 +206,8 @@ func TestSupplierCategoryHandler_GetAll(t *testing.T) {
 
 		itemBytes, _ := json.Marshal(resp.Data)
 		var result []*models.SupplierCategory
-		json.Unmarshal(itemBytes, &result)
+		err = json.Unmarshal(itemBytes, &result)
+		require.NoError(t, err)
 
 		assert.Len(t, result, 2)
 		assert.Equal(t, expected[0].ID, result[0].ID)

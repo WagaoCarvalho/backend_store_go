@@ -10,7 +10,7 @@ import (
 
 func TestRateLimiter(t *testing.T) {
 	calledCount := 0
-	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	next := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		calledCount++
 		w.WriteHeader(http.StatusOK)
 	})

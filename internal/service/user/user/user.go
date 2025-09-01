@@ -27,16 +27,16 @@ type UserService interface {
 }
 
 type userService struct {
-	repo_user repo.UserRepository
-	logger    *logger.LoggerAdapter
-	hasher    auth.PasswordHasher
+	repoUser repo.UserRepository
+	logger   *logger.LogAdapter
+	hasher   auth.PasswordHasher
 }
 
-func NewUserService(repo_user repo.UserRepository, logger *logger.LoggerAdapter, hasher auth.PasswordHasher) UserService {
+func NewUserService(repoUser repo.UserRepository, logger *logger.LogAdapter, hasher auth.PasswordHasher) UserService {
 	return &userService{
-		repo_user: repo_user,
-		logger:    logger,
-		hasher:    hasher,
+		repoUser: repoUser,
+		logger:   logger,
+		hasher:   hasher,
 	}
 }
 
@@ -66,7 +66,7 @@ func (s *userService) Create(ctx context.Context, user *models.User) (*models.Us
 		user.Password = hashed
 	}
 
-	createdUser, err := s.repo_user.Create(ctx, user)
+	createdUser, err := s.repoUser.Create(ctx, user)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 			"email": user.Email,
@@ -94,7 +94,7 @@ func (s *userService) GetAll(ctx context.Context) ([]*models.User, error) {
 	ref := "[userService - GetAll] - "
 	s.logger.Info(ctx, ref+logger.LogGetInit, nil)
 
-	users, err := s.repo_user.GetAll(ctx)
+	users, err := s.repoUser.GetAll(ctx)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, nil)
 		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
@@ -120,7 +120,7 @@ func (s *userService) GetByID(ctx context.Context, uid int64) (*models.User, err
 		return nil, errors.New("ID inválido")
 	}
 
-	user, err := s.repo_user.GetByID(ctx, uid)
+	user, err := s.repoUser.GetByID(ctx, uid)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": uid,
@@ -143,7 +143,7 @@ func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, err
 		"user_id": uid,
 	})
 
-	version, err := s.repo_user.GetVersionByID(ctx, uid)
+	version, err := s.repoUser.GetVersionByID(ctx, uid)
 	if err != nil {
 		if errors.Is(err, err_msg.ErrNotFound) {
 			s.logger.Error(ctx, err, ref+logger.LogNotFound, map[string]any{
@@ -172,7 +172,7 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*models.Use
 		"email": email,
 	})
 
-	user, err := s.repo_user.GetByEmail(ctx, email)
+	user, err := s.repoUser.GetByEmail(ctx, email)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"email": email,
@@ -195,7 +195,7 @@ func (s *userService) GetByName(ctx context.Context, name string) ([]*models.Use
 		"username_partial": name,
 	})
 
-	users, err := s.repo_user.GetByName(ctx, name)
+	users, err := s.repoUser.GetByName(ctx, name)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"username_partial": name,
@@ -235,7 +235,7 @@ func (s *userService) Update(ctx context.Context, user *models.User) (*models.Us
 		return nil, err_msg.ErrVersionConflict
 	}
 
-	updatedUser, err := s.repo_user.Update(ctx, user)
+	updatedUser, err := s.repoUser.Update(ctx, user)
 	if err != nil {
 		switch {
 		case errors.Is(err, err_msg.ErrNotFound):
@@ -275,7 +275,7 @@ func (s *userService) Disable(ctx context.Context, uid int64) error {
 		"user_id": uid,
 	})
 
-	err := s.repo_user.Disable(ctx, uid)
+	err := s.repoUser.Disable(ctx, uid)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogDisableError, map[string]any{
 			"user_id": uid,
@@ -297,7 +297,7 @@ func (s *userService) Enable(ctx context.Context, uid int64) error {
 		"user_id": uid,
 	})
 
-	err := s.repo_user.Enable(ctx, uid)
+	err := s.repoUser.Enable(ctx, uid)
 	if err != nil {
 		switch {
 		case errors.Is(err, err_msg.ErrNotFound):
@@ -328,7 +328,7 @@ func (s *userService) Delete(ctx context.Context, uid int64) error {
 		"user_id": uid,
 	})
 
-	err := s.repo_user.Delete(ctx, uid)
+	err := s.repoUser.Delete(ctx, uid)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"user_id": uid,

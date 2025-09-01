@@ -16,10 +16,10 @@ import (
 
 type UserHandler struct {
 	service service.UserService
-	logger  *logger.LoggerAdapter
+	logger  *logger.LogAdapter
 }
 
-func NewUserHandler(service service.UserService, logger *logger.LoggerAdapter) *UserHandler {
+func NewUserHandler(service service.UserService, logger *logger.LogAdapter) *UserHandler {
 	return &UserHandler{
 		service: service,
 		logger:  logger,
@@ -44,8 +44,8 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		User *models.User `json:"user"`
 	}
 
-	if err := utils.FromJson(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{
+	if err := utils.FromJSON(r.Body, &requestData); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -67,7 +67,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		"email":    createdUser.Email,
 	})
 
-	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Usuário criado com sucesso",
 		Data:    createdUser,
@@ -91,7 +91,7 @@ func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		"quantidade": len(users),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Usuários encontrados",
 		Data:    users,
@@ -137,7 +137,7 @@ func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		"email":   user.Email,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Usuário encontrado",
 		Data:    user,
@@ -183,7 +183,7 @@ func (h *UserHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 		"version": version,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Versão do usuário obtida com sucesso",
 		Data: map[string]int64{
@@ -226,7 +226,7 @@ func (h *UserHandler) GetByEmail(w http.ResponseWriter, r *http.Request) {
 		"email":   user.Email,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Usuário encontrado",
 		Data:    user,
@@ -266,7 +266,7 @@ func (h *UserHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 		"count": len(users),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Usuários encontrados",
 		Data:    users,
@@ -300,8 +300,8 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := utils.FromJson(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]any{
+	if err := utils.FromJSON(r.Body, &requestData); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
@@ -336,7 +336,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"user_id": updatedUser.UID,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Usuário atualizado com sucesso",
 		Data:    updatedUser,

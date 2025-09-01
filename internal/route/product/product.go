@@ -18,12 +18,12 @@ import (
 func RegisterProductRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
-	log *logger.LoggerAdapter,
+	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repo_product := repo.NewProductRepository(db, log)
+	repoProduct := repo.NewProductRepository(db, log)
 
-	productService := service.NewProductService(repo_product, log)
+	productService := service.NewProductService(repoProduct, log)
 	handler := handler.NewProductHandler(productService, log)
 
 	// Config JWT
@@ -41,7 +41,7 @@ func RegisterProductRoutes(
 
 	s.HandleFunc("/product", handler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/products", handler.GetAll).Methods(http.MethodGet)
-	s.HandleFunc("/product/{id:[0-9]+}", handler.GetById).Methods(http.MethodGet)
+	s.HandleFunc("/product/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)
 	s.HandleFunc("/product/name/{name}", handler.GetByName).Methods(http.MethodGet)
 	s.HandleFunc("/product/manufacturer/{manufacturer}", handler.GetByManufacturer).Methods(http.MethodGet)
 	s.HandleFunc("/product/update/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)

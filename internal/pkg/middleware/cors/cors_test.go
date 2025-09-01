@@ -11,7 +11,7 @@ import (
 func TestCORS(t *testing.T) {
 	t.Run("should add CORS headers for normal request", func(t *testing.T) {
 		nextCalled := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			nextCalled = true
 			w.WriteHeader(http.StatusOK)
 		})
@@ -34,7 +34,7 @@ func TestCORS(t *testing.T) {
 
 	t.Run("should respond 200 for OPTIONS and not call next", func(t *testing.T) {
 		nextCalled := false
-		next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 			nextCalled = true
 		})
 

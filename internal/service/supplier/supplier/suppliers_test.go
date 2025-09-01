@@ -283,7 +283,7 @@ func TestSupplierService_GetVersionByID(t *testing.T) {
 		{
 			name: "id inválido",
 			args: args{id: 0},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(_ *mock_supplier.MockSupplierRepository) {
 				// não deve chamar o repo
 			},
 			expectedResult: 0,
@@ -466,7 +466,7 @@ func TestSupplierService_Delete(t *testing.T) {
 		{
 			name: "id inválido para deleção",
 			args: args{id: 0},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(_ *mock_supplier.MockSupplierRepository) {
 				// não deve chamar Delete
 			},
 			expectedErr: err_msg.ErrID,
@@ -535,7 +535,7 @@ func TestSupplierService_Disable(t *testing.T) {
 		{
 			name: "id inválido para desabilitar",
 			args: args{id: 0},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(_ *mock_supplier.MockSupplierRepository) {
 				// não deve chamar o repo
 			},
 			expectedErr: err_msg.ErrID,
@@ -616,7 +616,7 @@ func TestSupplierService_Enable(t *testing.T) {
 		{
 			name: "id inválido para habilitar",
 			args: args{id: 0},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(_ *mock_supplier.MockSupplierRepository) {
 				// não deve chamar o repo
 			},
 			expectedErr: err_msg.ErrID,

@@ -17,6 +17,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUserCategoryHandler_Create(t *testing.T) {
@@ -44,8 +45,8 @@ func TestUserCategoryHandler_Create(t *testing.T) {
 
 		itemBytes, _ := json.Marshal(response.Data)
 		var result model.UserCategory
-		json.Unmarshal(itemBytes, &result)
-
+		err = json.Unmarshal(itemBytes, &result)
+		require.NoError(t, err)
 		assert.Equal(t, category.Name, result.Name)
 		assert.Equal(t, "Categoria criada com sucesso", response.Message)
 
@@ -116,7 +117,8 @@ func TestUserCategoryHandler_GetById(t *testing.T) {
 
 		itemBytes, _ := json.Marshal(response.Data)
 		var result model.UserCategory
-		json.Unmarshal(itemBytes, &result)
+		err = json.Unmarshal(itemBytes, &result)
+		require.NoError(t, err)
 
 		assert.Equal(t, *expected, result)
 		assert.Equal(t, "Categoria recuperada com sucesso", response.Message)
@@ -210,7 +212,8 @@ func TestUserCategoryHandler_GetAll(t *testing.T) {
 		for _, item := range rawData {
 			itemBytes, _ := json.Marshal(item)
 			var cat model.UserCategory
-			json.Unmarshal(itemBytes, &cat)
+			err = json.Unmarshal(itemBytes, &cat)
+			require.NoError(t, err)
 			result = append(result, &cat)
 		}
 
@@ -274,7 +277,8 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 
 		itemBytes, _ := json.Marshal(response.Data)
 		var result model.UserCategory
-		json.Unmarshal(itemBytes, &result)
+		err = json.Unmarshal(itemBytes, &result)
+		require.NoError(t, err)
 
 		assert.Equal(t, category.Name, result.Name)
 		assert.Equal(t, "Categoria atualizada com sucesso", response.Message)

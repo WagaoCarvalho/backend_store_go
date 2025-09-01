@@ -24,10 +24,10 @@ type ContactService interface {
 
 type contactService struct {
 	contactRepo repo.ContactRepository
-	logger      *logger.LoggerAdapter
+	logger      *logger.LogAdapter
 }
 
-func NewContactService(contactRepo repo.ContactRepository, logger *logger.LoggerAdapter) ContactService {
+func NewContactService(contactRepo repo.ContactRepository, logger *logger.LogAdapter) ContactService {
 	return &contactService{
 		contactRepo: contactRepo,
 		logger:      logger,

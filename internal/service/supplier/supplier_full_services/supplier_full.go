@@ -5,45 +5,45 @@ import (
 	"errors"
 	"fmt"
 
-	models_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
-	models_full "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
+	modelsCatRel "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
+	modelsFull "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	repo_address "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
-	repo_contact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
-	repo_relation "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
-	repo_supplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_full_repositories"
+	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
+	repoContact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
+	repoRelation "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
+	repoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_full_repositories"
 )
 
 type SupplierFullService interface {
-	CreateFull(ctx context.Context, supplierFull *models_full.SupplierFull) (*models_full.SupplierFull, error)
+	CreateFull(ctx context.Context, supplierFull *modelsFull.SupplierFull) (*modelsFull.SupplierFull, error)
 }
 
 type supplierFullService struct {
-	repo_supplier repo_supplier.SupplierFullRepository
-	repo_address  repo_address.AddressRepository
-	repo_contact  repo_contact.ContactRepository
-	repo_cat_rel  repo_relation.SupplierCategoryRelationRepository
-	logger        *logger.LoggerAdapter
+	repoSupplier repoSupplier.SupplierFullRepository
+	repoAddress  repoAddress.AddressRepository
+	repoContact  repoContact.ContactRepository
+	repoCatRel   repoRelation.SupplierCategoryRelationRepository
+	logger       *logger.LogAdapter
 }
 
 func NewSupplierFullService(
-	repo_supplier repo_supplier.SupplierFullRepository,
-	repo_address repo_address.AddressRepository,
-	repo_contact repo_contact.ContactRepository,
-	repo_cat_rel repo_relation.SupplierCategoryRelationRepository,
-	logger *logger.LoggerAdapter,
+	repoSupplier repoSupplier.SupplierFullRepository,
+	repoAddress repoAddress.AddressRepository,
+	repoContact repoContact.ContactRepository,
+	repoCatRel repoRelation.SupplierCategoryRelationRepository,
+	logger *logger.LogAdapter,
 ) SupplierFullService {
 	return &supplierFullService{
-		repo_supplier: repo_supplier,
-		repo_address:  repo_address,
-		repo_contact:  repo_contact,
-		repo_cat_rel:  repo_cat_rel,
-		logger:        logger,
+		repoSupplier: repoSupplier,
+		repoAddress:  repoAddress,
+		repoContact:  repoContact,
+		repoCatRel:   repoCatRel,
+		logger:       logger,
 	}
 }
 
-func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *models_full.SupplierFull) (*models_full.SupplierFull, error) {
+func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *modelsFull.SupplierFull) (*modelsFull.SupplierFull, error) {
 	const ref = "[supplierService - CreateFull] - "
 
 	logFields := map[string]any{}
@@ -60,7 +60,7 @@ func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *mode
 		return nil, err
 	}
 
-	tx, err := s.repo_supplier.BeginTx(ctx)
+	tx, err := s.repoSupplier.BeginTx(ctx)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogTransactionInitError, nil)
 		return nil, fmt.Errorf("erro ao iniciar transação: %w", err)
@@ -96,7 +96,7 @@ func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *mode
 		return nil
 	}
 
-	createdSupplier, err := s.repo_supplier.CreateTx(ctx, tx, supplierFull.Supplier)
+	createdSupplier, err := s.repoSupplier.CreateTx(ctx, tx, supplierFull.Supplier)
 	if err != nil {
 		return nil, commitOrRollback(err)
 	}
@@ -107,7 +107,7 @@ func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *mode
 		return nil, commitOrRollback(fmt.Errorf("endereço inválido: %w", err))
 	}
 
-	createdAddress, err := s.repo_address.CreateTx(ctx, tx, supplierFull.Address)
+	createdAddress, err := s.repoAddress.CreateTx(ctx, tx, supplierFull.Address)
 	if err != nil {
 		return nil, commitOrRollback(err)
 	}
@@ -118,13 +118,13 @@ func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *mode
 		return nil, commitOrRollback(fmt.Errorf("contato inválido: %w", err))
 	}
 
-	createdContact, err := s.repo_contact.CreateTx(ctx, tx, supplierFull.Contact)
+	createdContact, err := s.repoContact.CreateTx(ctx, tx, supplierFull.Contact)
 	if err != nil {
 		return nil, commitOrRollback(err)
 	}
 
 	for _, category := range supplierFull.Categories {
-		relation := &models_cat_rel.SupplierCategoryRelations{
+		relation := &modelsCatRel.SupplierCategoryRelations{
 			SupplierID: createdSupplier.ID,
 			CategoryID: int64(category.ID),
 		}
@@ -133,7 +133,7 @@ func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *mode
 			return nil, commitOrRollback(fmt.Errorf("relação fornecedor-categoria inválida: %w", err))
 		}
 
-		if _, err := s.repo_cat_rel.CreateTx(ctx, tx, relation); err != nil {
+		if _, err := s.repoCatRel.CreateTx(ctx, tx, relation); err != nil {
 			return nil, commitOrRollback(err)
 		}
 	}
@@ -143,7 +143,7 @@ func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *mode
 		"name":        createdSupplier.Name,
 	})
 
-	result := &models_full.SupplierFull{
+	result := &modelsFull.SupplierFull{
 		Supplier:   createdSupplier,
 		Address:    createdAddress,
 		Contact:    createdContact,

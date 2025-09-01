@@ -16,10 +16,10 @@ import (
 
 type UserCategoryHandler struct {
 	service service.UserCategoryService
-	logger  *logger.LoggerAdapter
+	logger  *logger.LogAdapter
 }
 
-func NewUserCategoryHandler(service service.UserCategoryService, logger *logger.LoggerAdapter) *UserCategoryHandler {
+func NewUserCategoryHandler(service service.UserCategoryService, logger *logger.LogAdapter) *UserCategoryHandler {
 	return &UserCategoryHandler{
 		service: service,
 		logger:  logger,
@@ -33,8 +33,8 @@ func (h *UserCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]interface{}{})
 
 	var category *model.UserCategory
-	if err := utils.FromJson(r.Body, &category); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]interface{}{
+	if err := utils.FromJSON(r.Body, &category); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]interface{}{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -52,7 +52,7 @@ func (h *UserCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 		"category_id": createdCategory.ID,
 	})
 
-	utils.ToJson(w, http.StatusCreated, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Data:    createdCategory,
 		Message: "Categoria criada com sucesso",
 		Status:  http.StatusCreated,
@@ -95,7 +95,7 @@ func (h *UserCategoryHandler) GetById(w http.ResponseWriter, r *http.Request) {
 		"id": id,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Data:    category,
 		Message: "Categoria recuperada com sucesso",
 		Status:  http.StatusOK,
@@ -119,7 +119,7 @@ func (h *UserCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		"total": len(categories),
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Data:    categories,
 		Message: "Categorias recuperadas com sucesso",
 		Status:  http.StatusOK,
@@ -142,8 +142,8 @@ func (h *UserCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var category *model.UserCategory
-	if err := utils.FromJson(r.Body, &category); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJsonError, map[string]interface{}{
+	if err := utils.FromJSON(r.Body, &category); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]interface{}{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -172,7 +172,7 @@ func (h *UserCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"id": id,
 	})
 
-	utils.ToJson(w, http.StatusOK, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Data:    updatedCategory,
 		Message: "Categoria atualizada com sucesso",
 		Status:  http.StatusOK,

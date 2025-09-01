@@ -23,12 +23,12 @@ type TokenGenerator interface {
 
 type loginService struct {
 	userRepo   repo.UserRepository
-	logger     *logger.LoggerAdapter
+	logger     *logger.LogAdapter
 	jwtManager TokenGenerator
 	hasher     pass.PasswordHasher
 }
 
-func NewLoginService(repo repo.UserRepository, logger *logger.LoggerAdapter, jwt TokenGenerator, hasher pass.PasswordHasher) *loginService {
+func NewLoginService(repo repo.UserRepository, logger *logger.LogAdapter, jwt TokenGenerator, hasher pass.PasswordHasher) LoginService {
 	return &loginService{
 		userRepo:   repo,
 		logger:     logger,

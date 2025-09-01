@@ -22,16 +22,16 @@ import (
 func RegisterUserFullRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
-	log *logger.LoggerAdapter,
+	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repo_user := repoUser.NewUserRepository(db, log)
-	repo_address := repoAddress.NewAddressRepository(db, log)
-	repo_contact := repoContact.NewContactRepository(db, log)
-	repo_user_cat_rel := repoUserCatRel.NewUserCategoryRelationRepositories(db, log)
+	repoUser := repoUser.NewUserRepository(db, log)
+	repoAddress := repoAddress.NewAddressRepository(db, log)
+	repoContact := repoContact.NewContactRepository(db, log)
+	repoUserCatRel := repoUserCatRel.NewUserCategoryRelationRepositories(db, log)
 	hasher := auth.BcryptHasher{}
 
-	userService := service.NewUserFullService(repo_user, repo_address, repo_contact, repo_user_cat_rel, log, hasher)
+	userService := service.NewUserFullService(repoUser, repoAddress, repoContact, repoUserCatRel, log, hasher)
 	handler := handlers.NewUserFullHandler(userService, log)
 
 	// Config JWT
