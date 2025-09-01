@@ -1,11 +1,10 @@
 package handler
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 
-	model "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
+	dto_contact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -25,12 +24,13 @@ func NewContactHandler(service service.ContactService, logger *logger.LogAdapter
 }
 
 func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
-	ref := "[ContactHandler - Create] "
-	var contact model.Contact
+	const ref = "[ContactHandler - Create] "
 
+	var dto dto_contact.ContactDTO
 	h.logger.Info(r.Context(), ref+logger.LogCreateInit, map[string]any{})
 
-	if err := utils.FromJSON(r.Body, &contact); err != nil {
+	// Faz o parse do JSON direto para o DTO
+	if err := utils.FromJSON(r.Body, &dto); err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
@@ -38,7 +38,10 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdContact, err := h.service.Create(r.Context(), &contact)
+	// Converte o DTO para o Model antes de enviar ao service
+	contactModel := dto_contact.ToContactModel(dto)
+
+	createdContact, err := h.service.Create(r.Context(), contactModel)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
 			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
@@ -61,6 +64,9 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Converte de volta para DTO antes de responder
+	createdDTO := dto_contact.ToContactDTO(createdContact)
+
 	h.logger.Info(r.Context(), ref+logger.LogCreateSuccess, map[string]any{
 		"contact_id": createdContact.ID,
 	})
@@ -68,7 +74,7 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Contato criado com sucesso",
-		Data:    createdContact,
+		Data:    createdDTO,
 	})
 }
 
@@ -231,8 +237,8 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var contact model.Contact
-	if err := json.NewDecoder(r.Body).Decode(&contact); err != nil {
+	var dto dto_contact.ContactDTO
+	if err := utils.FromJSON(r.Body, &dto); err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
@@ -240,14 +246,18 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contact.ID = id
+	// Garante que o ID do path é usado (não o que vier no body)
+	dto.ID = utils.Int64Ptr(id)
 
 	h.logger.Info(r.Context(), ref+logger.LogUpdateInit, map[string]any{
 		"contact_id": id,
 		"path":       r.URL.Path,
 	})
 
-	if err := h.service.Update(r.Context(), &contact); err != nil {
+	// Converte DTO → Model
+	contactModel := dto_contact.ToContactModel(dto)
+
+	if err := h.service.Update(r.Context(), contactModel); err != nil {
 		h.logger.Error(r.Context(), err, ref+logger.LogUpdateError, map[string]any{
 			"contact_id": id,
 		})
@@ -259,10 +269,13 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"contact_id": id,
 	})
 
+	// Converte Model → DTO antes de responder
+	updatedDTO := dto_contact.ToContactDTO(contactModel)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Contato atualizado com sucesso",
-		Data:    contact,
+		Data:    updatedDTO,
 	})
 }
 

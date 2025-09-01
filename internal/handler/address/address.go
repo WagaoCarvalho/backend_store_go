@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/handler/dto/address"
+	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
