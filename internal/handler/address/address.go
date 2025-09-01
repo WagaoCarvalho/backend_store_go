@@ -1,11 +1,10 @@
 package handler
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/handler/dto/address"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -27,11 +26,11 @@ func NewAddressHandler(service service.AddressService, logger *logger.LogAdapter
 
 func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ref := "[addressHandler - Create] "
-	var address models.Address
+	var dto dtoAddress.AddressDTO
 
 	h.logger.Info(r.Context(), ref+logger.LogCreateInit, map[string]any{})
 
-	if err := utils.FromJSON(r.Body, &address); err != nil {
+	if err := utils.FromJSON(r.Body, &dto); err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
@@ -39,7 +38,9 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdAddress, err := h.service.Create(r.Context(), &address)
+	address := dtoAddress.ToAddressModel(dto)
+
+	createdAddress, err := h.service.Create(r.Context(), address)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
 			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
@@ -61,7 +62,7 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Endereço criado com sucesso",
-		Data:    createdAddress,
+		Data:    dtoAddress.ToAddressDTO(createdAddress),
 	})
 }
 
@@ -212,21 +213,24 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var address models.Address
-	if err := json.NewDecoder(r.Body).Decode(&address); err != nil {
+	var dto dtoAddress.AddressDTO
+	if err := utils.FromJSON(r.Body, &dto); err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
-	address.ID = id
+
+	dto.ID = &id
 
 	h.logger.Info(r.Context(), ref+logger.LogUpdateInit, map[string]any{
-		"address_id": address.ID,
+		"address_id": id,
 	})
 
-	if err := h.service.Update(r.Context(), &address); err != nil {
+	address := dtoAddress.ToAddressModel(dto)
+
+	if err := h.service.Update(r.Context(), address); err != nil {
 		if ve, ok := err.(*validators.ValidationError); ok {
 			h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{
 				"erro": ve.Error(),
@@ -250,7 +254,7 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Endereço atualizado com sucesso",
-		Data:    address,
+		Data:    dto,
 	})
 }
 
