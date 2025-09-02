@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	model "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/supplier_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_full_services"
@@ -36,7 +36,7 @@ func (h *SupplierHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	var requestData model.SupplierFull
+	var requestData dto.SupplierFullDTO
 
 	if err := utils.FromJSON(r.Body, &requestData); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
@@ -46,10 +46,13 @@ func (h *SupplierHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdSupplierFull, err := h.service.CreateFull(ctx, &requestData)
+	// Converte DTO para model antes de enviar para o serviço
+	modelData := dto.ToSupplierFullModel(requestData)
+
+	createdSupplierFull, err := h.service.CreateFull(ctx, modelData)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"name": requestData.Supplier.Name,
+			"name": modelData.Supplier.Name,
 		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
@@ -60,9 +63,12 @@ func (h *SupplierHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
 		"name":        createdSupplierFull.Supplier.Name,
 	})
 
+	// Converte model de volta para DTO para resposta
+	createdDTO := dto.ToSupplierFullDTO(createdSupplierFull)
+
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Fornecedor criado com sucesso",
-		Data:    createdSupplierFull,
+		Data:    createdDTO,
 	})
 }

@@ -9,12 +9,18 @@ import (
 	"testing"
 
 	mockSupplierFull "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/supplier"
+	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
+	dtoContact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
+	dtoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/supplier"
+	dtoSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/supplier_category"
+	dtoSupplierFull "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/supplier_full"
 	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelSupplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
 	modelCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
 	modelSupplier_full "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -49,27 +55,27 @@ func TestSupplierHandler_CreateFull(t *testing.T) {
 			},
 		}
 
-		requestBody := map[string]interface{}{
-			"supplier": map[string]interface{}{
-				"name": "Fornecedor A",
-				"cnpj": "12.345.678/0001-90",
+		requestDTO := dtoSupplierFull.SupplierFullDTO{
+			Supplier: &dtoSupplier.SupplierDTO{
+				Name: "Fornecedor A",
+				CNPJ: utils.StrToPtr("12.345.678/0001-90"),
 			},
-			"address": map[string]interface{}{
-				"street": "Rua A",
-				"city":   "Cidade B",
+			Address: &dtoAddress.AddressDTO{
+				Street: "Rua A",
+				City:   "Cidade B",
 			},
-			"contact": map[string]interface{}{
-				"phone": "123456789",
+			Contact: &dtoContact.ContactDTO{
+				Phone: "123456789",
 			},
-			"categories": []map[string]interface{}{
-				{"id": 1},
+			Categories: []dtoSupplierCategories.SupplierCategoryDTO{
+				{ID: utils.Int64Ptr(1)},
 			},
 		}
 
-		body, _ := json.Marshal(requestBody)
+		body, _ := json.Marshal(requestDTO)
 
 		mockService.On("CreateFull",
-			mock.Anything, // aceita qualquer tipo que implemente context.Context
+			mock.Anything,
 			mock.MatchedBy(func(s *modelSupplier_full.SupplierFull) bool {
 				return s.Supplier.Name == "Fornecedor A" &&
 					s.Supplier.CNPJ != nil &&
@@ -111,18 +117,17 @@ func TestSupplierHandler_CreateFull(t *testing.T) {
 	t.Run("Erro ao criar fornecedor completo no service", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		cnpj := "00.000.000/0000-00"
-
-		requestBody := map[string]interface{}{
-			"supplier": map[string]interface{}{
-				"name": "Fornecedor Falha",
-				"cnpj": cnpj,
+		requestDTO := dtoSupplierFull.SupplierFullDTO{
+			Supplier: &dtoSupplier.SupplierDTO{
+				Name: "Fornecedor Falha",
+				CNPJ: utils.StrToPtr(cnpj),
 			},
 		}
-		body, _ := json.Marshal(requestBody)
+
+		body, _ := json.Marshal(requestDTO)
 
 		mockService.On("CreateFull",
-			mock.Anything, // <- Corrigido: agora aceita qualquer context.Context
+			mock.Anything,
 			mock.MatchedBy(func(s *modelSupplier_full.SupplierFull) bool {
 				return s != nil &&
 					s.Supplier != nil &&
@@ -141,5 +146,4 @@ func TestSupplierHandler_CreateFull(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
 		mockService.AssertExpectations(t)
 	})
-
 }
