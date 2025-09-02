@@ -2,9 +2,10 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/supplier_category"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -24,30 +25,44 @@ func NewSupplierCategoryHandler(service service.SupplierCategoryService, logger 
 }
 
 func (h *SupplierCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierCategoryHandler - Create] "
+	const ref = "[SupplierCategoryHandler - Create] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	var category *models.SupplierCategory
-	if err := utils.FromJSON(r.Body, &category); err != nil {
+	var requestData struct {
+		Category *dto.SupplierCategoryDTO `json:"category"`
+	}
+
+	if err := utils.FromJSON(r.Body, &requestData); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	createdCategory, err := h.service.Create(ctx, category)
+	if requestData.Category == nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": "category não fornecida"})
+		utils.ErrorResponse(w, fmt.Errorf("category não fornecida"), http.StatusBadRequest)
+		return
+	}
+
+	modelCategory := dto.ToSupplierCategoryModel(*requestData.Category)
+
+	createdCategory, err := h.service.Create(ctx, modelCategory)
 	if err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
+		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
+			"name": modelCategory.Name,
+		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{"category_id": createdCategory.ID})
+
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
-		Data:    createdCategory,
-		Message: "Categoria de fornecedor criada com sucesso",
 		Status:  http.StatusCreated,
+		Message: "Categoria de fornecedor criada com sucesso",
+		Data:    createdCategory,
 	})
 }
 
@@ -106,7 +121,7 @@ func (h *SupplierCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *SupplierCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierCategoryHandler - Update] "
+	const ref = "[SupplierCategoryHandler - Update] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
@@ -118,18 +133,27 @@ func (h *SupplierCategoryHandler) Update(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var category *models.SupplierCategory
-	if err := utils.FromJSON(r.Body, &category); err != nil {
+	var requestData struct {
+		Category *dto.SupplierCategoryDTO `json:"category"`
+	}
+
+	if err := utils.FromJSON(r.Body, &requestData); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	category.ID = id
+	if requestData.Category == nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": "category não fornecida"})
+		utils.ErrorResponse(w, fmt.Errorf("category não fornecida"), http.StatusBadRequest)
+		return
+	}
 
-	err = h.service.Update(ctx, category)
-	if err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{"category_id": category.ID})
+	modelCategory := dto.ToSupplierCategoryModel(*requestData.Category)
+	modelCategory.ID = id
+
+	if err := h.service.Update(ctx, modelCategory); err != nil {
+		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{"category_id": modelCategory.ID})
 
 		statusCode := http.StatusInternalServerError
 		if errors.Is(err, errMsg.ErrNotFound) {
@@ -140,7 +164,7 @@ func (h *SupplierCategoryHandler) Update(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{"category_id": category.ID})
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{"category_id": modelCategory.ID})
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Message: "Categoria atualizada com sucesso",
 		Status:  http.StatusOK,

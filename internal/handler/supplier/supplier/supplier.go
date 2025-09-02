@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/supplier"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
