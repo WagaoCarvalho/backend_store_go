@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -38,10 +38,11 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{})
+	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
+	// Recebe o DTO no lugar do model
 	var requestData struct {
-		User *models.User `json:"user"`
+		User *dto.UserDTO `json:"user"`
 	}
 
 	if err := utils.FromJSON(r.Body, &requestData); err != nil {
@@ -52,10 +53,13 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdUser, err := h.service.Create(ctx, requestData.User)
+	// Converte DTO para model antes de enviar para o service
+	userModel := dto.ToUserModel(*requestData.User)
+
+	createdUser, err := h.service.Create(ctx, userModel)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"email": requestData.User.Email,
+			"email": userModel.Email,
 		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
@@ -67,10 +71,13 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		"email":    createdUser.Email,
 	})
 
+	// Converte model criado de volta para DTO antes de retornar
+	createdDTO := dto.ToUserDTO(createdUser)
+
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Usuário criado com sucesso",
-		Data:    createdUser,
+		Data:    createdDTO,
 	})
 }
 
@@ -288,7 +295,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{})
 
 	var requestData struct {
-		User *models.User `json:"user"`
+		User *dto.UserDTO `json:"user"` // <-- agora DTO
 	}
 
 	id, err := utils.GetIDParam(r, "id")
@@ -314,9 +321,11 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestData.User.UID = id
+	// Converte DTO para model antes de enviar para o service
+	userModel := dto.ToUserModel(*requestData.User)
+	userModel.UID = id
 
-	updatedUser, err := h.service.Update(ctx, requestData.User)
+	updatedUser, err := h.service.Update(ctx, userModel)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrVersionConflict) {
 			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
@@ -336,10 +345,13 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"user_id": updatedUser.UID,
 	})
 
+	// Converte model de volta para DTO na resposta
+	updatedDTO := dto.ToUserDTO(updatedUser)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Usuário atualizado com sucesso",
-		Data:    updatedUser,
+		Data:    updatedDTO,
 	})
 }
 

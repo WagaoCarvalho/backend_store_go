@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user_category"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
@@ -32,8 +33,8 @@ func (h *UserCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]interface{}{})
 
-	var category *model.UserCategory
-	if err := utils.FromJSON(r.Body, &category); err != nil {
+	var requestDTO dto.UserCategoryDTO
+	if err := utils.FromJSON(r.Body, &requestDTO); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]interface{}{
 			"erro": err.Error(),
 		})
@@ -41,7 +42,10 @@ func (h *UserCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdCategory, err := h.service.Create(ctx, category)
+	// Converte DTO para Model antes de chamar o service
+	categoryModel := dto.ToUserCategoryModel(requestDTO)
+
+	createdCategory, err := h.service.Create(ctx, categoryModel)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]interface{}{})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
@@ -52,8 +56,11 @@ func (h *UserCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 		"category_id": createdCategory.ID,
 	})
 
+	// Converte Model de volta para DTO para a resposta
+	createdDTO := dto.ToUserCategoryDTO(createdCategory)
+
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
-		Data:    createdCategory,
+		Data:    createdDTO,
 		Message: "Categoria criada com sucesso",
 		Status:  http.StatusCreated,
 	})

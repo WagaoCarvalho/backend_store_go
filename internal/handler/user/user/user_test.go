@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/user"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
@@ -35,19 +36,20 @@ func TestUserHandler_Create(t *testing.T) {
 			Email:    "test@example.com",
 		}
 
-		requestBody := map[string]interface{}{
-			"user": map[string]interface{}{
-				"username": "testuser",
-				"email":    "test@example.com",
-			},
+		requestDTO := &dto.UserDTO{
+			Username: "testuser",
+			Email:    "test@example.com",
 		}
 
+		requestBody := map[string]interface{}{
+			"user": requestDTO,
+		}
 		body, _ := json.Marshal(requestBody)
 
 		mockService.On("Create",
 			mock.Anything,
 			mock.MatchedBy(func(u *model.User) bool {
-				return u.Username == "testuser" && u.Email == "test@example.com"
+				return u.Username == requestDTO.Username && u.Email == requestDTO.Email
 			}),
 		).Return(expectedUser, nil).Once()
 
@@ -81,19 +83,22 @@ func TestUserHandler_Create(t *testing.T) {
 	t.Run("Erro ao criar usuário no service", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		userData := &model.User{
+		requestDTO := &dto.UserDTO{
 			Username: "failuser",
 			Email:    "fail@example.com",
 		}
 
 		requestBody := map[string]interface{}{
-			"user": userData,
+			"user": requestDTO,
 		}
 		body, _ := json.Marshal(requestBody)
 
-		mockService.On("Create", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
-			return u.Username == userData.Username && u.Email == userData.Email
-		})).Return(nil, errors.New("erro ao criar usuário")).Once()
+		mockService.On("Create",
+			mock.Anything,
+			mock.MatchedBy(func(u *model.User) bool {
+				return u.Username == requestDTO.Username && u.Email == requestDTO.Email
+			}),
+		).Return(nil, errors.New("erro ao criar usuário")).Once()
 
 		req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewReader(body))
 		rec := httptest.NewRecorder()
@@ -414,26 +419,24 @@ func TestUserHandler_Update(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		userID := int64(1)
-		userToUpdate := &model.User{
+		updatedUserModel := &model.User{
 			UID:      userID,
 			Username: "updatedUser",
 			Email:    "updated@example.com",
 			Version:  2,
 		}
 
-		requestBody := map[string]interface{}{
-			"user": map[string]interface{}{
-				"username": "updatedUser",
-				"email":    "updated@example.com",
-				"version":  2,
-			},
+		requestDTO := dto.UserDTO{
+			Username: "updatedUser",
+			Email:    "updated@example.com",
+			Version:  2,
 		}
 
-		body, _ := json.Marshal(requestBody)
+		body, _ := json.Marshal(map[string]interface{}{"user": requestDTO})
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
 			return u.UID == userID && u.Username == "updatedUser" && u.Version == 2
-		})).Return(userToUpdate, nil).Once()
+		})).Return(updatedUserModel, nil).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -450,7 +453,6 @@ func TestUserHandler_Update(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		handler.Update(rec, req)
-
 		assert.Equal(t, http.StatusMethodNotAllowed, rec.Code)
 	})
 
@@ -460,7 +462,6 @@ func TestUserHandler_Update(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		handler.Update(rec, req)
-
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 	})
 
@@ -470,37 +471,26 @@ func TestUserHandler_Update(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		handler.Update(rec, req)
-
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 	})
 
 	t.Run("Erro dados do usuário ausentes", func(t *testing.T) {
-		requestBody := map[string]interface{}{
-			"user": nil,
-		}
-		body, _ := json.Marshal(requestBody)
+		body, _ := json.Marshal(map[string]interface{}{"user": nil})
 
 		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		rec := httptest.NewRecorder()
 
 		handler.Update(rec, req)
-
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 	})
 
 	t.Run("Erro conflito de versão", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
-
 		userID := int64(1)
 
-		requestBody := map[string]interface{}{
-			"user": map[string]interface{}{
-				"version": 2,
-			},
-		}
-
-		body, _ := json.Marshal(requestBody)
+		requestDTO := dto.UserDTO{Version: 2}
+		body, _ := json.Marshal(map[string]interface{}{"user": requestDTO})
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
 			return u.UID == userID && u.Version == 2
@@ -511,23 +501,16 @@ func TestUserHandler_Update(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		handler.Update(rec, req)
-
 		assert.Equal(t, http.StatusConflict, rec.Code)
 		mockService.AssertExpectations(t)
 	})
 
 	t.Run("Erro genérico ao atualizar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
-
 		userID := int64(1)
 
-		requestBody := map[string]interface{}{
-			"user": map[string]interface{}{
-				"version": 2,
-			},
-		}
-
-		body, _ := json.Marshal(requestBody)
+		requestDTO := dto.UserDTO{Version: 2}
+		body, _ := json.Marshal(map[string]interface{}{"user": requestDTO})
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
 			return u.UID == userID && u.Version == 2
@@ -538,7 +521,6 @@ func TestUserHandler_Update(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		handler.Update(rec, req)
-
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
 		mockService.AssertExpectations(t)
 	})

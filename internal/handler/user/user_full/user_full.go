@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_full_services"
@@ -36,34 +36,43 @@ func (h *UserHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	var requestData models.UserFull
-
-	if err := utils.FromJSON(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
-			"erro": err.Error(),
-		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+	var requestDTO dto.UserFullDTO
+	if err := utils.FromJSON(r.Body, &requestDTO); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": err.Error()})
+		utils.ErrorResponse(w, fmt.Errorf("erro ao decodificar JSON: %w", err), http.StatusBadRequest)
 		return
 	}
 
-	createdUserFull, err := h.service.CreateFull(ctx, &requestData)
+	if requestDTO.User == nil {
+		h.logger.Warn(ctx, ref+logger.LogMissingBodyData, nil)
+		utils.ErrorResponse(w, fmt.Errorf("dados do usuário são obrigatórios"), http.StatusBadRequest)
+		return
+	}
+
+	// Converte DTO para model antes de passar para o service
+	modelUserFull := dto.ToUserFullModel(requestDTO)
+
+	createdUserFull, err := h.service.CreateFull(ctx, modelUserFull)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"email": requestData.User.Email,
+			"email": modelUserFull.User.Email,
 		})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		utils.ErrorResponse(w, fmt.Errorf("erro ao criar usuário: %w", err), http.StatusInternalServerError)
 		return
 	}
 
+	// Converte model de volta para DTO para retornar
+	createdDTO := dto.ToUserFullDTO(createdUserFull)
+
 	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
-		"user_id":  createdUserFull.User.UID,
-		"username": createdUserFull.User.Username,
-		"email":    createdUserFull.User.Email,
+		"user_id":  createdDTO.User.UID,
+		"username": createdDTO.User.Username,
+		"email":    createdDTO.User.Email,
 	})
 
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Usuário criado com sucesso",
-		Data:    createdUserFull,
+		Data:    createdDTO,
 	})
 }

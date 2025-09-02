@@ -37,7 +37,13 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]interface{}{
 			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		utils.ErrorResponse(w, fmt.Errorf("erro ao decodificar JSON: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	if relation == nil {
+		h.logger.Warn(ctx, ref+logger.LogMissingBodyData, nil)
+		utils.ErrorResponse(w, fmt.Errorf("dados da relação são obrigatórios"), http.StatusBadRequest)
 		return
 	}
 
@@ -49,7 +55,7 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 				"category_id": relation.CategoryID,
 				"erro":        err.Error(),
 			})
-			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			utils.ErrorResponse(w, fmt.Errorf("chave estrangeira inválida: %w", err), http.StatusBadRequest)
 			return
 		}
 
@@ -57,22 +63,17 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 			"user_id":     relation.UserID,
 			"category_id": relation.CategoryID,
 		})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		utils.ErrorResponse(w, fmt.Errorf("erro ao criar relação: %w", err), http.StatusInternalServerError)
 		return
 	}
 
-	var status int
-	var message string
-	var logMsg string
-
+	status := http.StatusOK
+	message := "Relação já existente"
+	logMsg := logger.LogAlreadyExists
 	if wasCreated {
 		status = http.StatusCreated
 		message = "Relação criada com sucesso"
 		logMsg = logger.LogCreateSuccess
-	} else {
-		status = http.StatusOK
-		message = "Relação já existente"
-		logMsg = logger.LogAlreadyExists
 	}
 
 	h.logger.Info(ctx, ref+logMsg, map[string]interface{}{

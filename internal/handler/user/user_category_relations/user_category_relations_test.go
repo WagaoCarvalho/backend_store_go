@@ -14,10 +14,12 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUserCategoryRelationHandler_Create(t *testing.T) {
@@ -36,7 +38,7 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 
 		mockService.
 			On("Create", mock.Anything, int64(1), int64(2)).
-			Return(relation, true, nil)
+			Return(relation, true, nil).Once()
 
 		body, _ := json.Marshal(relation)
 		req := httptest.NewRequest(http.MethodPost, "/relations", bytes.NewBuffer(body))
@@ -46,7 +48,31 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 		handler.Create(rec, req)
 
 		assert.Equal(t, http.StatusCreated, rec.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+		assert.Equal(t, "Relação criada com sucesso", resp.Message)
+
 		mockService.AssertExpectations(t)
+	})
+
+	t.Run("error - relação ausente no corpo", func(t *testing.T) {
+		mockService := new(mockUserCatRel.MockUserCategoryRelationService)
+		handler := NewUserCategoryRelationHandler(mockService, logger)
+
+		// Envia JSON válido, mas com valor null para relação
+		req := httptest.NewRequest(http.MethodPost, "/relations", bytes.NewBufferString(`null`))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "dados da relação são obrigatórios")
 	})
 
 	t.Run("success - relação já existia", func(t *testing.T) {
@@ -60,7 +86,7 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 
 		mockService.
 			On("Create", mock.Anything, int64(1), int64(2)).
-			Return(relation, false, nil)
+			Return(relation, false, nil).Once()
 
 		body, _ := json.Marshal(relation)
 		req := httptest.NewRequest(http.MethodPost, "/relations", bytes.NewBuffer(body))
@@ -70,6 +96,11 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 		handler.Create(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+		assert.Equal(t, "Relação já existente", resp.Message)
+
 		mockService.AssertExpectations(t)
 	})
 
@@ -84,6 +115,10 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 		handler.Create(rec, req)
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
 	})
 
 	t.Run("error - falha no serviço", func(t *testing.T) {
@@ -97,7 +132,7 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 
 		mockService.
 			On("Create", mock.Anything, int64(1), int64(2)).
-			Return(nil, false, errors.New("erro ao criar relação"))
+			Return(nil, false, errors.New("erro ao criar relação")).Once()
 
 		body, _ := json.Marshal(relation)
 		req := httptest.NewRequest(http.MethodPost, "/relations", bytes.NewBuffer(body))
@@ -107,6 +142,12 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 		handler.Create(rec, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+		assert.Equal(t, http.StatusInternalServerError, resp.Status)
+		assert.Contains(t, resp.Message, "erro ao criar relação")
+
 		mockService.AssertExpectations(t)
 	})
 }

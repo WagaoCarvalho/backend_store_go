@@ -25,3 +25,7 @@ func NilToZero(id *int64) int64 {
 	}
 	return *id
 }
+
+func UintPtr(v uint) *uint {
+	return &v
+}

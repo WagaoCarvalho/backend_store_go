@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	mockUserCat "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/user"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user_category"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
@@ -28,10 +29,12 @@ func TestUserCategoryHandler_Create(t *testing.T) {
 	handler := NewUserCategoryHandler(mockSvc, logger)
 
 	t.Run("Success", func(t *testing.T) {
-		category := &model.UserCategory{Name: "Nova"}
-		mockSvc.On("Create", mock.Anything, category).Return(category, nil)
+		categoryDTO := dto.UserCategoryDTO{Name: "Nova"}
+		categoryModel := dto.ToUserCategoryModel(categoryDTO)
 
-		body, _ := json.Marshal(category)
+		mockSvc.On("Create", mock.Anything, categoryModel).Return(categoryModel, nil)
+
+		body, _ := json.Marshal(categoryDTO)
 		req := httptest.NewRequest("POST", "/categories", bytes.NewBuffer(body))
 		w := httptest.NewRecorder()
 
@@ -43,11 +46,12 @@ func TestUserCategoryHandler_Create(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
 
+		var result dto.UserCategoryDTO
 		itemBytes, _ := json.Marshal(response.Data)
-		var result model.UserCategory
 		err = json.Unmarshal(itemBytes, &result)
 		require.NoError(t, err)
-		assert.Equal(t, category.Name, result.Name)
+
+		assert.Equal(t, categoryDTO.Name, result.Name)
 		assert.Equal(t, "Categoria criada com sucesso", response.Message)
 
 		mockSvc.AssertExpectations(t)
@@ -69,13 +73,14 @@ func TestUserCategoryHandler_Create(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		input := model.UserCategory{Name: "Erro"}
+		inputDTO := dto.UserCategoryDTO{Name: "Erro"}
+		inputModel := dto.ToUserCategoryModel(inputDTO)
 
 		mockSvc.On("Create", mock.Anything, mock.MatchedBy(func(c *model.UserCategory) bool {
-			return c.Name == input.Name
+			return c.Name == inputModel.Name
 		})).Return(nil, errors.New("erro ao criar categoria"))
 
-		body, _ := json.Marshal(input)
+		body, _ := json.Marshal(inputDTO)
 		req := httptest.NewRequest("POST", "/categories", bytes.NewBuffer(body))
 		w := httptest.NewRecorder()
 
@@ -260,10 +265,13 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 		mockSvc := new(mockUserCat.MockUserCategoryService)
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
-		category := &model.UserCategory{ID: 1, Name: "Atualizada"}
-		mockSvc.On("Update", mock.Anything, category).Return(category, nil)
+		categoryDTO := dto.UserCategoryDTO{Name: "Atualizada"}
+		categoryModel := dto.ToUserCategoryModel(categoryDTO)
+		categoryModel.ID = 1
 
-		body, _ := json.Marshal(category)
+		mockSvc.On("Update", mock.Anything, categoryModel).Return(categoryModel, nil)
+
+		body, _ := json.Marshal(categoryDTO)
 		req := mux.SetURLVars(httptest.NewRequest("PUT", "/categories/1", bytes.NewBuffer(body)), map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
@@ -275,12 +283,12 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
 
+		var result dto.UserCategoryDTO
 		itemBytes, _ := json.Marshal(response.Data)
-		var result model.UserCategory
 		err = json.Unmarshal(itemBytes, &result)
 		require.NoError(t, err)
 
-		assert.Equal(t, category.Name, result.Name)
+		assert.Equal(t, categoryDTO.Name, result.Name)
 		assert.Equal(t, "Categoria atualizada com sucesso", response.Message)
 
 		mockSvc.AssertExpectations(t)
@@ -290,15 +298,17 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 		mockSvc := new(mockUserCat.MockUserCategoryService)
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
-		category := &model.UserCategory{Name: "Inexistente"}
-		body, _ := json.Marshal(category)
-
-		req := mux.SetURLVars(httptest.NewRequest("PUT", "/categories/999", bytes.NewBuffer(body)), map[string]string{"id": "999"})
-		w := httptest.NewRecorder()
+		categoryDTO := dto.UserCategoryDTO{Name: "Inexistente"}
+		categoryModel := dto.ToUserCategoryModel(categoryDTO)
+		categoryModel.ID = 999
 
 		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(c *model.UserCategory) bool {
 			return c.ID == 999
 		})).Return(nil, errMsg.ErrNotFound)
+
+		body, _ := json.Marshal(categoryDTO)
+		req := mux.SetURLVars(httptest.NewRequest("PUT", "/categories/999", bytes.NewBuffer(body)), map[string]string{"id": "999"})
+		w := httptest.NewRecorder()
 
 		handler.Update(w, req)
 
@@ -351,10 +361,13 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 		mockSvc := new(mockUserCat.MockUserCategoryService)
 		handler := NewUserCategoryHandler(mockSvc, logger)
 
-		category := &model.UserCategory{ID: 2, Name: "Falha"}
-		mockSvc.On("Update", mock.Anything, category).Return(nil, errors.New("erro ao atualizar"))
+		categoryDTO := dto.UserCategoryDTO{Name: "Falha"}
+		categoryModel := dto.ToUserCategoryModel(categoryDTO)
+		categoryModel.ID = 2
 
-		body, _ := json.Marshal(category)
+		mockSvc.On("Update", mock.Anything, categoryModel).Return(nil, errors.New("erro ao atualizar"))
+
+		body, _ := json.Marshal(categoryDTO)
 		req := mux.SetURLVars(httptest.NewRequest("PUT", "/categories/2", bytes.NewBuffer(body)), map[string]string{"id": "2"})
 		w := httptest.NewRecorder()
 

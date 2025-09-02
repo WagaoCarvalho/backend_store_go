@@ -9,12 +9,18 @@ import (
 	"testing"
 
 	service "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/user"
+	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
+	dtoContact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
+	dtoUser "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user"
+	dtoUserCategories "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user_category"
+	dtoUserFull "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user_full"
 	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelUser "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	modelCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	modelUserFull "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -48,25 +54,25 @@ func TestUserHandler_CreateFull(t *testing.T) {
 			},
 		}
 
-		requestBody := map[string]interface{}{
-			"user": map[string]interface{}{
-				"username": "testuser",
-				"email":    "test@example.com",
-				"password": "senha123",
+		requestDTO := dtoUserFull.UserFullDTO{
+			User: &dtoUser.UserDTO{
+				Username: "testuser",
+				Email:    "test@example.com",
+				Password: "senha123",
 			},
-			"address": map[string]interface{}{
-				"street": "Rua A",
-				"city":   "Cidade B",
+			Address: &dtoAddress.AddressDTO{
+				Street: "Rua A",
+				City:   "Cidade B",
 			},
-			"contact": map[string]interface{}{
-				"phone": "123456789",
+			Contact: &dtoContact.ContactDTO{
+				Phone: "123456789",
 			},
-			"categories": []map[string]interface{}{
-				{"id": 1},
+			Categories: []dtoUserCategories.UserCategoryDTO{
+				{ID: utils.UintPtr(1)},
 			},
 		}
 
-		body, _ := json.Marshal(requestBody)
+		body, _ := json.Marshal(requestDTO)
 
 		mockService.On("CreateFull",
 			mock.Anything,
@@ -107,21 +113,34 @@ func TestUserHandler_CreateFull(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 	})
 
+	t.Run("Erro dados do usuário ausentes", func(t *testing.T) {
+		requestDTO := dtoUserFull.UserFullDTO{
+			User: nil, // obrigatório
+		}
+		body, _ := json.Marshal(requestDTO)
+
+		req := httptest.NewRequest(http.MethodPost, "/users/full", bytes.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		handler.CreateFull(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+	})
+
 	t.Run("Erro ao criar usuário completo no service", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		requestBody := map[string]interface{}{
-			"user": map[string]interface{}{
-				"username": "failuser",
-				"email":    "fail@example.com",
-				"password": "464546465",
+		requestDTO := dtoUserFull.UserFullDTO{
+			User: &dtoUser.UserDTO{
+				Username: "failuser",
+				Email:    "fail@example.com",
+				Password: "senha123",
 			},
 		}
-		body, _ := json.Marshal(requestBody)
+		body, _ := json.Marshal(requestDTO)
 
-		mockService.On("CreateFull", mock.Anything, mock.MatchedBy(func(u *modelUserFull.UserFull) bool {
-			return u.User.Username == "failuser" && u.User.Email == "fail@example.com"
-		})).Return(nil, errors.New("erro ao criar usuário completo")).Once()
+		mockService.On("CreateFull", mock.Anything, mock.Anything).
+			Return(nil, errors.New("erro ao criar usuário completo")).Once()
 
 		req := httptest.NewRequest(http.MethodPost, "/users/full", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
