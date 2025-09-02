@@ -64,12 +64,6 @@ linters-settings:
           - github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db
           - github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message
 
-          - github.com/WagaoCarvalho/backend_store_go/internal/model/address
-          - github.com/WagaoCarvalho/backend_store_go/internal/model/contact
-          - github.com/WagaoCarvalho/backend_store_go/internal/model/user
-          - github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories
-          - github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations
-
           - github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories
           - github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user
 
@@ -110,7 +104,6 @@ linters-settings:
           - time
           - github.com/jackc/pgx/v5
           - github.com/jackc/pgx/v5/pgxpool
-          - github.com/WagaoCarvalho/backend_store_go/internal/model
           - github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger
           - github.com/WagaoCarvalho/backend_store_go/internal/pkg/err
           - github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator

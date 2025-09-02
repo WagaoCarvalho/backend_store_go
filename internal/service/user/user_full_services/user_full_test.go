@@ -13,7 +13,7 @@ import (
 	mock_user_full "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
 	model_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	model_user_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	model_user_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
 	model_user_full "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"

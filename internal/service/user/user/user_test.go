@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	mock_user "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
-	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/sirupsen/logrus"

@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	"github.com/stretchr/testify/mock"
 )
 

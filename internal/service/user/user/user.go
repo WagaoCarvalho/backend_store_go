@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"

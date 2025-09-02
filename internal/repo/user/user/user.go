@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/jackc/pgx/v5"

@@ -11,7 +11,7 @@ import (
 	service "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/user"
 	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	modelUser "github.com/WagaoCarvalho/backend_store_go/internal/model/user"
+	modelUser "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	modelCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	modelUserFull "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
