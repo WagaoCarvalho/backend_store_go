@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -28,20 +28,22 @@ func NewProductHandler(service service.ProductService, logger *logger.LogAdapter
 }
 
 func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - Create] "
-	var product models.Product
+	const ref = "[ProductHandler - Create] "
 
-	h.logger.Info(r.Context(), ref+logger.LogCreateInit, map[string]any{})
+	h.logger.Info(r.Context(), ref+logger.LogCreateInit, nil)
 
-	if err := utils.FromJSON(r.Body, &product); err != nil {
+	var productDTO dto.ProductDTO
+	if err := utils.FromJSON(r.Body, &productDTO); err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
 		return
 	}
 
-	createdProduct, err := h.service.Create(r.Context(), &product)
+	product := dto.ToProductModel(productDTO)
+
+	createdProduct, err := h.service.Create(r.Context(), product)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
 			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
@@ -51,10 +53,12 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		h.logger.Error(r.Context(), err, ref+logger.LogCreateError, map[string]any{})
+		h.logger.Error(r.Context(), err, ref+logger.LogCreateError, nil)
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
+
+	createdProductDTO := dto.ToProductDTO(createdProduct)
 
 	h.logger.Info(r.Context(), ref+logger.LogCreateSuccess, map[string]any{
 		"product_id": createdProduct.ID,
@@ -63,7 +67,7 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Produto criado com sucesso",
-		Data:    createdProduct,
+		Data:    createdProductDTO,
 	})
 }
 
@@ -376,10 +380,10 @@ func (h *ProductHandler) EnableProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - Update] "
+	const ref = "[ProductHandler - Update] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{})
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
@@ -390,18 +394,19 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var input models.Product
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogMissingBodyData, map[string]any{
+	var productDTO dto.ProductDTO
+	if err := utils.FromJSON(r.Body, &productDTO); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
 		return
 	}
 
-	input.ID = id
+	product := dto.ToProductModel(productDTO)
+	product.ID = id
 
-	updated, err := h.service.Update(ctx, &input)
+	updatedProduct, err := h.service.Update(ctx, product)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"product_id": id,
@@ -410,14 +415,16 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	updatedProductDTO := dto.ToProductDTO(updatedProduct)
+
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
-		"product_id": updated.ID,
+		"product_id": updatedProduct.ID,
 	})
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Produto atualizado com sucesso",
-		Data:    updated,
+		Data:    updatedProductDTO,
 	})
 }
 
@@ -824,7 +831,6 @@ func (h *ProductHandler) ApplyDiscount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extrair percent do body
 	var payload struct {
 		Percent float64 `json:"percent"`
 	}

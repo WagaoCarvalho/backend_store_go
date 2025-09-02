@@ -1,6 +1,6 @@
 package utils
 
-func Int64OrNil(ptr *int64) interface{} {
+func Int64OrNil(ptr *int64) any {
 	if ptr == nil {
 		return nil
 	}
