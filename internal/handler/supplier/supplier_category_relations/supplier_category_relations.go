@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/supplier_category_relations"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -27,13 +27,16 @@ func NewSupplierCategoryRelationHandler(service service.SupplierCategoryRelation
 }
 
 func (h *SupplierCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierCategoryRelationHandler - Create] "
+	const ref = "[SupplierCategoryRelationHandler - Create] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	var relation *models.SupplierCategoryRelations
-	if err := utils.FromJSON(r.Body, &relation); err != nil {
+	var requestData struct {
+		Relation *dto.SupplierCategoryRelationsDTO `json:"relation"`
+	}
+
+	if err := utils.FromJSON(r.Body, &requestData); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
@@ -41,12 +44,22 @@ func (h *SupplierCategoryRelationHandler) Create(w http.ResponseWriter, r *http.
 		return
 	}
 
-	created, wasCreated, err := h.service.Create(ctx, relation.SupplierID, relation.CategoryID)
+	if requestData.Relation == nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
+			"erro": "relation não fornecida",
+		})
+		utils.ErrorResponse(w, fmt.Errorf("relation não fornecida"), http.StatusBadRequest)
+		return
+	}
+
+	modelRelation := dto.ToSupplierCategoryRelationsModel(*requestData.Relation)
+
+	created, wasCreated, err := h.service.Create(ctx, modelRelation.SupplierID, modelRelation.CategoryID)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
 			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
-				"supplier_id": relation.SupplierID,
-				"category_id": relation.CategoryID,
+				"supplier_id": modelRelation.SupplierID,
+				"category_id": modelRelation.CategoryID,
 				"erro":        err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -54,8 +67,8 @@ func (h *SupplierCategoryRelationHandler) Create(w http.ResponseWriter, r *http.
 		}
 
 		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"supplier_id": relation.SupplierID,
-			"category_id": relation.CategoryID,
+			"supplier_id": modelRelation.SupplierID,
+			"category_id": modelRelation.CategoryID,
 		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
@@ -72,8 +85,8 @@ func (h *SupplierCategoryRelationHandler) Create(w http.ResponseWriter, r *http.
 	}
 
 	h.logger.Info(ctx, ref+logMsg, map[string]any{
-		"supplier_id": relation.SupplierID,
-		"category_id": relation.CategoryID,
+		"supplier_id": modelRelation.SupplierID,
+		"category_id": modelRelation.CategoryID,
 	})
 
 	utils.ToJSON(w, status, utils.DefaultResponse{

@@ -11,6 +11,10 @@ func Int64Ptr(i int64) *int64 {
 	return &i
 }
 
+func IntPtr(i int) *int {
+	return &i
+}
+
 func StrToPtr[T any](v T) *T {
 	return &v
 }

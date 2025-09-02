@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	mockSupplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/supplier"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/supplier_category_relations"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
@@ -28,16 +29,21 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
-		relation := &model.SupplierCategoryRelations{
-			SupplierID: 1,
-			CategoryID: 2,
+		// DTO para enviar no JSON
+		relationDTO := &dto.SupplierCategoryRelationsDTO{
+			SupplierID: utils.Int64Ptr(1),
+			CategoryID: utils.Int64Ptr(2),
 		}
+		// Model para mock
+		modelRelation := dto.ToSupplierCategoryRelationsModel(*relationDTO)
 
 		mockService.
 			On("Create", mock.Anything, int64(1), int64(2)).
-			Return(relation, true, nil)
+			Return(modelRelation, true, nil)
 
-		body, _ := json.Marshal(relation)
+		body, _ := json.Marshal(map[string]interface{}{
+			"relation": relationDTO,
+		})
 		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
@@ -49,7 +55,13 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		var resp utils.DefaultResponse
 		err := json.Unmarshal(rec.Body.Bytes(), &resp)
 		assert.NoError(t, err)
-		assert.Equal(t, http.StatusCreated, resp.Status)
+
+		itemBytes, _ := json.Marshal(resp.Data)
+		var result model.SupplierCategoryRelations
+		_ = json.Unmarshal(itemBytes, &result)
+
+		assert.Equal(t, int64(1), result.SupplierID)
+		assert.Equal(t, int64(2), result.CategoryID)
 		assert.Equal(t, "Relação criada com sucesso", resp.Message)
 
 		mockService.AssertExpectations(t)
@@ -59,16 +71,19 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
-		relation := &model.SupplierCategoryRelations{
-			SupplierID: 1,
-			CategoryID: 2,
+		relationDTO := &dto.SupplierCategoryRelationsDTO{
+			SupplierID: utils.Int64Ptr(1),
+			CategoryID: utils.Int64Ptr(2),
 		}
+		modelRelation := dto.ToSupplierCategoryRelationsModel(*relationDTO)
 
 		mockService.
 			On("Create", mock.Anything, int64(1), int64(2)).
-			Return(relation, false, nil)
+			Return(modelRelation, false, nil)
 
-		body, _ := json.Marshal(relation)
+		body, _ := json.Marshal(map[string]interface{}{
+			"relation": relationDTO,
+		})
 		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
@@ -86,20 +101,60 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("erro - chave estrangeira", func(t *testing.T) {
+	t.Run("Erro parse JSON", func(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
-		relation := &model.SupplierCategoryRelations{
-			SupplierID: 99,
-			CategoryID: 88,
+		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer([]byte("invalid")))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+	})
+
+	t.Run("Erro relation não fornecida", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		handler := NewSupplierCategoryRelationHandler(mockService, logger)
+
+		reqBody := []byte(`{}`) // JSON válido, mas sem o campo "relation"
+		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(reqBody))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "relation não fornecida")
+	})
+
+	t.Run("Erro chave estrangeira", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		handler := NewSupplierCategoryRelationHandler(mockService, logger)
+
+		relationDTO := &dto.SupplierCategoryRelationsDTO{
+			SupplierID: utils.Int64Ptr(99),
+			CategoryID: utils.Int64Ptr(88),
 		}
 
 		mockService.
 			On("Create", mock.Anything, int64(99), int64(88)).
 			Return(nil, false, errMsg.ErrInvalidForeignKey)
 
-		body, _ := json.Marshal(relation)
+		body, _ := json.Marshal(map[string]interface{}{
+			"relation": relationDTO,
+		})
 		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
@@ -116,42 +171,22 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("erro - json inválido", func(t *testing.T) {
+	t.Run("Erro falha interna", func(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
-		body := bytes.NewBufferString(`{invalid-json}`) // JSON malformado
-		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", body)
-		req.Header.Set("Content-Type", "application/json")
-		rec := httptest.NewRecorder()
-
-		handler.Create(rec, req)
-
-		assert.Equal(t, http.StatusBadRequest, rec.Code)
-
-		var resp utils.DefaultResponse
-		err := json.Unmarshal(rec.Body.Bytes(), &resp)
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusBadRequest, resp.Status)
-		// Removido assert.NotEmpty(resp.Message) para evitar falha se estiver vazio
-
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("erro - falha interna", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
-		handler := NewSupplierCategoryRelationHandler(mockService, logger)
-
-		relation := &model.SupplierCategoryRelations{
-			SupplierID: 1,
-			CategoryID: 2,
+		relationDTO := &dto.SupplierCategoryRelationsDTO{
+			SupplierID: utils.Int64Ptr(1),
+			CategoryID: utils.Int64Ptr(2),
 		}
 
 		mockService.
 			On("Create", mock.Anything, int64(1), int64(2)).
 			Return(nil, false, errors.New("erro inesperado"))
 
-		body, _ := json.Marshal(relation)
+		body, _ := json.Marshal(map[string]interface{}{
+			"relation": relationDTO,
+		})
 		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
