@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -27,7 +27,7 @@ func NewSupplierHandler(service service.SupplierService, logger *logger.LogAdapt
 }
 
 func (h *SupplierHandler) Create(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierHandler - Create] "
+	const ref = "[SupplierHandler - Create] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPost {
@@ -41,7 +41,7 @@ func (h *SupplierHandler) Create(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
 	var requestData struct {
-		Supplier *models.Supplier `json:"supplier"`
+		Supplier *dto.SupplierDTO `json:"supplier"` // agora DTO
 	}
 
 	if err := utils.FromJSON(r.Body, &requestData); err != nil {
@@ -52,16 +52,24 @@ func (h *SupplierHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdSupplier, err := h.service.Create(ctx, requestData.Supplier)
+	if requestData.Supplier == nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
+			"erro": "supplier não fornecido",
+		})
+		utils.ErrorResponse(w, fmt.Errorf("supplier não fornecido"), http.StatusBadRequest)
+		return
+	}
+
+	// converte DTO para Model
+	modelSupplier := dto.ToSupplierModel(*requestData.Supplier)
+
+	createdSupplier, err := h.service.Create(ctx, modelSupplier)
 	if err != nil {
-		// Evita acesso a ponteiro nulo
-		logData := map[string]any{}
-		if requestData.Supplier != nil {
-			logData["name"] = requestData.Supplier.Name
-			logData["cpf"] = requestData.Supplier.CPF
-			logData["cnpj"] = requestData.Supplier.CNPJ
-		}
-		h.logger.Error(ctx, err, ref+logger.LogCreateError, logData)
+		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
+			"name": modelSupplier.Name,
+			"cpf":  modelSupplier.CPF,
+			"cnpj": modelSupplier.CNPJ,
+		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -245,10 +253,7 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
 
-	var requestData struct {
-		Supplier *models.Supplier `json:"supplier"`
-	}
-
+	// Pegar ID da URL
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
@@ -256,6 +261,11 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 		})
 		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
 		return
+	}
+
+	// Decodificar JSON usando DTO
+	var requestData struct {
+		Supplier *dto.SupplierDTO `json:"supplier"`
 	}
 
 	if err := utils.FromJSON(r.Body, &requestData); err != nil {
@@ -272,9 +282,16 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestData.Supplier.ID = id
+	// Inicializa ID se estiver nil e seta o valor da URL
+	if requestData.Supplier.ID == nil {
+		requestData.Supplier.ID = new(int64)
+	}
+	*requestData.Supplier.ID = id
 
-	updatedSupplier, err := h.service.Update(ctx, requestData.Supplier)
+	// Converter DTO para Model
+	supplierModel := dto.ToSupplierModel(*requestData.Supplier)
+
+	updatedSupplier, err := h.service.Update(ctx, supplierModel)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrVersionConflict) {
 			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
@@ -283,6 +300,7 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorResponse(w, err, http.StatusConflict)
 			return
 		}
+
 		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"supplier_id": id,
 		})
@@ -297,7 +315,7 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Fornecedor atualizado com sucesso",
-		Data:    updatedSupplier,
+		Data:    dto.ToSupplierDTO(updatedSupplier),
 	})
 }
 

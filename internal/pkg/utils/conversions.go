@@ -14,3 +14,10 @@ func Int64Ptr(i int64) *int64 {
 func StrToPtr[T any](v T) *T {
 	return &v
 }
+
+func NilToZero(id *int64) int64 {
+	if id == nil {
+		return 0
+	}
+	return *id
+}

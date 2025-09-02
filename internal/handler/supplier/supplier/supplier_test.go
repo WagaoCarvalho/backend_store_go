@@ -27,23 +27,22 @@ func strPtr(s string) *string {
 }
 
 func TestSupplierHandler_Create(t *testing.T) {
-	mockService := new(mockSupplier.MockSupplierService)
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
-	handler := NewSupplierHandler(mockService, logger)
+	now := time.Now()
 
 	t.Run("Sucesso ao criar fornecedor", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
+		mockService := new(mockSupplier.MockSupplierService)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, logger)
 
 		expectedSupplier := &models.Supplier{
 			ID:        1,
 			Name:      "Fornecedor Teste",
 			CNPJ:      strPtr("12345678000199"),
-			CPF:       nil,
 			Version:   1,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: now,
+			UpdatedAt: now,
 		}
 
 		requestBody := map[string]interface{}{
@@ -70,26 +69,69 @@ func TestSupplierHandler_Create(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
+	t.Run("Falha ao criar fornecedor - supplier nil", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplierService)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, logger)
+
+		requestBody := map[string]interface{}{} // sem supplier
+		body, _ := json.Marshal(requestBody)
+
+		req := httptest.NewRequest(http.MethodPost, "/suppliers", bytes.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		err := json.NewDecoder(rec.Body).Decode(&resp)
+		assert.NoError(t, err)
+		assert.Equal(t, "supplier não fornecido", resp.Message)
+
+		mockService.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+	})
+
 	t.Run("Erro método não permitido", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplierService)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, logger)
+
 		req := httptest.NewRequest(http.MethodGet, "/suppliers", nil)
 		rec := httptest.NewRecorder()
 
 		handler.Create(rec, req)
 
 		assert.Equal(t, http.StatusMethodNotAllowed, rec.Code)
+		mockService.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 	})
 
 	t.Run("Erro ao decodificar JSON inválido", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplierService)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, logger)
+
 		req := httptest.NewRequest(http.MethodPost, "/suppliers", bytes.NewReader([]byte("{invalid json")))
 		rec := httptest.NewRecorder()
 
 		handler.Create(rec, req)
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		mockService.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 	})
 
 	t.Run("Erro ao criar fornecedor no service", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
+		mockService := new(mockSupplier.MockSupplierService)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, logger)
 
 		supplierData := &models.Supplier{
 			Name: "Fornecedor Falso",

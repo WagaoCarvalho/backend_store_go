@@ -4,6 +4,7 @@ import (
 	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
 type ProductDTO struct {
@@ -27,7 +28,7 @@ type ProductDTO struct {
 
 func ToProductModel(dto ProductDTO) *models.Product {
 	return &models.Product{
-		ID:                 getOrDefault(dto.ID),
+		ID:                 utils.NilToZero(dto.ID),
 		SupplierID:         dto.SupplierID,
 		ProductName:        dto.ProductName,
 		Manufacturer:       dto.Manufacturer,
@@ -65,11 +66,4 @@ func ToProductDTO(model *models.Product) ProductDTO {
 		CreatedAt:          model.CreatedAt,
 		UpdatedAt:          model.UpdatedAt,
 	}
-}
-
-func getOrDefault(id *int64) int64 {
-	if id == nil {
-		return 0
-	}
-	return *id
 }
