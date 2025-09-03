@@ -2,15 +2,14 @@ package handler
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	mockLogin "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/login"
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/login"
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -18,16 +17,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
-
-type MockLoginService struct {
-	mock.Mock
-}
-
-func (m *MockLoginService) Login(ctx context.Context, credentials models.LoginCredentials) (*models.AuthResponse, error) {
-	args := m.Called(ctx, credentials)
-	authResp, _ := args.Get(0).(*models.AuthResponse)
-	return authResp, args.Error(1)
-}
 
 func newLoginRequest(method, url string, body []byte) *http.Request {
 	req := httptest.NewRequest(method, url, bytes.NewBuffer(body))
@@ -41,26 +30,22 @@ func TestLoginHandler_Login(t *testing.T) {
 	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(MockLoginService)
+		mockService := new(mockLogin.MockLoginService)
 		handler := NewLoginHandler(mockService, logAdapter)
 
-		creds := models.LoginCredentials{
+		credsDTO := dto.LoginCredentialsDTO{
 			Email:    "user@example.com",
 			Password: "password123",
 		}
 
-		// retornar AuthResponse correto
-		mockService.On("Login", mock.Anything, creds).Return(&models.AuthResponse{
+		mockService.On("Login", mock.Anything, credsDTO).Return(&dto.AuthResponseDTO{
 			AccessToken: "valid_token",
 			TokenType:   "Bearer",
 			ExpiresIn:   3600,
 		}, nil)
 
-		body, _ := json.Marshal(dto.LoginCredentialsDTO{
-			Email:    creds.Email,
-			Password: creds.Password,
-		})
-		req := newLoginRequest(http.MethodPost, "/login", body)
+		body, _ := json.Marshal(credsDTO)
+		req := httptest.NewRequest(http.MethodPost, "/login", bytes.NewReader(body))
 		w := httptest.NewRecorder()
 
 		handler.Login(w, req)
@@ -79,23 +64,23 @@ func TestLoginHandler_Login(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "Login realizado com sucesso", response.Message)
 		assert.Equal(t, "valid_token", response.Data["access_token"])
-		assert.Equal(t, float64(3600), response.Data["expires_in"]) // json numbers viram float64
+		assert.Equal(t, float64(3600), response.Data["expires_in"])
 		assert.Equal(t, "Bearer", response.Data["token_type"])
 
 		mockService.AssertExpectations(t)
 	})
 
 	t.Run("InvalidCredentials", func(t *testing.T) {
-		mockService := new(MockLoginService)
+		mockService := new(mockLogin.MockLoginService)
 		handler := NewLoginHandler(mockService, logAdapter)
 
-		creds := models.LoginCredentials{
+		credsDTO := dto.LoginCredentialsDTO{
 			Email:    "user@example.com",
 			Password: "wrongpassword",
 		}
-		mockService.On("Login", mock.Anything, creds).Return(nil, errors.New("credenciais inválidas"))
+		mockService.On("Login", mock.Anything, credsDTO).Return(nil, errors.New("credenciais inválidas"))
 
-		body, _ := json.Marshal(creds)
+		body, _ := json.Marshal(credsDTO)
 		req := newLoginRequest(http.MethodPost, "/login", body)
 		w := httptest.NewRecorder()
 
@@ -109,14 +94,13 @@ func TestLoginHandler_Login(t *testing.T) {
 		var response map[string]interface{}
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		require.NoError(t, err)
-
 		assert.Equal(t, "credenciais inválidas", response["message"])
 
 		mockService.AssertExpectations(t)
 	})
 
 	t.Run("InvalidJSON", func(t *testing.T) {
-		mockService := new(MockLoginService)
+		mockService := new(mockLogin.MockLoginService)
 		handler := NewLoginHandler(mockService, logAdapter)
 
 		invalidJSON := []byte(`{email: "user@example.com", password: }`)
@@ -133,12 +117,11 @@ func TestLoginHandler_Login(t *testing.T) {
 		var response map[string]interface{}
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		require.NoError(t, err)
-
 		assert.Equal(t, "dados inválidos", response["message"])
 	})
 
 	t.Run("InvalidMethod", func(t *testing.T) {
-		mockService := new(MockLoginService)
+		mockService := new(mockLogin.MockLoginService)
 		handler := NewLoginHandler(mockService, logAdapter)
 
 		req := newLoginRequest(http.MethodGet, "/login", nil)
@@ -154,7 +137,6 @@ func TestLoginHandler_Login(t *testing.T) {
 		var response map[string]interface{}
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		require.NoError(t, err)
-
 		assert.Contains(t, response["message"], "método GET não permitido")
 	})
 }

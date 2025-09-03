@@ -35,7 +35,6 @@ func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// ler DTO
 	var credentialsDTO dto.LoginCredentialsDTO
 	if err := utils.FromJSON(r.Body, &credentialsDTO); err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
@@ -45,11 +44,8 @@ func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// converter DTO para model
-	credentials := credentialsDTO.ToModel()
-
-	// chamar service
-	authResp, err := h.service.Login(r.Context(), *credentials)
+	// DTO já é convertido para o modelo interno dentro do service
+	authRespDTO, err := h.service.Login(r.Context(), credentialsDTO)
 	if err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{
 			"erro": err.Error(),
@@ -58,15 +54,11 @@ func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// converter model para DTO de resposta
-	authRespDTO := dto.ToAuthResponseDTO(authResp)
-
 	h.logger.Info(r.Context(), ref+logger.LogLoginSuccess, nil)
 
-	// retornar JSON
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Login realizado com sucesso",
-		Data:    authRespDTO, // compatível com JSON
+		Data:    authRespDTO, // já é DTO
 	})
 }

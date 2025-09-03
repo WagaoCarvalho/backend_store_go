@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	model "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/login"
 	pass "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	logger "github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
@@ -14,7 +14,7 @@ import (
 )
 
 type LoginService interface {
-	Login(ctx context.Context, credentials model.LoginCredentials) (*model.AuthResponse, error)
+	Login(ctx context.Context, credentialsDTO dto.LoginCredentialsDTO) (*dto.AuthResponseDTO, error)
 }
 
 type TokenGenerator interface {
@@ -37,33 +37,32 @@ func NewLoginService(repo repo.UserRepository, logger *logger.LogAdapter, jwt To
 	}
 }
 
-func (s *loginService) Login(ctx context.Context, credentials model.LoginCredentials) (*model.AuthResponse, error) {
+func (s *loginService) Login(ctx context.Context, credentialsDTO dto.LoginCredentialsDTO) (*dto.AuthResponseDTO, error) {
 	const ref = "[loginService - Login] - "
 
 	s.logger.Info(ctx, ref+logger.LogLoginInit, map[string]any{
-		"email": credentials.Email,
+		"email": credentialsDTO.Email,
 	})
 
-	if !val_contact.IsValidEmail(credentials.Email) {
+	if !val_contact.IsValidEmail(credentialsDTO.Email) {
 		s.logger.Error(ctx, err_msg.ErrEmailFormat, ref+logger.LogEmailInvalid, map[string]any{
-			"email": credentials.Email,
+			"email": credentialsDTO.Email,
 		})
 		return nil, err_msg.ErrEmailFormat
 	}
 
-	user, err := s.userRepo.GetByEmail(ctx, credentials.Email)
+	credModel := credentialsDTO.ToModel()
+	user, err := s.userRepo.GetByEmail(ctx, credModel.Email)
 	if err != nil {
-		time.Sleep(time.Second) // mitigação timing attack
-		s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-			"email": credentials.Email,
-		})
+		time.Sleep(time.Second)
+		s.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"email": credModel.Email})
 		return nil, err_msg.ErrCredentials
 	}
 
-	if err := s.hasher.Compare(user.Password, credentials.Password); err != nil {
+	if err := s.hasher.Compare(user.Password, credModel.Password); err != nil {
 		s.logger.Warn(ctx, ref+logger.LogPasswordInvalid, map[string]any{
 			"user_id": user.UID,
-			"email":   credentials.Email,
+			"email":   credModel.Email,
 		})
 		return nil, err_msg.ErrCredentials
 	}
@@ -90,9 +89,9 @@ func (s *loginService) Login(ctx context.Context, credentials model.LoginCredent
 		"email":   user.Email,
 	})
 
-	return &model.AuthResponse{
-		AccessToken: token,    // JWT gerado
-		TokenType:   "Bearer", // normalmente "Bearer"
-		ExpiresIn:   3600,     // por exemplo, 1 hora em segundos
+	return &dto.AuthResponseDTO{
+		AccessToken: token,
+		TokenType:   "Bearer",
+		ExpiresIn:   3600,
 	}, nil
 }
