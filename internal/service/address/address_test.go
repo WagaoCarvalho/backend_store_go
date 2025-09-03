@@ -394,7 +394,7 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 		service := NewAddressService(mockRepo, logger)
 
 		addressDTO := makeAddressDTO()
-		addressModel := dtoAddress.ToAddressModel(addressDTO) // converte para model para simular repo
+		addressModel := dtoAddress.ToAddressModel(addressDTO)
 
 		mockRepo.On("Update", mock.Anything, mock.MatchedBy(func(a *model.Address) bool {
 			return a != nil && a.ID == addressModel.ID && *a.UserID == *addressModel.UserID

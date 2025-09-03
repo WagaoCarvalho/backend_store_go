@@ -49,10 +49,8 @@ func TestAddressHandler_Create(t *testing.T) {
 			PostalCode: "12345-678",
 		}
 
-		// Mock do service retornando o mesmo DTO
 		mockService.On("Create", mock.Anything, inputDTO).Return(inputDTO, nil)
 
-		// Serializa o request
 		body, _ := json.Marshal(inputDTO)
 		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -65,7 +63,6 @@ func TestAddressHandler_Create(t *testing.T) {
 
 		assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
-		// Desserializa o response em struct compatível com DTO
 		var response struct {
 			Status  int                   `json:"status"`
 			Message string                `json:"message"`
@@ -76,7 +73,6 @@ func TestAddressHandler_Create(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "Endereço criado com sucesso", response.Message)
 
-		// Valida campos do DTO retornado
 		assert.NotNil(t, response.Data.ID)
 		assert.Equal(t, *inputDTO.ID, *response.Data.ID)
 		assert.NotNil(t, response.Data.UserID)
@@ -105,7 +101,6 @@ func TestAddressHandler_Create(t *testing.T) {
 			PostalCode: "02460-000",
 		}
 
-		// Mock do service agora recebe e retorna DTO
 		mockService.On("Create", mock.Anything, input).Return((*dtoAddress.AddressDTO)(nil), assert.AnError)
 
 		body, _ := json.Marshal(input)
@@ -154,7 +149,6 @@ func TestAddressHandler_Create(t *testing.T) {
 			PostalCode: "99999-999",
 		}
 
-		// Mock do service retorna erro de foreign key
 		mockService.On("Create", mock.Anything, input).Return((*dtoAddress.AddressDTO)(nil), errMsg.ErrInvalidForeignKey)
 
 		body, _ := json.Marshal(input)
@@ -168,9 +162,6 @@ func TestAddressHandler_Create(t *testing.T) {
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-		// Opcional: verificar que a mensagem de log foi escrita
-		// Isso depende de como você configurou o logAdapter/mocks
 
 		mockService.AssertExpectations(t)
 	})
@@ -285,7 +276,7 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 
 		data, ok := response["data"].([]interface{})
 		assert.True(t, ok)
-		assert.Len(t, data, 2) // Agora deve passar
+		assert.Len(t, data, 2)
 
 		mockService.AssertExpectations(t)
 	})
@@ -525,7 +516,6 @@ func TestAddressHandler_Update(t *testing.T) {
 		mockService := new(mockAddress.MockAddressService)
 		handler := NewAddressHandler(mockService, logger)
 
-		// Corpo inválido que não é JSON
 		body := strings.NewReader("invalid-json")
 		req := httptest.NewRequest(http.MethodPut, "/addresses/1", body)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -541,7 +531,7 @@ func TestAddressHandler_Update(t *testing.T) {
 		handler := NewAddressHandler(mockService, logger)
 
 		id := int64(1)
-		dto := dtoAddress.AddressDTO{ID: &id, Street: ""} // inválido
+		dto := dtoAddress.AddressDTO{ID: &id, Street: ""}
 		mockService.On("Update", mock.Anything, &dto).Return(&validators.ValidationError{Message: "campo obrigatório"})
 
 		body := toReader(dto)
@@ -591,7 +581,6 @@ func TestAddressHandler_Update(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		// Mock do service para retornar ErrID
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(a *dtoAddress.AddressDTO) bool {
 			return a != nil && a.ID != nil && *a.ID == 1
 		})).Return(errMsg.ErrID)

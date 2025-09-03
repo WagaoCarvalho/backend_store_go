@@ -29,7 +29,6 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var dto dto_contact.ContactDTO
 	h.logger.Info(r.Context(), ref+logger.LogCreateInit, map[string]any{})
 
-	// Faz o parse do JSON direto para o DTO
 	if err := utils.FromJSON(r.Body, &dto); err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
@@ -38,21 +37,10 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Converte o DTO para o Model antes de enviar ao service
-	contactModel := dto_contact.ToContactModel(dto)
-
-	createdContact, err := h.service.Create(r.Context(), contactModel)
+	createdDTO, err := h.service.Create(r.Context(), &dto)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
 			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
-				"erro": err.Error(),
-			})
-			utils.ErrorResponse(w, err, http.StatusBadRequest)
-			return
-		}
-
-		if err.Error() == "nome obrigatório" || err.Error() == "erro interno" {
-			h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{
 				"erro": err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
@@ -64,11 +52,8 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Converte de volta para DTO antes de responder
-	createdDTO := dto_contact.ToContactDTO(createdContact)
-
 	h.logger.Info(r.Context(), ref+logger.LogCreateSuccess, map[string]any{
-		"contact_id": createdContact.ID,
+		"contact_id": createdDTO.ID,
 	})
 
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
@@ -108,13 +93,18 @@ func (h *ContactHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		"contact_id": id,
 	})
 
-	utils.ToJSON(w, http.StatusOK, contact)
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Contato encontrado",
+		Data:    contact,
+	})
 }
 
 func (h *ContactHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
-	const ref = "[ContactHandler - GetByUserID] "
+	ref := "[contactHandler - GetByUserID] "
+	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{})
 
-	userID, err := utils.GetIDParam(r, "userID")
+	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
@@ -123,36 +113,32 @@ func (h *ContactHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{
-		"user_id": userID,
-		"path":    r.URL.Path,
-	})
-
-	contacts, err := h.service.GetByUserID(r.Context(), userID)
+	contacts, err := h.service.GetByUserID(r.Context(), id)
 	if err != nil {
 		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]any{
-			"user_id": userID,
+			"user_id": id,
 		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
 	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]any{
-		"user_id": userID,
+		"user_id": id,
 		"count":   len(contacts),
 	})
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
-		Message: "Contatos encontrados",
+		Message: "Contatos do usuário encontrados",
 		Data:    contacts,
 	})
 }
 
 func (h *ContactHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
-	const ref = "[ContactHandler - GetByClientID] "
+	ref := "[contactHandler - GetByClientID] "
+	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{})
 
-	clientID, err := utils.GetIDParam(r, "clientID")
+	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
@@ -161,36 +147,32 @@ func (h *ContactHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{
-		"client_id": clientID,
-		"path":      r.URL.Path,
-	})
-
-	contacts, err := h.service.GetByClientID(r.Context(), clientID)
+	contacts, err := h.service.GetByClientID(r.Context(), id)
 	if err != nil {
 		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]any{
-			"client_id": clientID,
+			"client_id": id,
 		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
 	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]any{
-		"client_id": clientID,
+		"client_id": id,
 		"count":     len(contacts),
 	})
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
-		Message: "Contatos encontrados",
+		Message: "Contatos do cliente encontrados",
 		Data:    contacts,
 	})
 }
 
 func (h *ContactHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
-	const ref = "[ContactHandler - GetBySupplierID] "
+	ref := "[contactHandler - GetBySupplierID] "
+	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{})
 
-	supplierID, err := utils.GetIDParam(r, "supplierID")
+	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
@@ -199,28 +181,23 @@ func (h *ContactHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{
-		"supplier_id": supplierID,
-		"path":        r.URL.Path,
-	})
-
-	contacts, err := h.service.GetBySupplierID(r.Context(), supplierID)
+	contacts, err := h.service.GetBySupplierID(r.Context(), id)
 	if err != nil {
 		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]any{
-			"supplier_id": supplierID,
+			"supplier_id": id,
 		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
 	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]any{
-		"supplier_id": supplierID,
+		"supplier_id": id,
 		"count":       len(contacts),
 	})
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
-		Message: "Contatos encontrados",
+		Message: "Contatos do fornecedor encontrados",
 		Data:    contacts,
 	})
 }
@@ -246,7 +223,6 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Garante que o ID do path é usado (não o que vier no body)
 	dto.ID = utils.Int64Ptr(id)
 
 	h.logger.Info(r.Context(), ref+logger.LogUpdateInit, map[string]any{
@@ -254,10 +230,8 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"path":       r.URL.Path,
 	})
 
-	// Converte DTO → Model
-	contactModel := dto_contact.ToContactModel(dto)
-
-	if err := h.service.Update(r.Context(), contactModel); err != nil {
+	// Chama o service diretamente com o DTO
+	if err := h.service.Update(r.Context(), &dto); err != nil {
 		h.logger.Error(r.Context(), err, ref+logger.LogUpdateError, map[string]any{
 			"contact_id": id,
 		})
@@ -269,13 +243,10 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"contact_id": id,
 	})
 
-	// Converte Model → DTO antes de responder
-	updatedDTO := dto_contact.ToContactDTO(contactModel)
-
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Contato atualizado com sucesso",
-		Data:    updatedDTO,
+		Data:    dto,
 	})
 }
 

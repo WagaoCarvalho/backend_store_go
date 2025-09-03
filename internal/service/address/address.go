@@ -42,10 +42,8 @@ func (s *addressService) Create(ctx context.Context, addressDTO *dtoAddress.Addr
 		"supplier_id": utils.Int64OrNil(addressDTO.SupplierID),
 	})
 
-	// Converter DTO -> Model
 	addressModel := dtoAddress.ToAddressModel(*addressDTO)
 
-	// Validar regra de negócio no model
 	if err := addressModel.Validate(); err != nil {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"erro": err.Error(),
@@ -53,7 +51,6 @@ func (s *addressService) Create(ctx context.Context, addressDTO *dtoAddress.Addr
 		return nil, err
 	}
 
-	// Persistir no repo (repo sempre trabalha com model)
 	createdAddress, err := s.repo.Create(ctx, addressModel)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
@@ -66,7 +63,6 @@ func (s *addressService) Create(ctx context.Context, addressDTO *dtoAddress.Addr
 		"address_id": createdAddress.ID,
 	})
 
-	// Converter Model -> DTO antes de retornar
 	result := dtoAddress.ToAddressDTO(createdAddress)
 	return &result, nil
 }
@@ -99,7 +95,6 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*dtoAddress.Add
 		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
-	// Converte model para DTO antes de retornar
 	addressDTO := dtoAddress.ToAddressDTO(addressModel)
 
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -130,7 +125,6 @@ func (s *addressService) GetByUserID(ctx context.Context, userID int64) ([]*dtoA
 		return nil, err
 	}
 
-	// Converter de models.Address para dto.AddressDTO
 	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
 	for i, addr := range addressModels {
 		dto := dtoAddress.ToAddressDTO(addr)
@@ -167,7 +161,6 @@ func (s *addressService) GetByClientID(ctx context.Context, clientID int64) ([]*
 		return nil, err
 	}
 
-	// Converter de models.Address para dto.AddressDTO
 	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
 	for i, addr := range addressModels {
 		dto := dtoAddress.ToAddressDTO(addr)
@@ -203,7 +196,6 @@ func (s *addressService) GetBySupplierID(ctx context.Context, supplierID int64) 
 		return nil, err
 	}
 
-	// Converter de models.Address para dto.AddressDTO
 	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
 	for i, addr := range addressModels {
 		dto := dtoAddress.ToAddressDTO(addr)

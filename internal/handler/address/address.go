@@ -30,7 +30,6 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	// Recebe os dados via DTO
 	var addressDTO dtoAddress.AddressDTO
 	if err := utils.FromJSON(r.Body, &addressDTO); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
@@ -40,7 +39,6 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Chama serviço passando o DTO diretamente
 	createdDTO, err := h.service.Create(ctx, &addressDTO)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
@@ -229,7 +227,6 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"address_id": id,
 	})
 
-	// Passa o DTO direto para o service
 	if err := h.service.Update(r.Context(), &dto); err != nil {
 		if ve, ok := err.(*validators.ValidationError); ok {
 			h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{

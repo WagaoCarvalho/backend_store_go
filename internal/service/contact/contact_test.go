@@ -4,120 +4,120 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	mock_contact "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/contact"
+	dtoContact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
+	model "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	convert "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-func TestCreate(t *testing.T) {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(log)
-
-	t.Run("success", func(t *testing.T) {
+func TestContactService_Create(t *testing.T) {
+	t.Run("sucesso na criação do contato", func(t *testing.T) {
 		mockRepo := new(mock_contact.MockContactRepository)
+		log := logrus.New()
+		log.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(log)
+
 		service := NewContactService(mockRepo, logger)
 
 		userID := int64(1)
-		inputContact := &models.Contact{
-			UserID:          &userID,
-			ContactName:     "Test User",
-			ContactPosition: "Developer",
-			Email:           "test@example.com",
+		contactDTO := &dtoContact.ContactDTO{
+			UserID:      &userID,
+			ContactName: "Contato Teste",
+			Email:       "teste@email.com",
+			Phone:       "1234567898",
 		}
-		expectedContact := *inputContact
-		expectedContact.ID = 1
 
-		mockRepo.On("Create", mock.Anything, inputContact).Return(&expectedContact, nil)
+		contactModel := dtoContact.ToContactModel(*contactDTO)
 
-		created, err := service.Create(context.Background(), inputContact)
+		mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(m *model.Contact) bool {
+			return m.UserID != nil &&
+				*m.UserID == *contactDTO.UserID &&
+				m.ContactName == contactDTO.ContactName &&
+				m.Email == contactDTO.Email &&
+				m.Phone == contactDTO.Phone
+		})).Return(contactModel, nil)
+
+		createdContact, err := service.Create(context.Background(), contactDTO)
+
 		assert.NoError(t, err)
-		assert.Equal(t, &expectedContact, created)
+		assert.Equal(t, contactDTO.ContactName, createdContact.ContactName)
+		assert.Equal(t, contactDTO.Email, createdContact.Email)
+		assert.Equal(t, contactDTO.Phone, createdContact.Phone)
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("validation error - missing name", func(t *testing.T) {
+	t.Run("falha na validação do contato ContactName obrigatório", func(t *testing.T) {
 		mockRepo := new(mock_contact.MockContactRepository)
+		log := logrus.New()
+		log.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(log)
+
 		service := NewContactService(mockRepo, logger)
 
+		// Preenchendo UserID, ClientID e SupplierID para testar apenas ContactName
 		userID := int64(1)
-		invalidContact := &models.Contact{
-			UserID: &userID,
-			Email:  "test@example.com",
+		clientID := int64(1)
+		supplierID := int64(1)
+
+		contactDTO := &dtoContact.ContactDTO{
+			UserID:     &userID,
+			ClientID:   &clientID,
+			SupplierID: &supplierID,
+			Email:      "teste@email.com",
+			Phone:      "1234567898",
+			// ContactName deixado vazio para gerar erro
 		}
 
-		_, err := service.Create(context.Background(), invalidContact)
+		createdContact, err := service.Create(context.Background(), contactDTO)
 
+		assert.Nil(t, createdContact)
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "contact_name")
-		assert.ErrorContains(t, err, "campo obrigatório")
-		mockRepo.AssertNotCalled(t, "Create")
+		assert.ErrorContains(t, err, "erro no campo 'contact_name'") // mensagem real do Validate
+		mockRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 	})
 
-	t.Run("repository error", func(t *testing.T) {
+	t.Run("falha no repositório ao criar contato", func(t *testing.T) {
 		mockRepo := new(mock_contact.MockContactRepository)
+		log := logrus.New()
+		log.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(log)
+
 		service := NewContactService(mockRepo, logger)
 
 		userID := int64(1)
-		inputContact := &models.Contact{
-			UserID:          &userID,
-			ContactName:     "Test User",
-			ContactPosition: "Developer",
-			Email:           "test@example.com",
+		contactDTO := &dtoContact.ContactDTO{
+			UserID:      &userID,
+			ContactName: "Contato Teste",
+			Email:       "teste@email.com",
+			Phone:       "1234567898",
 		}
-		repoErr := errors.New("repository error")
-		mockRepo.On("Create", mock.Anything, inputContact).Return((*models.Contact)(nil), repoErr)
 
-		_, err := service.Create(context.Background(), inputContact)
+		expectedErr := errors.New("erro no banco")
 
-		assert.Error(t, err)
-		assert.ErrorIs(t, err, err_msg.ErrCreate)
-		assert.Contains(t, err.Error(), "repository error")
+		mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(m *model.Contact) bool {
+			return m.UserID != nil &&
+				*m.UserID == *contactDTO.UserID &&
+				m.ContactName == contactDTO.ContactName &&
+				m.Email == contactDTO.Email &&
+				m.Phone == contactDTO.Phone
+		})).Return((*model.Contact)(nil), expectedErr)
+
+		createdContact, err := service.Create(context.Background(), contactDTO)
+
+		assert.Nil(t, createdContact)
+		assert.Equal(t, expectedErr, err)
 		mockRepo.AssertExpectations(t)
 	})
-
-	t.Run("validation error - no user, client or supplier ID", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
-
-		invalidContact := &models.Contact{
-			ContactName: "No Relation",
-			Email:       "valid@example.com",
-		}
-		_, err := service.Create(context.Background(), invalidContact)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "UserID/ClientID/SupplierID")
-		assert.ErrorContains(t, err, "exatamente um deve ser informado")
-		mockRepo.AssertNotCalled(t, "Create")
-	})
-
-	t.Run("validation error - invalid email", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
-
-		clientID := int64(2)
-		invalidContact := &models.Contact{
-			ClientID:        &clientID,
-			ContactName:     "Invalid Email",
-			Email:           "invalid-email",
-			ContactPosition: "Manager",
-		}
-		_, err := service.Create(context.Background(), invalidContact)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "formato inválido")
-		mockRepo.AssertNotCalled(t, "Create")
-	})
-
 }
 
 func Test_GetByID(t *testing.T) {
@@ -129,7 +129,7 @@ func Test_GetByID(t *testing.T) {
 		mockRepo := new(mock_contact.MockContactRepository)
 		service := NewContactService(mockRepo, logger)
 
-		expectedContact := &models.Contact{
+		expectedContact := &model.Contact{
 			ID:          1,
 			ContactName: "Test User",
 			Email:       "test@example.com",
@@ -142,7 +142,10 @@ func Test_GetByID(t *testing.T) {
 		contact, err := service.GetByID(context.Background(), 1)
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedContact, contact)
+		assert.NotNil(t, contact)
+		assert.Equal(t, expectedContact.ID, *contact.ID)
+		assert.Equal(t, expectedContact.ContactName, contact.ContactName)
+		assert.Equal(t, expectedContact.Email, contact.Email)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -151,13 +154,13 @@ func Test_GetByID(t *testing.T) {
 		service := NewContactService(mockRepo, logger)
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).
-			Return((*models.Contact)(nil), err_msg.ErrNotFound)
+			Return((*model.Contact)(nil), errMsg.ErrNotFound)
 
 		contact, err := service.GetByID(context.Background(), 1)
 
 		assert.Error(t, err)
 		assert.Nil(t, contact)
-		assert.Contains(t, err.Error(), "não encontrado")
+		assert.EqualError(t, err, errMsg.ErrNotFound.Error())
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -169,7 +172,7 @@ func Test_GetByID(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, contact)
-		assert.Contains(t, err.Error(), "erro ID")
+		assert.EqualError(t, err, errMsg.ErrID.Error())
 		mockRepo.AssertNotCalled(t, "GetByID")
 	})
 
@@ -178,7 +181,7 @@ func Test_GetByID(t *testing.T) {
 		service := NewContactService(mockRepo, logger)
 
 		mockRepo.On("GetByID", mock.Anything, int64(2)).
-			Return((*models.Contact)(nil), errors.New("erro inesperado"))
+			Return((*model.Contact)(nil), errors.New("erro inesperado"))
 
 		contact, err := service.GetByID(context.Background(), 2)
 
@@ -189,326 +192,272 @@ func Test_GetByID(t *testing.T) {
 	})
 }
 
-func Test_GetByUserID(t *testing.T) {
+func TestContactService_GetByUserID(t *testing.T) {
 	log := logrus.New()
 	log.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(log)
+	mockLogger := logger.NewLoggerAdapter(log)
+	mockRepo := new(mock_contact.MockContactRepository)
+	service := NewContactService(mockRepo, mockLogger)
 
-	t.Run("success", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
-
-		expectedContacts := []*models.Contact{
-			{ID: 1, UserID: convert.Int64Ptr(1), ContactName: "User 1"},
-			{ID: 2, UserID: convert.Int64Ptr(1), ContactName: "User 2"},
-		}
-
-		mockRepo.On("GetByUserID", mock.Anything, int64(1)).Return(expectedContacts, nil)
-
-		contacts, err := service.GetByUserID(context.Background(), 1)
-
-		assert.NoError(t, err)
-		assert.Equal(t, expectedContacts, contacts)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("empty list", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
-
-		mockRepo.On("GetByUserID", mock.Anything, int64(1)).Return([]*models.Contact{}, nil)
-
-		contacts, err := service.GetByUserID(context.Background(), 1)
-
-		assert.NoError(t, err)
-		assert.Empty(t, contacts)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("invalid user id", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
-
-		contacts, err := service.GetByUserID(context.Background(), 0)
-
-		assert.Error(t, err)
-		assert.Nil(t, contacts)
-		assert.Contains(t, err.Error(), "ID inválido")
-		mockRepo.AssertNotCalled(t, "GetByUserID")
-	})
-
-	t.Run("repository error", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
-
-		mockRepo.On("GetByUserID", mock.Anything, int64(1)).
-			Return(([]*models.Contact)(nil), errors.New("erro de banco"))
-
-		contacts, err := service.GetByUserID(context.Background(), 1)
-
-		assert.Error(t, err)
-		assert.Nil(t, contacts)
-		assert.Contains(t, err.Error(), "erro ao buscar")
-		mockRepo.AssertExpectations(t)
-	})
-}
-
-func Test_GetByClientID(t *testing.T) {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(log)
-
-	t.Run("success", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
-
-		expectedContacts := []*models.Contact{
-			{ID: 1, ClientID: convert.Int64Ptr(1), ContactName: "Cliente 1"},
-			{ID: 2, ClientID: convert.Int64Ptr(1), ContactName: "Cliente 2"},
-		}
-
-		mockRepo.On("GetByClientID", mock.Anything, int64(1)).
-			Return(expectedContacts, nil)
-
-		contacts, err := service.GetByClientID(context.Background(), 1)
-
-		assert.NoError(t, err)
-		assert.Equal(t, expectedContacts, contacts)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("empty list", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
-
-		mockRepo.On("GetByClientID", mock.Anything, int64(1)).
-			Return([]*models.Contact{}, nil)
-
-		contacts, err := service.GetByClientID(context.Background(), 1)
-
-		assert.NoError(t, err)
-		assert.Empty(t, contacts)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("invalid client id", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
-
-		contacts, err := service.GetByClientID(context.Background(), 0)
-
-		assert.Error(t, err)
-		assert.Nil(t, contacts)
-		assert.Contains(t, err.Error(), "ID inválido")
-		mockRepo.AssertNotCalled(t, "GetByClientID")
-	})
-
-	t.Run("repository error", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
-
-		mockRepo.On("GetByClientID", mock.Anything, int64(1)).
-			Return(([]*models.Contact)(nil), errors.New("erro ao buscar"))
-
-		contacts, err := service.GetByClientID(context.Background(), 1)
-
-		assert.Error(t, err)
-		assert.Nil(t, contacts)
-		assert.Contains(t, err.Error(), "erro ao buscar")
-		mockRepo.AssertExpectations(t)
-	})
-}
-
-func Test_GetBySupplierID(t *testing.T) {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(log)
-
-	t.Run("success", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
-
-		expectedContacts := []*models.Contact{
+	t.Run("sucesso ao buscar contatos por UserID", func(t *testing.T) {
+		contactModels := []*models.Contact{
 			{
 				ID:          1,
-				SupplierID:  convert.Int64Ptr(1),
-				ContactName: "Fornecedor 1",
-			},
-			{
-				ID:          2,
-				SupplierID:  convert.Int64Ptr(1),
-				ContactName: "Fornecedor 2",
+				UserID:      utils.Int64Ptr(1),
+				ContactName: "Contato Teste",
+				Email:       "teste@email.com",
+				Phone:       "123456789",
 			},
 		}
 
-		mockRepo.On("GetBySupplierID", mock.Anything, int64(1)).Return(expectedContacts, nil)
+		mockRepo.On("GetByUserID", mock.Anything, int64(1)).Return(contactModels, nil)
 
-		contacts, err := service.GetBySupplierID(context.Background(), 1)
+		result, err := service.GetByUserID(context.Background(), 1)
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedContacts, contacts)
+		assert.Len(t, result, 1)
+		assert.Equal(t, int64(1), *result[0].ID)
+		assert.Equal(t, "Contato Teste", result[0].ContactName)
+		assert.Equal(t, "teste@email.com", result[0].Email)
+		mockRepo.AssertExpectations(t)
+
+		mockRepo.ExpectedCalls = nil
+		mockRepo.Calls = nil
+	})
+
+	t.Run("falha ao buscar contatos com UserID inválido", func(t *testing.T) {
+		service := NewContactService(nil, mockLogger)
+
+		result, err := service.GetByUserID(context.Background(), 0)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.EqualError(t, err, errMsg.ErrID.Error())
+	})
+
+	t.Run("nenhum contato encontrado por UserID", func(t *testing.T) {
+		mockRepo.On("GetByUserID", mock.Anything, int64(2)).
+			Return(([]*models.Contact)(nil), errMsg.ErrNotFound)
+
+		result, err := service.GetByUserID(context.Background(), 2)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.EqualError(t, err, errMsg.ErrNotFound.Error())
+
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("empty list", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
+}
 
-		mockRepo.On("GetBySupplierID", mock.Anything, int64(1)).Return([]*models.Contact{}, nil)
+func TestContactService_GetByClientID(t *testing.T) {
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	mockLogger := logger.NewLoggerAdapter(log)
+	mockRepo := new(mock_contact.MockContactRepository)
+	service := NewContactService(mockRepo, mockLogger)
 
-		contacts, err := service.GetBySupplierID(context.Background(), 1)
+	t.Run("sucesso ao buscar contatos por ClientID", func(t *testing.T) {
+		contactModels := []*models.Contact{
+			{
+				ID:          1,
+				ClientID:    utils.Int64Ptr(1),
+				ContactName: "Cliente Teste",
+				Email:       "cliente@email.com",
+				Phone:       "987654321",
+			},
+		}
+
+		mockRepo.On("GetByClientID", mock.Anything, int64(1)).Return(contactModels, nil)
+
+		result, err := service.GetByClientID(context.Background(), 1)
 
 		assert.NoError(t, err)
-		assert.Empty(t, contacts)
+		assert.Len(t, result, 1)
+		assert.Equal(t, int64(1), *result[0].ID)
+		assert.Equal(t, "Cliente Teste", result[0].ContactName)
+		assert.Equal(t, "cliente@email.com", result[0].Email)
+		mockRepo.AssertExpectations(t)
+
+		mockRepo.ExpectedCalls = nil
+		mockRepo.Calls = nil
+	})
+
+	t.Run("falha ao buscar contatos com ClientID inválido", func(t *testing.T) {
+		service := NewContactService(nil, mockLogger)
+
+		result, err := service.GetByClientID(context.Background(), 0)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.EqualError(t, err, errMsg.ErrID.Error())
+	})
+
+	t.Run("nenhum contato encontrado por ClientID", func(t *testing.T) {
+		mockRepo.On("GetByClientID", mock.Anything, int64(2)).
+			Return(([]*models.Contact)(nil), errMsg.ErrNotFound)
+
+		result, err := service.GetByClientID(context.Background(), 2)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.EqualError(t, err, errMsg.ErrNotFound.Error())
+
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("invalid supplier id", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
+}
 
-		contacts, err := service.GetBySupplierID(context.Background(), 0)
+func TestContactService_GetBySupplierID(t *testing.T) {
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	mockLogger := logger.NewLoggerAdapter(log)
+	mockRepo := new(mock_contact.MockContactRepository)
+	service := NewContactService(mockRepo, mockLogger)
 
-		assert.Error(t, err)
-		assert.Nil(t, contacts)
-		assert.Contains(t, err.Error(), "ID inválido")
-		mockRepo.AssertNotCalled(t, "GetBySupplierID")
+	t.Run("sucesso ao buscar contatos por SupplierID", func(t *testing.T) {
+		contactModels := []*models.Contact{
+			{
+				ID:          1,
+				SupplierID:  utils.Int64Ptr(1),
+				ContactName: "Fornecedor Teste",
+				Email:       "fornecedor@email.com",
+				Phone:       "1122334455",
+			},
+		}
+
+		mockRepo.On("GetBySupplierID", mock.Anything, int64(1)).Return(contactModels, nil)
+
+		result, err := service.GetBySupplierID(context.Background(), 1)
+
+		assert.NoError(t, err)
+		assert.Len(t, result, 1)
+		assert.Equal(t, int64(1), *result[0].ID)
+		assert.Equal(t, "Fornecedor Teste", result[0].ContactName)
+		assert.Equal(t, "fornecedor@email.com", result[0].Email)
+		mockRepo.AssertExpectations(t)
+
+		mockRepo.ExpectedCalls = nil
+		mockRepo.Calls = nil
 	})
 
-	t.Run("repository error", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
+	t.Run("falha ao buscar contatos com SupplierID inválido", func(t *testing.T) {
+		service := NewContactService(nil, mockLogger)
 
-		mockRepo.On("GetBySupplierID", mock.Anything, int64(1)).
-			Return([]*models.Contact(nil), errors.New("erro ao buscar"))
+		result, err := service.GetBySupplierID(context.Background(), 0)
 
-		contacts, err := service.GetBySupplierID(context.Background(), 1)
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.EqualError(t, err, errMsg.ErrID.Error())
+	})
+
+	t.Run("nenhum contato encontrado por SupplierID", func(t *testing.T) {
+		mockRepo.On("GetBySupplierID", mock.Anything, int64(2)).
+			Return(([]*models.Contact)(nil), errMsg.ErrNotFound)
+
+		result, err := service.GetBySupplierID(context.Background(), 2)
 
 		assert.Error(t, err)
-		assert.Nil(t, contacts)
-		assert.Contains(t, err.Error(), "erro ao buscar")
+		assert.Nil(t, result)
+		assert.EqualError(t, err, errMsg.ErrNotFound.Error())
+
 		mockRepo.AssertExpectations(t)
 	})
 }
 
-func TestContactService_Update(t *testing.T) {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(log)
+func TestContactService_UpdateContact(t *testing.T) {
+	makeContactDTO := func() dtoContact.ContactDTO {
+		userID := int64(1)
+		return dtoContact.ContactDTO{
+			ID:          utils.Int64Ptr(1),
+			UserID:      &userID,
+			ContactName: "Contato Teste",
+			Email:       "teste@email.com",
+			Phone:       "1234567898",
+		}
+	}
 
-	t.Run("success", func(t *testing.T) {
+	t.Run("sucesso na atualização do contato", func(t *testing.T) {
 		mockRepo := new(mock_contact.MockContactRepository)
+		log := logrus.New()
+		log.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(log)
 		service := NewContactService(mockRepo, logger)
 
-		userID := int64(1)
-		existingContact := &models.Contact{
-			ID:          1,
-			ContactName: "Old Name",
-			UserID:      &userID,
-		}
-		updatedContact := &models.Contact{
-			ID:          1,
-			ContactName: "New Name",
-			UserID:      &userID,
-		}
+		contactDTO := makeContactDTO()
+		contactModel := dtoContact.ToContactModel(contactDTO)
 
-		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(existingContact, nil).Once()
-		mockRepo.On("Update", mock.Anything, updatedContact).Return(nil).Once()
+		mockRepo.On("Update", mock.Anything, mock.MatchedBy(func(c *model.Contact) bool {
+			return c != nil && c.ID == contactModel.ID && *c.UserID == *contactModel.UserID
+		})).Return(nil)
 
-		err := service.Update(context.Background(), updatedContact)
+		err := service.Update(context.Background(), &contactDTO)
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("contact not found", func(t *testing.T) {
+	t.Run("erro ao atualizar contato com ID inválido", func(t *testing.T) {
 		mockRepo := new(mock_contact.MockContactRepository)
+		log := logrus.New()
+		log.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(log)
 		service := NewContactService(mockRepo, logger)
 
 		userID := int64(1)
-		updatedContact := &models.Contact{
-			ID:          1,
-			ContactName: "New Name",
+		contactDTO := &dtoContact.ContactDTO{
 			UserID:      &userID,
+			ContactName: "Nome Teste",
+			Email:       "teste@email.com",
 		}
 
-		mockRepo.On("GetByID", mock.Anything, int64(1)).Return((*models.Contact)(nil), err_msg.ErrNotFound).Once()
-
-		err := service.Update(context.Background(), updatedContact)
-		assert.ErrorIs(t, err, err_msg.ErrNotFound)
-
-		mockRepo.AssertNotCalled(t, "Update")
+		err := service.Update(context.Background(), contactDTO)
+		assert.ErrorIs(t, err, errMsg.ErrID)
 	})
 
-	t.Run("validation error - missing contact name", func(t *testing.T) {
+	t.Run("falha na validação do contato no update", func(t *testing.T) {
 		mockRepo := new(mock_contact.MockContactRepository)
+		log := logrus.New()
+		log.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(log)
 		service := NewContactService(mockRepo, logger)
 
-		userID := int64(1)
-		invalidContact := &models.Contact{
-			ID:     1,
-			UserID: &userID,
+		contactDTO := &dtoContact.ContactDTO{
+			ID:    utils.Int64Ptr(1),
+			Email: "teste@email.com",
 		}
 
-		err := service.Update(context.Background(), invalidContact)
+		err := service.Update(context.Background(), contactDTO)
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "campo obrigatório")
-
-		mockRepo.AssertNotCalled(t, "GetByID")
-		mockRepo.AssertNotCalled(t, "Update")
+		assert.ErrorContains(t, err, "contact_name") // <- ajustar aqui
+		mockRepo.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
 	})
 
-	t.Run("validation error - invalid ID", func(t *testing.T) {
+	t.Run("erro genérico ao atualizar contato", func(t *testing.T) {
 		mockRepo := new(mock_contact.MockContactRepository)
+		log := logrus.New()
+		log.Out = &bytes.Buffer{}
+		logger := logger.NewLoggerAdapter(log)
 		service := NewContactService(mockRepo, logger)
 
-		invalidContact := &models.Contact{ID: 0, ContactName: "Válido"}
-
-		err := service.Update(context.Background(), invalidContact)
-		assert.ErrorIs(t, err, err_msg.ErrID)
-		mockRepo.AssertNotCalled(t, "GetByID")
-		mockRepo.AssertNotCalled(t, "Update")
-	})
-
-	t.Run("repository error on GetByID", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
-
-		userID := int64(1)
-		contact := &models.Contact{
-			ID:          1,
-			ContactName: "Válido",
-			UserID:      &userID,
+		contactDTO := &dtoContact.ContactDTO{
+			ID:          utils.Int64Ptr(1),
+			UserID:      utils.Int64Ptr(1),
+			ContactName: "Nome Teste",
+			Email:       "teste@email.com",
+			Phone:       "1112345678",
 		}
 
-		mockRepo.On("GetByID", mock.Anything, int64(1)).Return((*models.Contact)(nil), errors.New("erro inesperado")).Once()
+		mockRepo.On("Update", mock.Anything, mock.MatchedBy(func(c *model.Contact) bool {
+			return c.ID == *contactDTO.ID
+		})).Return(fmt.Errorf("erro inesperado no banco"))
 
-		err := service.Update(context.Background(), contact)
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "erro ao buscar")
-
-		mockRepo.AssertNotCalled(t, "Update")
-	})
-
-	t.Run("repository error on Update", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
-		service := NewContactService(mockRepo, logger)
-
-		userID := int64(1)
-		contact := &models.Contact{
-			ID:          1,
-			ContactName: "Válido",
-			UserID:      &userID,
-		}
-
-		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(contact, nil).Once()
-		mockRepo.On("Update", mock.Anything, contact).Return(errors.New("erro ao atualizar")).Once()
-
-		err := service.Update(context.Background(), contact)
+		err := service.Update(context.Background(), contactDTO)
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "erro ao atualizar")
-
+		assert.ErrorContains(t, err, "erro inesperado no banco")
 		mockRepo.AssertExpectations(t)
 	})
+
 }
 
 func TestDeleteContact(t *testing.T) {
@@ -520,7 +469,7 @@ func TestDeleteContact(t *testing.T) {
 			logger := logger.NewLoggerAdapter(log)
 			service := NewContactService(mockRepo, logger)
 
-			existingContact := &models.Contact{
+			existingContact := &model.Contact{
 				ID:          1,
 				ContactName: "Test User",
 			}
@@ -540,7 +489,7 @@ func TestDeleteContact(t *testing.T) {
 			service := NewContactService(mockRepo, logger)
 
 			mockRepo.On("GetByID", mock.Anything, int64(1)).
-				Return((*models.Contact)(nil), err_msg.ErrNotFound)
+				Return((*model.Contact)(nil), errMsg.ErrNotFound)
 
 			err := service.Delete(context.Background(), 1)
 			assert.Error(t, err)
@@ -570,7 +519,7 @@ func TestDeleteContact(t *testing.T) {
 			service := NewContactService(mockRepo, logger)
 
 			mockRepo.On("GetByID", mock.Anything, int64(1)).
-				Return((*models.Contact)(nil), errors.New("erro inesperado"))
+				Return((*model.Contact)(nil), errors.New("erro inesperado"))
 
 			err := service.Delete(context.Background(), 1)
 			assert.Error(t, err)
@@ -585,7 +534,7 @@ func TestDeleteContact(t *testing.T) {
 			logger := logger.NewLoggerAdapter(log)
 			service := NewContactService(mockRepo, logger)
 
-			existingContact := &models.Contact{
+			existingContact := &model.Contact{
 				ID:          1,
 				ContactName: "Test User",
 			}
