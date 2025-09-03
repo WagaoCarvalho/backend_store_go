@@ -25,44 +25,45 @@ func NewAddressHandler(service service.AddressService, logger *logger.LogAdapter
 }
 
 func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
-	ref := "[addressHandler - Create] "
-	var dto dtoAddress.AddressDTO
+	ref := "[AddressHandler - Create] "
+	ctx := r.Context()
 
-	h.logger.Info(r.Context(), ref+logger.LogCreateInit, map[string]any{})
+	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	if err := utils.FromJSON(r.Body, &dto); err != nil {
-		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
+	// Recebe os dados via DTO
+	var addressDTO dtoAddress.AddressDTO
+	if err := utils.FromJSON(r.Body, &addressDTO); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	address := dtoAddress.ToAddressModel(dto)
-
-	createdAddress, err := h.service.Create(r.Context(), address)
+	// Chama serviço passando o DTO diretamente
+	createdDTO, err := h.service.Create(ctx, &addressDTO)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
-			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
+			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"erro": err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
 		}
 
-		h.logger.Error(r.Context(), err, ref+logger.LogCreateError, map[string]any{})
+		h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+logger.LogCreateSuccess, map[string]any{
-		"address_id": createdAddress.ID,
+	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
+		"address_id": createdDTO.ID,
 	})
 
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Endereço criado com sucesso",
-		Data:    dtoAddress.ToAddressDTO(createdAddress),
+		Data:    createdDTO,
 	})
 }
 
@@ -79,7 +80,7 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	address, err := h.service.GetByID(r.Context(), id)
+	addressDTO, err := h.service.GetByID(r.Context(), id)
 	if err != nil {
 		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]any{
 			"address_id": id,
@@ -89,13 +90,13 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]any{
-		"address_id": address.ID,
+		"address_id": addressDTO.ID,
 	})
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Endereço encontrado",
-		Data:    address,
+		Data:    addressDTO,
 	})
 }
 
@@ -228,15 +229,20 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"address_id": id,
 	})
 
-	address := dtoAddress.ToAddressModel(dto)
-
-	if err := h.service.Update(r.Context(), address); err != nil {
+	// Passa o DTO direto para o service
+	if err := h.service.Update(r.Context(), &dto); err != nil {
 		if ve, ok := err.(*validators.ValidationError); ok {
 			h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{
 				"erro": ve.Error(),
 				"id":   id,
 			})
 			utils.ErrorResponse(w, ve, http.StatusBadRequest)
+			return
+		}
+
+		if errors.Is(err, errMsg.ErrID) {
+			h.logger.Warn(r.Context(), ref+"Invalid ID", map[string]any{"id": id})
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
 		}
 

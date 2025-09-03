@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -13,12 +13,12 @@ import (
 )
 
 type AddressService interface {
-	Create(ctx context.Context, address *models.Address) (*models.Address, error)
-	GetByID(ctx context.Context, id int64) (*models.Address, error)
-	GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error)
-	GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error)
-	GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error)
-	Update(ctx context.Context, address *models.Address) error
+	Create(ctx context.Context, dto *dtoAddress.AddressDTO) (*dtoAddress.AddressDTO, error)
+	GetByID(ctx context.Context, id int64) (*dtoAddress.AddressDTO, error)
+	GetByUserID(ctx context.Context, userID int64) ([]*dtoAddress.AddressDTO, error)
+	GetByClientID(ctx context.Context, clientID int64) ([]*dtoAddress.AddressDTO, error)
+	GetBySupplierID(ctx context.Context, supplierID int64) ([]*dtoAddress.AddressDTO, error)
+	Update(ctx context.Context, addressDTO *dtoAddress.AddressDTO) error
 	Delete(ctx context.Context, id int64) error
 }
 
@@ -34,25 +34,30 @@ func NewAddressService(repo repo.AddressRepository, logger *logger.LogAdapter) A
 	}
 }
 
-func (s *addressService) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
+func (s *addressService) Create(ctx context.Context, addressDTO *dtoAddress.AddressDTO) (*dtoAddress.AddressDTO, error) {
 	ref := "[addressService - Create] - "
 	s.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
-		"user_id":     utils.Int64OrNil(address.UserID),
-		"client_id":   utils.Int64OrNil(address.ClientID),
-		"supplier_id": utils.Int64OrNil(address.SupplierID),
+		"user_id":     utils.Int64OrNil(addressDTO.UserID),
+		"client_id":   utils.Int64OrNil(addressDTO.ClientID),
+		"supplier_id": utils.Int64OrNil(addressDTO.SupplierID),
 	})
 
-	if err := address.Validate(); err != nil {
+	// Converter DTO -> Model
+	addressModel := dtoAddress.ToAddressModel(*addressDTO)
+
+	// Validar regra de negócio no model
+	if err := addressModel.Validate(); err != nil {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"erro": err.Error(),
 		})
 		return nil, err
 	}
 
-	createdAddress, err := s.repo.Create(ctx, address)
+	// Persistir no repo (repo sempre trabalha com model)
+	createdAddress, err := s.repo.Create(ctx, addressModel)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"street": address.Street,
+			"street": addressModel.Street,
 		})
 		return nil, err
 	}
@@ -61,10 +66,12 @@ func (s *addressService) Create(ctx context.Context, address *models.Address) (*
 		"address_id": createdAddress.ID,
 	})
 
-	return createdAddress, nil
+	// Converter Model -> DTO antes de retornar
+	result := dtoAddress.ToAddressDTO(createdAddress)
+	return &result, nil
 }
 
-func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address, error) {
+func (s *addressService) GetByID(ctx context.Context, id int64) (*dtoAddress.AddressDTO, error) {
 	ref := "[addressService - GetByID] - "
 	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"address_id": id,
@@ -77,7 +84,7 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address
 		return nil, err_msg.ErrID
 	}
 
-	address, err := s.repo.GetByID(ctx, id)
+	addressModel, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, err_msg.ErrNotFound) {
 			s.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
@@ -92,137 +99,164 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address
 		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
+	// Converte model para DTO antes de retornar
+	addressDTO := dtoAddress.ToAddressDTO(addressModel)
+
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"address_id": address.ID,
+		"address_id": addressDTO.ID,
 	})
 
-	return address, nil
+	return &addressDTO, nil
 }
 
-func (s *addressService) GetByUserID(ctx context.Context, id int64) ([]*models.Address, error) {
+func (s *addressService) GetByUserID(ctx context.Context, userID int64) ([]*dtoAddress.AddressDTO, error) {
 	ref := "[addressService - GetByUserID] - "
 	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"user_id": id,
+		"user_id": userID,
 	})
 
-	if id == 0 {
+	if userID == 0 {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
-			"user_id": id,
+			"user_id": userID,
 		})
 		return nil, err_msg.ErrID
 	}
 
-	addresses, err := s.repo.GetByUserID(ctx, id)
+	addressModels, err := s.repo.GetByUserID(ctx, userID)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"user_id": id,
+			"user_id": userID,
 		})
 		return nil, err
 	}
 
+	// Converter de models.Address para dto.AddressDTO
+	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
+	for i, addr := range addressModels {
+		dto := dtoAddress.ToAddressDTO(addr)
+		addressDTOs[i] = &dto
+
+	}
+
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"user_id":         id,
-		"total_addresses": len(addresses),
+		"user_id":         userID,
+		"total_addresses": len(addressDTOs),
 	})
 
-	return addresses, nil
+	return addressDTOs, nil
 }
 
-func (s *addressService) GetByClientID(ctx context.Context, id int64) ([]*models.Address, error) {
+func (s *addressService) GetByClientID(ctx context.Context, clientID int64) ([]*dtoAddress.AddressDTO, error) {
 	ref := "[addressService - GetByClientID] - "
 	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"client_id": id,
+		"client_id": clientID,
 	})
 
-	if id == 0 {
+	if clientID == 0 {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
-			"client_id": id,
+			"client_id": clientID,
 		})
 		return nil, err_msg.ErrID
 	}
 
-	addresses, err := s.repo.GetByClientID(ctx, id)
+	addressModels, err := s.repo.GetByClientID(ctx, clientID)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"client_id": id,
+			"client_id": clientID,
 		})
 		return nil, err
 	}
 
+	// Converter de models.Address para dto.AddressDTO
+	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
+	for i, addr := range addressModels {
+		dto := dtoAddress.ToAddressDTO(addr)
+		addressDTOs[i] = &dto
+	}
+
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"client_id":   id,
-		"total_items": len(addresses),
+		"client_id":   clientID,
+		"total_items": len(addressDTOs),
 	})
 
-	return addresses, nil
+	return addressDTOs, nil
 }
 
-func (s *addressService) GetBySupplierID(ctx context.Context, id int64) ([]*models.Address, error) {
+func (s *addressService) GetBySupplierID(ctx context.Context, supplierID int64) ([]*dtoAddress.AddressDTO, error) {
 	ref := "[addressService - GetBySupplierID] - "
 	s.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"supplier_id": id,
+		"supplier_id": supplierID,
 	})
 
-	if id == 0 {
+	if supplierID == 0 {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
-			"supplier_id": id,
+			"supplier_id": supplierID,
 		})
 		return nil, err_msg.ErrID
 	}
 
-	addresses, err := s.repo.GetBySupplierID(ctx, id)
+	addressModels, err := s.repo.GetBySupplierID(ctx, supplierID)
 	if err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"supplier_id": id,
+			"supplier_id": supplierID,
 		})
 		return nil, err
 	}
 
+	// Converter de models.Address para dto.AddressDTO
+	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
+	for i, addr := range addressModels {
+		dto := dtoAddress.ToAddressDTO(addr)
+		addressDTOs[i] = &dto
+	}
+
 	s.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"supplier_id": id,
-		"total_items": len(addresses),
+		"supplier_id": supplierID,
+		"total_items": len(addressDTOs),
 	})
 
-	return addresses, nil
+	return addressDTOs, nil
 }
 
-func (s *addressService) Update(ctx context.Context, address *models.Address) error {
+func (s *addressService) Update(ctx context.Context, addressDTO *dtoAddress.AddressDTO) error {
 	ref := "[addressService - Update] - "
 	s.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
-		"address_id":  address.ID,
-		"user_id":     utils.Int64OrNil(address.UserID),
-		"client_id":   utils.Int64OrNil(address.ClientID),
-		"supplier_id": utils.Int64OrNil(address.SupplierID),
+		"address_id":  utils.Int64OrNil(addressDTO.ID),
+		"user_id":     utils.Int64OrNil(addressDTO.UserID),
+		"client_id":   utils.Int64OrNil(addressDTO.ClientID),
+		"supplier_id": utils.Int64OrNil(addressDTO.SupplierID),
 	})
 
-	if err := address.Validate(); err != nil {
+	addressModel := dtoAddress.ToAddressModel(*addressDTO)
+
+	if err := addressModel.Validate(); err != nil {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 			"erro": err.Error(),
 		})
 		return err
 	}
 
-	if address.ID == 0 {
+	if addressModel.ID == 0 {
 		s.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
-			"address_id": address.ID,
+			"address_id": addressModel.ID,
 		})
 		return err_msg.ErrID
 	}
 
-	err := s.repo.Update(ctx, address)
-	if err != nil {
+	if err := s.repo.Update(ctx, addressModel); err != nil {
 		s.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-			"address_id": address.ID,
+			"address_id": addressModel.ID,
 		})
 		return fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
 	}
 
 	s.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
-		"address_id": address.ID,
+		"address_id": addressModel.ID,
 	})
 
 	return nil
 }
+
 func (s *addressService) Delete(ctx context.Context, id int64) error {
 	ref := "[addressService - Delete] - "
 	s.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
