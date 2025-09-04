@@ -10,7 +10,6 @@ import (
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -39,12 +38,11 @@ type ProductRepository interface {
 }
 
 type productRepository struct {
-	db     *pgxpool.Pool
-	logger logger.LogAdapterInterface
+	db *pgxpool.Pool
 }
 
-func NewProductRepository(db *pgxpool.Pool, logger logger.LogAdapterInterface) ProductRepository {
-	return &productRepository{db: db, logger: logger}
+func NewProductRepository(db *pgxpool.Pool) ProductRepository {
+	return &productRepository{db: db}
 }
 
 func (r *productRepository) Create(ctx context.Context, product *models.Product) (*models.Product, error) {

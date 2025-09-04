@@ -21,7 +21,7 @@ func RegisterAddressRoutes(
 	log *logger.LogAdapter,
 	blacklist jwtMiddlewares.TokenBlacklist,
 ) {
-	repo := repo.NewAddressRepository(db, log)
+	repo := repo.NewAddressRepository(db)
 	service := service.NewAddressService(repo, log)
 	handler := handler.NewAddressHandler(service, log)
 

@@ -8,7 +8,6 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	logger "github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -26,12 +25,11 @@ type ContactRepository interface {
 }
 
 type contactRepository struct {
-	db     *pgxpool.Pool
-	logger logger.LogAdapterInterface
+	db *pgxpool.Pool
 }
 
-func NewContactRepository(db *pgxpool.Pool, logger logger.LogAdapterInterface) ContactRepository {
-	return &contactRepository{db: db, logger: logger}
+func NewContactRepository(db *pgxpool.Pool) ContactRepository {
+	return &contactRepository{db: db}
 }
 
 func (r *contactRepository) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {

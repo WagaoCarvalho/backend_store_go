@@ -20,7 +20,7 @@ func RegisterSupplierCategoryRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	supplierCategoryRepo := repo.NewSupplierCategoryRepository(db, log)
+	supplierCategoryRepo := repo.NewSupplierCategoryRepository(db)
 	supplierCategoryService := service.NewSupplierCategoryService(supplierCategoryRepo, log)
 	supplierCategoryHandler := handler.NewSupplierCategoryHandler(supplierCategoryService, log)
 

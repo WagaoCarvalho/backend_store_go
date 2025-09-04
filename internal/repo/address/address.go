@@ -8,7 +8,6 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	logger "github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -25,12 +24,11 @@ type AddressRepository interface {
 }
 
 type addressRepository struct {
-	db     *pgxpool.Pool
-	logger logger.LogAdapterInterface
+	db *pgxpool.Pool
 }
 
-func NewAddressRepository(db *pgxpool.Pool, logger logger.LogAdapterInterface) AddressRepository {
-	return &addressRepository{db: db, logger: logger}
+func NewAddressRepository(db *pgxpool.Pool) AddressRepository {
+	return &addressRepository{db: db}
 }
 
 func (r *addressRepository) Create(ctx context.Context, address *models.Address) (*models.Address, error) {

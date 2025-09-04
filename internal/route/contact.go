@@ -21,7 +21,7 @@ func RegisterContactRoutes(
 	log *logger.LogAdapter,
 	blacklist jwtMiddleware.TokenBlacklist,
 ) {
-	repo := repo.NewContactRepository(db, log)
+	repo := repo.NewContactRepository(db)
 	service := service.NewContactService(repo, log)
 	handler := handler.NewContactHandler(service, log)
 

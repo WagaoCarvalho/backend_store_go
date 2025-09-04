@@ -24,10 +24,10 @@ func RegisterSupplierFullRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repoUser := repoSupplier.NewSupplierFullRepository(db, log)
-	repoAddress := repoAddress.NewAddressRepository(db, log)
-	repoContact := repoContact.NewContactRepository(db, log)
-	repoUserCatRel := repoSupplierCatRel.NewSupplierCategoryRelationRepo(db, log)
+	repoUser := repoSupplier.NewSupplierFullRepository(db)
+	repoAddress := repoAddress.NewAddressRepository(db)
+	repoContact := repoContact.NewContactRepository(db)
+	repoUserCatRel := repoSupplierCatRel.NewSupplierCategoryRelationRepo(db)
 
 	userService := services.NewSupplierFullService(repoUser, repoAddress, repoContact, repoUserCatRel, log)
 	handler := handlers.NewSupplierFullHandler(userService, log)

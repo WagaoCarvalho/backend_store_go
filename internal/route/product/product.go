@@ -21,7 +21,7 @@ func RegisterProductRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repoProduct := repo.NewProductRepository(db, log)
+	repoProduct := repo.NewProductRepository(db)
 
 	productService := service.NewProductService(repoProduct, log)
 	handler := handler.NewProductHandler(productService, log)

@@ -20,7 +20,7 @@ func RegisterSupplierCategoryRelationRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	relationRepo := repo.NewSupplierCategoryRelationRepo(db, log)
+	relationRepo := repo.NewSupplierCategoryRelationRepo(db)
 	relationService := service.NewSupplierCategoryRelationService(relationRepo, log)
 	relationHandler := handler.NewSupplierCategoryRelationHandler(relationService, log)
 
