@@ -13,6 +13,7 @@ import (
 
 	mockContact "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/contact"
 	dtoContact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -40,14 +41,16 @@ func TestContactHandler_Create(t *testing.T) {
 
 		userID := int64(10)
 		inputDTO := &dtoContact.ContactDTO{
-			ID:          &userID,
 			UserID:      &userID,
 			ContactName: "Contato Teste",
 			Email:       "teste@email.com",
 			Phone:       "123456789",
 		}
 
-		mockService.On("Create", mock.Anything, inputDTO).Return(inputDTO, nil)
+		// Converte para model para mock
+		inputModel := dtoContact.ToContactModel(*inputDTO)
+
+		mockService.On("Create", mock.Anything, inputModel).Return(inputModel, nil)
 
 		body, _ := json.Marshal(inputDTO)
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
@@ -71,8 +74,6 @@ func TestContactHandler_Create(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "Contato criado com sucesso", response.Message)
 
-		assert.NotNil(t, response.Data.ID)
-		assert.Equal(t, *inputDTO.ID, *response.Data.ID)
 		assert.NotNil(t, response.Data.UserID)
 		assert.Equal(t, *inputDTO.UserID, *response.Data.UserID)
 		assert.Equal(t, inputDTO.ContactName, response.Data.ContactName)
@@ -88,16 +89,17 @@ func TestContactHandler_Create(t *testing.T) {
 		handler := NewContactHandler(mockService, logAdapter)
 
 		userID := int64(42)
-		input := &dtoContact.ContactDTO{
+		inputDTO := &dtoContact.ContactDTO{
 			UserID:      &userID,
 			ContactName: "Contato Erro",
 			Email:       "erro@email.com",
 			Phone:       "987654321",
 		}
+		inputModel := dtoContact.ToContactModel(*inputDTO)
 
-		mockService.On("Create", mock.Anything, input).Return((*dtoContact.ContactDTO)(nil), assert.AnError)
+		mockService.On("Create", mock.Anything, inputModel).Return((*models.Contact)(nil), assert.AnError)
 
-		body, _ := json.Marshal(input)
+		body, _ := json.Marshal(inputDTO)
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
@@ -134,16 +136,17 @@ func TestContactHandler_Create(t *testing.T) {
 		handler := NewContactHandler(mockService, logAdapter)
 
 		userID := int64(99)
-		input := &dtoContact.ContactDTO{
+		inputDTO := &dtoContact.ContactDTO{
 			UserID:      &userID,
 			ContactName: "Contato FK",
 			Email:       "fk@email.com",
 			Phone:       "999999999",
 		}
+		inputModel := dtoContact.ToContactModel(*inputDTO)
 
-		mockService.On("Create", mock.Anything, input).Return((*dtoContact.ContactDTO)(nil), errMsg.ErrInvalidForeignKey)
+		mockService.On("Create", mock.Anything, inputModel).Return((*models.Contact)(nil), errMsg.ErrInvalidForeignKey)
 
-		body, _ := json.Marshal(input)
+		body, _ := json.Marshal(inputDTO)
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
@@ -168,14 +171,14 @@ func TestContactHandler_GetByID(t *testing.T) {
 		handler := NewContactHandler(mockService, logger)
 
 		expectedID := int64(1)
-		expected := &dtoContact.ContactDTO{
-			ID:          &expectedID,
+		expectedModel := &models.Contact{
+			ID:          expectedID,
 			ContactName: "Contato Teste",
 			Email:       "teste@email.com",
 			Phone:       "123456789",
 		}
 
-		mockService.On("GetByID", mock.Anything, int64(1)).Return(expected, nil)
+		mockService.On("GetByID", mock.Anything, int64(1)).Return(expectedModel, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -194,10 +197,10 @@ func TestContactHandler_GetByID(t *testing.T) {
 		assert.Equal(t, "Contato encontrado", response.Message)
 
 		dataMap := response.Data.(map[string]interface{})
-		assert.Equal(t, float64(*expected.ID), dataMap["id"])
-		assert.Equal(t, expected.ContactName, dataMap["contact_name"])
-		assert.Equal(t, expected.Email, dataMap["email"])
-		assert.Equal(t, expected.Phone, dataMap["phone"])
+		assert.Equal(t, float64(expectedID), dataMap["id"])
+		assert.Equal(t, expectedModel.ContactName, dataMap["contact_name"])
+		assert.Equal(t, expectedModel.Email, dataMap["email"])
+		assert.Equal(t, expectedModel.Phone, dataMap["phone"])
 
 		mockService.AssertExpectations(t)
 	})
@@ -220,7 +223,7 @@ func TestContactHandler_GetByID(t *testing.T) {
 		mockService := new(mockContact.MockContactService)
 		handler := NewContactHandler(mockService, logger)
 
-		mockService.On("GetByID", mock.Anything, int64(1)).Return((*dtoContact.ContactDTO)(nil), assert.AnError)
+		mockService.On("GetByID", mock.Anything, int64(1)).Return((*models.Contact)(nil), assert.AnError)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -242,12 +245,12 @@ func TestContactHandler_GetByUserID(t *testing.T) {
 		mockService := new(mockContact.MockContactService)
 		handler := NewContactHandler(mockService, logger)
 
-		expected := []*dtoContact.ContactDTO{
-			{ID: utils.Int64Ptr(1), ContactName: "Contato 1", Email: "c1@email.com"},
-			{ID: utils.Int64Ptr(2), ContactName: "Contato 2", Email: "c2@email.com"},
+		expectedModels := []*models.Contact{
+			{ID: 1, ContactName: "Contato 1", Email: "c1@email.com"},
+			{ID: 2, ContactName: "Contato 2", Email: "c2@email.com"},
 		}
 
-		mockService.On("GetByUserID", mock.Anything, int64(1)).Return(expected, nil)
+		mockService.On("GetByUserID", mock.Anything, int64(1)).Return(expectedModels, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/user/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -290,7 +293,7 @@ func TestContactHandler_GetByUserID(t *testing.T) {
 		mockService := new(mockContact.MockContactService)
 		handler := NewContactHandler(mockService, logger)
 
-		mockService.On("GetByUserID", mock.Anything, int64(1)).Return(nil, assert.AnError)
+		mockService.On("GetByUserID", mock.Anything, int64(1)).Return(([]*models.Contact)(nil), assert.AnError)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/user/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -312,12 +315,12 @@ func TestContactHandler_GetByClientID(t *testing.T) {
 		mockService := new(mockContact.MockContactService)
 		handler := NewContactHandler(mockService, logger)
 
-		expected := []*dtoContact.ContactDTO{
-			{ID: utils.Int64Ptr(1), ContactName: "Cliente 1"},
-			{ID: utils.Int64Ptr(2), ContactName: "Cliente 2"},
+		expectedModels := []*models.Contact{
+			{ID: 1, ContactName: "Cliente 1"},
+			{ID: 2, ContactName: "Cliente 2"},
 		}
 
-		mockService.On("GetByClientID", mock.Anything, int64(1)).Return(expected, nil)
+		mockService.On("GetByClientID", mock.Anything, int64(1)).Return(expectedModels, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/client/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -360,7 +363,7 @@ func TestContactHandler_GetByClientID(t *testing.T) {
 		mockService := new(mockContact.MockContactService)
 		handler := NewContactHandler(mockService, logger)
 
-		mockService.On("GetByClientID", mock.Anything, int64(1)).Return(nil, assert.AnError)
+		mockService.On("GetByClientID", mock.Anything, int64(1)).Return(([]*models.Contact)(nil), assert.AnError)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/client/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -382,12 +385,12 @@ func TestContactHandler_GetBySupplierID(t *testing.T) {
 		mockService := new(mockContact.MockContactService)
 		handler := NewContactHandler(mockService, logger)
 
-		expected := []*dtoContact.ContactDTO{
-			{ID: utils.Int64Ptr(1), ContactName: "Fornecedor 1"},
-			{ID: utils.Int64Ptr(2), ContactName: "Fornecedor 2"},
+		expectedModels := []*models.Contact{
+			{ID: 1, ContactName: "Fornecedor 1"},
+			{ID: 2, ContactName: "Fornecedor 2"},
 		}
 
-		mockService.On("GetBySupplierID", mock.Anything, int64(1)).Return(expected, nil)
+		mockService.On("GetBySupplierID", mock.Anything, int64(1)).Return(expectedModels, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/supplier/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -430,7 +433,7 @@ func TestContactHandler_GetBySupplierID(t *testing.T) {
 		mockService := new(mockContact.MockContactService)
 		handler := NewContactHandler(mockService, logger)
 
-		mockService.On("GetBySupplierID", mock.Anything, int64(1)).Return(nil, assert.AnError)
+		mockService.On("GetBySupplierID", mock.Anything, int64(1)).Return(([]*models.Contact)(nil), assert.AnError)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/supplier/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -465,7 +468,8 @@ func TestContactHandler_Update(t *testing.T) {
 			Phone:       "11999999999",
 		}
 
-		mockService.On("Update", mock.Anything, &dto).Return(nil)
+		modelContact := dtoContact.ToContactModel(dto)
+		mockService.On("Update", mock.Anything, modelContact).Return(nil)
 
 		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -518,7 +522,9 @@ func TestContactHandler_Update(t *testing.T) {
 
 		id := int64(1)
 		dto := dtoContact.ContactDTO{ID: &id, ContactName: ""} // Nome vazio para gerar erro de validação
-		mockService.On("Update", mock.Anything, &dto).Return(&validators.ValidationError{Message: "campo obrigatório"})
+		modelContact := dtoContact.ToContactModel(dto)
+		mockService.On("Update", mock.Anything, modelContact).
+			Return(&validators.ValidationError{Message: "campo obrigatório"})
 
 		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -535,7 +541,8 @@ func TestContactHandler_Update(t *testing.T) {
 
 		id := int64(1)
 		dto := dtoContact.ContactDTO{ID: &id, ContactName: "Nome Erro"}
-		mockService.On("Update", mock.Anything, &dto).Return(fmt.Errorf("erro inesperado"))
+		modelContact := dtoContact.ToContactModel(dto)
+		mockService.On("Update", mock.Anything, modelContact).Return(fmt.Errorf("erro inesperado"))
 
 		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -559,8 +566,8 @@ func TestContactHandler_Update(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(c *dtoContact.ContactDTO) bool {
-			return c != nil && c.ID != nil && *c.ID == 1
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(c *models.Contact) bool {
+			return c != nil && c.ID == 1
 		})).Return(errMsg.ErrID)
 
 		handler.Update(w, req)

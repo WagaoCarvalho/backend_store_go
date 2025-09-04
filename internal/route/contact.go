@@ -22,7 +22,7 @@ func RegisterContactRoutes(
 	blacklist jwtMiddleware.TokenBlacklist,
 ) {
 	repo := repo.NewContactRepository(db)
-	service := service.NewContactService(repo, log)
+	service := service.NewContactService(repo)
 	handler := handler.NewContactHandler(service, log)
 
 	// Carrega a configuração do JWT
