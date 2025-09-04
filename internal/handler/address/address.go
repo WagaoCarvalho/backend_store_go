@@ -39,7 +39,10 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdDTO, err := h.service.Create(ctx, &addressDTO)
+	// DTO → Model
+	addressModel := dtoAddress.ToAddressModel(addressDTO)
+
+	createdModel, err := h.service.Create(ctx, addressModel)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
 			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
@@ -54,6 +57,9 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Model → DTO
+	createdDTO := dtoAddress.ToAddressDTO(createdModel)
+
 	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
 		"address_id": createdDTO.ID,
 	})
@@ -67,27 +73,33 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	ref := "[addressHandler - GetByID] "
-	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{})
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, nil)
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	addressDTO, err := h.service.GetByID(r.Context(), id)
+	// service retorna model
+	addressModel, err := h.service.GetByID(ctx, id)
 	if err != nil {
-		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]any{
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"address_id": id,
 		})
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]any{
+	// converter model -> DTO
+	addressDTO := dtoAddress.ToAddressDTO(addressModel)
+
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"address_id": addressDTO.ID,
 	})
 
@@ -100,136 +112,150 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	ref := "[addressHandler - GetByUserID] "
-	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{})
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, nil)
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
-			"erro": err.Error(),
-		})
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	addresses, err := h.service.GetByUserID(r.Context(), id)
+	addressModels, err := h.service.GetByUserID(ctx, id)
 	if err != nil {
-		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]any{
-			"user_id": id,
-		})
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"user_id": id})
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]any{
+	// conversão model -> DTO
+	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
+	for i, m := range addressModels {
+		dto := dtoAddress.ToAddressDTO(m)
+		addressDTOs[i] = &dto
+	}
+
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id": id,
-		"count":   len(addresses),
+		"count":   len(addressDTOs),
 	})
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Endereços do usuário encontrados",
-		Data:    addresses,
+		Data:    addressDTOs,
 	})
 }
 
 func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 	ref := "[addressHandler - GetByClientID] "
-	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{})
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, nil)
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
-			"erro": err.Error(),
-		})
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	addresses, err := h.service.GetByClientID(r.Context(), id)
+	addressModels, err := h.service.GetByClientID(ctx, id)
 	if err != nil {
-		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]any{
-			"client_id": id,
-		})
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"client_id": id})
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]any{
+	// conversão model -> DTO
+	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
+	for i, m := range addressModels {
+		dto := dtoAddress.ToAddressDTO(m)
+		addressDTOs[i] = &dto
+	}
+
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"client_id": id,
-		"count":     len(addresses),
+		"count":     len(addressDTOs),
 	})
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Endereços do cliente encontrados",
-		Data:    addresses,
+		Data:    addressDTOs,
 	})
 }
 
 func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
 	ref := "[addressHandler - GetBySupplierID] "
-	h.logger.Info(r.Context(), ref+logger.LogGetInit, map[string]any{})
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, nil)
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
-			"erro": err.Error(),
-		})
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	addresses, err := h.service.GetBySupplierID(r.Context(), id)
+	addressModels, err := h.service.GetBySupplierID(ctx, id)
 	if err != nil {
-		h.logger.Error(r.Context(), err, ref+logger.LogGetError, map[string]any{
-			"supplier_id": id,
-		})
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"supplier_id": id})
 		utils.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+logger.LogGetSuccess, map[string]any{
+	// conversão model -> DTO
+	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
+	for i, m := range addressModels {
+		dto := dtoAddress.ToAddressDTO(m)
+		addressDTOs[i] = &dto
+	}
+
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"supplier_id": id,
-		"count":       len(addresses),
+		"count":       len(addressDTOs),
 	})
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Endereços do fornecedor encontrados",
-		Data:    addresses,
+		Data:    addressDTOs,
 	})
 }
 
 func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 	const ref = "[AddressHandler - Update] "
+	ctx := r.Context()
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(r.Context(), ref+logger.LogInvalidID, map[string]any{
-			"erro": err.Error(),
-		})
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	var dto dtoAddress.AddressDTO
 	if err := utils.FromJSON(r.Body, &dto); err != nil {
-		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
-			"erro": err.Error(),
-		})
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	dto.ID = &id
+	addressModel := dtoAddress.ToAddressModel(dto)
 
-	h.logger.Info(r.Context(), ref+logger.LogUpdateInit, map[string]any{
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
 		"address_id": id,
 	})
 
-	if err := h.service.Update(r.Context(), &dto); err != nil {
+	// service agora recebe model
+	if err := h.service.Update(ctx, addressModel); err != nil {
 		if ve, ok := err.(*validators.ValidationError); ok {
-			h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{
+			h.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 				"erro": ve.Error(),
 				"id":   id,
 			})
@@ -238,26 +264,25 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if errors.Is(err, errMsg.ErrID) {
-			h.logger.Warn(r.Context(), ref+"Invalid ID", map[string]any{"id": id})
+			h.logger.Warn(ctx, ref+"Invalid ID", map[string]any{"id": id})
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
 		}
 
-		h.logger.Error(r.Context(), err, ref+logger.LogUpdateError, map[string]any{
-			"id": id,
-		})
+		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{"id": id})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(r.Context(), ref+logger.LogUpdateSuccess, map[string]any{
-		"id": id,
-	})
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{"id": id})
+
+	// converter de volta para DTO na resposta
+	updatedDTO := dtoAddress.ToAddressDTO(addressModel)
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Endereço atualizado com sucesso",
-		Data:    dto,
+		Data:    updatedDTO,
 	})
 }
 

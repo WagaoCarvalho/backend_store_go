@@ -1,21 +1,16 @@
 package services
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"testing"
 
 	mock_address "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/address"
-	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
-	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -23,14 +18,10 @@ import (
 func TestAddressService_Create(t *testing.T) {
 	t.Run("sucesso na criação do endereço", func(t *testing.T) {
 		mockRepo := new(mock_address.MockAddressRepository)
-		log := logrus.New()
-		log.Out = &bytes.Buffer{}
-		logger := logger.NewLoggerAdapter(log)
-
-		service := NewAddressService(mockRepo, logger)
+		service := NewAddressService(mockRepo)
 
 		userID := int64(1)
-		addressDTO := &dto.AddressDTO{
+		addressModel := &model.Address{
 			UserID:     &userID,
 			Street:     "Rua Teste",
 			City:       "Cidade Teste",
@@ -39,35 +30,30 @@ func TestAddressService_Create(t *testing.T) {
 			PostalCode: "12345678",
 		}
 
-		addressModel := dto.ToAddressModel(*addressDTO)
-
 		mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(m *model.Address) bool {
 			return m.UserID != nil &&
-				*m.UserID == *addressDTO.UserID &&
-				m.Street == addressDTO.Street &&
-				m.City == addressDTO.City &&
-				m.State == addressDTO.State &&
-				m.Country == addressDTO.Country &&
-				m.PostalCode == addressDTO.PostalCode
+				*m.UserID == *addressModel.UserID &&
+				m.Street == addressModel.Street &&
+				m.City == addressModel.City &&
+				m.State == addressModel.State &&
+				m.Country == addressModel.Country &&
+				m.PostalCode == addressModel.PostalCode
 		})).Return(addressModel, nil)
 
-		createdAddress, err := service.Create(context.Background(), addressDTO)
+		createdAddress, err := service.Create(context.Background(), addressModel)
 
 		assert.NoError(t, err)
-		assert.Equal(t, addressDTO.Street, createdAddress.Street)
-		assert.Equal(t, addressDTO.City, createdAddress.City)
-		assert.Equal(t, addressDTO.State, createdAddress.State)
-		assert.Equal(t, addressDTO.Country, createdAddress.Country)
-		assert.Equal(t, addressDTO.PostalCode, createdAddress.PostalCode)
+		assert.Equal(t, addressModel.Street, createdAddress.Street)
+		assert.Equal(t, addressModel.City, createdAddress.City)
+		assert.Equal(t, addressModel.State, createdAddress.State)
+		assert.Equal(t, addressModel.Country, createdAddress.Country)
+		assert.Equal(t, addressModel.PostalCode, createdAddress.PostalCode)
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("erro inesperado ao buscar endereço", func(t *testing.T) {
 		mockRepo := new(mock_address.MockAddressRepository)
-		log := logrus.New()
-		log.Out = &bytes.Buffer{}
-		logger := logger.NewLoggerAdapter(log)
-		service := NewAddressService(mockRepo, logger)
+		service := NewAddressService(mockRepo)
 
 		addressID := int64(1)
 		expectedErr := err_msg.ErrGet
@@ -88,13 +74,10 @@ func TestAddressService_Create(t *testing.T) {
 
 	t.Run("falha na validação do endereço UserID/ClientID/SupplierID obrigatório", func(t *testing.T) {
 		mockRepo := new(mock_address.MockAddressRepository)
-		log := logrus.New()
-		log.Out = &bytes.Buffer{}
-		logger := logger.NewLoggerAdapter(log)
+		service := NewAddressService(mockRepo)
 
-		service := NewAddressService(mockRepo, logger)
-
-		addressDTO := &dto.AddressDTO{
+		// sem IDs
+		addressModel := &model.Address{
 			Street:     "Rua Teste",
 			City:       "Cidade Teste",
 			State:      "SP",
@@ -102,7 +85,7 @@ func TestAddressService_Create(t *testing.T) {
 			PostalCode: "12345678",
 		}
 
-		createdAddress, err := service.Create(context.Background(), addressDTO)
+		createdAddress, err := service.Create(context.Background(), addressModel)
 
 		assert.Nil(t, createdAddress)
 		assert.Error(t, err)
@@ -112,14 +95,10 @@ func TestAddressService_Create(t *testing.T) {
 
 	t.Run("falha no repositório ao criar endereço", func(t *testing.T) {
 		mockRepo := new(mock_address.MockAddressRepository)
-		log := logrus.New()
-		log.Out = &bytes.Buffer{}
-		logger := logger.NewLoggerAdapter(log)
-
-		service := NewAddressService(mockRepo, logger)
+		service := NewAddressService(mockRepo)
 
 		userID := int64(1)
-		addressDTO := &dto.AddressDTO{
+		addressModel := &model.Address{
 			UserID:     &userID,
 			Street:     "Rua Teste",
 			City:       "Cidade Teste",
@@ -132,29 +111,25 @@ func TestAddressService_Create(t *testing.T) {
 
 		mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(m *model.Address) bool {
 			return m.UserID != nil &&
-				*m.UserID == *addressDTO.UserID &&
-				m.Street == addressDTO.Street &&
-				m.City == addressDTO.City &&
-				m.State == addressDTO.State &&
-				m.Country == addressDTO.Country &&
-				m.PostalCode == addressDTO.PostalCode
+				*m.UserID == *addressModel.UserID &&
+				m.Street == addressModel.Street &&
+				m.City == addressModel.City &&
+				m.State == addressModel.State &&
+				m.Country == addressModel.Country &&
+				m.PostalCode == addressModel.PostalCode
 		})).Return((*model.Address)(nil), expectedErr)
 
-		createdAddress, err := service.Create(context.Background(), addressDTO)
+		createdAddress, err := service.Create(context.Background(), addressModel)
 
 		assert.Nil(t, createdAddress)
 		assert.Equal(t, expectedErr, err)
 		mockRepo.AssertExpectations(t)
 	})
-
 }
 
 func TestAddressService_GetByID(t *testing.T) {
 	mockRepo := new(mock_address.MockAddressRepository)
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	mockLogger := logger.NewLoggerAdapter(log)
-	service := NewAddressService(mockRepo, mockLogger)
+	service := NewAddressService(mockRepo)
 
 	t.Run("sucesso ao buscar endereço por ID", func(t *testing.T) {
 		addressModel := &model.Address{
@@ -172,7 +147,7 @@ func TestAddressService_GetByID(t *testing.T) {
 		result, err := service.GetByID(context.Background(), 1)
 
 		assert.NoError(t, err)
-		assert.Equal(t, addressModel.ID, *result.ID)
+		assert.Equal(t, addressModel.ID, result.ID)
 		assert.Equal(t, addressModel.Street, result.Street)
 		assert.Equal(t, addressModel.City, result.City)
 		assert.Equal(t, addressModel.State, result.State)
@@ -203,11 +178,8 @@ func TestAddressService_GetByID(t *testing.T) {
 }
 
 func TestAddressService_GetByUserID(t *testing.T) {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	mockLogger := logger.NewLoggerAdapter(log)
 	mockRepo := new(mock_address.MockAddressRepository)
-	service := NewAddressService(mockRepo, mockLogger)
+	service := NewAddressService(mockRepo)
 
 	t.Run("sucesso ao buscar endereços por UserID", func(t *testing.T) {
 		addressModels := []*models.Address{
@@ -228,7 +200,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 1)
-		assert.Equal(t, int64(1), *result[0].ID)
+		assert.Equal(t, int64(1), result[0].ID)
 		assert.Equal(t, "Rua Teste", result[0].Street)
 		assert.Equal(t, "Cidade Teste", result[0].City)
 		mockRepo.AssertExpectations(t)
@@ -238,7 +210,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 	})
 
 	t.Run("falha ao buscar endereços com UserID inválido", func(t *testing.T) {
-		service := NewAddressService(nil, mockLogger)
+		service := NewAddressService(nil)
 
 		result, err := service.GetByUserID(context.Background(), 0)
 
@@ -261,11 +233,8 @@ func TestAddressService_GetByUserID(t *testing.T) {
 }
 
 func TestAddressService_GetByClientID(t *testing.T) {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	mockLogger := logger.NewLoggerAdapter(log)
 	mockRepo := new(mock_address.MockAddressRepository)
-	service := NewAddressService(mockRepo, mockLogger)
+	service := NewAddressService(mockRepo)
 
 	t.Run("sucesso ao buscar endereços por ClientID", func(t *testing.T) {
 		addressesModel := []*models.Address{
@@ -285,14 +254,8 @@ func TestAddressService_GetByClientID(t *testing.T) {
 		result, err := service.GetByClientID(context.Background(), 1)
 
 		assert.NoError(t, err)
+		assert.Equal(t, addressesModel, result)
 
-		expectedDTOs := make([]*dtoAddress.AddressDTO, len(addressesModel))
-		for i, addr := range addressesModel {
-			dto := dtoAddress.ToAddressDTO(addr)
-			expectedDTOs[i] = &dto
-		}
-
-		assert.Equal(t, expectedDTOs, result)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -317,11 +280,8 @@ func TestAddressService_GetByClientID(t *testing.T) {
 }
 
 func TestAddressService_GetBySupplierID(t *testing.T) {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	mockLogger := logger.NewLoggerAdapter(log)
 	mockRepo := new(mock_address.MockAddressRepository)
-	service := NewAddressService(mockRepo, mockLogger)
+	service := NewAddressService(mockRepo)
 
 	t.Run("sucesso ao buscar endereços por SupplierID", func(t *testing.T) {
 		addressesModel := []*models.Address{
@@ -341,14 +301,8 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 		result, err := service.GetBySupplierID(context.Background(), 1)
 
 		assert.NoError(t, err)
+		assert.Equal(t, addressesModel, result)
 
-		expectedDTOs := make([]*dtoAddress.AddressDTO, len(addressesModel))
-		for i, addr := range addressesModel {
-			dto := dtoAddress.ToAddressDTO(addr)
-			expectedDTOs[i] = &dto
-		}
-
-		assert.Equal(t, expectedDTOs, result)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -373,11 +327,10 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 }
 
 func TestAddressService_UpdateAddress(t *testing.T) {
-	makeAddressDTO := func() dtoAddress.AddressDTO {
-		userID := int64(1)
-		return dtoAddress.AddressDTO{
-			ID:         utils.Int64Ptr(1),
-			UserID:     &userID,
+	makeAddressModel := func() *models.Address {
+		return &models.Address{
+			ID:         1,
+			UserID:     utils.Int64Ptr(1),
 			Street:     "Nova Rua",
 			City:       "Nova Cidade",
 			State:      "SP",
@@ -388,57 +341,29 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 
 	t.Run("sucesso na atualização do endereço", func(t *testing.T) {
 		mockRepo := new(mock_address.MockAddressRepository)
-		log := logrus.New()
-		log.Out = &bytes.Buffer{}
-		logger := logger.NewLoggerAdapter(log)
-		service := NewAddressService(mockRepo, logger)
+		service := NewAddressService(mockRepo)
 
-		addressDTO := makeAddressDTO()
-		addressModel := dtoAddress.ToAddressModel(addressDTO)
+		addressModel := makeAddressModel()
 
-		mockRepo.On("Update", mock.Anything, mock.MatchedBy(func(a *model.Address) bool {
+		mockRepo.On("Update", mock.Anything, mock.MatchedBy(func(a *models.Address) bool {
 			return a != nil && a.ID == addressModel.ID && *a.UserID == *addressModel.UserID
 		})).Return(nil)
 
-		err := service.Update(context.Background(), &addressDTO)
+		err := service.Update(context.Background(), addressModel)
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("erro ao atualizar endereço com ID inválido", func(t *testing.T) {
-		mockRepo := new(mock_address.MockAddressRepository)
-		log := logrus.New()
-		log.Out = &bytes.Buffer{}
-		logger := logger.NewLoggerAdapter(log)
-		service := NewAddressService(mockRepo, logger)
-
-		userID := int64(1)
-		addressDTO := &dtoAddress.AddressDTO{
-			UserID:     &userID,
-			Street:     "Rua Teste",
-			City:       "Cidade Teste",
-			State:      "SP",
-			Country:    "Brasil",
-			PostalCode: "12345678",
-		}
-
-		err := service.Update(context.Background(), addressDTO)
-		assert.ErrorIs(t, err, err_msg.ErrID)
-	})
-
 	t.Run("falha na validação do endereço no update", func(t *testing.T) {
 		mockRepo := new(mock_address.MockAddressRepository)
-		log := logrus.New()
-		log.Out = &bytes.Buffer{}
-		logger := logger.NewLoggerAdapter(log)
-		service := NewAddressService(mockRepo, logger)
+		service := NewAddressService(mockRepo)
 
-		addressDTO := &dtoAddress.AddressDTO{
-			ID:     utils.Int64Ptr(1),
-			Street: "",
+		addressModel := &models.Address{
+			ID:     1,
+			Street: "", // inválido porque não tem UserID/ClientID/SupplierID
 		}
 
-		err := service.Update(context.Background(), addressDTO)
+		err := service.Update(context.Background(), addressModel)
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "UserID/ClientID/SupplierID")
 		mockRepo.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
@@ -446,13 +371,10 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 
 	t.Run("erro genérico ao atualizar endereço", func(t *testing.T) {
 		mockRepo := new(mock_address.MockAddressRepository)
-		log := logrus.New()
-		log.Out = &bytes.Buffer{}
-		logger := logger.NewLoggerAdapter(log)
-		service := NewAddressService(mockRepo, logger)
+		service := NewAddressService(mockRepo)
 
-		addressDTO := &dtoAddress.AddressDTO{
-			ID:         utils.Int64Ptr(1),
+		addressModel := &models.Address{
+			ID:         1,
 			UserID:     utils.Int64Ptr(1),
 			Street:     "Rua Erro Genérico",
 			City:       "Cidade Teste",
@@ -460,11 +382,10 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 			Country:    "Brasil",
 			PostalCode: "00456000",
 		}
-		addressModel := dtoAddress.ToAddressModel(*addressDTO)
 
 		mockRepo.On("Update", mock.Anything, addressModel).Return(fmt.Errorf("erro inesperado no banco"))
 
-		err := service.Update(context.Background(), addressDTO)
+		err := service.Update(context.Background(), addressModel)
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "erro ao atualizar")
 		assert.ErrorContains(t, err, "erro inesperado no banco")
@@ -474,10 +395,8 @@ func TestAddressService_UpdateAddress(t *testing.T) {
 
 func TestAddressService_DeleteAddress(t *testing.T) {
 	mockRepo := new(mock_address.MockAddressRepository)
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(log)
-	service := NewAddressService(mockRepo, logger)
+
+	service := NewAddressService(mockRepo)
 
 	t.Run("sucesso ao deletar endereço", func(t *testing.T) {
 		mockRepo.On("Delete", mock.Anything, int64(1)).Return(nil)

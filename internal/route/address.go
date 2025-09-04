@@ -22,13 +22,11 @@ func RegisterAddressRoutes(
 	blacklist jwtMiddlewares.TokenBlacklist,
 ) {
 	repo := repo.NewAddressRepository(db)
-	service := service.NewAddressService(repo, log)
+	service := service.NewAddressService(repo)
 	handler := handler.NewAddressHandler(service, log)
 
-	// Carregar config JWT
 	jwtCfg := config.LoadJwtConfig()
 
-	// Instanciar JWTManager que implementa JWTService
 	jwtManager := jwtAuth.NewJWTManager(
 		jwtCfg.SecretKey,
 		jwtCfg.TokenDuration,
