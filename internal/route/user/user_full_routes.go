@@ -25,10 +25,10 @@ func RegisterUserFullRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repoUser := repoUser.NewUserRepository(db, log)
+	repoUser := repoUser.NewUserRepository(db)
 	repoAddress := repoAddress.NewAddressRepository(db)
 	repoContact := repoContact.NewContactRepository(db)
-	repoUserCatRel := repoUserCatRel.NewUserCategoryRelationRepositories(db, log)
+	repoUserCatRel := repoUserCatRel.NewUserCategoryRelationRepositories(db)
 	hasher := auth.BcryptHasher{}
 
 	userService := service.NewUserFullService(repoUser, repoAddress, repoContact, repoUserCatRel, log, hasher)

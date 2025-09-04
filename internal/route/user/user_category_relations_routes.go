@@ -20,7 +20,7 @@ func RegisterUserCategoryRelationRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	relationRepo := repo.NewUserCategoryRelationRepositories(db, log)
+	relationRepo := repo.NewUserCategoryRelationRepositories(db)
 	relationService := service.NewUserCategoryRelationServices(relationRepo, log)
 	relationHandler := handler.NewUserCategoryRelationHandler(relationService, log)
 

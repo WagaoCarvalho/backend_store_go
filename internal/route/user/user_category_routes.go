@@ -20,7 +20,7 @@ func RegisterUserCategoryRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	userCategoryRepo := repo.NewUserCategoryRepository(db, log)
+	userCategoryRepo := repo.NewUserCategoryRepository(db)
 	userCategoryService := service.NewUserCategoryService(userCategoryRepo, log)
 	userCategoryHandler := handler.NewUserCategoryHandler(userCategoryService, log)
 

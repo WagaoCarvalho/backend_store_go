@@ -23,7 +23,7 @@ func RegisterLoginRoutes(
 	log *logger.LogAdapter,
 	blacklist logout.TokenBlacklist,
 ) {
-	userRepo := repo.NewUserRepository(db, log)
+	userRepo := repo.NewUserRepository(db)
 
 	// Carregar config JWT
 	jwtCfg := config.LoadJwtConfig()

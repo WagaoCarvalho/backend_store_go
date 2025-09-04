@@ -6,7 +6,6 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -17,14 +16,12 @@ type UserFullRepository interface {
 }
 
 type userFullRepository struct {
-	db     *pgxpool.Pool
-	logger logger.LogAdapterInterface
+	db *pgxpool.Pool
 }
 
-func NewUserRepository(db *pgxpool.Pool, logger logger.LogAdapterInterface) UserFullRepository {
+func NewUserRepository(db *pgxpool.Pool) UserFullRepository {
 	return &userFullRepository{
-		db:     db,
-		logger: logger,
+		db: db,
 	}
 }
 
@@ -33,13 +30,6 @@ func (r *userFullRepository) BeginTx(ctx context.Context) (pgx.Tx, error) {
 }
 
 func (r *userFullRepository) CreateTx(ctx context.Context, tx pgx.Tx, user *models.User) (*models.User, error) {
-	ref := "[userRepository - CreateTx] - "
-	r.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
-		"username": user.Username,
-		"email":    user.Email,
-		"status":   user.Status,
-	})
-
 	const query = `
 		INSERT INTO users (username, email, password_hash, status, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, NOW(), NOW())
@@ -48,21 +38,9 @@ func (r *userFullRepository) CreateTx(ctx context.Context, tx pgx.Tx, user *mode
 
 	err := tx.QueryRow(ctx, query, user.Username, user.Email, user.Password, user.Status).
 		Scan(&user.UID, &user.CreatedAt, &user.UpdatedAt)
-
 	if err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"username": user.Username,
-			"email":    user.Email,
-			"status":   user.Status,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
-		"user_id":  user.UID,
-		"username": user.Username,
-		"email":    user.Email,
-	})
 
 	return user, nil
 }

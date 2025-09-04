@@ -22,7 +22,7 @@ func RegisterUserRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repoUser := repo.NewUserRepository(db, log)
+	repoUser := repo.NewUserRepository(db)
 	hasher := auth.BcryptHasher{}
 
 	userService := service.NewUserService(repoUser, log, hasher)

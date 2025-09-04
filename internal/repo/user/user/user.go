@@ -8,7 +8,6 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -27,25 +26,16 @@ type UserRepository interface {
 }
 
 type userRepository struct {
-	db     *pgxpool.Pool
-	logger logger.LogAdapterInterface
+	db *pgxpool.Pool
 }
 
-func NewUserRepository(db *pgxpool.Pool, logger logger.LogAdapterInterface) UserRepository {
+func NewUserRepository(db *pgxpool.Pool) UserRepository {
 	return &userRepository{
-		db:     db,
-		logger: logger,
+		db: db,
 	}
 }
 
 func (r *userRepository) Create(ctx context.Context, user *models.User) (*models.User, error) {
-	ref := "[userRepository - Create] - "
-	r.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
-		"username": user.Username,
-		"email":    user.Email,
-		"status":   user.Status,
-	})
-
 	const query = `
 		INSERT INTO users (username, email, password_hash, status, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, NOW(), NOW())
@@ -54,29 +44,14 @@ func (r *userRepository) Create(ctx context.Context, user *models.User) (*models
 
 	err := r.db.QueryRow(ctx, query, user.Username, user.Email, user.Password, user.Status).
 		Scan(&user.UID, &user.CreatedAt, &user.UpdatedAt)
-
 	if err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"username": user.Username,
-			"email":    user.Email,
-			"status":   user.Status,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
-		"user_id":  user.UID,
-		"username": user.Username,
-		"email":    user.Email,
-	})
 
 	return user, nil
 }
 
 func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
-	ref := "[userRepository - GetAll] - "
-	r.logger.Info(ctx, ref+logger.LogGetInit, nil)
-
 	const query = `
 		SELECT id, username, email, status, created_at, updated_at
 		FROM users
@@ -84,7 +59,6 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogGetError, nil)
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
@@ -100,38 +74,26 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		); err != nil {
-			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, nil)
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 		}
 		users = append(users, &user)
 	}
 
 	if err := rows.Err(); err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogIterateError, nil)
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrIterate, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"total_users": len(users),
-	})
 
 	return users, nil
 }
 
 func (r *userRepository) GetByID(ctx context.Context, uid int64) (*models.User, error) {
-	ref := "[userRepository - GetByID] - "
-	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"user_id": uid,
-	})
-
-	user := &models.User{}
-
 	const query = `
 		SELECT id, username, email, status, created_at, updated_at
 		FROM users
 		WHERE id = $1
 	`
 
+	user := &models.User{}
 	err := r.db.QueryRow(ctx, query, uid).Scan(
 		&user.UID,
 		&user.Username,
@@ -143,63 +105,30 @@ func (r *userRepository) GetByID(ctx context.Context, uid int64) (*models.User, 
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-				"user_id": uid,
-			})
 			return nil, errMsg.ErrNotFound
 		}
-
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"user_id": uid,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"user_id": uid,
-	})
 
 	return user, nil
 }
 
 func (r *userRepository) GetVersionByID(ctx context.Context, id int64) (int64, error) {
-	ref := "[userRepository - GetVersionByID] - "
-	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"user_id": id,
-	})
-
 	const query = `SELECT version FROM users WHERE id = $1`
 
 	var version int64
 	err := r.db.QueryRow(ctx, query, id).Scan(&version)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-				"user_id": id,
-			})
 			return 0, errMsg.ErrNotFound
 		}
-
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"user_id": id,
-		})
 		return 0, fmt.Errorf("%w: %v", errMsg.ErrGetVersion, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"user_id": id,
-		"version": version,
-	})
 
 	return version, nil
 }
 
 func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
-	ref := "[userRepository - GetByEmail] - "
-	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"email": email,
-	})
-
 	const query = `
 		SELECT id, username, email, password_hash, status, version, created_at, updated_at
 		FROM users
@@ -220,32 +149,15 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-				"email": email,
-			})
 			return nil, errMsg.ErrNotFound
 		}
-
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"email": email,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"user_id": user.UID,
-		"email":   email,
-	})
 
 	return user, nil
 }
 
 func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.User, error) {
-	ref := "[userRepository - GetByName] - "
-	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"username_partial": name,
-	})
-
 	const query = `
 		SELECT id, username, email, status, created_at, updated_at
 		FROM users
@@ -255,9 +167,6 @@ func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.
 
 	rows, err := r.db.Query(ctx, query, "%"+name+"%")
 	if err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"username_partial": name,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
@@ -273,37 +182,23 @@ func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		); err != nil {
-			r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-				"username_partial": name,
-			})
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 		}
 		users = append(users, user)
 	}
 
-	if len(users) == 0 {
-		r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-			"username_partial": name,
-		})
-		return nil, errMsg.ErrNotFound
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
-	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"count": len(users),
-	})
+	if len(users) == 0 {
+		return nil, errMsg.ErrNotFound
+	}
 
 	return users, nil
 }
 
 func (r *userRepository) Update(ctx context.Context, user *models.User) (*models.User, error) {
-	ref := "[userRepository - Update] - "
-	r.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
-		"user_id":  user.UID,
-		"username": user.Username,
-		"email":    user.Email,
-		"status":   user.Status,
-	})
-
 	const query = `
 		UPDATE users 
 		SET username = $1, email = $2, status = $3, updated_at = NOW(), version = version + 1
@@ -323,44 +218,21 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) (*models
 		if errors.Is(err, pgx.ErrNoRows) {
 			var exists bool
 			checkQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)`
-			checkErr := r.db.QueryRow(ctx, checkQuery, user.UID).Scan(&exists)
-			if checkErr != nil {
-				r.logger.Error(ctx, checkErr, ref+logger.LogUpdateError, map[string]any{
-					"user_id": user.UID,
-				})
-				return nil, fmt.Errorf("%w: erro ao verificar existência: %v", errMsg.ErrUpdate, checkErr)
+			if errCheck := r.db.QueryRow(ctx, checkQuery, user.UID).Scan(&exists); errCheck != nil {
+				return nil, fmt.Errorf("%w: erro ao verificar existência: %v", errMsg.ErrUpdate, errCheck)
 			}
 			if !exists {
-				r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-					"user_id": user.UID,
-				})
 				return nil, errMsg.ErrNotFound
 			}
-			r.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
-				"user_id": user.UID,
-			})
 			return nil, errMsg.ErrVersionConflict
 		}
-
-		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-			"user_id": user.UID,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
-		"user_id": user.UID,
-	})
 
 	return user, nil
 }
 
 func (r *userRepository) Disable(ctx context.Context, uid int64) error {
-	ref := "[userRepository - Disable] - "
-	r.logger.Info(ctx, ref+logger.LogDisableInit, map[string]any{
-		"user_id": uid,
-	})
-
 	const query = `
 		UPDATE users
 		SET status = FALSE, updated_at = NOW(), version = version + 1
@@ -373,32 +245,15 @@ func (r *userRepository) Disable(ctx context.Context, uid int64) error {
 	err := r.db.QueryRow(ctx, query, uid).Scan(&version, &updatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-				"user_id": uid,
-			})
 			return errMsg.ErrNotFound
 		}
-
-		r.logger.Error(ctx, err, ref+logger.LogDisableError, map[string]any{
-			"user_id": uid,
-		})
 		return fmt.Errorf("%w: %v", errMsg.ErrDisable, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogDisableSuccess, map[string]any{
-		"user_id":    uid,
-		"new_status": false,
-	})
 
 	return nil
 }
 
 func (r *userRepository) Enable(ctx context.Context, uid int64) error {
-	ref := "[userRepository - Enable] - "
-	r.logger.Info(ctx, ref+logger.LogEnableInit, map[string]any{
-		"user_id": uid,
-	})
-
 	const query = `
 		UPDATE users
 		SET status = TRUE, updated_at = NOW(), version = version + 1
@@ -411,52 +266,25 @@ func (r *userRepository) Enable(ctx context.Context, uid int64) error {
 	err := r.db.QueryRow(ctx, query, uid).Scan(&version, &updatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-				"user_id": uid,
-			})
 			return errMsg.ErrNotFound
 		}
-
-		r.logger.Error(ctx, err, ref+logger.LogEnableError, map[string]any{
-			"user_id": uid,
-		})
 		return fmt.Errorf("%w: %v", errMsg.ErrEnable, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogEnableSuccess, map[string]any{
-		"user_id":    uid,
-		"new_status": true,
-	})
 
 	return nil
 }
 
 func (r *userRepository) Delete(ctx context.Context, uid int64) error {
-	ref := "[userRepository - Delete] - "
-	r.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
-		"user_id": uid,
-	})
-
 	const query = `DELETE FROM users WHERE id = $1`
 
 	result, err := r.db.Exec(ctx, query, uid)
 	if err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
-			"user_id": uid,
-		})
 		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
 
 	if result.RowsAffected() == 0 {
-		r.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-			"user_id": uid,
-		})
 		return errMsg.ErrNotFound
 	}
-
-	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
-		"user_id": uid,
-	})
 
 	return nil
 }
