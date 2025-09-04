@@ -9,7 +9,6 @@ import (
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	logger "github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -35,13 +34,6 @@ func NewAddressRepository(db *pgxpool.Pool, logger logger.LogAdapterInterface) A
 }
 
 func (r *addressRepository) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
-	ref := "[addressRepository - Create] - "
-	r.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
-		"user_id":     utils.Int64OrNil(address.UserID),
-		"client_id":   utils.Int64OrNil(address.ClientID),
-		"supplier_id": utils.Int64OrNil(address.SupplierID),
-		"street":      address.Street,
-	})
 	const query = `
 		INSERT INTO addresses (
 			user_id, client_id, supplier_id,
@@ -65,39 +57,15 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 
 	if err != nil {
 		if errMsgPg.IsForeignKeyViolation(err) {
-			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
-				"user_id":     utils.Int64OrNil(address.UserID),
-				"client_id":   utils.Int64OrNil(address.ClientID),
-				"supplier_id": utils.Int64OrNil(address.SupplierID),
-			})
 			return nil, errMsg.ErrInvalidForeignKey
 		}
-
-		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"user_id":     utils.Int64OrNil(address.UserID),
-			"client_id":   utils.Int64OrNil(address.ClientID),
-			"supplier_id": utils.Int64OrNil(address.SupplierID),
-			"street":      address.Street,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
-		"address_id": address.ID,
-	})
 
 	return address, nil
 }
 
 func (r *addressRepository) CreateTx(ctx context.Context, tx pgx.Tx, address *models.Address) (*models.Address, error) {
-	ref := "[addressRepository - CreateTx] - "
-	r.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
-		"user_id":     utils.Int64OrNil(address.UserID),
-		"client_id":   utils.Int64OrNil(address.ClientID),
-		"supplier_id": utils.Int64OrNil(address.SupplierID),
-		"street":      address.Street,
-	})
-
 	const query = `
 		INSERT INTO addresses (
 			user_id, client_id, supplier_id,
@@ -121,35 +89,15 @@ func (r *addressRepository) CreateTx(ctx context.Context, tx pgx.Tx, address *mo
 
 	if err != nil {
 		if errMsgPg.IsForeignKeyViolation(err) {
-			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
-				"user_id":     utils.Int64OrNil(address.UserID),
-				"client_id":   utils.Int64OrNil(address.ClientID),
-				"supplier_id": utils.Int64OrNil(address.SupplierID),
-			})
 			return nil, errMsg.ErrInvalidForeignKey
 		}
-
-		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"user_id":     utils.Int64OrNil(address.UserID),
-			"client_id":   utils.Int64OrNil(address.ClientID),
-			"supplier_id": utils.Int64OrNil(address.SupplierID),
-			"street":      address.Street,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
-		"address_id": address.ID,
-	})
 
 	return address, nil
 }
 
 func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Address, error) {
-	ref := "[addressRepository - GetByID] - "
-	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"address_id": id,
-	})
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -176,30 +124,15 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
-				"address_id": id,
-			})
 			return nil, errMsg.ErrNotFound
 		}
-
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"address_id": id,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"address_id": address.ID,
-	})
 
 	return &address, nil
 }
 
 func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
-	ref := "[addressRepository - GetByUserID] - "
-	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"user_id": userID,
-	})
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -211,9 +144,6 @@ func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 
 	rows, err := r.db.Query(ctx, query, userID)
 	if err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"user_id": userID,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
@@ -234,28 +164,15 @@ func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 			&address.CreatedAt,
 			&address.UpdatedAt,
 		); err != nil {
-			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, map[string]any{
-				"user_id": userID,
-			})
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 		}
 		addresses = append(addresses, &address)
 	}
 
-	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"user_id":       userID,
-		"total_results": len(addresses),
-	})
-
 	return addresses, nil
 }
 
 func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
-	ref := "[addressRepository - GetByClientID] - "
-	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"client_id": clientID,
-	})
-
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -267,9 +184,6 @@ func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) (
 
 	rows, err := r.db.Query(ctx, query, clientID)
 	if err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"client_id": clientID,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
@@ -290,28 +204,15 @@ func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) (
 			&address.CreatedAt,
 			&address.UpdatedAt,
 		); err != nil {
-			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, map[string]any{
-				"client_id": clientID,
-			})
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 		}
 		addresses = append(addresses, &address)
 	}
 
-	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"client_id":     clientID,
-		"total_results": len(addresses),
-	})
-
 	return addresses, nil
 }
 
 func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
-	ref := "[addressRepository - GetBySupplierID] - "
-	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"supplier_id": supplierID,
-	})
-
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -323,9 +224,6 @@ func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int6
 
 	rows, err := r.db.Query(ctx, query, supplierID)
 	if err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"supplier_id": supplierID,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
@@ -346,32 +244,15 @@ func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int6
 			&address.CreatedAt,
 			&address.UpdatedAt,
 		); err != nil {
-			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, map[string]any{
-				"supplier_id": supplierID,
-			})
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 		}
 		addresses = append(addresses, &address)
 	}
 
-	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"supplier_id":   supplierID,
-		"total_results": len(addresses),
-	})
-
 	return addresses, nil
 }
 
 func (r *addressRepository) Update(ctx context.Context, address *models.Address) error {
-	ref := "[addressRepository - Update] - "
-	r.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
-		"address_id":  address.ID,
-		"user_id":     utils.Int64OrNil(address.UserID),
-		"client_id":   utils.Int64OrNil(address.ClientID),
-		"supplier_id": utils.Int64OrNil(address.SupplierID),
-		"street":      address.Street,
-	})
-
 	const query = `
 		UPDATE addresses
 		SET 
@@ -402,37 +283,20 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
-				"address_id": address.ID,
-			})
 			return errMsg.ErrNotFound
 		}
 
 		if errMsgPg.IsForeignKeyViolation(err) {
-			r.logger.Warn(ctx, ref+"violação de chave estrangeira", map[string]any{
-				"address_id": address.ID,
-			})
 			return errMsg.ErrInvalidForeignKey
 		}
 
-		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-			"address_id": address.ID,
-		})
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
-		"address_id": address.ID,
-	})
 
 	return nil
 }
 
 func (r *addressRepository) Delete(ctx context.Context, id int64) error {
-	ref := "[addressRepository - Delete] - "
-	r.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
-		"address_id": id,
-	})
 	const query = `
 		DELETE FROM addresses 
 		WHERE id = $1
@@ -440,22 +304,12 @@ func (r *addressRepository) Delete(ctx context.Context, id int64) error {
 
 	cmdTag, err := r.db.Exec(ctx, query, id)
 	if err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
-			"address_id": id,
-		})
 		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		r.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
-			"address_id": id,
-		})
 		return errMsg.ErrNotFound
 	}
-
-	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
-		"address_id": id,
-	})
 
 	return nil
 }
