@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/login"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/login"
@@ -35,8 +34,11 @@ func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var credentialsDTO dto.LoginCredentialsDTO
-	if err := utils.FromJSON(r.Body, &credentialsDTO); err != nil {
+	var loginBody struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := utils.FromJSON(r.Body, &loginBody); err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
@@ -44,8 +46,8 @@ func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// DTO já é convertido para o modelo interno dentro do service
-	authRespDTO, err := h.service.Login(r.Context(), credentialsDTO)
+	// Chamada ao service com model (strings) em vez de DTO
+	authRespDTO, err := h.service.Login(r.Context(), loginBody.Email, loginBody.Password)
 	if err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{
 			"erro": err.Error(),
@@ -59,6 +61,11 @@ func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Login realizado com sucesso",
-		Data:    authRespDTO, // já é DTO
+		Data: map[string]interface{}{
+			"access_token": authRespDTO.AccessToken,
+			"token_type":   authRespDTO.TokenType,
+			"expires_in":   authRespDTO.ExpiresIn,
+		},
 	})
+
 }

@@ -1,21 +1,17 @@
 package auth
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"testing"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	mock_user "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
-	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/login"
-	models_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
+	modelsUser "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
 type mockHasher struct {
@@ -39,74 +35,68 @@ func (m *mockTokenGen) Generate(uid int64, email string) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
-func TestLoginService_LoginDTO(t *testing.T) {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	adapter := logger.NewLoggerAdapter(log)
+func TestLoginService_Login(t *testing.T) {
 
-	mockRepo := new(mock_user.MockUserRepository)
+	mockRepo := new(mockUser.MockUserRepository)
 	mockHasher := new(mockHasher)
 	mockToken := new(mockTokenGen)
 
-	service := NewLoginService(mockRepo, adapter, mockToken, mockHasher)
+	service := NewLoginService(mockRepo, mockToken, mockHasher)
 
 	t.Run("sucesso", func(t *testing.T) {
 		ctx := context.Background()
 		email := "user@example.com"
 		password := "123456"
-		user := &models_user.User{UID: 1, Email: email, Password: "hashed", Status: true}
+		user := &modelsUser.User{UID: 1, Email: email, Password: "hashed", Status: true}
 
 		mockRepo.On("GetByEmail", ctx, email).Return(user, nil)
 		mockHasher.On("Compare", "hashed", password).Return(nil)
 		mockToken.On("Generate", int64(1), email).Return("valid-token", nil)
 
-		credentialsDTO := dto.LoginCredentialsDTO{Email: email, Password: password}
-		authRespDTO, err := service.Login(ctx, credentialsDTO)
+		authResp, err := service.Login(ctx, email, password)
 
 		assert.NoError(t, err)
-		assert.Equal(t, "valid-token", authRespDTO.AccessToken)
-		assert.Equal(t, "Bearer", authRespDTO.TokenType)
+		assert.Equal(t, "valid-token", authResp.AccessToken)
+		assert.Equal(t, "Bearer", authResp.TokenType)
+
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)
 		mockToken.AssertExpectations(t)
 	})
 
 	t.Run("email inválido", func(t *testing.T) {
-		credentialsDTO := dto.LoginCredentialsDTO{Email: "invalid", Password: "123"}
-		authRespDTO, err := service.Login(context.Background(), credentialsDTO)
-		assert.ErrorIs(t, err, err_msg.ErrEmailFormat)
-		assert.Nil(t, authRespDTO)
+		authResp, err := service.Login(context.Background(), "invalid", "123")
+		assert.ErrorIs(t, err, errMsg.ErrEmailFormat)
+		assert.Nil(t, authResp)
 	})
 
 	t.Run("usuário não encontrado", func(t *testing.T) {
 		ctx := context.Background()
 		email := "notfound@example.com"
-		mockRepo.On("GetByEmail", ctx, email).Return((*models_user.User)(nil), errors.New("not found"))
+		mockRepo.On("GetByEmail", ctx, email).Return((*modelsUser.User)(nil), errors.New("not found"))
 
 		start := time.Now()
-		credentialsDTO := dto.LoginCredentialsDTO{Email: email, Password: "123"}
-		authRespDTO, err := service.Login(ctx, credentialsDTO)
+		authResp, err := service.Login(ctx, email, "123")
 		elapsed := time.Since(start)
 
-		assert.ErrorIs(t, err, err_msg.ErrCredentials)
-		assert.Nil(t, authRespDTO)
-		assert.GreaterOrEqual(t, elapsed.Milliseconds(), int64(1000))
+		assert.ErrorIs(t, err, errMsg.ErrCredentials)
+		assert.Nil(t, authResp)
+		assert.GreaterOrEqual(t, elapsed.Milliseconds(), int64(1000)) // timing attack mitigation
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("senha inválida", func(t *testing.T) {
 		ctx := context.Background()
 		email := "user@example.com"
-		user := &models_user.User{UID: 1, Email: email, Password: "hashed", Status: true}
+		user := &modelsUser.User{UID: 1, Email: email, Password: "hashed", Status: true}
 
 		mockRepo.On("GetByEmail", ctx, email).Return(user, nil)
 		mockHasher.On("Compare", "hashed", "wrong").Return(errors.New("wrong password"))
 
-		credentialsDTO := dto.LoginCredentialsDTO{Email: email, Password: "wrong"}
-		authRespDTO, err := service.Login(ctx, credentialsDTO)
+		authResp, err := service.Login(ctx, email, "wrong")
 
-		assert.ErrorIs(t, err, err_msg.ErrCredentials)
-		assert.Nil(t, authRespDTO)
+		assert.ErrorIs(t, err, errMsg.ErrCredentials)
+		assert.Nil(t, authResp)
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)
 	})
@@ -114,16 +104,15 @@ func TestLoginService_LoginDTO(t *testing.T) {
 	t.Run("conta desativada", func(t *testing.T) {
 		ctx := context.Background()
 		email := "inactive@example.com"
-		user := &models_user.User{UID: 2, Email: email, Password: "hashed", Status: false}
+		user := &modelsUser.User{UID: 2, Email: email, Password: "hashed", Status: false}
 
 		mockRepo.On("GetByEmail", ctx, email).Return(user, nil)
 		mockHasher.On("Compare", "hashed", "123").Return(nil)
 
-		credentialsDTO := dto.LoginCredentialsDTO{Email: email, Password: "123"}
-		authRespDTO, err := service.Login(ctx, credentialsDTO)
+		authResp, err := service.Login(ctx, email, "123")
 
-		assert.ErrorIs(t, err, err_msg.ErrAccountDisabled)
-		assert.Nil(t, authRespDTO)
+		assert.ErrorIs(t, err, errMsg.ErrAccountDisabled)
+		assert.Nil(t, authResp)
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)
 	})
@@ -131,17 +120,16 @@ func TestLoginService_LoginDTO(t *testing.T) {
 	t.Run("erro ao gerar token", func(t *testing.T) {
 		ctx := context.Background()
 		email := "failtoken@example.com"
-		user := &models_user.User{UID: 3, Email: email, Password: "hashed", Status: true}
+		user := &modelsUser.User{UID: 3, Email: email, Password: "hashed", Status: true}
 
 		mockRepo.On("GetByEmail", ctx, email).Return(user, nil)
 		mockHasher.On("Compare", "hashed", "123").Return(nil)
 		mockToken.On("Generate", int64(3), email).Return("", errors.New("gen error"))
 
-		credentialsDTO := dto.LoginCredentialsDTO{Email: email, Password: "123"}
-		authRespDTO, err := service.Login(ctx, credentialsDTO)
+		authResp, err := service.Login(ctx, email, "123")
 
-		assert.ErrorIs(t, err, err_msg.ErrTokenGeneration)
-		assert.Nil(t, authRespDTO)
+		assert.ErrorIs(t, err, errMsg.ErrTokenGeneration)
+		assert.Nil(t, authResp)
 		mockRepo.AssertExpectations(t)
 		mockHasher.AssertExpectations(t)
 		mockToken.AssertExpectations(t)

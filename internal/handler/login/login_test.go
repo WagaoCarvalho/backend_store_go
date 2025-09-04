@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	mockLogin "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/login"
-	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/login"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -33,26 +33,23 @@ func TestLoginHandler_Login(t *testing.T) {
 		mockService := new(mockLogin.MockLoginService)
 		handler := NewLoginHandler(mockService, logAdapter)
 
-		credsDTO := dto.LoginCredentialsDTO{
-			Email:    "user@example.com",
-			Password: "password123",
-		}
+		email := "user@example.com"
+		password := "password123"
 
-		mockService.On("Login", mock.Anything, credsDTO).Return(&dto.AuthResponseDTO{
+		mockService.On("Login", mock.Anything, email, password).Return(&models.AuthResponse{
 			AccessToken: "valid_token",
 			TokenType:   "Bearer",
 			ExpiresIn:   3600,
 		}, nil)
 
-		body, _ := json.Marshal(credsDTO)
-		req := httptest.NewRequest(http.MethodPost, "/login", bytes.NewReader(body))
+		body, _ := json.Marshal(map[string]string{"email": email, "password": password})
+		req := newLoginRequest(http.MethodPost, "/login", body)
 		w := httptest.NewRecorder()
 
 		handler.Login(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
-
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		var response struct {
@@ -64,39 +61,29 @@ func TestLoginHandler_Login(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "Login realizado com sucesso", response.Message)
 		assert.Equal(t, "valid_token", response.Data["access_token"])
-		assert.Equal(t, float64(3600), response.Data["expires_in"])
 		assert.Equal(t, "Bearer", response.Data["token_type"])
+		assert.Equal(t, float64(3600), response.Data["expires_in"])
 
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("InvalidCredentials", func(t *testing.T) {
+	t.Run("InvalidMethod", func(t *testing.T) {
 		mockService := new(mockLogin.MockLoginService)
 		handler := NewLoginHandler(mockService, logAdapter)
 
-		credsDTO := dto.LoginCredentialsDTO{
-			Email:    "user@example.com",
-			Password: "wrongpassword",
-		}
-		mockService.On("Login", mock.Anything, credsDTO).Return(nil, errors.New("credenciais inválidas"))
-
-		body, _ := json.Marshal(credsDTO)
-		req := newLoginRequest(http.MethodPost, "/login", body)
+		req := newLoginRequest(http.MethodGet, "/login", nil)
 		w := httptest.NewRecorder()
 
 		handler.Login(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+		assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
 
 		var response map[string]interface{}
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		require.NoError(t, err)
-		assert.Equal(t, "credenciais inválidas", response["message"])
-
-		mockService.AssertExpectations(t)
+		assert.Contains(t, response["message"], "método GET não permitido")
 	})
 
 	t.Run("InvalidJSON", func(t *testing.T) {
@@ -111,7 +98,6 @@ func TestLoginHandler_Login(t *testing.T) {
 
 		resp := w.Result()
 		defer resp.Body.Close()
-
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		var response map[string]interface{}
@@ -120,23 +106,57 @@ func TestLoginHandler_Login(t *testing.T) {
 		assert.Equal(t, "dados inválidos", response["message"])
 	})
 
-	t.Run("InvalidMethod", func(t *testing.T) {
+	t.Run("InvalidCredentials", func(t *testing.T) {
 		mockService := new(mockLogin.MockLoginService)
 		handler := NewLoginHandler(mockService, logAdapter)
 
-		req := newLoginRequest(http.MethodGet, "/login", nil)
+		email := "user@example.com"
+		password := "wrongpassword"
+
+		mockService.On("Login", mock.Anything, email, password).Return(nil, errors.New("credenciais inválidas"))
+
+		body, _ := json.Marshal(map[string]string{"email": email, "password": password})
+		req := newLoginRequest(http.MethodPost, "/login", body)
 		w := httptest.NewRecorder()
 
 		handler.Login(w, req)
 
 		resp := w.Result()
 		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
+		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 
 		var response map[string]interface{}
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		require.NoError(t, err)
-		assert.Contains(t, response["message"], "método GET não permitido")
+		assert.Equal(t, "credenciais inválidas", response["message"])
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("ServiceError", func(t *testing.T) {
+		mockService := new(mockLogin.MockLoginService)
+		handler := NewLoginHandler(mockService, logAdapter)
+
+		email := "user@example.com"
+		password := "password123"
+
+		mockService.On("Login", mock.Anything, email, password).Return(nil, errors.New("erro inesperado"))
+
+		body, _ := json.Marshal(map[string]string{"email": email, "password": password})
+		req := newLoginRequest(http.MethodPost, "/login", body)
+		w := httptest.NewRecorder()
+
+		handler.Login(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+
+		var response map[string]interface{}
+		err := json.NewDecoder(resp.Body).Decode(&response)
+		require.NoError(t, err)
+		assert.Equal(t, "erro inesperado", response["message"])
+
+		mockService.AssertExpectations(t)
 	})
 }

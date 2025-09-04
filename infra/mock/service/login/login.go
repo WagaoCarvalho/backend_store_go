@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/login"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -11,8 +11,13 @@ type MockLoginService struct {
 	mock.Mock
 }
 
-func (m *MockLoginService) Login(ctx context.Context, credentials dto.LoginCredentialsDTO) (*dto.AuthResponseDTO, error) {
-	args := m.Called(ctx, credentials)
-	authResp, _ := args.Get(0).(*dto.AuthResponseDTO)
+func (m *MockLoginService) Login(ctx context.Context, email, password string) (*models.AuthResponse, error) {
+	args := m.Called(ctx, email, password)
+
+	var authResp *models.AuthResponse
+	if args.Get(0) != nil {
+		authResp = args.Get(0).(*models.AuthResponse)
+	}
+
 	return authResp, args.Error(1)
 }

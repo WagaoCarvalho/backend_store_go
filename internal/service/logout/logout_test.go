@@ -1,16 +1,13 @@
 package auth
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"testing"
 	"time"
 
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -57,9 +54,6 @@ func generateTestToken(secret string, exp time.Time) string {
 
 func TestLogoutService_Logout(t *testing.T) {
 	ctx := context.Background()
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	loggerAdapter := logger.NewLoggerAdapter(log)
 	secret := "test-secret"
 
 	t.Run("logout com sucesso", func(t *testing.T) {
@@ -72,7 +66,7 @@ func TestLogoutService_Logout(t *testing.T) {
 		mockJWT.On("GetExpiration", token).Return(1*time.Hour, nil)
 		mockBL.On("Add", ctx, tokenStr, 1*time.Hour).Return(nil)
 
-		service := NewLogoutService(mockBL, loggerAdapter, mockJWT)
+		service := NewLogoutService(mockBL, mockJWT)
 		err := service.Logout(ctx, tokenStr)
 
 		assert.NoError(t, err)
@@ -86,10 +80,10 @@ func TestLogoutService_Logout(t *testing.T) {
 
 		mockJWT.On("Parse", "invalid-token").Return(nil, errors.New("malformed token"))
 
-		service := NewLogoutService(mockBL, loggerAdapter, mockJWT)
+		service := NewLogoutService(mockBL, mockJWT)
 		err := service.Logout(ctx, "invalid-token")
 
-		assert.ErrorIs(t, err, err_msg.ErrTokenValidation)
+		assert.ErrorIs(t, err, errMsg.ErrTokenValidation)
 		mockJWT.AssertExpectations(t)
 	})
 
@@ -101,10 +95,10 @@ func TestLogoutService_Logout(t *testing.T) {
 		token := &jwt.Token{Valid: false}
 		mockJWT.On("Parse", tokenStr).Return(token, nil)
 
-		service := NewLogoutService(mockBL, loggerAdapter, mockJWT)
+		service := NewLogoutService(mockBL, mockJWT)
 		err := service.Logout(ctx, tokenStr)
 
-		assert.ErrorIs(t, err, err_msg.ErrInvalidToken)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidToken)
 		mockJWT.AssertExpectations(t)
 	})
 
@@ -117,10 +111,10 @@ func TestLogoutService_Logout(t *testing.T) {
 		mockJWT.On("Parse", tokenStr).Return(token, nil)
 		mockJWT.On("GetExpiration", token).Return(time.Duration(0), errors.New("claim exp faltando"))
 
-		service := NewLogoutService(mockBL, loggerAdapter, mockJWT)
+		service := NewLogoutService(mockBL, mockJWT)
 		err := service.Logout(ctx, tokenStr)
 
-		assert.ErrorIs(t, err, err_msg.ErrClaimExpInvalid)
+		assert.ErrorIs(t, err, errMsg.ErrClaimExpInvalid)
 		mockJWT.AssertExpectations(t)
 	})
 
@@ -133,10 +127,10 @@ func TestLogoutService_Logout(t *testing.T) {
 		mockJWT.On("Parse", tokenStr).Return(token, nil)
 		mockJWT.On("GetExpiration", token).Return(-1*time.Minute, nil)
 
-		service := NewLogoutService(mockBL, loggerAdapter, mockJWT)
+		service := NewLogoutService(mockBL, mockJWT)
 		err := service.Logout(ctx, tokenStr)
 
-		assert.ErrorIs(t, err, err_msg.ErrTokenExpired)
+		assert.ErrorIs(t, err, errMsg.ErrTokenExpired)
 		mockJWT.AssertExpectations(t)
 	})
 
@@ -150,10 +144,10 @@ func TestLogoutService_Logout(t *testing.T) {
 		mockJWT.On("GetExpiration", token).Return(1*time.Hour, nil)
 		mockBL.On("Add", ctx, tokenStr, 1*time.Hour).Return(errors.New("falha redis"))
 
-		service := NewLogoutService(mockBL, loggerAdapter, mockJWT)
+		service := NewLogoutService(mockBL, mockJWT)
 		err := service.Logout(ctx, tokenStr)
 
-		assert.ErrorIs(t, err, err_msg.ErrBlacklistAdd)
+		assert.ErrorIs(t, err, errMsg.ErrBlacklistAdd)
 		mockBL.AssertExpectations(t)
 		mockJWT.AssertExpectations(t)
 	})

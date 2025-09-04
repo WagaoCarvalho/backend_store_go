@@ -38,11 +38,11 @@ func RegisterLoginRoutes(
 
 	hasher := pass.BcryptHasher{}
 
-	loginService := login.NewLoginService(userRepo, log, jwtManager, hasher)
+	loginService := login.NewLoginService(userRepo, jwtManager, hasher)
 	loginHandler := loginHandler.NewLoginHandler(loginService, log)
 
 	// Passa jwtManager (JWTService) em vez de string SecretKey
-	logoutService := logout.NewLogoutService(blacklist, log, jwtManager)
+	logoutService := logout.NewLogoutService(blacklist, jwtManager)
 	logoutHandler := logoutHandler.NewLogoutHandler(logoutService, log)
 
 	r.HandleFunc("/login", loginHandler.Login).Methods(http.MethodPost)

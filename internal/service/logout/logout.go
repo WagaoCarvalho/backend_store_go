@@ -5,7 +5,6 @@ import (
 	"time"
 
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -25,61 +24,42 @@ type JWTService interface {
 
 type logoutService struct {
 	blacklist  TokenBlacklist
-	logger     *logger.LogAdapter
 	jwtService JWTService
 }
 
 func NewLogoutService(
 	blacklist TokenBlacklist,
-	logger *logger.LogAdapter,
 	jwtService JWTService,
 ) LogoutService {
 	return &logoutService{
 		blacklist:  blacklist,
-		logger:     logger,
 		jwtService: jwtService,
 	}
 }
 
 func (s *logoutService) Logout(ctx context.Context, tokenString string) error {
-	const ref = "[logoutService - Logout] - "
-
-	s.logger.Info(ctx, ref+logger.LogLogoutInit, map[string]any{
-		"token": tokenString,
-	})
 
 	token, err := s.jwtService.Parse(tokenString)
 	if err != nil {
-		s.logger.Error(ctx, err, ref+logger.LogTokenValidationFail, nil)
 		return err_msg.ErrTokenValidation
 	}
 
 	if !token.Valid {
-		s.logger.Warn(ctx, ref+logger.LogTokenInvalid, nil)
 		return err_msg.ErrInvalidToken
 	}
 
 	expiration, err := s.jwtService.GetExpiration(token)
 	if err != nil {
-		s.logger.Error(ctx, err, ref+logger.LogClaimExpInvalid, nil)
 		return err_msg.ErrClaimExpInvalid
 	}
 
 	if expiration <= 0 {
-		s.logger.Warn(ctx, ref+logger.LogTokenAlreadyExpired, nil)
 		return err_msg.ErrTokenExpired
 	}
 
 	if err := s.blacklist.Add(ctx, tokenString, expiration); err != nil {
-		s.logger.Error(ctx, err, ref+logger.LogBlacklistAddFail, map[string]any{
-			"token": tokenString,
-		})
 		return err_msg.ErrBlacklistAdd
 	}
-
-	s.logger.Info(ctx, ref+logger.LogLogoutSuccess, map[string]any{
-		"token": tokenString,
-	})
 
 	return nil
 }
