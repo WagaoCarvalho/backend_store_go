@@ -1,29 +1,20 @@
 package services
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
 	mock_product "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/product"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
-
-func newTestLogger() *logger.LogAdapter {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	return logger.NewLoggerAdapter(log)
-}
 
 func TestProductService_Create(t *testing.T) {
 	ctx := context.Background()
@@ -42,8 +33,8 @@ func TestProductService_Create(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		input := validProduct()
 
@@ -68,8 +59,8 @@ func TestProductService_Create(t *testing.T) {
 
 	t.Run("produto inválido", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		input := &models.Product{
 			Status: true,
@@ -99,8 +90,8 @@ func TestProductService_Create(t *testing.T) {
 
 	t.Run("erro no repositório", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		input := validProduct()
 
@@ -121,11 +112,7 @@ func TestProductService_GetAll(t *testing.T) {
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
 
-		log := logrus.New()
-		log.Out = &bytes.Buffer{}
-		logger := logger.NewLoggerAdapter(log)
-
-		service := NewProductService(mockRepo, logger)
+		service := NewProductService(mockRepo)
 
 		limit := 10
 		offset := 0
@@ -149,8 +136,8 @@ func TestProductService_GetAll(t *testing.T) {
 
 	t.Run("erro do repositório", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		limit := 10
 		offset := 0
@@ -173,10 +160,8 @@ func TestProductService_GetByID(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		baseLogger := logrus.New()
-		baseLogger.Out = &bytes.Buffer{}
-		log := logger.NewLoggerAdapter(baseLogger)
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		id := int64(1)
 		expectedProduct := &models.Product{
@@ -198,10 +183,8 @@ func TestProductService_GetByID(t *testing.T) {
 
 	t.Run("id inválido", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := logrus.New()
-		log.Out = &bytes.Buffer{}
-		logger := logger.NewLoggerAdapter(log)
-		service := NewProductService(mockRepo, logger)
+
+		service := NewProductService(mockRepo)
 
 		id := int64(0)
 
@@ -215,8 +198,8 @@ func TestProductService_GetByID(t *testing.T) {
 
 	t.Run("erro do repositório", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		id := int64(99)
 		mockErr := errors.New("erro ao buscar produto")
@@ -238,8 +221,8 @@ func TestProductService_GetByName(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		name := "Produto X"
 		expectedProducts := []*models.Product{
@@ -262,8 +245,8 @@ func TestProductService_GetByName(t *testing.T) {
 
 	t.Run("nome inválido (string vazia)", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		name := "   "
 
@@ -277,8 +260,8 @@ func TestProductService_GetByName(t *testing.T) {
 
 	t.Run("erro no repositório", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		name := "Produto X"
 		mockErr := errors.New("erro no banco")
@@ -300,8 +283,8 @@ func TestProductService_GetByManufacturer(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		manufacturer := "Fabricante X"
 		expectedProducts := []*models.Product{
@@ -324,8 +307,8 @@ func TestProductService_GetByManufacturer(t *testing.T) {
 
 	t.Run("fabricante inválido (string vazia)", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		manufacturer := "   "
 
@@ -339,8 +322,8 @@ func TestProductService_GetByManufacturer(t *testing.T) {
 
 	t.Run("erro no repositório", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		manufacturer := "Fabricante X"
 		mockErr := errors.New("erro no banco")
@@ -376,10 +359,8 @@ func TestProductService_Update(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		baseLogger := logrus.New()
-		baseLogger.Out = &bytes.Buffer{}
-		log := logger.NewLoggerAdapter(baseLogger)
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		input := validProduct()
 
@@ -398,8 +379,8 @@ func TestProductService_Update(t *testing.T) {
 
 	t.Run("erro de validação: nome inválido", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		input := validProduct()
 		input.ProductName = ""
@@ -414,8 +395,8 @@ func TestProductService_Update(t *testing.T) {
 
 	t.Run("erro de validação: versão inválida", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		input := validProduct()
 		input.Version = 0
@@ -429,8 +410,8 @@ func TestProductService_Update(t *testing.T) {
 
 	t.Run("erro do repositório: produto não encontrado", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		input := validProduct()
 
@@ -447,8 +428,8 @@ func TestProductService_Update(t *testing.T) {
 
 	t.Run("erro do repositório: conflito de versão", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		input := validProduct()
 
@@ -465,8 +446,8 @@ func TestProductService_Update(t *testing.T) {
 
 	t.Run("erro do repositório genérico", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		input := validProduct()
 		mockErr := errors.New("erro no repositório")
@@ -485,13 +466,10 @@ func TestProductService_Update(t *testing.T) {
 }
 
 func TestProductService_DisableProduct(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		service := NewProductService(mockRepo, logger)
+		service := NewProductService(mockRepo)
 		return mockRepo, service
 	}
 
@@ -519,13 +497,10 @@ func TestProductService_DisableProduct(t *testing.T) {
 }
 
 func TestProductService_EnableProduct(t *testing.T) {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(log)
 
 	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		service := NewProductService(mockRepo, logger)
+		service := NewProductService(mockRepo)
 		return mockRepo, service
 	}
 
@@ -557,8 +532,8 @@ func TestProductService_Delete(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		id := int64(1)
 
@@ -572,8 +547,8 @@ func TestProductService_Delete(t *testing.T) {
 
 	t.Run("erro do repositório", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := NewProductService(mockRepo, log)
+
+		service := NewProductService(mockRepo)
 
 		id := int64(1)
 		mockErr := errors.New("erro no repositório")
@@ -593,8 +568,8 @@ func TestProductService_GetVersionByID(t *testing.T) {
 
 	newService := func() (*mock_product.ProductRepositoryMock, ProductService) {
 		mr := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		return mr, NewProductService(mr, log)
+
+		return mr, NewProductService(mr)
 	}
 
 	t.Run("Success", func(t *testing.T) {
@@ -640,12 +615,10 @@ func TestProductService_GetVersionByID(t *testing.T) {
 }
 
 func TestProductService_UpdateStock(t *testing.T) {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(log)
+
 	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		service := NewProductService(mockRepo, logger)
+		service := NewProductService(mockRepo)
 		return mockRepo, service
 	}
 
@@ -679,8 +652,8 @@ func TestProductService_IncreaseStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando repo retornar erro", func(t *testing.T) {
 		repoMock := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := productService{repo: repoMock, logger: log}
+
+		service := productService{repo: repoMock}
 
 		repoMock.On("IncreaseStock", ctx, int64(1), 10).Return(err_msg.ErrNotFound)
 
@@ -693,8 +666,8 @@ func TestProductService_IncreaseStock(t *testing.T) {
 
 	t.Run("Deve aumentar estoque com sucesso", func(t *testing.T) {
 		repoMock := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := productService{repo: repoMock, logger: log}
+
+		service := productService{repo: repoMock}
 
 		repoMock.On("IncreaseStock", ctx, int64(1), 5).Return(nil)
 
@@ -710,8 +683,8 @@ func TestProductService_DecreaseStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando repo retornar erro", func(t *testing.T) {
 		repoMock := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := productService{repo: repoMock, logger: log}
+
+		service := productService{repo: repoMock}
 
 		repoMock.On("DecreaseStock", ctx, int64(1), 10).Return(err_msg.ErrNotFound)
 
@@ -724,8 +697,8 @@ func TestProductService_DecreaseStock(t *testing.T) {
 
 	t.Run("Deve diminuir estoque com sucesso", func(t *testing.T) {
 		repoMock := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := productService{repo: repoMock, logger: log}
+
+		service := productService{repo: repoMock}
 
 		repoMock.On("DecreaseStock", ctx, int64(1), 10).Return(nil)
 
@@ -741,8 +714,8 @@ func TestProductService_GetStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando repo retornar erro", func(t *testing.T) {
 		repoMock := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := productService{repo: repoMock, logger: log}
+
+		service := productService{repo: repoMock}
 
 		repoMock.On("GetStock", ctx, int64(1)).Return(0, fmt.Errorf("erro inesperado"))
 
@@ -756,8 +729,8 @@ func TestProductService_GetStock(t *testing.T) {
 
 	t.Run("Deve retornar estoque com sucesso", func(t *testing.T) {
 		repoMock := new(mock_product.ProductRepositoryMock)
-		log := newTestLogger()
-		service := productService{repo: repoMock, logger: log}
+
+		service := productService{repo: repoMock}
 
 		repoMock.On("GetStock", ctx, int64(1)).Return(25, nil)
 
@@ -770,13 +743,10 @@ func TestProductService_GetStock(t *testing.T) {
 }
 
 func TestProductService_EnableDiscount(t *testing.T) {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(log)
 
 	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		service := NewProductService(mockRepo, logger)
+		service := NewProductService(mockRepo)
 		return mockRepo, service
 	}
 
@@ -805,13 +775,10 @@ func TestProductService_EnableDiscount(t *testing.T) {
 }
 
 func TestProductService_DisableDiscount(t *testing.T) {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(log)
 
 	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		service := NewProductService(mockRepo, logger)
+		service := NewProductService(mockRepo)
 		return mockRepo, service
 	}
 
@@ -852,13 +819,10 @@ func TestProductService_DisableDiscount(t *testing.T) {
 }
 
 func TestProductService_ApplyDiscount(t *testing.T) {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(log)
 
 	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-		service := NewProductService(mockRepo, logger)
+		service := NewProductService(mockRepo)
 		return mockRepo, service
 	}
 

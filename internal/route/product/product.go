@@ -23,7 +23,7 @@ func RegisterProductRoutes(
 ) {
 	repoProduct := repo.NewProductRepository(db)
 
-	productService := service.NewProductService(repoProduct, log)
+	productService := service.NewProductService(repoProduct)
 	handler := handler.NewProductHandler(productService, log)
 
 	// Config JWT
