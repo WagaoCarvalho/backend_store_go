@@ -9,7 +9,6 @@ import (
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	logger "github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -36,15 +35,6 @@ func NewContactRepository(db *pgxpool.Pool, logger logger.LogAdapterInterface) C
 }
 
 func (r *contactRepository) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
-	ref := "[contactRepository - Create] - "
-
-	r.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
-		"contact_name": contact.ContactName,
-		"user_id":      utils.Int64OrNil(contact.UserID),
-		"client_id":    utils.Int64OrNil(contact.ClientID),
-		"supplier_id":  utils.Int64OrNil(contact.SupplierID),
-	})
-
 	const query = `
 		INSERT INTO contacts (
 			user_id, client_id, supplier_id, contact_name, contact_position,
@@ -67,45 +57,15 @@ func (r *contactRepository) Create(ctx context.Context, contact *models.Contact)
 
 	if err != nil {
 		if errMsgPg.IsForeignKeyViolation(err) {
-			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
-				"user_id":     utils.Int64OrNil(contact.UserID),
-				"client_id":   utils.Int64OrNil(contact.ClientID),
-				"supplier_id": utils.Int64OrNil(contact.SupplierID),
-			})
 			return nil, errMsg.ErrInvalidForeignKey
 		}
-
-		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"user_id":      utils.Int64OrNil(contact.UserID),
-			"client_id":    utils.Int64OrNil(contact.ClientID),
-			"supplier_id":  utils.Int64OrNil(contact.SupplierID),
-			"contact_name": contact.ContactName,
-			"email":        contact.Email,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
-		"contact_id":  contact.ID,
-		"user_id":     utils.Int64OrNil(contact.UserID),
-		"client_id":   utils.Int64OrNil(contact.ClientID),
-		"supplier_id": utils.Int64OrNil(contact.SupplierID),
-		"email":       contact.Email,
-	})
 
 	return contact, nil
 }
 
 func (r *contactRepository) CreateTx(ctx context.Context, tx pgx.Tx, contact *models.Contact) (*models.Contact, error) {
-	ref := "[contactRepository - CreateTx] - "
-
-	r.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{
-		"contact_name": contact.ContactName,
-		"user_id":      utils.Int64OrNil(contact.UserID),
-		"client_id":    utils.Int64OrNil(contact.ClientID),
-		"supplier_id":  utils.Int64OrNil(contact.SupplierID),
-	})
-
 	const query = `
 		INSERT INTO contacts (
 			user_id, client_id, supplier_id, contact_name, contact_position,
@@ -128,42 +88,15 @@ func (r *contactRepository) CreateTx(ctx context.Context, tx pgx.Tx, contact *mo
 
 	if err != nil {
 		if errMsgPg.IsForeignKeyViolation(err) {
-			r.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
-				"user_id":     utils.Int64OrNil(contact.UserID),
-				"client_id":   utils.Int64OrNil(contact.ClientID),
-				"supplier_id": utils.Int64OrNil(contact.SupplierID),
-			})
 			return nil, errMsg.ErrInvalidForeignKey
 		}
-
-		r.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"user_id":      utils.Int64OrNil(contact.UserID),
-			"client_id":    utils.Int64OrNil(contact.ClientID),
-			"supplier_id":  utils.Int64OrNil(contact.SupplierID),
-			"contact_name": contact.ContactName,
-			"email":        contact.Email,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
-		"contact_id":  contact.ID,
-		"user_id":     utils.Int64OrNil(contact.UserID),
-		"client_id":   utils.Int64OrNil(contact.ClientID),
-		"supplier_id": utils.Int64OrNil(contact.SupplierID),
-		"email":       contact.Email,
-	})
 
 	return contact, nil
 }
 
 func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
-	ref := "[contactRepository - GetByID] - "
-
-	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"contact_id": id,
-	})
-
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
@@ -190,36 +123,15 @@ func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Cont
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			r.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
-				"contact_id": id,
-			})
 			return nil, errMsg.ErrNotFound
 		}
-
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"contact_id": id,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"contact_id":  contact.ID,
-		"user_id":     utils.Int64OrNil(contact.UserID),
-		"client_id":   utils.Int64OrNil(contact.ClientID),
-		"supplier_id": utils.Int64OrNil(contact.SupplierID),
-		"email":       contact.Email,
-	})
 
 	return &contact, nil
 }
 
 func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error) {
-	ref := "[contactRepository - GetByUserID] - "
-
-	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"user_id": userID,
-	})
-
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
@@ -230,9 +142,6 @@ func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 
 	rows, err := r.db.Query(ctx, query, userID)
 	if err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"user_id": userID,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
@@ -254,36 +163,19 @@ func (r *contactRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 			&contact.CreatedAt,
 			&contact.UpdatedAt,
 		); err != nil {
-			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, map[string]any{
-				"user_id": userID,
-			})
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 		}
 		contacts = append(contacts, &contact)
 	}
 
 	if err := rows.Err(); err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"user_id": userID,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"user_id":       userID,
-		"total_results": len(contacts),
-	})
 
 	return contacts, nil
 }
 
 func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error) {
-	ref := "[contactRepository - GetByClientID] - "
-
-	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"client_id": clientID,
-	})
-
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
@@ -294,9 +186,6 @@ func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) (
 
 	rows, err := r.db.Query(ctx, query, clientID)
 	if err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"client_id": clientID,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
@@ -318,36 +207,19 @@ func (r *contactRepository) GetByClientID(ctx context.Context, clientID int64) (
 			&contact.CreatedAt,
 			&contact.UpdatedAt,
 		); err != nil {
-			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, map[string]any{
-				"client_id": clientID,
-			})
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 		}
 		contacts = append(contacts, &contact)
 	}
 
 	if err := rows.Err(); err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"client_id": clientID,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"client_id":     clientID,
-		"total_results": len(contacts),
-	})
 
 	return contacts, nil
 }
 
 func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Contact, error) {
-	ref := "[contactRepository - GetBySupplierID] - "
-
-	r.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"supplier_id": supplierID,
-	})
-
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id, contact_name, contact_position,
@@ -358,9 +230,6 @@ func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int6
 
 	rows, err := r.db.Query(ctx, query, supplierID)
 	if err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"supplier_id": supplierID,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
@@ -382,40 +251,19 @@ func (r *contactRepository) GetBySupplierID(ctx context.Context, supplierID int6
 			&contact.CreatedAt,
 			&contact.UpdatedAt,
 		); err != nil {
-			r.logger.Error(ctx, err, ref+logger.LogGetErrorScan, map[string]any{
-				"supplier_id": supplierID,
-			})
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 		}
 		contacts = append(contacts, &contact)
 	}
 
 	if err := rows.Err(); err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"supplier_id": supplierID,
-		})
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
-
-	r.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"supplier_id":   supplierID,
-		"total_results": len(contacts),
-	})
 
 	return contacts, nil
 }
 
 func (r *contactRepository) Update(ctx context.Context, contact *models.Contact) error {
-	ref := "[contactRepository - Update] - "
-
-	r.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{
-		"contact_id":   contact.ID,
-		"contact_name": contact.ContactName,
-		"user_id":      utils.Int64OrNil(contact.UserID),
-		"client_id":    utils.Int64OrNil(contact.ClientID),
-		"supplier_id":  utils.Int64OrNil(contact.SupplierID),
-	})
-
 	const query = `
 		UPDATE contacts
 		SET
@@ -445,59 +293,28 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 		contact.ContactType,
 		contact.ID,
 	)
-
 	if err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-			"contact_id":  contact.ID,
-			"user_id":     utils.Int64OrNil(contact.UserID),
-			"client_id":   utils.Int64OrNil(contact.ClientID),
-			"supplier_id": utils.Int64OrNil(contact.SupplierID),
-			"email":       contact.Email,
-		})
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
-		r.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
-			"contact_id": contact.ID,
-		})
 		return errMsg.ErrNotFound
 	}
-
-	r.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
-		"contact_id": contact.ID,
-	})
 
 	return nil
 }
 
 func (r *contactRepository) Delete(ctx context.Context, id int64) error {
-	ref := "[contactRepository - Delete] - "
-
-	r.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{
-		"contact_id": id,
-	})
-
 	const query = `DELETE FROM contacts WHERE id = $1`
 
 	result, err := r.db.Exec(ctx, query, id)
 	if err != nil {
-		r.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
-			"contact_id": id,
-		})
 		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
 
 	if result.RowsAffected() == 0 {
-		r.logger.Info(ctx, ref+logger.LogNotFound, map[string]any{
-			"contact_id": id,
-		})
 		return errMsg.ErrNotFound
 	}
-
-	r.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
-		"contact_id": id,
-	})
 
 	return nil
 }
