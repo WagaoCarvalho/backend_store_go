@@ -1,7 +1,6 @@
 package services
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"testing"
@@ -17,8 +16,6 @@ import (
 	model_supplier_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
 	model_supplier_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
 	model_full "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -29,19 +26,24 @@ func TestCreateFull_Validation(t *testing.T) {
 	mockAddressRepo := new(mock_address.MockAddressRepository)
 	mockContactRepo := new(mock_contact.MockContactRepository)
 	mockRelationRepo := new(repo_supplier_cat_rel.MockSupplierCategoryRelationRepo)
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
-
 	service := NewSupplierFullService(
 		mockSupplierRepo,
 		mockAddressRepo,
 		mockContactRepo,
 		mockRelationRepo,
-		logger,
 	)
 
 	ctx := context.Background()
+
+	t.Run("supplierFull_nulo", func(t *testing.T) {
+		mockService := NewSupplierFullService(mockSupplierRepo, mockAddressRepo, mockContactRepo, nil)
+
+		result, err := mockService.CreateFull(context.Background(), nil)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "supplierFull é nulo")
+	})
 
 	t.Run("deve_falhar_quando_supplier_nil", func(t *testing.T) {
 		invalidSupplier := &model_full.SupplierFull{
@@ -132,9 +134,6 @@ func TestCreateFull_Validation(t *testing.T) {
 }
 
 func TestSupplierService_CreateFull(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_supplier.MockSupplierFullRepository,
@@ -155,7 +154,6 @@ func TestSupplierService_CreateFull(t *testing.T) {
 			mockAddressRepo,
 			mockContactRepo,
 			mockRelationRepo,
-			logger,
 		)
 
 		return mockSupplierRepo, mockAddressRepo, mockContactRepo, mockRelationRepo, mockTx, supplierService

@@ -29,7 +29,7 @@ func RegisterSupplierFullRoutes(
 	repoContact := repoContact.NewContactRepository(db)
 	repoUserCatRel := repoSupplierCatRel.NewSupplierCategoryRelationRepo(db)
 
-	userService := services.NewSupplierFullService(repoUser, repoAddress, repoContact, repoUserCatRel, log)
+	userService := services.NewSupplierFullService(repoUser, repoAddress, repoContact, repoUserCatRel)
 	handler := handlers.NewSupplierFullHandler(userService, log)
 
 	// Config JWT
