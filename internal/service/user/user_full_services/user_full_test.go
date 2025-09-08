@@ -141,7 +141,7 @@ func TestUserService_CreateFull(t *testing.T) {
 		result, err = userService.CreateFull(context.Background(), invalidUser)
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "userFull é nulo")
+		assert.EqualError(t, err, "usuário é obrigatório")
 	})
 
 	t.Run("erro_ao_hash_senha", func(t *testing.T) {

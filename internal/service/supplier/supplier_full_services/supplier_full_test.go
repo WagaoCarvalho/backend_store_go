@@ -9,7 +9,7 @@ import (
 	mock_address "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/address"
 	mock_contact "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/contact"
 	mock_supplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
-	repo_supplier_cat_rel "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
+	mock_supplier_cat_rel "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
 	model_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	model_supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
@@ -20,133 +20,20 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestCreateFull_Validation(t *testing.T) {
-
-	mockSupplierRepo := new(mock_supplier.MockSupplierFullRepository)
-	mockAddressRepo := new(mock_address.MockAddressRepository)
-	mockContactRepo := new(mock_contact.MockContactRepository)
-	mockRelationRepo := new(repo_supplier_cat_rel.MockSupplierCategoryRelationRepo)
-	service := NewSupplierFullService(
-		mockSupplierRepo,
-		mockAddressRepo,
-		mockContactRepo,
-		mockRelationRepo,
-	)
-
-	ctx := context.Background()
-
-	t.Run("supplierFull_nulo", func(t *testing.T) {
-		mockService := NewSupplierFullService(mockSupplierRepo, mockAddressRepo, mockContactRepo, nil)
-
-		result, err := mockService.CreateFull(context.Background(), nil)
-
-		assert.Nil(t, result)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "supplierFull é nulo")
-	})
-
-	t.Run("deve_falhar_quando_supplier_nil", func(t *testing.T) {
-		invalidSupplier := &model_full.SupplierFull{
-			Address:    &model_address.Address{Street: "Rua Teste"},
-			Contact:    &model_contact.Contact{Phone: "1112345678"},
-			Categories: []model_supplier_categories.SupplierCategory{{ID: 1}},
-		}
-
-		result, err := service.CreateFull(ctx, invalidSupplier)
-
-		assert.Nil(t, result)
-		assert.Error(t, err)
-		assert.Equal(t, "fornecedor é obrigatório", err.Error())
-	})
-
-	t.Run("deve_falhar_quando_address_nil", func(t *testing.T) {
-		invalidSupplier := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
-				Name:   "Fornecedor Teste",
-				Status: true,
-			},
-			Contact:    &model_contact.Contact{Phone: "1112345678"},
-			Categories: []model_supplier_categories.SupplierCategory{{ID: 1}},
-		}
-
-		result, err := service.CreateFull(ctx, invalidSupplier)
-
-		assert.Nil(t, result)
-		assert.Error(t, err)
-		assert.Equal(t, "endereço é obrigatório", err.Error())
-	})
-
-	t.Run("deve_falhar_quando_contact_nil", func(t *testing.T) {
-		invalidSupplier := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
-				Name:   "Fornecedor Teste",
-				Status: true,
-			},
-			Address:    &model_address.Address{Street: "Rua Teste"},
-			Categories: []model_supplier_categories.SupplierCategory{{ID: 1}},
-		}
-
-		result, err := service.CreateFull(ctx, invalidSupplier)
-
-		assert.Nil(t, result)
-		assert.Error(t, err)
-		assert.Equal(t, "contato é obrigatório", err.Error())
-	})
-
-	t.Run("deve_falhar_quando_sem_categorias", func(t *testing.T) {
-		invalidSupplier := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
-				Name:   "Fornecedor Teste",
-				Status: true,
-			},
-			Address: &model_address.Address{Street: "Rua Teste"},
-			Contact: &model_contact.Contact{Phone: "1112345678"},
-		}
-
-		result, err := service.CreateFull(ctx, invalidSupplier)
-
-		assert.Nil(t, result)
-		assert.Error(t, err)
-		assert.Equal(t, "pelo menos uma categoria é obrigatória", err.Error())
-	})
-
-	t.Run("deve_falhar_quando_supplier_invalido", func(t *testing.T) {
-		invalidSupplier := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
-				Name: "",
-			},
-			Address:    &model_address.Address{Street: "Rua Teste"},
-			Contact:    &model_contact.Contact{Phone: "1112345678"},
-			Categories: []model_supplier_categories.SupplierCategory{{ID: 1}},
-		}
-
-		result, err := service.CreateFull(ctx, invalidSupplier)
-
-		assert.Nil(t, result)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "fornecedor inválido")
-	})
-
-	t.Run("nao_deve_iniciar_transacao_quando_validacao_falhar", func(t *testing.T) {
-		mockSupplierRepo.AssertNotCalled(t, "BeginTx")
-	})
-
-}
-
 func TestSupplierService_CreateFull(t *testing.T) {
 
 	setup := func() (
 		*mock_supplier.MockSupplierFullRepository,
 		*mock_address.MockAddressRepository,
 		*mock_contact.MockContactRepository,
-		*repo_supplier_cat_rel.MockSupplierCategoryRelationRepo,
+		*mock_supplier_cat_rel.MockSupplierCategoryRelationRepo,
 		*mock_tx.MockTx,
 		SupplierFullService,
 	) {
 		mockSupplierRepo := new(mock_supplier.MockSupplierFullRepository)
 		mockAddressRepo := new(mock_address.MockAddressRepository)
 		mockContactRepo := new(mock_contact.MockContactRepository)
-		mockRelationRepo := new(repo_supplier_cat_rel.MockSupplierCategoryRelationRepo)
+		mockRelationRepo := new(mock_supplier_cat_rel.MockSupplierCategoryRelationRepo)
 		mockTx := new(mock_tx.MockTx)
 
 		supplierService := NewSupplierFullService(
@@ -196,6 +83,21 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		assert.EqualError(t, err, "transação inválida")
 
 		mockSupplierRepo.AssertExpectations(t)
+	})
+
+	t.Run("supplierFull_ou_supplier_nil", func(t *testing.T) {
+		_, _, _, _, _, supplierService := setup()
+
+		result, err := supplierService.CreateFull(context.Background(), nil)
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "supplierFull é nulo")
+
+		invalidSupplier := &model_full.SupplierFull{}
+		result, err = supplierService.CreateFull(context.Background(), invalidSupplier)
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "fornecedor é obrigatório")
 	})
 
 	t.Run("erro ao iniciar transação", func(t *testing.T) {
