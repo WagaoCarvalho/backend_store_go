@@ -31,7 +31,7 @@ func RegisterUserFullRoutes(
 	repoUserCatRel := repoUserCatRel.NewUserCategoryRelationRepositories(db)
 	hasher := auth.BcryptHasher{}
 
-	userService := service.NewUserFullService(repoUser, repoAddress, repoContact, repoUserCatRel, log, hasher)
+	userService := service.NewUserFullService(repoUser, repoAddress, repoContact, repoUserCatRel, hasher)
 	handler := handlers.NewUserFullHandler(userService, log)
 
 	// Config JWT

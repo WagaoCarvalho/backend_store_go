@@ -21,7 +21,7 @@ func RegisterUserCategoryRelationRoutes(
 	blacklist jwt.TokenBlacklist,
 ) {
 	relationRepo := repo.NewUserCategoryRelationRepositories(db)
-	relationService := service.NewUserCategoryRelationServices(relationRepo, log)
+	relationService := service.NewUserCategoryRelationServices(relationRepo)
 	relationHandler := handler.NewUserCategoryRelationHandler(relationService, log)
 
 	// Carregar config JWT

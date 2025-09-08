@@ -1,7 +1,6 @@
 package services
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -10,8 +9,6 @@ import (
 	mock_user "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
 	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -31,9 +28,6 @@ func (m *MockHasher) Compare(_, _ string) error {
 }
 
 func TestUserService_Create(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -45,7 +39,6 @@ func TestUserService_Create(t *testing.T) {
 
 		userService := NewUserService(
 			mockUserRepo,
-			logger,
 			mockHasher,
 		)
 
@@ -147,9 +140,6 @@ func TestUserService_Create(t *testing.T) {
 }
 
 func TestUserService_GetAll(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -161,7 +151,6 @@ func TestUserService_GetAll(t *testing.T) {
 
 		userService := NewUserService(
 			mockUserRepo,
-			logger,
 			mockHasher,
 		)
 
@@ -199,9 +188,6 @@ func TestUserService_GetAll(t *testing.T) {
 }
 
 func TestUserService_GetByID(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -213,7 +199,7 @@ func TestUserService_GetByID(t *testing.T) {
 
 		userService := NewUserService(
 			mockUserRepo,
-			logger,
+
 			mockHasher,
 		)
 
@@ -265,9 +251,6 @@ func TestUserService_GetByID(t *testing.T) {
 }
 
 func TestUserService_GetVersionByID(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -279,7 +262,7 @@ func TestUserService_GetVersionByID(t *testing.T) {
 
 		userService := NewUserService(
 			mockUserRepo,
-			logger,
+
 			mockHasher,
 		)
 
@@ -330,9 +313,6 @@ func TestUserService_GetVersionByID(t *testing.T) {
 }
 
 func TestUserService_GetByEmail(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -344,7 +324,7 @@ func TestUserService_GetByEmail(t *testing.T) {
 
 		userService := NewUserService(
 			mockUserRepo,
-			logger,
+
 			mockHasher,
 		)
 
@@ -387,9 +367,6 @@ func TestUserService_GetByEmail(t *testing.T) {
 }
 
 func TestUserService_GetByName(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -401,7 +378,7 @@ func TestUserService_GetByName(t *testing.T) {
 
 		userService := NewUserService(
 			mockUserRepo,
-			logger,
+
 			mockHasher,
 		)
 
@@ -452,9 +429,6 @@ func TestUserService_GetByName(t *testing.T) {
 }
 
 func TestUserService_Update(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -466,7 +440,7 @@ func TestUserService_Update(t *testing.T) {
 
 		userService := NewUserService(
 			mockUserRepo,
-			logger,
+
 			mockHasher,
 		)
 
@@ -585,9 +559,6 @@ func TestUserService_Update(t *testing.T) {
 }
 
 func TestUserService_Disable(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -599,7 +570,7 @@ func TestUserService_Disable(t *testing.T) {
 
 		userService := NewUserService(
 			mockUserRepo,
-			logger,
+
 			mockHasher,
 		)
 
@@ -622,7 +593,7 @@ func TestUserService_Disable(t *testing.T) {
 		mockRepo, _, service := setup()
 
 		mockRepo.On("Disable", mock.Anything, int64(2)).
-			Return(fmt.Errorf("falha no banco")).Once()
+			Return(fmt.Errorf("erro ao desabilitar")).Once()
 
 		err := service.Disable(context.Background(), 2)
 
@@ -632,9 +603,6 @@ func TestUserService_Disable(t *testing.T) {
 }
 
 func TestUserService_Enable(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -646,7 +614,7 @@ func TestUserService_Enable(t *testing.T) {
 
 		userService := NewUserService(
 			mockUserRepo,
-			logger,
+
 			mockHasher,
 		)
 
@@ -692,9 +660,6 @@ func TestUserService_Enable(t *testing.T) {
 }
 
 func TestUserService_Delete(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
 
 	setup := func() (
 		*mock_user.MockUserRepository,
@@ -706,7 +671,7 @@ func TestUserService_Delete(t *testing.T) {
 
 		userService := NewUserService(
 			mockUserRepo,
-			logger,
+
 			mockHasher,
 		)
 
@@ -727,7 +692,7 @@ func TestUserService_Delete(t *testing.T) {
 	t.Run("Deve retornar erro ao falhar na deleção", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
-		mockRepo.On("Delete", mock.Anything, int64(2)).Return(fmt.Errorf("erro no banco"))
+		mockRepo.On("Delete", mock.Anything, int64(2)).Return(fmt.Errorf("erro ao deletar"))
 
 		err := service.Delete(context.Background(), 2)
 

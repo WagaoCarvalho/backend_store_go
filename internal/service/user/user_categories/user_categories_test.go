@@ -1,7 +1,6 @@
 package services
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"testing"
@@ -9,16 +8,11 @@ import (
 	mock_user_cat "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestUserCategoryService_Create(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(mock_user_cat.MockUserCategoryRepository)
@@ -30,7 +24,7 @@ func TestUserCategoryService_Create(t *testing.T) {
 			return cat.Name == inputCategory.Name && cat.Description == inputCategory.Description
 		})).Return(createdCategory, nil)
 
-		service := NewUserCategoryService(mockRepo, logger)
+		service := NewUserCategoryService(mockRepo)
 		category, err := service.Create(context.Background(), inputCategory)
 
 		assert.NoError(t, err)
@@ -40,7 +34,7 @@ func TestUserCategoryService_Create(t *testing.T) {
 
 	t.Run("ErrInvalidCategoryName", func(t *testing.T) {
 		mockRepo := new(mock_user_cat.MockUserCategoryRepository)
-		service := NewUserCategoryService(mockRepo, logger)
+		service := NewUserCategoryService(mockRepo)
 
 		invalidCategory := &models.UserCategory{Name: "   "} // nome só com espaços
 
@@ -58,7 +52,7 @@ func TestUserCategoryService_Create(t *testing.T) {
 			return cat.Name == inputCategory.Name && cat.Description == inputCategory.Description
 		})).Return(nil, errors.New("erro ao criar"))
 
-		service := NewUserCategoryService(mockRepo, logger)
+		service := NewUserCategoryService(mockRepo)
 		category, err := service.Create(context.Background(), inputCategory)
 
 		assert.Error(t, err)
@@ -70,9 +64,6 @@ func TestUserCategoryService_Create(t *testing.T) {
 }
 
 func TestUserCategoryService_GetAll(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(mock_user_cat.MockUserCategoryRepository)
@@ -82,7 +73,7 @@ func TestUserCategoryService_GetAll(t *testing.T) {
 
 		mockRepo.On("GetAll", mock.Anything).Return(expectedCategories, nil)
 
-		service := NewUserCategoryService(mockRepo, logger)
+		service := NewUserCategoryService(mockRepo)
 		categories, err := service.GetAll(context.Background())
 
 		assert.NoError(t, err)
@@ -94,7 +85,7 @@ func TestUserCategoryService_GetAll(t *testing.T) {
 		mockRepo := new(mock_user_cat.MockUserCategoryRepository)
 		mockRepo.On("GetAll", mock.Anything).Return([]*models.UserCategory(nil), errors.New("db error"))
 
-		service := NewUserCategoryService(mockRepo, logger)
+		service := NewUserCategoryService(mockRepo)
 		categories, err := service.GetAll(context.Background())
 
 		assert.Error(t, err)
@@ -106,11 +97,9 @@ func TestUserCategoryService_GetAll(t *testing.T) {
 }
 
 func TestUserCategoryService_GetById(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
+
 	mockRepo := new(mock_user_cat.MockUserCategoryRepository)
-	service := NewUserCategoryService(mockRepo, logger)
+	service := NewUserCategoryService(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {
 		expectedCategory := &models.UserCategory{ID: 1, Name: "Category1", Description: "Desc1"}
@@ -167,11 +156,9 @@ func TestUserCategoryService_GetById(t *testing.T) {
 }
 
 func TestUserCategoryService_Update(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
+
 	mockRepo := new(mock_user_cat.MockUserCategoryRepository)
-	service := NewUserCategoryService(mockRepo, logger)
+	service := NewUserCategoryService(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()
@@ -261,11 +248,9 @@ func TestUserCategoryService_Update(t *testing.T) {
 }
 
 func TestUserCategoryService_Delete(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
+
 	mockRepo := new(mock_user_cat.MockUserCategoryRepository)
-	service := NewUserCategoryService(mockRepo, logger)
+	service := NewUserCategoryService(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()

@@ -25,7 +25,7 @@ func RegisterUserRoutes(
 	repoUser := repo.NewUserRepository(db)
 	hasher := auth.BcryptHasher{}
 
-	userService := service.NewUserService(repoUser, log, hasher)
+	userService := service.NewUserService(repoUser, hasher)
 	handler := handler.NewUserHandler(userService, log)
 
 	// Rota pública
