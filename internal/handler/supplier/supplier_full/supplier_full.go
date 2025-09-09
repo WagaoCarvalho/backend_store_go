@@ -23,7 +23,7 @@ func NewSupplierFullHandler(service service.SupplierFullService, logger *logger.
 }
 
 func (h *SupplierHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierHandler - CreateFull] "
+	const ref = "[SupplierHandler - CreateFull] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPost {

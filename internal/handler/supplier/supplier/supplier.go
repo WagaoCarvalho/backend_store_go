@@ -89,7 +89,7 @@ func (h *SupplierHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SupplierHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierHandler - GetAll] "
+	const ref = "[SupplierHandler - GetAll] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
@@ -113,7 +113,7 @@ func (h *SupplierHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SupplierHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierHandler - GetByID] "
+	const ref = "[SupplierHandler - GetByID] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, nil)
@@ -159,7 +159,7 @@ func (h *SupplierHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SupplierHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierHandler - GetVersionByID] "
+	const ref = "[SupplierHandler - GetVersionByID] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
@@ -207,7 +207,7 @@ func (h *SupplierHandler) GetVersionByID(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *SupplierHandler) GetByName(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierHandler - GetByName] "
+	const ref = "[SupplierHandler - GetByName] "
 	ctx := r.Context()
 
 	vars := mux.Vars(r)
@@ -240,7 +240,7 @@ func (h *SupplierHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierHandler - Update] "
+	const ref = "[SupplierHandler - Update] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPut {
@@ -320,7 +320,7 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SupplierHandler) Disable(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierHandler - Disable] "
+	const ref = "[SupplierHandler - Disable] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPatch {
@@ -397,7 +397,7 @@ func (h *SupplierHandler) Disable(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SupplierHandler) Enable(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierHandler - Enable] "
+	const ref = "[SupplierHandler - Enable] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPatch {
@@ -474,7 +474,7 @@ func (h *SupplierHandler) Enable(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SupplierHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierHandler - Delete] "
+	const ref = "[SupplierHandler - Delete] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodDelete {

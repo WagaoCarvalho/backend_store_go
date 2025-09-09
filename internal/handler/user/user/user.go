@@ -27,7 +27,7 @@ func NewUserHandler(service service.UserService, logger *logger.LogAdapter) *Use
 }
 
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserHandler - Create] "
+	const ref = "[UserHandler - Create] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPost {
@@ -82,7 +82,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserHandler - GetAll] "
+	const ref = "[UserHandler - GetAll] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
@@ -106,7 +106,7 @@ func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserHandler - GetByID] "
+	const ref = "[UserHandler - GetByID] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
@@ -152,7 +152,7 @@ func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserHandler - GetVersionByID] "
+	const ref = "[UserHandler - GetVersionByID] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
@@ -200,7 +200,7 @@ func (h *UserHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetByEmail(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserHandler - GetByEmail] "
+	const ref = "[UserHandler - GetByEmail] "
 	ctx := r.Context()
 
 	vars := mux.Vars(r)
@@ -241,7 +241,7 @@ func (h *UserHandler) GetByEmail(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetByName(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserHandler - GetByName] "
+	const ref = "[UserHandler - GetByName] "
 	ctx := r.Context()
 
 	vars := mux.Vars(r)
@@ -281,7 +281,7 @@ func (h *UserHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserHandler - Update] "
+	const ref = "[UserHandler - Update] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPut {
@@ -356,7 +356,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Disable(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserHandler - Disable] "
+	const ref = "[UserHandler - Disable] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPatch {
@@ -433,7 +433,7 @@ func (h *UserHandler) Disable(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Enable(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserHandler - Enable] "
+	const ref = "[UserHandler - Enable] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPatch {
@@ -510,7 +510,7 @@ func (h *UserHandler) Enable(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserHandler - Delete] "
+	const ref = "[UserHandler - Delete] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodDelete {

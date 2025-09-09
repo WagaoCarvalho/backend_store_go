@@ -22,31 +22,45 @@ func NewLogoutHandler(service service.LogoutService, logger *logger.LogAdapter) 
 }
 
 func (h *LogoutHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	const ref = "[LogoutHandler - Logout] "
+	ctx := r.Context()
+
 	if r.Method != http.MethodPost {
+		h.logger.Warn(ctx, ref+"Método não permitido", map[string]any{
+			"method": r.Method,
+		})
 		utils.ErrorResponse(w, nil, http.StatusMethodNotAllowed)
 		return
 	}
 
+	h.logger.Info(ctx, ref+"Iniciando logout", nil)
+
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
+		h.logger.Warn(ctx, ref+"Authorization header ausente", nil)
 		utils.ErrorResponse(w, nil, http.StatusUnauthorized)
 		return
 	}
 
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
+		h.logger.Warn(ctx, ref+"Authorization header mal formatado", map[string]any{
+			"header": authHeader,
+		})
 		utils.ErrorResponse(w, nil, http.StatusUnauthorized)
 		return
 	}
 
 	tokenString := parts[1]
 
-	err := h.service.Logout(r.Context(), tokenString)
+	err := h.service.Logout(ctx, tokenString)
 	if err != nil {
-		h.logger.Error(r.Context(), err, "Erro ao invalidar token na blacklist", nil)
+		h.logger.Error(ctx, err, ref+"Erro ao invalidar token na blacklist", nil)
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
+
+	h.logger.Info(ctx, ref+"Logout realizado com sucesso", nil)
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,

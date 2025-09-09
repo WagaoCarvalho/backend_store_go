@@ -28,7 +28,7 @@ func NewUserCategoryHandler(service service.UserCategoryService, logger *logger.
 }
 
 func (h *UserCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserCategoryHandler - Create] "
+	const ref = "[UserCategoryHandler - Create] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]interface{}{})
@@ -67,7 +67,7 @@ func (h *UserCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserCategoryHandler - GetById] "
+	const ref = "[UserCategoryHandler - GetById] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]interface{}{})
@@ -110,7 +110,7 @@ func (h *UserCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserCategoryHandler - GetAll] "
+	const ref = "[UserCategoryHandler - GetAll] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]interface{}{})
@@ -134,7 +134,7 @@ func (h *UserCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserCategoryHandler - Update] "
+	const ref = "[UserCategoryHandler - Update] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]interface{}{})
@@ -187,7 +187,7 @@ func (h *UserCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserCategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserCategoryHandler - Delete] "
+	const ref = "[UserCategoryHandler - Delete] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]interface{}{})

@@ -97,7 +97,7 @@ func (h *SupplierCategoryRelationHandler) Create(w http.ResponseWriter, r *http.
 }
 
 func (h *SupplierCategoryRelationHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierCategoryRelationHandler - GetBySupplierID] "
+	const ref = "[SupplierCategoryRelationHandler - GetBySupplierID] "
 	ctx := r.Context()
 
 	idStr := mux.Vars(r)["supplier_id"]
@@ -124,7 +124,7 @@ func (h *SupplierCategoryRelationHandler) GetBySupplierID(w http.ResponseWriter,
 }
 
 func (h *SupplierCategoryRelationHandler) GetByCategoryID(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierCategoryRelationHandler - GetByCategoryID] "
+	const ref = "[SupplierCategoryRelationHandler - GetByCategoryID] "
 	ctx := r.Context()
 
 	idStr := mux.Vars(r)["category_id"]
@@ -151,7 +151,7 @@ func (h *SupplierCategoryRelationHandler) GetByCategoryID(w http.ResponseWriter,
 }
 
 func (h *SupplierCategoryRelationHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierCategoryRelationHandler - DeleteByID] "
+	const ref = "[SupplierCategoryRelationHandler - DeleteByID] "
 	ctx := r.Context()
 
 	vars := mux.Vars(r)
@@ -188,7 +188,7 @@ func (h *SupplierCategoryRelationHandler) DeleteByID(w http.ResponseWriter, r *h
 }
 
 func (h *SupplierCategoryRelationHandler) DeleteAllBySupplierID(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierCategoryRelationHandler - DeleteAllBySupplierID] "
+	const ref = "[SupplierCategoryRelationHandler - DeleteAllBySupplierID] "
 	ctx := r.Context()
 
 	idStr := mux.Vars(r)["supplier_id"]

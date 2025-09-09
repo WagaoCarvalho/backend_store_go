@@ -23,7 +23,7 @@ func NewUserFullHandler(service service.UserFullService, logger *logger.LogAdapt
 }
 
 func (h *UserHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserHandler - CreateFull] "
+	const ref = "[UserHandler - CreateFull] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPost {

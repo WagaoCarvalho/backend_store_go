@@ -73,7 +73,7 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	ref := "[productHandler - GetAll] "
+	const ref = "[productHandler - GetAll] "
 
 	limit := 10
 	offset := 0
@@ -117,7 +117,7 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - GetByID] "
+	const ref = "[productHandler - GetByID] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
@@ -152,7 +152,7 @@ func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) GetByName(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - GetByName] "
+	const ref = "[productHandler - GetByName] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
@@ -188,7 +188,7 @@ func (h *ProductHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) GetByManufacturer(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - GetByManufacturer] "
+	const ref = "[productHandler - GetByManufacturer] "
 	ctx := r.Context()
 
 	vars := mux.Vars(r)
@@ -235,7 +235,7 @@ func (h *ProductHandler) GetByManufacturer(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *ProductHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - GetVersionByID] "
+	const ref = "[productHandler - GetVersionByID] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
@@ -274,7 +274,7 @@ func (h *ProductHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *ProductHandler) DisableProduct(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - Disable] "
+	const ref = "[productHandler - Disable] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPatch {
@@ -327,7 +327,7 @@ func (h *ProductHandler) DisableProduct(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *ProductHandler) EnableProduct(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - Enable] "
+	const ref = "[productHandler - Enable] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPatch {
@@ -429,7 +429,7 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - Delete] "
+	const ref = "[productHandler - Delete] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{})
@@ -463,7 +463,7 @@ func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) UpdateStock(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - UpdateStock] "
+	const ref = "[productHandler - UpdateStock] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPatch {
@@ -529,7 +529,7 @@ func (h *ProductHandler) UpdateStock(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) IncreaseStock(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - IncreaseStock] "
+	const ref = "[productHandler - IncreaseStock] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPatch {
@@ -595,7 +595,7 @@ func (h *ProductHandler) IncreaseStock(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) DecreaseStock(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - DecreaseStock] "
+	const ref = "[productHandler - DecreaseStock] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPatch {
@@ -661,7 +661,7 @@ func (h *ProductHandler) DecreaseStock(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) GetStock(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - GetStock] "
+	const ref = "[productHandler - GetStock] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodGet {
@@ -715,7 +715,7 @@ func (h *ProductHandler) GetStock(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) EnableDiscount(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - EnableDiscount] "
+	const ref = "[productHandler - EnableDiscount] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPatch {
@@ -762,7 +762,7 @@ func (h *ProductHandler) EnableDiscount(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *ProductHandler) DisableDiscount(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - DisableDiscount] "
+	const ref = "[productHandler - DisableDiscount] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPatch {
@@ -809,7 +809,7 @@ func (h *ProductHandler) DisableDiscount(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *ProductHandler) ApplyDiscount(w http.ResponseWriter, r *http.Request) {
-	ref := "[productHandler - ApplyDiscount] "
+	const ref = "[productHandler - ApplyDiscount] "
 	ctx := r.Context()
 
 	if r.Method != http.MethodPatch {

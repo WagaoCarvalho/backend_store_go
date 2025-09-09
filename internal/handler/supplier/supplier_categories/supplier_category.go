@@ -67,7 +67,7 @@ func (h *SupplierCategoryHandler) Create(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *SupplierCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierCategoryHandler - GetByID] "
+	const ref = "[SupplierCategoryHandler - GetByID] "
 	ctx := r.Context()
 
 	id, err := utils.GetIDParam(r, "id")
@@ -100,7 +100,7 @@ func (h *SupplierCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request
 	})
 }
 func (h *SupplierCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	ref := "[SupplierCategoryHandler - GetAll] "
+	const ref = "[SupplierCategoryHandler - GetAll] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, nil)

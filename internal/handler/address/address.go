@@ -25,7 +25,7 @@ func NewAddressHandler(service service.AddressService, logger *logger.LogAdapter
 }
 
 func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
-	ref := "[AddressHandler - Create] "
+	const ref = "[AddressHandler - Create] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
@@ -39,7 +39,6 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// DTO → Model
 	addressModel := dtoAddress.ToAddressModel(addressDTO)
 
 	createdModel, err := h.service.Create(ctx, addressModel)
@@ -57,7 +56,6 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Model → DTO
 	createdDTO := dtoAddress.ToAddressDTO(createdModel)
 
 	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
@@ -72,7 +70,7 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	ref := "[addressHandler - GetByID] "
+	const ref = "[addressHandler - GetByID] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, nil)
@@ -86,7 +84,6 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// service retorna model
 	addressModel, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
@@ -96,7 +93,6 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// converter model -> DTO
 	addressDTO := dtoAddress.ToAddressDTO(addressModel)
 
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -111,7 +107,7 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
-	ref := "[addressHandler - GetByUserID] "
+	const ref = "[addressHandler - GetByUserID] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, nil)
@@ -130,7 +126,6 @@ func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// conversão model -> DTO
 	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
 	for i, m := range addressModels {
 		dto := dtoAddress.ToAddressDTO(m)
@@ -150,7 +145,7 @@ func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
-	ref := "[addressHandler - GetByClientID] "
+	const ref = "[addressHandler - GetByClientID] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, nil)
@@ -169,7 +164,6 @@ func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// conversão model -> DTO
 	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
 	for i, m := range addressModels {
 		dto := dtoAddress.ToAddressDTO(m)
@@ -189,7 +183,7 @@ func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
-	ref := "[addressHandler - GetBySupplierID] "
+	const ref = "[addressHandler - GetBySupplierID] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, nil)
@@ -208,7 +202,6 @@ func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// conversão model -> DTO
 	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
 	for i, m := range addressModels {
 		dto := dtoAddress.ToAddressDTO(m)
@@ -252,7 +245,6 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"address_id": id,
 	})
 
-	// service agora recebe model
 	if err := h.service.Update(ctx, addressModel); err != nil {
 		if ve, ok := err.(*validators.ValidationError); ok {
 			h.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
@@ -285,7 +277,6 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{"id": id})
 
-	// converter de volta para DTO na resposta
 	updatedDTO := dtoAddress.ToAddressDTO(addressModel)
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{

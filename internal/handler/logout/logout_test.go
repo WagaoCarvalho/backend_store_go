@@ -15,7 +15,7 @@ import (
 )
 
 func TestLogoutHandler_Logout(t *testing.T) {
-	// Configuração do logger
+
 	baseLogger := logrus.New()
 	baseLogger.Out = &strings.Builder{}
 	logAdapter := logger.NewLoggerAdapter(baseLogger)

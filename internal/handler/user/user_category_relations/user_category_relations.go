@@ -27,7 +27,7 @@ func NewUserCategoryRelationHandler(service service.UserCategoryRelationServices
 }
 
 func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserCategoryRelationHandler - Create] "
+	const ref = "[UserCategoryRelationHandler - Create] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]interface{}{})
@@ -89,7 +89,7 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *UserCategoryRelationHandler) GetAllRelationsByUserID(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserCategoryRelationHandler - GetAllRelationsByUserID] "
+	const ref = "[UserCategoryRelationHandler - GetAllRelationsByUserID] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]interface{}{})
@@ -125,7 +125,7 @@ func (h *UserCategoryRelationHandler) GetAllRelationsByUserID(w http.ResponseWri
 }
 
 func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserCategoryRelationHandler - HasUserCategoryRelation] "
+	const ref = "[UserCategoryRelationHandler - HasUserCategoryRelation] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogVerificationInit, map[string]interface{}{})
@@ -174,7 +174,7 @@ func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWri
 }
 
 func (h *UserCategoryRelationHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserCategoryRelationHandler - Delete] "
+	const ref = "[UserCategoryRelationHandler - Delete] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]interface{}{})
@@ -209,7 +209,7 @@ func (h *UserCategoryRelationHandler) Delete(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *UserCategoryRelationHandler) DeleteAll(w http.ResponseWriter, r *http.Request) {
-	ref := "[UserCategoryRelationHandler - DeleteAll] "
+	const ref = "[UserCategoryRelationHandler - DeleteAll] "
 	ctx := r.Context()
 
 	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]interface{}{})
