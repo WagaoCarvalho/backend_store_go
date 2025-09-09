@@ -269,6 +269,15 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
+			h.logger.Warn(ctx, ref+"Invalid Foreign Key", map[string]any{
+				"erro": err.Error(),
+				"id":   id,
+			})
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
 		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{"id": id})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return

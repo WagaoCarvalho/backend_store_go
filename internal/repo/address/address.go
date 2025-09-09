@@ -35,10 +35,10 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 	const query = `
 		INSERT INTO addresses (
 			user_id, client_id, supplier_id,
-			street, city, state, country, postal_code,
-			created_at, updated_at
+			street, street_number, complement, city, state, country, postal_code,
+			is_active, created_at, updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
 		RETURNING id, created_at, updated_at;
 	`
 
@@ -47,10 +47,13 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 		address.ClientID,
 		address.SupplierID,
 		address.Street,
+		address.StreetNumber,
+		address.Complement,
 		address.City,
 		address.State,
 		address.Country,
 		address.PostalCode,
+		address.IsActive,
 	).Scan(&address.ID, &address.CreatedAt, &address.UpdatedAt)
 
 	if err != nil {
@@ -67,10 +70,10 @@ func (r *addressRepository) CreateTx(ctx context.Context, tx pgx.Tx, address *mo
 	const query = `
 		INSERT INTO addresses (
 			user_id, client_id, supplier_id,
-			street, city, state, country, postal_code,
-			created_at, updated_at
+			street, street_number, complement, city, state, country, postal_code,
+			is_active, created_at, updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
 		RETURNING id, created_at, updated_at;
 	`
 
@@ -79,10 +82,13 @@ func (r *addressRepository) CreateTx(ctx context.Context, tx pgx.Tx, address *mo
 		address.ClientID,
 		address.SupplierID,
 		address.Street,
+		address.StreetNumber,
+		address.Complement,
 		address.City,
 		address.State,
 		address.Country,
 		address.PostalCode,
+		address.IsActive,
 	).Scan(&address.ID, &address.CreatedAt, &address.UpdatedAt)
 
 	if err != nil {
@@ -99,8 +105,8 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
-			street, city, state, country, postal_code,
-			created_at, updated_at
+			street, street_number, complement, city, state, country, postal_code,
+			is_active, created_at, updated_at
 		FROM addresses
 		WHERE id = $1;
 	`
@@ -112,10 +118,13 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 		&address.ClientID,
 		&address.SupplierID,
 		&address.Street,
+		&address.StreetNumber,
+		&address.Complement,
 		&address.City,
 		&address.State,
 		&address.Country,
 		&address.PostalCode,
+		&address.IsActive,
 		&address.CreatedAt,
 		&address.UpdatedAt,
 	)
@@ -134,8 +143,8 @@ func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
-			street, city, state, country, postal_code,
-			created_at, updated_at
+			street, street_number, complement, city, state, country, postal_code,
+			is_active, created_at, updated_at
 		FROM addresses
 		WHERE user_id = $1;
 	`
@@ -155,10 +164,13 @@ func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 			&address.ClientID,
 			&address.SupplierID,
 			&address.Street,
+			&address.StreetNumber,
+			&address.Complement,
 			&address.City,
 			&address.State,
 			&address.Country,
 			&address.PostalCode,
+			&address.IsActive,
 			&address.CreatedAt,
 			&address.UpdatedAt,
 		); err != nil {
@@ -174,8 +186,8 @@ func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) (
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
-			street, city, state, country, postal_code,
-			created_at, updated_at
+			street, street_number, complement, city, state, country, postal_code,
+			is_active, created_at, updated_at
 		FROM addresses
 		WHERE client_id = $1;
 	`
@@ -195,10 +207,13 @@ func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) (
 			&address.ClientID,
 			&address.SupplierID,
 			&address.Street,
+			&address.StreetNumber,
+			&address.Complement,
 			&address.City,
 			&address.State,
 			&address.Country,
 			&address.PostalCode,
+			&address.IsActive,
 			&address.CreatedAt,
 			&address.UpdatedAt,
 		); err != nil {
@@ -214,8 +229,8 @@ func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int6
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
-			street, city, state, country, postal_code,
-			created_at, updated_at
+			street, street_number, complement, city, state, country, postal_code,
+			is_active, created_at, updated_at
 		FROM addresses
 		WHERE supplier_id = $1;
 	`
@@ -235,10 +250,13 @@ func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int6
 			&address.ClientID,
 			&address.SupplierID,
 			&address.Street,
+			&address.StreetNumber,
+			&address.Complement,
 			&address.City,
 			&address.State,
 			&address.Country,
 			&address.PostalCode,
+			&address.IsActive,
 			&address.CreatedAt,
 			&address.UpdatedAt,
 		); err != nil {
@@ -254,16 +272,19 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 	const query = `
 		UPDATE addresses
 		SET 
-			user_id     = $1,
-			client_id   = $2,
-			supplier_id = $3,
-			street      = $4,
-			city        = $5,
-			state       = $6,
-			country     = $7,
-			postal_code = $8,
-			updated_at  = NOW()
-		WHERE id = $9
+			user_id       = $1,
+			client_id     = $2,
+			supplier_id   = $3,
+			street        = $4,
+			street_number = $5,
+			complement    = $6,
+			city          = $7,
+			state         = $8,
+			country       = $9,
+			postal_code   = $10,
+			is_active     = $11,
+			updated_at    = NOW()
+		WHERE id = $12
 		RETURNING updated_at;
 	`
 
@@ -272,10 +293,13 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 		address.ClientID,
 		address.SupplierID,
 		address.Street,
+		address.StreetNumber,
+		address.Complement,
 		address.City,
 		address.State,
 		address.Country,
 		address.PostalCode,
+		address.IsActive,
 		address.ID,
 	).Scan(&address.UpdatedAt)
 
@@ -283,11 +307,9 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 		if errors.Is(err, pgx.ErrNoRows) {
 			return errMsg.ErrNotFound
 		}
-
 		if errMsgPg.IsForeignKeyViolation(err) {
 			return errMsg.ErrInvalidForeignKey
 		}
-
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"strings"
 	"time"
 
 	valAddress "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/address"
@@ -9,17 +8,20 @@ import (
 )
 
 type Address struct {
-	ID         int64     `json:"id"`
-	UserID     *int64    `json:"user_id,omitempty"`
-	ClientID   *int64    `json:"client_id,omitempty"`
-	SupplierID *int64    `json:"supplier_id,omitempty"`
-	Street     string    `json:"street"`
-	City       string    `json:"city"`
-	State      string    `json:"state"`
-	Country    string    `json:"country"`
-	PostalCode string    `json:"postal_code"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	ID           int64     `json:"-"`
+	UserID       *int64    `json:"-"`
+	ClientID     *int64    `json:"-"`
+	SupplierID   *int64    `json:"-"`
+	Street       string    `json:"-"`
+	StreetNumber string    `json:"-"`
+	Complement   string    `json:"-"`
+	City         string    `json:"-"`
+	State        string    `json:"-"`
+	Country      string    `json:"-"`
+	PostalCode   string    `json:"-"`
+	IsActive     bool      `json:"-"`
+	CreatedAt    time.Time `json:"-"`
+	UpdatedAt    time.Time `json:"-"`
 }
 
 func (a *Address) Validate() error {
@@ -28,7 +30,7 @@ func (a *Address) Validate() error {
 	// --- Associação ---
 	if !validators.ValidateSingleNonNil(a.UserID, a.ClientID, a.SupplierID) {
 		errs = append(errs, validators.ValidationError{
-			Field:   "UserID/ClientID/SupplierID",
+			Field:   "user_id/client_id/supplier_id",
 			Message: validators.MsgInvalidAssociation,
 		})
 	}
@@ -43,6 +45,16 @@ func (a *Address) Validate() error {
 		if len(a.Street) > 100 {
 			errs = append(errs, validators.ValidationError{Field: "street", Message: validators.MsgMax100})
 		}
+	}
+
+	// --- StreetNumber ---
+	if len(a.StreetNumber) > 20 {
+		errs = append(errs, validators.ValidationError{Field: "street_number", Message: "street_number max 20 characters"})
+	}
+
+	// --- Complement ---
+	if len(a.Complement) > 255 {
+		errs = append(errs, validators.ValidationError{Field: "complement", Message: "complement max 255 characters"})
 	}
 
 	// --- City ---
@@ -62,7 +74,7 @@ func (a *Address) Validate() error {
 	// --- Country ---
 	if validators.IsBlank(a.Country) {
 		errs = append(errs, validators.ValidationError{Field: "country", Message: validators.MsgRequiredField})
-	} else if !strings.EqualFold(strings.TrimSpace(a.Country), "Brasil") {
+	} else if !validators.EqualsIgnoreCaseAndTrim(a.Country, "Brasil") {
 		errs = append(errs, validators.ValidationError{Field: "country", Message: validators.MsgInvalidCountry})
 	}
 

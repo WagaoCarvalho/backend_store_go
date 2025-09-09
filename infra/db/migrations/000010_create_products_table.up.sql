@@ -20,6 +20,3 @@ CREATE TABLE IF NOT EXISTS products (
 
 CREATE INDEX idx_products_product_name ON products (product_name);
 CREATE INDEX idx_products_manufacturer ON products (manufacturer);
-CREATE INDEX idx_products_cost_price ON products (cost_price);
-CREATE INDEX idx_products_sale_price ON products (sale_price);
-CREATE INDEX idx_products_stock_quantity ON products (stock_quantity);

@@ -32,6 +32,10 @@ func IsBlank(s string) bool {
 	return strings.TrimSpace(s) == ""
 }
 
+func EqualsIgnoreCaseAndTrim(a, b string) bool {
+	return strings.EqualFold(strings.TrimSpace(a), strings.TrimSpace(b))
+}
+
 func ValidateSingleNonNil(fields ...*int64) bool {
 	count := 0
 	for _, f := range fields {
