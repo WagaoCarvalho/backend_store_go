@@ -24,7 +24,6 @@ import (
 )
 
 func TestProductHandler_Create(t *testing.T) {
-
 	log := logrus.New()
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
@@ -41,10 +40,12 @@ func TestProductHandler_Create(t *testing.T) {
 			SalePrice:     15.0,
 			StockQuantity: 100,
 		}
+
 		expected := *input
 		expected.ID = 1
 
-		mockService.On("Create", mock.Anything, input).Return(&expected, nil)
+		mockService.On("Create", mock.Anything, mock.AnythingOfType("*models.Product")).
+			Return(&expected, nil)
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPost, "/products", bytes.NewBuffer(body))
@@ -96,7 +97,8 @@ func TestProductHandler_Create(t *testing.T) {
 			StockQuantity: 10,
 		}
 
-		mockService.On("Create", mock.Anything, input).Return((*models.Product)(nil), errMsg.ErrInvalidForeignKey)
+		mockService.On("Create", mock.Anything, mock.AnythingOfType("*models.Product")).
+			Return(nil, errMsg.ErrInvalidForeignKey)
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPost, "/products", bytes.NewBuffer(body))
@@ -125,7 +127,8 @@ func TestProductHandler_Create(t *testing.T) {
 			StockQuantity: 5,
 		}
 
-		mockService.On("Create", mock.Anything, input).Return((*models.Product)(nil), errors.New("falha interna"))
+		mockService.On("Create", mock.Anything, mock.AnythingOfType("*models.Product")).
+			Return(nil, errors.New("falha interna"))
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPost, "/products", bytes.NewBuffer(body))
@@ -829,7 +832,8 @@ func TestProductHandler_Update(t *testing.T) {
 		expected := *input
 		expected.ID = 1
 
-		mockService.On("Update", mock.Anything, &expected).Return(&expected, nil)
+		mockService.On("Update", mock.Anything, mock.AnythingOfType("*models.Product")).
+			Return(&expected, nil)
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPut, "/products/1", bytes.NewBuffer(body))
@@ -902,10 +906,8 @@ func TestProductHandler_Update(t *testing.T) {
 			StockQuantity: 30,
 		}
 
-		expected := *input
-		expected.ID = 1
-
-		mockService.On("Update", mock.Anything, &expected).Return(nil, errors.New("erro interno"))
+		mockService.On("Update", mock.Anything, mock.AnythingOfType("*models.Product")).
+			Return(nil, errors.New("erro interno"))
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPut, "/products/1", bytes.NewBuffer(body))

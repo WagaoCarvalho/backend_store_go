@@ -56,10 +56,11 @@ func TestProduct_Validate(t *testing.T) {
 		},
 		{
 			name:     "código de barras inválido",
-			input:    Product{ProductName: "Produto", Manufacturer: "Fab", CostPrice: 10, SalePrice: 20, Barcode: "abc123", SupplierID: &validSupplierID, Status: true},
+			input:    Product{ProductName: "Produto", Manufacturer: "Fab", CostPrice: 10, SalePrice: 20, Barcode: func() *string { s := "abc123"; return &s }(), SupplierID: &validSupplierID, Status: true},
 			wantErr:  true,
 			errField: "barcode",
 		},
+
 		{
 			name:     "fornecedor ausente",
 			input:    Product{ProductName: "Produto", Manufacturer: "Fab", CostPrice: 10, SalePrice: 20, Status: true},
@@ -91,6 +92,31 @@ func TestProduct_Validate(t *testing.T) {
 			errField: "max_discount_percent",
 		},
 		{
+			name:     "estoque mínimo negativo",
+			input:    Product{ProductName: "Produto", Manufacturer: "Fab", CostPrice: 10, SalePrice: 20, SupplierID: &validSupplierID, Status: true, MinStock: -1},
+			wantErr:  true,
+			errField: "min_stock",
+		},
+		{
+			name: "estoque máximo menor que mínimo",
+			input: func() Product {
+				min := 10
+				max := 5
+				return Product{
+					ProductName:  "Produto",
+					Manufacturer: "Fab",
+					CostPrice:    10,
+					SalePrice:    20,
+					SupplierID:   &validSupplierID,
+					Status:       true,
+					MinStock:     min,
+					MaxStock:     &max,
+				}
+			}(),
+			wantErr:  true,
+			errField: "max_stock",
+		},
+		{
 			name: "produto válido",
 			input: Product{
 				ProductName:        "Produto",
@@ -98,7 +124,9 @@ func TestProduct_Validate(t *testing.T) {
 				CostPrice:          10,
 				SalePrice:          20,
 				StockQuantity:      5,
-				Barcode:            "12345678",
+				MinStock:           1,
+				MaxStock:           func() *int { v := 10; return &v }(),
+				Barcode:            func() *string { s := "12345678"; return &s }(),
 				SupplierID:         &validSupplierID,
 				Status:             true,
 				AllowDiscount:      true,

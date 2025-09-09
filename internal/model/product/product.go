@@ -8,22 +8,24 @@ import (
 )
 
 type Product struct {
-	ID                 int64     `json:"id"`
-	SupplierID         *int64    `json:"supplier_id,omitempty"`
-	ProductName        string    `json:"product_name"`
-	Manufacturer       string    `json:"manufacturer"`
-	Description        string    `json:"product_description,omitempty"`
-	CostPrice          float64   `json:"cost_price"`
-	SalePrice          float64   `json:"sale_price"`
-	StockQuantity      int       `json:"stock_quantity"`
-	Barcode            string    `json:"barcode,omitempty"`
-	Status             bool      `json:"status"`
-	Version            int       `json:"version"`
-	AllowDiscount      bool      `json:"allow_discount"`
-	MinDiscountPercent float64   `json:"min_discount_percent"`
-	MaxDiscountPercent float64   `json:"max_discount_percent"`
-	CreatedAt          time.Time `json:"created_at"`
-	UpdatedAt          time.Time `json:"updated_at"`
+	ID                 int64
+	SupplierID         *int64
+	ProductName        string
+	Manufacturer       string
+	Description        string
+	CostPrice          float64
+	SalePrice          float64
+	StockQuantity      int
+	MinStock           int
+	MaxStock           *int
+	Barcode            *string
+	Status             bool
+	Version            int
+	AllowDiscount      bool
+	MinDiscountPercent float64
+	MaxDiscountPercent float64
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
 }
 
 var barcodeRegex = regexp.MustCompile(`^[0-9]{8,14}$`)
@@ -74,9 +76,22 @@ func (p *Product) Validate() error {
 			Message: validators.MsgStockNegative,
 		})
 	}
+	if p.MinStock < 0 {
+		errs = append(errs, validators.ValidationError{
+			Field:   "min_stock",
+			Message: "estoque mínimo não pode ser negativo",
+		})
+	}
+	if p.MaxStock != nil && *p.MaxStock < p.MinStock {
+		errs = append(errs, validators.ValidationError{
+			Field:   "max_stock",
+			Message: "estoque máximo não pode ser menor que o mínimo",
+		})
+	}
 
 	// --- Código de barras ---
-	if !validators.IsBlank(p.Barcode) && !barcodeRegex.MatchString(p.Barcode) {
+	// --- Código de barras ---
+	if p.Barcode != nil && !validators.IsBlank(*p.Barcode) && !barcodeRegex.MatchString(*p.Barcode) {
 		errs = append(errs, validators.ValidationError{
 			Field:   "barcode",
 			Message: "código de barras inválido (esperado entre 8 e 14 dígitos numéricos)",

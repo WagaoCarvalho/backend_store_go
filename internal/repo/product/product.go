@@ -133,10 +133,24 @@ func (r *productRepository) GetAll(ctx context.Context, limit, offset int) ([]*m
 
 func (r *productRepository) GetByID(ctx context.Context, id int64) (*models.Product, error) {
 	const query = `
-	SELECT id, supplier_id, product_name, manufacturer, product_description,
-	       cost_price, sale_price, stock_quantity, barcode,
-	       status, allow_discount, max_discount_percent,
-	       created_at, updated_at
+	SELECT id,
+	       supplier_id,
+	       product_name,
+	       manufacturer,
+	       product_description,
+	       cost_price,
+	       sale_price,
+	       stock_quantity,
+	       min_stock,
+	       max_stock,
+	       barcode,
+	       status,
+	       version,
+	       allow_discount,
+	       min_discount_percent,
+	       max_discount_percent,
+	       created_at,
+	       updated_at
 	FROM products
 	WHERE id = $1;
 	`
@@ -151,9 +165,13 @@ func (r *productRepository) GetByID(ctx context.Context, id int64) (*models.Prod
 		&p.CostPrice,
 		&p.SalePrice,
 		&p.StockQuantity,
+		&p.MinStock,
+		&p.MaxStock,
 		&p.Barcode,
 		&p.Status,
+		&p.Version,
 		&p.AllowDiscount,
+		&p.MinDiscountPercent,
 		&p.MaxDiscountPercent,
 		&p.CreatedAt,
 		&p.UpdatedAt,
@@ -171,10 +189,24 @@ func (r *productRepository) GetByID(ctx context.Context, id int64) (*models.Prod
 
 func (r *productRepository) GetByName(ctx context.Context, name string) ([]*models.Product, error) {
 	const query = `
-	SELECT id, supplier_id, product_name, manufacturer, product_description,
-	       cost_price, sale_price, stock_quantity, barcode,
-	       status, allow_discount, max_discount_percent,
-	       created_at, updated_at
+	SELECT id,
+	       supplier_id,
+	       product_name,
+	       manufacturer,
+	       product_description,
+	       cost_price,
+	       sale_price,
+	       stock_quantity,
+	       min_stock,
+	       max_stock,
+	       barcode,
+	       status,
+	       version,
+	       allow_discount,
+	       min_discount_percent,
+	       max_discount_percent,
+	       created_at,
+	       updated_at
 	FROM products
 	WHERE product_name ILIKE '%' || $1 || '%'
 	ORDER BY product_name;
@@ -198,9 +230,13 @@ func (r *productRepository) GetByName(ctx context.Context, name string) ([]*mode
 			&p.CostPrice,
 			&p.SalePrice,
 			&p.StockQuantity,
+			&p.MinStock,
+			&p.MaxStock,
 			&p.Barcode,
 			&p.Status,
+			&p.Version,
 			&p.AllowDiscount,
+			&p.MinDiscountPercent,
 			&p.MaxDiscountPercent,
 			&p.CreatedAt,
 			&p.UpdatedAt,
@@ -219,10 +255,24 @@ func (r *productRepository) GetByName(ctx context.Context, name string) ([]*mode
 
 func (r *productRepository) GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error) {
 	const query = `
-	SELECT id, supplier_id, product_name, manufacturer, product_description,
-	       cost_price, sale_price, stock_quantity, barcode,
-	       status, allow_discount, max_discount_percent,
-	       created_at, updated_at
+	SELECT id,
+	       supplier_id,
+	       product_name,
+	       manufacturer,
+	       product_description,
+	       cost_price,
+	       sale_price,
+	       stock_quantity,
+	       min_stock,
+	       max_stock,
+	       barcode,
+	       status,
+	       version,
+	       allow_discount,
+	       min_discount_percent,
+	       max_discount_percent,
+	       created_at,
+	       updated_at
 	FROM products
 	WHERE manufacturer ILIKE '%' || $1 || '%'
 	ORDER BY product_name;
@@ -246,9 +296,13 @@ func (r *productRepository) GetByManufacturer(ctx context.Context, manufacturer 
 			&p.CostPrice,
 			&p.SalePrice,
 			&p.StockQuantity,
+			&p.MinStock,
+			&p.MaxStock,
 			&p.Barcode,
 			&p.Status,
+			&p.Version,
 			&p.AllowDiscount,
+			&p.MinDiscountPercent,
 			&p.MaxDiscountPercent,
 			&p.CreatedAt,
 			&p.UpdatedAt,
@@ -333,13 +387,16 @@ func (r *productRepository) Update(ctx context.Context, product *models.Product)
 			cost_price = $5,
 			sale_price = $6,
 			stock_quantity = $7,
-			barcode = $8,
-			status = $9,
-			allow_discount = $10,
-			max_discount_percent = $11,
-			updated_at = NOW(),
-			version = version + 1
-		WHERE id = $12 AND version = $13
+			min_stock = $8,
+			max_stock = $9,
+			barcode = $10,
+			status = $11,
+			version = version + 1,
+			allow_discount = $12,
+			min_discount_percent = $13,
+			max_discount_percent = $14,
+			updated_at = NOW()
+		WHERE id = $15 AND version = $16
 		RETURNING created_at, updated_at, version;
 	`
 
@@ -351,9 +408,12 @@ func (r *productRepository) Update(ctx context.Context, product *models.Product)
 		product.CostPrice,
 		product.SalePrice,
 		product.StockQuantity,
+		product.MinStock,
+		product.MaxStock,
 		product.Barcode,
 		product.Status,
 		product.AllowDiscount,
+		product.MinDiscountPercent,
 		product.MaxDiscountPercent,
 		product.ID,
 		product.Version,

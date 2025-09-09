@@ -8,20 +8,20 @@ import (
 )
 
 type Address struct {
-	ID           int64     `json:"-"`
-	UserID       *int64    `json:"-"`
-	ClientID     *int64    `json:"-"`
-	SupplierID   *int64    `json:"-"`
-	Street       string    `json:"-"`
-	StreetNumber string    `json:"-"`
-	Complement   string    `json:"-"`
-	City         string    `json:"-"`
-	State        string    `json:"-"`
-	Country      string    `json:"-"`
-	PostalCode   string    `json:"-"`
-	IsActive     bool      `json:"-"`
-	CreatedAt    time.Time `json:"-"`
-	UpdatedAt    time.Time `json:"-"`
+	ID           int64
+	UserID       *int64
+	ClientID     *int64
+	SupplierID   *int64
+	Street       string
+	StreetNumber string
+	Complement   string
+	City         string
+	State        string
+	Country      string
+	PostalCode   string
+	IsActive     bool
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 func (a *Address) Validate() error {
