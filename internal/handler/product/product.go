@@ -408,6 +408,10 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	updatedProduct, err := h.service.Update(ctx, product)
 	if err != nil {
+		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
 		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"product_id": id,
 		})

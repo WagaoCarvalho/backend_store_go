@@ -13,8 +13,8 @@ type ProductServiceMock struct {
 
 func (m *ProductServiceMock) Create(ctx context.Context, product *models.Product) (*models.Product, error) {
 	args := m.Called(ctx, product)
-	if prod, ok := args.Get(0).(*models.Product); ok {
-		return prod, args.Error(1)
+	if args.Get(0) != nil {
+		return args.Get(0).(*models.Product), args.Error(1)
 	}
 	return nil, args.Error(1)
 }

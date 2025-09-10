@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	mockProduct "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/product"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/product"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
@@ -24,28 +26,36 @@ import (
 )
 
 func TestProductHandler_Create(t *testing.T) {
-	log := logrus.New()
-	log.Out = &bytes.Buffer{}
-	logAdapter := logger.NewLoggerAdapter(log)
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
-	t.Run("Success", func(t *testing.T) {
+	t.Run("Sucesso - Criar Produto", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductServiceMock)
 		handler := NewProductHandler(mockService, logAdapter)
 
-		input := &models.Product{
-			ProductName:   "Produto A",
+		input := dto.ProductDTO{
+			ProductName:   "Produto OK",
 			Manufacturer:  "Marca X",
 			CostPrice:     10.0,
 			SalePrice:     15.0,
-			StockQuantity: 100,
+			StockQuantity: 5,
 		}
 
-		expected := *input
-		expected.ID = 1
+		expectedModel := dto.ToProductModel(input)
+		expectedModel.ID = 123 // simula ID atribuído pelo banco
 
-		mockService.On("Create", mock.Anything, mock.AnythingOfType("*models.Product")).
-			Return(&expected, nil)
+		mockService.
+			On("Create", mock.Anything, mock.MatchedBy(func(m *models.Product) bool {
+				return m.ProductName == expectedModel.ProductName &&
+					m.Manufacturer == expectedModel.Manufacturer &&
+					m.CostPrice == expectedModel.CostPrice &&
+					m.SalePrice == expectedModel.SalePrice &&
+					m.StockQuantity == expectedModel.StockQuantity
+			})).
+			Return(expectedModel, nil).
+			Once()
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPost, "/products", bytes.NewBuffer(body))
@@ -59,15 +69,21 @@ func TestProductHandler_Create(t *testing.T) {
 
 		assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
-		var response map[string]interface{}
+		var response struct {
+			Status  int            `json:"status"`
+			Message string         `json:"message"`
+			Data    dto.ProductDTO `json:"data"`
+		}
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		assert.NoError(t, err)
-		assert.Equal(t, "Produto criado com sucesso", response["message"])
+		assert.Equal(t, "Produto criado com sucesso", response.Message)
+		assert.NotNil(t, response.Data.ID)
+		assert.Equal(t, expectedModel.ID, *response.Data.ID)
 
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("InvalidJSON", func(t *testing.T) {
+	t.Run("JSON inválido deve retornar 400", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductServiceMock)
 		handler := NewProductHandler(mockService, logAdapter)
@@ -89,16 +105,18 @@ func TestProductHandler_Create(t *testing.T) {
 		mockService := new(mockProduct.ProductServiceMock)
 		handler := NewProductHandler(mockService, logAdapter)
 
-		input := &models.Product{
+		input := dto.ProductDTO{
 			ProductName:   "Produto FK",
 			Manufacturer:  "Marca FK",
-			CostPrice:     10.0,
-			SalePrice:     15.0,
-			StockQuantity: 10,
+			CostPrice:     50.0,
+			SalePrice:     60.0,
+			StockQuantity: 20,
 		}
 
-		mockService.On("Create", mock.Anything, mock.AnythingOfType("*models.Product")).
-			Return(nil, errMsg.ErrInvalidForeignKey)
+		mockService.
+			On("Create", mock.Anything, mock.Anything).
+			Return((*models.Product)(nil), errMsg.ErrInvalidForeignKey).
+			Once()
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPost, "/products", bytes.NewBuffer(body))
@@ -114,21 +132,31 @@ func TestProductHandler_Create(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("ServiceError", func(t *testing.T) {
+	t.Run("Erro inesperado no service deve retornar 500", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductServiceMock)
 		handler := NewProductHandler(mockService, logAdapter)
 
-		input := &models.Product{
+		input := dto.ProductDTO{
 			ProductName:   "Produto Erro",
-			Manufacturer:  "Marca Erro",
+			Manufacturer:  "Marca",
 			CostPrice:     20.0,
-			SalePrice:     25.0,
-			StockQuantity: 5,
+			SalePrice:     30.0,
+			StockQuantity: 8,
 		}
 
-		mockService.On("Create", mock.Anything, mock.AnythingOfType("*models.Product")).
-			Return(nil, errors.New("falha interna"))
+		expectedModel := dto.ToProductModel(input)
+
+		mockService.
+			On("Create", mock.Anything, mock.MatchedBy(func(m *models.Product) bool {
+				return m.ProductName == expectedModel.ProductName &&
+					m.Manufacturer == expectedModel.Manufacturer &&
+					m.CostPrice == expectedModel.CostPrice &&
+					m.SalePrice == expectedModel.SalePrice &&
+					m.StockQuantity == expectedModel.StockQuantity
+			})).
+			Return((*models.Product)(nil), errors.New("erro inesperado")).
+			Once()
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPost, "/products", bytes.NewBuffer(body))
@@ -816,28 +844,111 @@ func TestProductHandler_Update(t *testing.T) {
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
 
-	t.Run("Success", func(t *testing.T) {
+	mockService := new(mockProduct.ProductServiceMock)
+	handler := NewProductHandler(mockService, logAdapter)
+
+	t.Run("ID inválido deve retornar 400", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPut, "/products/abc", bytes.NewBufferString(`{}`))
+		req = mux.SetURLVars(req, map[string]string{"id": "abc"}) // força id inválido
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("JSON inválido deve retornar 400", func(t *testing.T) {
+		t.Parallel()
+		req := httptest.NewRequest(http.MethodPut, "/products/123", bytes.NewBufferString(`{invalid-json}`))
+		req = mux.SetURLVars(req, map[string]string{"id": "123"})
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("Erro no service deve retornar 500", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductServiceMock)
 		handler := NewProductHandler(mockService, logAdapter)
 
-		input := &models.Product{
+		input := dto.ProductDTO{ProductName: "Produto Erro"}
+		body, _ := json.Marshal(input)
+		req := httptest.NewRequest(http.MethodPut, "/products/123", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		req = mux.SetURLVars(req, map[string]string{"id": "123"})
+		w := httptest.NewRecorder()
+
+		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, errors.New("erro genérico"))
+
+		handler.Update(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("ForeignKey inválida deve retornar 400", func(t *testing.T) {
+		t.Parallel()
+		mockService := new(mockProduct.ProductServiceMock)
+		handler := NewProductHandler(mockService, logAdapter)
+
+		input := dto.ProductDTO{ProductName: "Produto FK"}
+		body, _ := json.Marshal(input)
+		req := httptest.NewRequest(http.MethodPut, "/products/123", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		req = mux.SetURLVars(req, map[string]string{"id": "123"})
+		w := httptest.NewRecorder()
+
+		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, errMsg.ErrInvalidForeignKey)
+
+		handler.Update(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Sucesso - Atualizar Produto", func(t *testing.T) {
+		t.Parallel()
+		mockService := new(mockProduct.ProductServiceMock)
+		handler := NewProductHandler(mockService, logAdapter)
+
+		id := int64(101)
+		input := dto.ProductDTO{
 			ProductName:   "Produto Atualizado",
-			Manufacturer:  "Marca Nova",
-			CostPrice:     20.0,
-			SalePrice:     30.0,
-			StockQuantity: 50,
+			Manufacturer:  "Marca Y",
+			CostPrice:     25.0,
+			SalePrice:     40.0,
+			StockQuantity: 12,
 		}
 
-		expected := *input
-		expected.ID = 1
+		expectedModel := dto.ToProductModel(input)
+		expectedModel.ID = id
 
-		mockService.On("Update", mock.Anything, mock.AnythingOfType("*models.Product")).
-			Return(&expected, nil)
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(m *models.Product) bool {
+			return m.ID == id &&
+				m.ProductName == input.ProductName &&
+				m.Manufacturer == input.Manufacturer &&
+				m.CostPrice == input.CostPrice &&
+				m.SalePrice == input.SalePrice &&
+				m.StockQuantity == input.StockQuantity
+		})).Return(expectedModel, nil).Once()
 
 		body, _ := json.Marshal(input)
-		req := httptest.NewRequest(http.MethodPut, "/products/1", bytes.NewBuffer(body))
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/products/%d", id), bytes.NewBuffer(body))
+		req = mux.SetURLVars(req, map[string]string{"id": strconv.FormatInt(id, 10)})
 		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 
@@ -848,87 +959,26 @@ func TestProductHandler_Update(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-		var response map[string]interface{}
-		err := json.NewDecoder(resp.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, "Produto atualizado com sucesso", response["message"])
-
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("InvalidID", func(t *testing.T) {
-		t.Parallel()
-		mockService := new(mockProduct.ProductServiceMock)
-		handler := NewProductHandler(mockService, logAdapter)
-
-		body := `{"product_name":"Produto"}`
-		req := httptest.NewRequest(http.MethodPut, "/products/abc", bytes.NewBufferString(body))
-		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		handler.Update(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	})
-
-	t.Run("InvalidBody", func(t *testing.T) {
-		t.Parallel()
-		mockService := new(mockProduct.ProductServiceMock)
-		handler := NewProductHandler(mockService, logAdapter)
-
-		req := httptest.NewRequest(http.MethodPut, "/products/1", bytes.NewBufferString("invalid-json"))
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		handler.Update(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	})
-
-	t.Run("ServiceError", func(t *testing.T) {
-		t.Parallel()
-		mockService := new(mockProduct.ProductServiceMock)
-		handler := NewProductHandler(mockService, logAdapter)
-
-		input := &models.Product{
-			ProductName:   "Produto X",
-			Manufacturer:  "Marca X",
-			CostPrice:     12,
-			SalePrice:     18,
-			StockQuantity: 30,
+		var response struct {
+			Status  int            `json:"status"`
+			Message string         `json:"message"`
+			Data    dto.ProductDTO `json:"data"`
 		}
 
-		mockService.On("Update", mock.Anything, mock.AnythingOfType("*models.Product")).
-			Return(nil, errors.New("erro interno"))
-
-		body, _ := json.Marshal(input)
-		req := httptest.NewRequest(http.MethodPut, "/products/1", bytes.NewBuffer(body))
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		handler.Update(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-
-		var response map[string]interface{}
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, response["message"])
+		assert.Equal(t, "Produto atualizado com sucesso", response.Message)
+		assert.NotNil(t, response.Data.ID)
+		assert.Equal(t, expectedModel.ID, *response.Data.ID)
+		assert.Equal(t, input.ProductName, response.Data.ProductName)
+		assert.Equal(t, input.Manufacturer, response.Data.Manufacturer)
+		assert.Equal(t, input.CostPrice, response.Data.CostPrice)
+		assert.Equal(t, input.SalePrice, response.Data.SalePrice)
+		assert.Equal(t, input.StockQuantity, response.Data.StockQuantity)
 
 		mockService.AssertExpectations(t)
 	})
+
 }
 
 func TestProductHandler_Delete(t *testing.T) {

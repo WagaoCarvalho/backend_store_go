@@ -26,7 +26,9 @@ func TestSupplierCategoryRelationService_Create(t *testing.T) {
 		expected := &models.SupplierCategoryRelations{SupplierID: supplierID, CategoryID: categoryID}
 
 		mockRepo.On("HasRelation", ctx, supplierID, categoryID).Return(false, nil)
-		mockRepo.On("Create", ctx, mock.AnythingOfType("*models.SupplierCategoryRelations")).Return(expected, nil)
+		mockRepo.On("Create", ctx, mock.MatchedBy(func(r *models.SupplierCategoryRelations) bool {
+			return r.SupplierID == supplierID && r.CategoryID == categoryID
+		})).Return(expected, nil)
 
 		result, created, err := svc.Create(ctx, supplierID, categoryID)
 
@@ -101,7 +103,9 @@ func TestSupplierCategoryRelationService_Create(t *testing.T) {
 		categoryID := int64(2)
 
 		mockRepo.On("HasRelation", ctx, supplierID, categoryID).Return(false, nil)
-		mockRepo.On("Create", ctx, mock.Anything).Return(nil, errors.New("db error"))
+		mockRepo.On("Create", ctx, mock.MatchedBy(func(r *models.SupplierCategoryRelations) bool {
+			return r.SupplierID == supplierID && r.CategoryID == categoryID
+		})).Return(nil, errors.New("db error"))
 
 		_, created, err := svc.Create(ctx, supplierID, categoryID)
 		assert.ErrorIs(t, err, err_msg.ErrCreate)
