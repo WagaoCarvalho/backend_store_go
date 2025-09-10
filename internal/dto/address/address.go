@@ -1,6 +1,9 @@
 package dto
 
-import models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+import (
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
+)
 
 type AddressDTO struct {
 	ID           *int64 `json:"id,omitempty"`
@@ -19,7 +22,7 @@ type AddressDTO struct {
 
 func ToAddressModel(dto AddressDTO) *models.Address {
 	model := &models.Address{
-		ID:           getOrDefault(dto.ID),
+		ID:           utils.NilToZero(dto.ID),
 		UserID:       dto.UserID,
 		ClientID:     dto.ClientID,
 		SupplierID:   dto.SupplierID,
@@ -53,11 +56,4 @@ func ToAddressDTO(model *models.Address) AddressDTO {
 		PostalCode:   model.PostalCode,
 		IsActive:     &model.IsActive,
 	}
-}
-
-func getOrDefault(id *int64) int64 {
-	if id == nil {
-		return 0
-	}
-	return *id
 }

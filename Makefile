@@ -13,7 +13,8 @@ include infra/make/migrate_suppliers.mk
 include infra/make/migrate_addresses.mk
 include infra/make/migrate_contacts.mk
 include infra/make/migrate_products.mk
-#include make/migrate_services_antt.mk
+include infra/make/migrate_sale.mk
+include infra/make/migrate_sale_items.mk
 
 .PHONY: print-env
 print-env:

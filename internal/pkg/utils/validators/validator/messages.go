@@ -3,6 +3,7 @@ package validators
 const (
 	MsgRequiredField      = "campo obrigatório"
 	MsgMin3               = "mínimo de 3 caracteres"
+	MsgMax50              = "máximo de 50 caracteres"
 	MsgMax100             = "máximo de 100 caracteres"
 	MsgMax255             = "máximo de 255 caracteres"
 	MsgMin2               = "mínimo de 2 caracteres"

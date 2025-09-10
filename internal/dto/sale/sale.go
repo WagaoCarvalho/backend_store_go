@@ -1,0 +1,90 @@
+package dto
+
+import (
+	"time"
+
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
+)
+
+type SaleDTO struct {
+	ID            *int64  `json:"id,omitempty"`
+	ClientID      *int64  `json:"client_id,omitempty"`
+	UserID        int64   `json:"user_id"`
+	SaleDate      *string `json:"sale_date,omitempty"` // retornamos em string ISO 8601
+	TotalAmount   float64 `json:"total_amount"`
+	TotalDiscount float64 `json:"total_discount,omitempty"`
+	TotalTax      float64 `json:"total_tax,omitempty"`
+	PaymentType   string  `json:"payment_type"`
+	Status        string  `json:"status,omitempty"`
+	Notes         string  `json:"notes,omitempty"`
+	Version       int     `json:"version,omitempty"`
+	CreatedAt     *string `json:"created_at,omitempty"`
+	UpdatedAt     *string `json:"updated_at,omitempty"`
+}
+
+func ToSaleModel(dto SaleDTO) *models.Sale {
+	model := &models.Sale{
+		ID:            getOrDefault(dto.ID),
+		ClientID:      dto.ClientID,
+		UserID:        dto.UserID,
+		TotalAmount:   dto.TotalAmount,
+		TotalDiscount: dto.TotalDiscount,
+		TotalTax:      dto.TotalTax,
+		PaymentType:   dto.PaymentType,
+		Status:        dto.Status,
+		Notes:         dto.Notes,
+		Version:       dto.Version,
+	}
+
+	// SaleDate
+	if dto.SaleDate != nil {
+		if t, err := time.Parse(time.RFC3339, *dto.SaleDate); err == nil {
+			model.SaleDate = t
+		}
+	}
+
+	// CreatedAt
+	if dto.CreatedAt != nil {
+		if t, err := time.Parse(time.RFC3339, *dto.CreatedAt); err == nil {
+			model.CreatedAt = t
+		}
+	}
+
+	// UpdatedAt
+	if dto.UpdatedAt != nil {
+		if t, err := time.Parse(time.RFC3339, *dto.UpdatedAt); err == nil {
+			model.UpdatedAt = t
+		}
+	}
+
+	return model
+}
+
+func ToSaleDTO(model *models.Sale) SaleDTO {
+	saleDate := model.SaleDate.Format(time.RFC3339)
+	createdAt := model.CreatedAt.Format(time.RFC3339)
+	updatedAt := model.UpdatedAt.Format(time.RFC3339)
+
+	return SaleDTO{
+		ID:            &model.ID,
+		ClientID:      model.ClientID,
+		UserID:        model.UserID,
+		SaleDate:      &saleDate,
+		TotalAmount:   model.TotalAmount,
+		TotalDiscount: model.TotalDiscount,
+		TotalTax:      model.TotalTax,
+		PaymentType:   model.PaymentType,
+		Status:        model.Status,
+		Notes:         model.Notes,
+		Version:       model.Version,
+		CreatedAt:     &createdAt,
+		UpdatedAt:     &updatedAt,
+	}
+}
+
+func getOrDefault(id *int64) int64 {
+	if id == nil {
+		return 0
+	}
+	return *id
+}

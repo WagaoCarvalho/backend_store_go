@@ -1,4 +1,4 @@
-package models
+package model
 
 import (
 	valContact "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/contact"

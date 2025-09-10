@@ -1,10 +1,9 @@
-package models_test
+package model
 
 import (
 	"strings"
 	"testing"
 
-	modelsSupplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +13,7 @@ func TestSupplier_Validate(t *testing.T) {
 	validCNPJ := "12345678000199"
 
 	t.Run("Name em branco", func(t *testing.T) {
-		s := &modelsSupplier.Supplier{
+		s := &Supplier{
 			Name: "",
 			CPF:  &validCPF,
 		}
@@ -25,7 +24,7 @@ func TestSupplier_Validate(t *testing.T) {
 	})
 
 	t.Run("Valid supplier with CPF", func(t *testing.T) {
-		s := &modelsSupplier.Supplier{
+		s := &Supplier{
 			Name: validName,
 			CPF:  &validCPF,
 		}
@@ -34,7 +33,7 @@ func TestSupplier_Validate(t *testing.T) {
 	})
 
 	t.Run("Valid supplier with CNPJ", func(t *testing.T) {
-		s := &modelsSupplier.Supplier{
+		s := &Supplier{
 			Name: validName,
 			CNPJ: &validCNPJ,
 		}
@@ -44,7 +43,7 @@ func TestSupplier_Validate(t *testing.T) {
 
 	t.Run("Name too long", func(t *testing.T) {
 		longName := strings.Repeat("a", 101)
-		s := &modelsSupplier.Supplier{
+		s := &Supplier{
 			Name: longName,
 		}
 		err := s.Validate()
@@ -54,7 +53,7 @@ func TestSupplier_Validate(t *testing.T) {
 
 	t.Run("Invalid CPF", func(t *testing.T) {
 		invalidCPF := "123"
-		s := &modelsSupplier.Supplier{
+		s := &Supplier{
 			Name: validName,
 			CPF:  &invalidCPF,
 		}
@@ -65,7 +64,7 @@ func TestSupplier_Validate(t *testing.T) {
 
 	t.Run("Invalid CNPJ", func(t *testing.T) {
 		invalidCNPJ := "abc"
-		s := &modelsSupplier.Supplier{
+		s := &Supplier{
 			Name: validName,
 			CNPJ: &invalidCNPJ,
 		}
@@ -75,7 +74,7 @@ func TestSupplier_Validate(t *testing.T) {
 	})
 
 	t.Run("Both CPF and CNPJ filled", func(t *testing.T) {
-		s := &modelsSupplier.Supplier{
+		s := &Supplier{
 			Name: validName,
 			CPF:  &validCPF,
 			CNPJ: &validCNPJ,

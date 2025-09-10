@@ -1,9 +1,8 @@
-package models_test
+package model
 
 import (
 	"testing"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 
 	"github.com/stretchr/testify/assert"
@@ -11,7 +10,7 @@ import (
 
 func TestSupplierCategoryRelations_Validate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		rel := &models.SupplierCategoryRelations{
+		rel := &SupplierCategoryRelations{
 			SupplierID: 1,
 			CategoryID: 2,
 		}
@@ -20,7 +19,7 @@ func TestSupplierCategoryRelations_Validate(t *testing.T) {
 	})
 
 	t.Run("missing supplier ID", func(t *testing.T) {
-		rel := &models.SupplierCategoryRelations{
+		rel := &SupplierCategoryRelations{
 			SupplierID: 0,
 			CategoryID: 2,
 		}
@@ -32,7 +31,7 @@ func TestSupplierCategoryRelations_Validate(t *testing.T) {
 	})
 
 	t.Run("missing category ID", func(t *testing.T) {
-		rel := &models.SupplierCategoryRelations{
+		rel := &SupplierCategoryRelations{
 			SupplierID: 1,
 			CategoryID: 0,
 		}
