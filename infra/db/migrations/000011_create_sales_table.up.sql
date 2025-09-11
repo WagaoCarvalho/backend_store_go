@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS sales (
     sale_date TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     total_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 CHECK (total_amount >= 0),
     total_discount DECIMAL(12,2) DEFAULT 0.00 CHECK (total_discount >= 0),
-    total_tax DECIMAL(12,2) DEFAULT 0.00 CHECK (total_tax >= 0),
     payment_type VARCHAR(50) NOT NULL, -- Ex: 'cash', 'card', 'credit'
     status VARCHAR(50) NOT NULL DEFAULT 'active', -- Ex: 'active', 'canceled', 'returned'
     notes TEXT,

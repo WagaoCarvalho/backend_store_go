@@ -77,3 +77,26 @@ func ParseErrorResponse(body []byte) (DefaultResponse, error) {
 	}
 	return resp, nil
 }
+
+func ParseLimitOffset(r *http.Request) (limit, offset int) {
+	query := r.URL.Query()
+	limit, _ = strconv.Atoi(query.Get("limit"))
+	if limit <= 0 {
+		limit = 10
+	}
+	offset, _ = strconv.Atoi(query.Get("offset"))
+	return
+}
+
+func ParseOrder(r *http.Request) (orderBy, orderDir string) {
+	query := r.URL.Query()
+	orderBy = query.Get("order_by")
+	if orderBy == "" {
+		orderBy = "id"
+	}
+	orderDir = query.Get("order_dir")
+	if orderDir == "" {
+		orderDir = "asc"
+	}
+	return
+}

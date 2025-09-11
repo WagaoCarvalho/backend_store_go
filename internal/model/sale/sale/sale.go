@@ -13,7 +13,6 @@ type Sale struct {
 	SaleDate      time.Time
 	TotalAmount   float64
 	TotalDiscount float64
-	TotalTax      float64
 	PaymentType   string
 	Status        string
 	Notes         string
@@ -36,9 +35,6 @@ func (s *Sale) Validate() error {
 	}
 	if s.TotalDiscount < 0 {
 		errs = append(errs, validators.ValidationError{Field: "total_discount", Message: "total_discount must be >= 0"})
-	}
-	if s.TotalTax < 0 {
-		errs = append(errs, validators.ValidationError{Field: "total_tax", Message: "total_tax must be >= 0"})
 	}
 
 	// --- PaymentType ---

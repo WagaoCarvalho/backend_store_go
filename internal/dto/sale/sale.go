@@ -4,16 +4,16 @@ import (
 	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
 type SaleDTO struct {
 	ID            *int64  `json:"id,omitempty"`
 	ClientID      *int64  `json:"client_id,omitempty"`
 	UserID        int64   `json:"user_id"`
-	SaleDate      *string `json:"sale_date,omitempty"` // retornamos em string ISO 8601
+	SaleDate      *string `json:"sale_date,omitempty"`
 	TotalAmount   float64 `json:"total_amount"`
 	TotalDiscount float64 `json:"total_discount,omitempty"`
-	TotalTax      float64 `json:"total_tax,omitempty"`
 	PaymentType   string  `json:"payment_type"`
 	Status        string  `json:"status,omitempty"`
 	Notes         string  `json:"notes,omitempty"`
@@ -24,12 +24,11 @@ type SaleDTO struct {
 
 func ToSaleModel(dto SaleDTO) *models.Sale {
 	model := &models.Sale{
-		ID:            getOrDefault(dto.ID),
+		ID:            utils.NilToZero(dto.ID),
 		ClientID:      dto.ClientID,
 		UserID:        dto.UserID,
 		TotalAmount:   dto.TotalAmount,
 		TotalDiscount: dto.TotalDiscount,
-		TotalTax:      dto.TotalTax,
 		PaymentType:   dto.PaymentType,
 		Status:        dto.Status,
 		Notes:         dto.Notes,
@@ -72,7 +71,6 @@ func ToSaleDTO(model *models.Sale) SaleDTO {
 		SaleDate:      &saleDate,
 		TotalAmount:   model.TotalAmount,
 		TotalDiscount: model.TotalDiscount,
-		TotalTax:      model.TotalTax,
 		PaymentType:   model.PaymentType,
 		Status:        model.Status,
 		Notes:         model.Notes,
@@ -82,9 +80,18 @@ func ToSaleDTO(model *models.Sale) SaleDTO {
 	}
 }
 
-func getOrDefault(id *int64) int64 {
-	if id == nil {
-		return 0
+func ToSaleDTOList(modelsList []*models.Sale) []SaleDTO {
+	result := make([]SaleDTO, len(modelsList))
+	for i, m := range modelsList {
+		result[i] = ToSaleDTO(m)
 	}
-	return *id
+	return result
+}
+
+func SaleDTOListToModelList(dtos []*SaleDTO) []*models.Sale {
+	result := make([]*models.Sale, len(dtos))
+	for i, dto := range dtos {
+		result[i] = ToSaleModel(*dto)
+	}
+	return result
 }

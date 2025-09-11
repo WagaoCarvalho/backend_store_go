@@ -13,7 +13,6 @@ func TestSale_Validate(t *testing.T) {
 			UserID:        1,
 			TotalAmount:   100.0,
 			TotalDiscount: 10.0,
-			TotalTax:      5.0,
 			PaymentType:   "cash",
 			Status:        "active",
 			Notes:         "Venda válida",
@@ -61,19 +60,6 @@ func TestSale_Validate(t *testing.T) {
 		err := s.Validate()
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "total_discount")
-	})
-
-	t.Run("total_tax negativo", func(t *testing.T) {
-		s := &Sale{
-			UserID:      1,
-			TotalAmount: 100,
-			TotalTax:    -3,
-			PaymentType: "cash",
-			Status:      "active",
-		}
-		err := s.Validate()
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "total_tax")
 	})
 
 	t.Run("payment_type vazio", func(t *testing.T) {

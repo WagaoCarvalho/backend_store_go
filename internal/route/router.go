@@ -14,6 +14,7 @@ import (
 	request "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/request"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db_postgres"
 	routesProduct "github.com/WagaoCarvalho/backend_store_go/internal/route/product"
+	routesSale "github.com/WagaoCarvalho/backend_store_go/internal/route/sale"
 	routesSupplier "github.com/WagaoCarvalho/backend_store_go/internal/route/supplier"
 	routesUser "github.com/WagaoCarvalho/backend_store_go/internal/route/user"
 	"github.com/gorilla/mux"
@@ -53,6 +54,9 @@ func NewRouter(log *logger.LogAdapter) *mux.Router {
 
 	//Products
 	routesProduct.RegisterProductRoutes(r, db, log, blacklist)
+
+	//Sale
+	routesSale.RegisterSaleRoutes(r, db, log, blacklist)
 
 	//Adressess
 	RegisterAddressRoutes(r, db, log, blacklist)
