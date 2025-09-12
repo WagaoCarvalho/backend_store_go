@@ -24,7 +24,7 @@ func setupHandler() (*mocksale.MockSaleService, *SaleHandler) {
 	mockService := new(mocksale.MockSaleService)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
-	loggerAdapter := logger.NewLoggerAdapter(baseLogger) // implementa logger de teste
+	loggerAdapter := logger.NewLoggerAdapter(baseLogger)
 	h := NewSaleHandler(mockService, loggerAdapter)
 	return mockService, h
 }
@@ -119,6 +119,7 @@ func TestSaleHandler_GetByID(t *testing.T) {
 	t.Run("erro do serviço", func(t *testing.T) {
 		mockService, h := setupHandler()
 		req := httptest.NewRequest(http.MethodGet, "/sale?id=1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
 		mockService.On("GetByID", mock.Anything, int64(1)).Return(nil, errors.New("erro serviço"))
@@ -132,6 +133,7 @@ func TestSaleHandler_GetByID(t *testing.T) {
 		mockService, h := setupHandler()
 		saleModel := &dtoSale.SaleDTO{ID: utils.Int64Ptr(1), UserID: 1}
 		req := httptest.NewRequest(http.MethodGet, "/sale?id=1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
 		mockService.On("GetByID", mock.Anything, int64(1)).Return(dtoSale.ToSaleModel(*saleModel), nil)
@@ -155,6 +157,7 @@ func TestSaleHandler_GetByClientID(t *testing.T) {
 	t.Run("erro do serviço", func(t *testing.T) {
 		mockService, h := setupHandler()
 		req := httptest.NewRequest(http.MethodGet, "/sale/client?client_id=1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
 		mockService.On("GetByClientID", mock.Anything, int64(1), mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("erro"))
@@ -168,6 +171,7 @@ func TestSaleHandler_GetByClientID(t *testing.T) {
 		mockService, h := setupHandler()
 		saleModel := []*dtoSale.SaleDTO{{ID: utils.Int64Ptr(1), UserID: 1}}
 		req := httptest.NewRequest(http.MethodGet, "/sale/client?client_id=1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
 		mockService.On("GetByClientID", mock.Anything, int64(1), mock.Anything, mock.Anything, mock.Anything, mock.Anything).
@@ -194,6 +198,7 @@ func TestSaleHandler_GetByUserID(t *testing.T) {
 	t.Run("erro do serviço", func(t *testing.T) {
 		mockService, h := setupHandler()
 		req := httptest.NewRequest(http.MethodGet, "/sale/user?user_id=1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
 		mockService.On("GetByUserID", mock.Anything, int64(1), mock.Anything, mock.Anything, mock.Anything, mock.Anything).
@@ -212,6 +217,7 @@ func TestSaleHandler_GetByUserID(t *testing.T) {
 		}
 
 		req := httptest.NewRequest(http.MethodGet, "/sale/user?user_id=1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
 		// Converte DTOs para Models para o mock
