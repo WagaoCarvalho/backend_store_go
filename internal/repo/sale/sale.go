@@ -188,16 +188,16 @@ func (r *saleRepository) Update(ctx context.Context, sale *models.Sale) error {
 	const query = `
 		UPDATE sales
 		SET 
-			client_id     = $1,
-			user_id       = $2,
-			sale_date     = $3,
-			total_amount  = $4,
-			total_discount= $5,
-			payment_type  = $6,
-			status        = $7,
-			notes         = $8,
-			version       = version + 1,
-			updated_at    = NOW()
+			client_id      = $1,
+			user_id        = $2,
+			sale_date      = $3,
+			total_amount   = $4,
+			total_discount = $5,
+			payment_type   = $6,
+			status         = $7,
+			notes          = $8,
+			version        = version + 1,
+			updated_at     = NOW()
 		WHERE id = $9 AND version = $10
 		RETURNING version, updated_at;
 	`
@@ -217,11 +217,22 @@ func (r *saleRepository) Update(ctx context.Context, sale *models.Sale) error {
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
+
+			var tmp int64
+			checkQuery := `SELECT 1 FROM sales WHERE id = $1 LIMIT 1`
+			checkErr := r.db.QueryRow(ctx, checkQuery, sale.ID).Scan(&tmp)
+			if checkErr == nil {
+
+				return errMsg.ErrVersionConflict
+			}
+
 			return errMsg.ErrNotFound
 		}
+
 		if errMsgPg.IsForeignKeyViolation(err) {
 			return errMsg.ErrInvalidForeignKey
 		}
+
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 

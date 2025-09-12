@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -156,8 +157,8 @@ func TestSaleHandler_GetByClientID(t *testing.T) {
 
 	t.Run("erro do serviço", func(t *testing.T) {
 		mockService, h := setupHandler()
-		req := httptest.NewRequest(http.MethodGet, "/sale/client?client_id=1", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		req := httptest.NewRequest(http.MethodGet, "/sale/client/1", nil)
+		req = mux.SetURLVars(req, map[string]string{"client_id": "1"})
 		w := httptest.NewRecorder()
 
 		mockService.On("GetByClientID", mock.Anything, int64(1), mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("erro"))
@@ -170,8 +171,8 @@ func TestSaleHandler_GetByClientID(t *testing.T) {
 	t.Run("sucesso", func(t *testing.T) {
 		mockService, h := setupHandler()
 		saleModel := []*dtoSale.SaleDTO{{ID: utils.Int64Ptr(1), UserID: 1}}
-		req := httptest.NewRequest(http.MethodGet, "/sale/client?client_id=1", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		req := httptest.NewRequest(http.MethodGet, "/sale/client/1", nil)
+		req = mux.SetURLVars(req, map[string]string{"client_id": "1"})
 		w := httptest.NewRecorder()
 
 		mockService.On("GetByClientID", mock.Anything, int64(1), mock.Anything, mock.Anything, mock.Anything, mock.Anything).
@@ -187,7 +188,7 @@ func TestSaleHandler_GetByUserID(t *testing.T) {
 	now := time.Now().Format(time.RFC3339)
 	t.Run("userID inválido", func(t *testing.T) {
 		_, h := setupHandler()
-		req := httptest.NewRequest(http.MethodGet, "/sale/user?user_id=0", nil)
+		req := httptest.NewRequest(http.MethodGet, "/sale/user/0", nil)
 		w := httptest.NewRecorder()
 
 		h.GetByUserID(w, req)
@@ -197,8 +198,8 @@ func TestSaleHandler_GetByUserID(t *testing.T) {
 
 	t.Run("erro do serviço", func(t *testing.T) {
 		mockService, h := setupHandler()
-		req := httptest.NewRequest(http.MethodGet, "/sale/user?user_id=1", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		req := httptest.NewRequest(http.MethodGet, "/sale/user/1", nil)
+		req = mux.SetURLVars(req, map[string]string{"user_id": "1"})
 		w := httptest.NewRecorder()
 
 		mockService.On("GetByUserID", mock.Anything, int64(1), mock.Anything, mock.Anything, mock.Anything, mock.Anything).
@@ -216,8 +217,8 @@ func TestSaleHandler_GetByUserID(t *testing.T) {
 			{ID: utils.Int64Ptr(1), UserID: 1, SaleDate: &now, TotalAmount: 100.0, PaymentType: "cash", Status: "active"},
 		}
 
-		req := httptest.NewRequest(http.MethodGet, "/sale/user?user_id=1", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		req := httptest.NewRequest(http.MethodGet, "/sale/user/1", nil)
+		req = mux.SetURLVars(req, map[string]string{"user_id": "1"})
 		w := httptest.NewRecorder()
 
 		// Converte DTOs para Models para o mock
@@ -239,41 +240,21 @@ func TestSaleHandler_GetByUserID(t *testing.T) {
 func TestSaleHandler_GetByStatus(t *testing.T) {
 	now := time.Now().Format(time.RFC3339)
 
-	t.Run("status vazio", func(t *testing.T) {
-		_, h := setupHandler()
-		req := httptest.NewRequest(http.MethodGet, "/sale/status?status=", nil)
-		w := httptest.NewRecorder()
-
-		h.GetByStatus(w, req)
-
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-	})
-
-	t.Run("erro do serviço", func(t *testing.T) {
-		mockService, h := setupHandler()
-		req := httptest.NewRequest(http.MethodGet, "/sale/status?status=active", nil)
-		w := httptest.NewRecorder()
-
-		mockService.On("GetByStatus", mock.Anything, "active", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-			Return(nil, errors.New("erro serviço"))
-
-		h.GetByStatus(w, req)
-
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		mockService.AssertExpectations(t)
-	})
-
 	t.Run("sucesso", func(t *testing.T) {
 		mockService, h := setupHandler()
-		saleModel := []*dtoSale.SaleDTO{
+
+		// DTO de exemplo
+		saleDTOs := []*dtoSale.SaleDTO{
 			{ID: utils.Int64Ptr(1), UserID: 1, SaleDate: &now, TotalAmount: 100.0, PaymentType: "cash", Status: "active"},
 		}
 
-		req := httptest.NewRequest(http.MethodGet, "/sale/status?status=active", nil)
+		// Path param
+		req := httptest.NewRequest(http.MethodGet, "/sale/status/active", nil)
+		req = mux.SetURLVars(req, map[string]string{"status": "active"})
 		w := httptest.NewRecorder()
 
-		// Converte DTOs para Models para o mock
-		saleModels := dtoSale.SaleDTOListToModelList(saleModel)
+		// Converte DTO para Model
+		saleModels := dtoSale.SaleDTOListToModelList(saleDTOs)
 		mockService.On("GetByStatus", mock.Anything, "active", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 			Return(saleModels, nil)
 
@@ -286,82 +267,123 @@ func TestSaleHandler_GetByStatus(t *testing.T) {
 		assert.Equal(t, "Vendas por status recuperadas", resp["message"])
 		mockService.AssertExpectations(t)
 	})
+
+	t.Run("erro do serviço", func(t *testing.T) {
+		mockService, h := setupHandler()
+		req := httptest.NewRequest(http.MethodGet, "/sale/status/active", nil)
+		req = mux.SetURLVars(req, map[string]string{"status": "active"})
+		w := httptest.NewRecorder()
+
+		mockService.On("GetByStatus", mock.Anything, "active", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+			Return(nil, errors.New("erro serviço"))
+
+		h.GetByStatus(w, req)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("status vazio", func(t *testing.T) {
+		_, h := setupHandler()
+		req := httptest.NewRequest(http.MethodGet, "/sale/status/", nil)
+		req = mux.SetURLVars(req, map[string]string{"status": ""})
+		w := httptest.NewRecorder()
+
+		h.GetByStatus(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
 }
 
 func TestSaleHandler_GetByDateRange(t *testing.T) {
+	now := time.Now().Format(time.RFC3339)
+	start := now
+	end := now
+
 	t.Run("datas inválidas", func(t *testing.T) {
 		_, h := setupHandler()
-		req := httptest.NewRequest(http.MethodGet, "/sale/daterange?start=invalid&end=invalid", nil)
+		req := httptest.NewRequest(http.MethodGet, "/sale/daterange/invalid/invalid", nil)
+		req = mux.SetURLVars(req, map[string]string{"start": "invalid", "end": "invalid"})
 		w := httptest.NewRecorder()
 
 		h.GetByDateRange(w, req)
-
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
 	t.Run("erro do serviço", func(t *testing.T) {
 		mockService, h := setupHandler()
-		start := time.Now().Add(-24 * time.Hour).Format(time.RFC3339)
-		end := time.Now().Format(time.RFC3339)
-		req := httptest.NewRequest(http.MethodGet, "/sale/daterange?start="+start+"&end="+end, nil)
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/sale/daterange/%s/%s", start, end), nil)
+		req = mux.SetURLVars(req, map[string]string{"start": start, "end": end})
 		w := httptest.NewRecorder()
 
-		mockService.On("GetByDateRange", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-			Return(nil, errors.New("erro serviço"))
-
-		h.GetByDateRange(w, req)
-
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("sucesso", func(t *testing.T) {
-		mockService, h := setupHandler()
-		startTime := time.Now().Add(-24 * time.Hour)
-		endTime := time.Now()
-
-		saleDateStr := startTime.Add(1 * time.Hour).Format(time.RFC3339)
-		saleModel := []*dtoSale.SaleDTO{
-			{
-				ID:          utils.Int64Ptr(1),
-				UserID:      1,
-				SaleDate:    &saleDateStr,
-				TotalAmount: 100.0,
-				PaymentType: "cash",
-				Status:      "active",
-			},
-		}
-
-		req := httptest.NewRequest(
-			http.MethodGet,
-			"/sale/daterange?start="+startTime.Format(time.RFC3339)+"&end="+endTime.Format(time.RFC3339),
-			nil,
-		)
-		w := httptest.NewRecorder()
-
-		saleModels := dtoSale.SaleDTOListToModelList(saleModel)
-
-		mockService.On(
-			"GetByDateRange",
+		mockService.On("GetByDateRange",
 			mock.Anything, // ctx
-			mock.MatchedBy(func(t time.Time) bool { return true }), // start
-			mock.MatchedBy(func(t time.Time) bool { return true }), // end
+			mock.Anything, // start time
+			mock.Anything, // end time
 			mock.Anything, // limit
 			mock.Anything, // offset
 			mock.Anything, // orderBy
 			mock.Anything, // orderDir
+		).Return(nil, errors.New("erro serviço"))
+
+		h.GetByDateRange(w, req)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("datas ausentes ou inválidas", func(t *testing.T) {
+		_, h := setupHandler()
+
+		// start vazio
+		req1 := httptest.NewRequest(http.MethodGet, "/sale/daterange//2025-09-12T00:00:00Z", nil)
+		req1 = mux.SetURLVars(req1, map[string]string{"start": "", "end": "2025-09-12T00:00:00Z"})
+		w1 := httptest.NewRecorder()
+		h.GetByDateRange(w1, req1)
+		assert.Equal(t, http.StatusBadRequest, w1.Code)
+
+		// end vazio
+		req2 := httptest.NewRequest(http.MethodGet, "/sale/daterange/2025-09-11T00:00:00Z/", nil)
+		req2 = mux.SetURLVars(req2, map[string]string{"start": "2025-09-11T00:00:00Z", "end": ""})
+		w2 := httptest.NewRecorder()
+		h.GetByDateRange(w2, req2)
+		assert.Equal(t, http.StatusBadRequest, w2.Code)
+
+		// datas inválidas
+		req3 := httptest.NewRequest(http.MethodGet, "/sale/daterange/invalid/invalid", nil)
+		req3 = mux.SetURLVars(req3, map[string]string{"start": "invalid", "end": "invalid"})
+		w3 := httptest.NewRecorder()
+		h.GetByDateRange(w3, req3)
+		assert.Equal(t, http.StatusBadRequest, w3.Code)
+	})
+
+	t.Run("sucesso", func(t *testing.T) {
+		mockService, h := setupHandler()
+
+		salesDTO := []*dtoSale.SaleDTO{
+			{ID: utils.Int64Ptr(1), UserID: 1, SaleDate: &now, TotalAmount: 100.0, PaymentType: "cash", Status: "active"},
+		}
+
+		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/sale/daterange/%s/%s", start, end), nil)
+		req = mux.SetURLVars(req, map[string]string{"start": start, "end": end})
+		w := httptest.NewRecorder()
+
+		saleModels := dtoSale.SaleDTOListToModelList(salesDTO)
+		mockService.On("GetByDateRange",
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
 		).Return(saleModels, nil)
 
 		h.GetByDateRange(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-
 		var resp map[string]interface{}
 		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 		assert.Equal(t, "Vendas por período recuperadas", resp["message"])
 		mockService.AssertExpectations(t)
 	})
-
 }
 
 func TestSaleHandler_Update(t *testing.T) {

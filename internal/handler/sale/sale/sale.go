@@ -3,7 +3,6 @@ package handler
 import (
 	"errors"
 	"net/http"
-	"strconv"
 	"time"
 
 	dtoSale "github.com/WagaoCarvalho/backend_store_go/internal/dto/sale"
@@ -11,7 +10,6 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/sale/sale"
-	"github.com/gorilla/mux"
 )
 
 type SaleHandler struct {
@@ -91,7 +89,7 @@ func (h *SaleHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByClientID] "
 	ctx := r.Context()
 
-	clientID, err := utils.GetIDParam(r, "id")
+	clientID, err := utils.GetIDParam(r, "client_id")
 	if err != nil || clientID <= 0 {
 		h.logger.Warn(ctx, ref+"clientID inválido", map[string]any{"client_id": clientID})
 		utils.ErrorResponse(w, errMsg.ErrID, http.StatusBadRequest)
@@ -120,7 +118,7 @@ func (h *SaleHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByUserID] "
 	ctx := r.Context()
 
-	userID, err := utils.GetIDParam(r, "id")
+	userID, err := utils.GetIDParam(r, "user_id")
 	if err != nil || userID <= 0 {
 		h.logger.Warn(ctx, ref+"userID inválido", map[string]any{"user_id": userID})
 		utils.ErrorResponse(w, errMsg.ErrID, http.StatusBadRequest)
@@ -149,9 +147,9 @@ func (h *SaleHandler) GetByStatus(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByStatus] "
 	ctx := r.Context()
 
-	status := r.URL.Query().Get("status")
-	if status == "" {
-		h.logger.Warn(ctx, ref+"status vazio", map[string]any{"status": status})
+	status, err := utils.GetStringParam(r, "status")
+	if err != nil {
+		h.logger.Warn(ctx, "[SaleHandler - GetByStatus] status inválido", map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, errMsg.ErrInvalidData, http.StatusBadRequest)
 		return
 	}
@@ -178,12 +176,18 @@ func (h *SaleHandler) GetByDateRange(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByDateRange] "
 	ctx := r.Context()
 
-	startStr := r.URL.Query().Get("start")
-	endStr := r.URL.Query().Get("end")
+	startStr, errStart := utils.GetStringParam(r, "start")
+	endStr, errEnd := utils.GetStringParam(r, "end")
+	if errStart != nil || errEnd != nil {
+		h.logger.Warn(ctx, ref+"datas ausentes ou inválidas", map[string]any{"start": startStr, "end": endStr})
+		utils.ErrorResponse(w, errMsg.ErrInvalidData, http.StatusBadRequest)
+		return
+	}
+
 	start, errStart := time.Parse(time.RFC3339, startStr)
 	end, errEnd := time.Parse(time.RFC3339, endStr)
 	if errStart != nil || errEnd != nil {
-		h.logger.Warn(ctx, ref+"datas inválidas", map[string]any{"start": startStr, "end": endStr})
+		h.logger.Warn(ctx, ref+"datas com formato inválido", map[string]any{"start": startStr, "end": endStr})
 		utils.ErrorResponse(w, errMsg.ErrInvalidData, http.StatusBadRequest)
 		return
 	}
@@ -219,13 +223,13 @@ func (h *SaleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	idStr := vars["id"]
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	id, err := utils.GetIDParam(r, "id")
 	if err != nil || id <= 0 {
+		h.logger.Warn(ctx, ref+"ID inválido", map[string]any{"id": id})
 		utils.ErrorResponse(w, errMsg.ErrID, http.StatusBadRequest)
 		return
 	}
+
 	saleDTO.ID = &id
 	saleModel := dtoSale.ToSaleModel(saleDTO)
 
@@ -239,6 +243,7 @@ func (h *SaleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Venda atualizada com sucesso",
+		Data:    saleDTO,
 	})
 }
 

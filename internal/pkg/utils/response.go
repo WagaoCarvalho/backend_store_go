@@ -66,6 +66,15 @@ func GetIDParam(r *http.Request, key string) (int64, error) {
 	return id, nil
 }
 
+func GetStringParam(r *http.Request, key string) (string, error) {
+	vars := mux.Vars(r)
+	val, ok := vars[key]
+	if !ok || val == "" {
+		return "", fmt.Errorf("missing or empty param: %s", key)
+	}
+	return val, nil
+}
+
 func ParseErrorResponse(body []byte) (DefaultResponse, error) {
 	var resp DefaultResponse
 	err := json.Unmarshal(body, &resp)
