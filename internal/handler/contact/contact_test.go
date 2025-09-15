@@ -253,7 +253,7 @@ func TestContactHandler_GetByUserID(t *testing.T) {
 		mockService.On("GetByUserID", mock.Anything, int64(1)).Return(expectedModels, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/user/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		req = mux.SetURLVars(req, map[string]string{"user_id": "1"})
 		w := httptest.NewRecorder()
 
 		handler.GetByUserID(w, req)
@@ -281,7 +281,7 @@ func TestContactHandler_GetByUserID(t *testing.T) {
 		handler := NewContactHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/user/abc", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
+		req = mux.SetURLVars(req, map[string]string{"user_id": "abc"})
 		w := httptest.NewRecorder()
 
 		handler.GetByUserID(w, req)
@@ -296,7 +296,7 @@ func TestContactHandler_GetByUserID(t *testing.T) {
 		mockService.On("GetByUserID", mock.Anything, int64(1)).Return(([]*models.Contact)(nil), assert.AnError)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/user/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		req = mux.SetURLVars(req, map[string]string{"user_id": "1"})
 		w := httptest.NewRecorder()
 
 		handler.GetByUserID(w, req)
