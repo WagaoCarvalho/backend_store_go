@@ -112,7 +112,7 @@ func (h *ContactHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, nil)
 
-	userID, err := utils.GetIDParam(r, "id")
+	userID, err := utils.GetIDParam(r, "user_id")
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
