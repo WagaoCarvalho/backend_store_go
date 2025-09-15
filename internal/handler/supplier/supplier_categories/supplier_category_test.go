@@ -29,14 +29,12 @@ func TestSupplierCategoryHandler_Create(t *testing.T) {
 	handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 	t.Run("Sucesso", func(t *testing.T) {
-		categoryDTO := &dto.SupplierCategoryDTO{Name: "Alimentos"}
-		modelCategory := dto.ToSupplierCategoryModel(*categoryDTO)
+		categoryDTO := dto.SupplierCategoryDTO{Name: "Alimentos"}
+		modelCategory := dto.ToSupplierCategoryModel(categoryDTO)
 
 		mockSvc.On("Create", mock.Anything, modelCategory).Return(modelCategory, nil)
 
-		body, _ := json.Marshal(map[string]interface{}{
-			"category": categoryDTO,
-		})
+		body, _ := json.Marshal(categoryDTO)
 		req := httptest.NewRequest(http.MethodPost, "/supplier-categories", bytes.NewBuffer(body))
 		w := httptest.NewRecorder()
 
@@ -48,9 +46,10 @@ func TestSupplierCategoryHandler_Create(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
 
-		itemBytes, _ := json.Marshal(response.Data)
 		var result models.SupplierCategory
-		_ = json.Unmarshal(itemBytes, &result)
+		itemBytes, _ := json.Marshal(response.Data)
+		err = json.Unmarshal(itemBytes, &result)
+		require.NoError(t, err)
 
 		assert.Equal(t, categoryDTO.Name, result.Name)
 		assert.Equal(t, "Categoria de fornecedor criada com sucesso", response.Message)
@@ -73,15 +72,15 @@ func TestSupplierCategoryHandler_Create(t *testing.T) {
 	})
 
 	t.Run("Erro ao criar categoria", func(t *testing.T) {
-		categoryDTO := &dto.SupplierCategoryDTO{Name: "Equipamentos"}
-		modelCategory := dto.ToSupplierCategoryModel(*categoryDTO)
+		categoryDTO := dto.SupplierCategoryDTO{Name: "Equipamentos"}
+		modelCategory := dto.ToSupplierCategoryModel(categoryDTO)
 
-		mockSvc.On("Create", mock.Anything, modelCategory).Return(nil, errors.New("erro interno")).Once()
+		mockSvc.On("Create", mock.Anything, mock.MatchedBy(func(c *models.SupplierCategory) bool {
+			return c.Name == modelCategory.Name
+		})).Return(nil, errors.New("erro ao criar categoria"))
 
-		body, _ := json.Marshal(map[string]interface{}{
-			"category": categoryDTO,
-		})
-		req := httptest.NewRequest(http.MethodPost, "/supplier-categories", bytes.NewBuffer(body))
+		body, _ := json.Marshal(categoryDTO)
+		req := httptest.NewRequest("POST", "/aupplier-categories", bytes.NewBuffer(body))
 		w := httptest.NewRecorder()
 
 		handler.Create(w, req)
@@ -92,24 +91,9 @@ func TestSupplierCategoryHandler_Create(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusInternalServerError, response.Status)
+		assert.Equal(t, "erro ao criar categoria", response.Message)
 
 		mockSvc.AssertExpectations(t)
-	})
-
-	t.Run("Erro category não fornecida", func(t *testing.T) {
-		reqBody := []byte(`{}`) // JSON válido, mas sem o campo "category"
-		req := httptest.NewRequest(http.MethodPost, "/supplier-categories", bytes.NewBuffer(reqBody))
-		w := httptest.NewRecorder()
-
-		handler.Create(w, req)
-
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-
-		var response utils.DefaultResponse
-		err := json.Unmarshal(w.Body.Bytes(), &response)
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusBadRequest, response.Status)
-		assert.Contains(t, response.Message, "category não fornecida")
 	})
 
 }
@@ -277,25 +261,24 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 		mockSvc := new(mockSupplier.MockSupplierCategoryService)
 		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
-		categoryDTO := &dto.SupplierCategoryDTO{
-			ID:   utils.Int64Ptr(123),
+		categoryDTO := dto.SupplierCategoryDTO{
 			Name: "Categoria Atualizada",
 		}
-		modelCategory := dto.ToSupplierCategoryModel(*categoryDTO)
+		modelCategory := dto.ToSupplierCategoryModel(categoryDTO)
+		modelCategory.ID = 123
 
-		body, _ := json.Marshal(map[string]interface{}{
-			"category": modelCategory,
-		})
+		body, _ := json.Marshal(categoryDTO)
+
+		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(c *models.SupplierCategory) bool {
+			return c.ID == 123 && c.Name == "Categoria Atualizada"
+		})).Return(nil)
+
 		req := mux.SetURLVars(
 			httptest.NewRequest("PUT", "/supplier-categories/123", bytes.NewBuffer(body)),
 			map[string]string{"id": "123"},
 		)
+
 		w := httptest.NewRecorder()
-
-		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(c *models.SupplierCategory) bool {
-			return c.ID == 123 && c.Name == categoryDTO.Name
-		})).Return(nil)
-
 		handler.Update(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -313,12 +296,8 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 		mockSvc := new(mockSupplier.MockSupplierCategoryService)
 		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
-		categoryDTO := &dto.SupplierCategoryDTO{
-			Name: "Categoria Inválida",
-		}
-		body, _ := json.Marshal(map[string]interface{}{
-			"category": categoryDTO,
-		})
+		categoryDTO := dto.SupplierCategoryDTO{Name: "Categoria Inválida"}
+		body, _ := json.Marshal(categoryDTO)
 
 		req := mux.SetURLVars(
 			httptest.NewRequest("PUT", "/supplier-categories/abc", bytes.NewBuffer(body)),
@@ -336,7 +315,7 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.Status)
 		assert.NotEmpty(t, resp.Message)
 
-		mockSvc.AssertExpectations(t) // deve ter zero chamadas
+		mockSvc.AssertExpectations(t) // não deve ter chamadas
 	})
 
 	t.Run("InvalidJSON", func(t *testing.T) {
@@ -359,22 +338,18 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.Status)
 		assert.NotEmpty(t, resp.Message)
 
-		mockSvc.AssertExpectations(t) // deve ter zero chamadas
+		mockSvc.AssertExpectations(t)
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
 		mockSvc := new(mockSupplier.MockSupplierCategoryService)
 		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
-		categoryDTO := &dto.SupplierCategoryDTO{
-			ID:   utils.Int64Ptr(999),
-			Name: "Não Existe",
-		}
-		modelCategory := dto.ToSupplierCategoryModel(*categoryDTO)
+		categoryDTO := dto.SupplierCategoryDTO{Name: "Não Existe"}
+		modelCategory := dto.ToSupplierCategoryModel(categoryDTO)
+		modelCategory.ID = 999
 
-		body, _ := json.Marshal(map[string]interface{}{
-			"category": modelCategory,
-		})
+		body, _ := json.Marshal(categoryDTO)
 
 		req := mux.SetURLVars(
 			httptest.NewRequest("PUT", "/supplier-categories/999", bytes.NewBuffer(body)),
@@ -399,31 +374,38 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 		mockSvc.AssertExpectations(t)
 	})
 
-	t.Run("Erro category não fornecida", func(t *testing.T) {
+	t.Run("ServiceError", func(t *testing.T) {
 		mockSvc := new(mockSupplier.MockSupplierCategoryService)
 		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
-		// JSON válido, mas sem o campo "category"
-		reqBody := []byte(`{}`)
+		categoryDTO := dto.SupplierCategoryDTO{Name: "Erro Serviço"}
+		modelCategory := dto.ToSupplierCategoryModel(categoryDTO)
+		modelCategory.ID = 321
+
+		body, _ := json.Marshal(categoryDTO)
+
 		req := mux.SetURLVars(
-			httptest.NewRequest("PUT", "/supplier-categories/123", bytes.NewBuffer(reqBody)),
-			map[string]string{"id": "123"},
+			httptest.NewRequest("PUT", "/supplier-categories/321", bytes.NewBuffer(body)),
+			map[string]string{"id": "321"},
 		)
 		w := httptest.NewRecorder()
 
+		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(c *models.SupplierCategory) bool {
+			return c.ID == 321
+		})).Return(errors.New("falha interna"))
+
 		handler.Update(w, req)
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 		var resp utils.DefaultResponse
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
 		assert.NoError(t, err)
-		assert.Equal(t, http.StatusBadRequest, resp.Status)
-		assert.Contains(t, resp.Message, "category não fornecida")
+		assert.Equal(t, http.StatusInternalServerError, resp.Status)
+		assert.Contains(t, resp.Message, "falha interna")
 
-		mockSvc.AssertExpectations(t) // não deve ter chamado o serviço
+		mockSvc.AssertExpectations(t)
 	})
-
 }
 
 func TestSupplierCategoryHandler_Delete(t *testing.T) {

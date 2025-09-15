@@ -30,23 +30,15 @@ func (h *SupplierCategoryHandler) Create(w http.ResponseWriter, r *http.Request)
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	var requestData struct {
-		Category *dto.SupplierCategoryDTO `json:"category"`
-	}
+	var requestDTO dto.SupplierCategoryDTO
 
-	if err := utils.FromJSON(r.Body, &requestData); err != nil {
+	if err := utils.FromJSON(r.Body, &requestDTO); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	if requestData.Category == nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": "category não fornecida"})
-		utils.ErrorResponse(w, fmt.Errorf("category não fornecida"), http.StatusBadRequest)
-		return
-	}
-
-	modelCategory := dto.ToSupplierCategoryModel(*requestData.Category)
+	modelCategory := dto.ToSupplierCategoryModel(requestDTO)
 
 	createdCategory, err := h.service.Create(ctx, modelCategory)
 	if err != nil {
@@ -59,10 +51,12 @@ func (h *SupplierCategoryHandler) Create(w http.ResponseWriter, r *http.Request)
 
 	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{"category_id": createdCategory.ID})
 
+	createdDTO := dto.ToSupplierCategoryDTO(createdCategory)
+
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Categoria de fornecedor criada com sucesso",
-		Data:    createdCategory,
+		Data:    createdDTO,
 	})
 }
 
@@ -128,28 +122,20 @@ func (h *SupplierCategoryHandler) Update(w http.ResponseWriter, r *http.Request)
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(ctx, ref+"ID inválido no path", map[string]any{"erro": err.Error()})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{"erro": err.Error()})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
 		return
 	}
 
-	var requestData struct {
-		Category *dto.SupplierCategoryDTO `json:"category"`
-	}
+	var requestDTO dto.SupplierCategoryDTO
 
-	if err := utils.FromJSON(r.Body, &requestData); err != nil {
+	if err := utils.FromJSON(r.Body, &requestDTO); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	if requestData.Category == nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": "category não fornecida"})
-		utils.ErrorResponse(w, fmt.Errorf("category não fornecida"), http.StatusBadRequest)
-		return
-	}
-
-	modelCategory := dto.ToSupplierCategoryModel(*requestData.Category)
+	modelCategory := dto.ToSupplierCategoryModel(requestDTO)
 	modelCategory.ID = id
 
 	if err := h.service.Update(ctx, modelCategory); err != nil {
@@ -164,8 +150,11 @@ func (h *SupplierCategoryHandler) Update(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	createdDTO := dto.ToSupplierCategoryDTO(modelCategory)
+
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{"category_id": modelCategory.ID})
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Data:    createdDTO,
 		Message: "Categoria atualizada com sucesso",
 		Status:  http.StatusOK,
 	})

@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user_category"
-	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -31,32 +30,30 @@ func (h *UserCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserCategoryHandler - Create] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]interface{}{})
+	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{})
 
 	var requestDTO dto.UserCategoryDTO
 	if err := utils.FromJSON(r.Body, &requestDTO); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// Converte DTO para Model antes de chamar o service
 	categoryModel := dto.ToUserCategoryModel(requestDTO)
 
 	createdCategory, err := h.service.Create(ctx, categoryModel)
 	if err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]interface{}{})
+		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
 		"category_id": createdCategory.ID,
 	})
 
-	// Converte Model de volta para DTO para a resposta
 	createdDTO := dto.ToUserCategoryDTO(createdCategory)
 
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
@@ -70,11 +67,11 @@ func (h *UserCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserCategoryHandler - GetById] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]interface{}{})
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
 
 	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
 	if err != nil {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
@@ -84,21 +81,21 @@ func (h *UserCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	category, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		if err.Error() == "categoria não encontrada" {
-			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]interface{}{
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"id": id,
 			})
 			utils.ErrorResponse(w, err, http.StatusNotFound)
 			return
 		}
 
-		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]interface{}{
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"id": id,
 		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"id": id,
 	})
 
@@ -113,16 +110,16 @@ func (h *UserCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserCategoryHandler - GetAll] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]interface{}{})
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
 
 	categories, err := h.service.GetAll(ctx)
 	if err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]interface{}{})
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"total": len(categories),
 	})
 
@@ -137,50 +134,54 @@ func (h *UserCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserCategoryHandler - Update] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]interface{}{})
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{})
 
-	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
+	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
 		return
 	}
 
-	var category *model.UserCategory
-	if err := utils.FromJSON(r.Body, &category); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]interface{}{
+	var requestDTO dto.UserCategoryDTO
+
+	if err := utils.FromJSON(r.Body, &requestDTO); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
-	category.ID = uint(id)
+	modelCategory := dto.ToUserCategoryModel(requestDTO)
+	modelCategory.ID = uint(id)
 
-	updatedCategory, err := h.service.Update(ctx, category)
+	updatedCategory, err := h.service.Update(ctx, modelCategory)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
-			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]interface{}{
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"id": id,
 			})
 			utils.ErrorResponse(w, fmt.Errorf("categoria não encontrada"), http.StatusNotFound)
 			return
 		}
 
-		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]interface{}{
+		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"id": id,
 		})
 		utils.ErrorResponse(w, fmt.Errorf("erro ao atualizar categoria: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]interface{}{
+	updatedDTO := dto.ToUserCategoryDTO(updatedCategory)
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
 		"id": id,
 	})
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    updatedCategory,
+		Data:    updatedDTO,
 		Message: "Categoria atualizada com sucesso",
 		Status:  http.StatusOK,
 	})
@@ -190,11 +191,11 @@ func (h *UserCategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserCategoryHandler - Delete] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]interface{}{})
+	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{})
 
 	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
 	if err != nil {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
@@ -202,14 +203,14 @@ func (h *UserCategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.service.Delete(ctx, id); err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]interface{}{
+		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"id": id,
 		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
 		"id": id,
 	})
 
