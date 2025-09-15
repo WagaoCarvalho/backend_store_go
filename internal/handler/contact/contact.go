@@ -149,7 +149,7 @@ func (h *ContactHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ContactHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
-	id, err := utils.GetIDParam(r, "id")
+	id, err := utils.GetIDParam(r, "client_id")
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
@@ -174,7 +174,7 @@ func (h *ContactHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ContactHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
-	id, err := utils.GetIDParam(r, "id")
+	id, err := utils.GetIDParam(r, "supplier_id")
 	if err != nil {
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return

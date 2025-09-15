@@ -460,10 +460,7 @@ func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		"product_id": id,
 	})
 
-	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
-		Message: "Produto deletado com sucesso",
-	})
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *ProductHandler) UpdateStock(w http.ResponseWriter, r *http.Request) {

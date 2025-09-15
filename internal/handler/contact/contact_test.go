@@ -323,7 +323,7 @@ func TestContactHandler_GetByClientID(t *testing.T) {
 		mockService.On("GetByClientID", mock.Anything, int64(1)).Return(expectedModels, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/client/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		req = mux.SetURLVars(req, map[string]string{"client_id": "1"})
 		w := httptest.NewRecorder()
 
 		handler.GetByClientID(w, req)
@@ -351,7 +351,7 @@ func TestContactHandler_GetByClientID(t *testing.T) {
 		handler := NewContactHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/client/abc", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
+		req = mux.SetURLVars(req, map[string]string{"client_id": "abc"})
 		w := httptest.NewRecorder()
 
 		handler.GetByClientID(w, req)
@@ -366,7 +366,7 @@ func TestContactHandler_GetByClientID(t *testing.T) {
 		mockService.On("GetByClientID", mock.Anything, int64(1)).Return(([]*models.Contact)(nil), assert.AnError)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/client/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		req = mux.SetURLVars(req, map[string]string{"client_id": "1"})
 		w := httptest.NewRecorder()
 
 		handler.GetByClientID(w, req)
@@ -393,7 +393,7 @@ func TestContactHandler_GetBySupplierID(t *testing.T) {
 		mockService.On("GetBySupplierID", mock.Anything, int64(1)).Return(expectedModels, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/supplier/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		req = mux.SetURLVars(req, map[string]string{"supplier_id": "1"})
 		w := httptest.NewRecorder()
 
 		handler.GetBySupplierID(w, req)
@@ -421,7 +421,7 @@ func TestContactHandler_GetBySupplierID(t *testing.T) {
 		handler := NewContactHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/supplier/abc", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
+		req = mux.SetURLVars(req, map[string]string{"supplier_id": "abc"})
 		w := httptest.NewRecorder()
 
 		handler.GetBySupplierID(w, req)
@@ -436,7 +436,7 @@ func TestContactHandler_GetBySupplierID(t *testing.T) {
 		mockService.On("GetBySupplierID", mock.Anything, int64(1)).Return(([]*models.Contact)(nil), assert.AnError)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/supplier/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		req = mux.SetURLVars(req, map[string]string{"supplier_id": "1"})
 		w := httptest.NewRecorder()
 
 		handler.GetBySupplierID(w, req)

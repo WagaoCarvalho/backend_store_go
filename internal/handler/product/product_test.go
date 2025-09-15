@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -990,8 +991,10 @@ func TestProductHandler_Delete(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductServiceMock)
 		handler := NewProductHandler(mockService, logAdapter)
+		productID := int64(1)
 
-		mockService.On("Delete", mock.Anything, int64(1)).Return(nil)
+		mockService.On("Delete", mock.Anything, productID).
+			Return(nil).Once()
 
 		req := httptest.NewRequest(http.MethodDelete, "/products/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -1002,12 +1005,13 @@ func TestProductHandler_Delete(t *testing.T) {
 		resp := w.Result()
 		defer resp.Body.Close()
 
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		// Corrigido: Delete retorna 204 No Content, não 200 OK
+		assert.Equal(t, http.StatusNoContent, resp.StatusCode)
 
-		var response map[string]interface{}
-		err := json.NewDecoder(resp.Body).Decode(&response)
+		// Verifica que não há corpo de resposta (como esperado para 204)
+		body, err := io.ReadAll(resp.Body)
 		assert.NoError(t, err)
-		assert.Equal(t, "Produto deletado com sucesso", response["message"])
+		assert.Empty(t, body)
 
 		mockService.AssertExpectations(t)
 	})
