@@ -4,14 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/supplier_category_relations"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_category_relations"
-	"github.com/gorilla/mux"
 )
 
 type SupplierCategoryRelationHandler struct {
@@ -89,10 +87,9 @@ func (h *SupplierCategoryRelationHandler) GetBySupplierID(w http.ResponseWriter,
 	const ref = "[SupplierCategoryRelationHandler - GetBySupplierID] "
 	ctx := r.Context()
 
-	idStr := mux.Vars(r)["supplier_id"]
-	supplierID, err := strconv.ParseInt(idStr, 10, 64)
+	supplierID, err := utils.GetIDParam(r, "supplier_id")
 	if err != nil {
-		h.logger.Warn(ctx, ref+"ID inválido", map[string]any{"supplier_id": idStr})
+		h.logger.Warn(ctx, ref+"ID inválido", map[string]any{"supplier_id": supplierID})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
@@ -116,10 +113,9 @@ func (h *SupplierCategoryRelationHandler) GetByCategoryID(w http.ResponseWriter,
 	const ref = "[SupplierCategoryRelationHandler - GetByCategoryID] "
 	ctx := r.Context()
 
-	idStr := mux.Vars(r)["category_id"]
-	categoryID, err := strconv.ParseInt(idStr, 10, 64)
+	categoryID, err := utils.GetIDParam(r, "category_id")
 	if err != nil {
-		h.logger.Warn(ctx, ref+"ID inválido", map[string]any{"category_id": idStr})
+		h.logger.Warn(ctx, ref+"ID inválido", map[string]any{"category_id": categoryID, "erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
@@ -143,14 +139,13 @@ func (h *SupplierCategoryRelationHandler) DeleteByID(w http.ResponseWriter, r *h
 	const ref = "[SupplierCategoryRelationHandler - DeleteByID] "
 	ctx := r.Context()
 
-	vars := mux.Vars(r)
-	supplierID, err1 := strconv.ParseInt(vars["supplier_id"], 10, 64)
-	categoryID, err2 := strconv.ParseInt(vars["category_id"], 10, 64)
+	supplierID, err1 := utils.GetIDParam(r, "supplier_id")
+	categoryID, err2 := utils.GetIDParam(r, "category_id")
 
 	if err1 != nil || err2 != nil {
 		h.logger.Warn(ctx, ref+"IDs inválidos", map[string]any{
-			"supplier_id": vars["supplier_id"],
-			"category_id": vars["category_id"],
+			"supplier_id": supplierID,
+			"category_id": categoryID,
 		})
 		utils.ErrorResponse(w, errors.New("IDs inválidos"), http.StatusBadRequest)
 		return
@@ -180,10 +175,10 @@ func (h *SupplierCategoryRelationHandler) DeleteAllBySupplierID(w http.ResponseW
 	const ref = "[SupplierCategoryRelationHandler - DeleteAllBySupplierID] "
 	ctx := r.Context()
 
-	idStr := mux.Vars(r)["supplier_id"]
-	supplierID, err := strconv.ParseInt(idStr, 10, 64)
+	supplierID, err := utils.GetIDParam(r, "supplier_id")
+
 	if err != nil {
-		h.logger.Warn(ctx, ref+"ID inválido", map[string]any{"supplier_id": idStr})
+		h.logger.Warn(ctx, ref+"ID inválido", map[string]any{"supplier_id": supplierID})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}

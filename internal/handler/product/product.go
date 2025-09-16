@@ -157,11 +157,11 @@ func (h *ProductHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
 
-	vars := mux.Vars(r)
-	name := vars["name"]
-	if name == "" {
+	name, err := utils.GetStringParam(r, "name")
+	if err != nil || name == "" {
 		h.logger.Warn(ctx, ref+logger.LogQueryError, map[string]any{
 			"param": "name",
+			"erro":  err,
 		})
 		utils.ErrorResponse(w, errors.New("parâmetro 'name' é obrigatório"), http.StatusBadRequest)
 		return

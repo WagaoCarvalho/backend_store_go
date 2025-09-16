@@ -4,14 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user_category_relation"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_category_relations"
-	"github.com/gorilla/mux"
 )
 
 type UserCategoryRelationHandler struct {
@@ -132,7 +130,8 @@ func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWri
 
 	h.logger.Info(ctx, ref+logger.LogVerificationInit, map[string]any{})
 
-	userID, err := strconv.ParseInt(mux.Vars(r)["user_id"], 10, 64)
+	userID, err := utils.GetIDParam(r, "user_id")
+
 	if err != nil || userID <= 0 {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"campo": "user_id",
@@ -142,7 +141,8 @@ func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWri
 		return
 	}
 
-	categoryID, err := strconv.ParseInt(mux.Vars(r)["category_id"], 10, 64)
+	categoryID, err := utils.GetIDParam(r, "category_id")
+
 	if err != nil || categoryID <= 0 {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"campo": "category_id",
@@ -181,8 +181,8 @@ func (h *UserCategoryRelationHandler) Delete(w http.ResponseWriter, r *http.Requ
 
 	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{})
 
-	userID, errUserID := strconv.ParseInt(mux.Vars(r)["user_id"], 10, 64)
-	categoryID, errCategoryID := strconv.ParseInt(mux.Vars(r)["category_id"], 10, 64)
+	userID, errUserID := utils.GetIDParam(r, "user_id")
+	categoryID, errCategoryID := utils.GetIDParam(r, "category_id")
 
 	if errUserID != nil || errCategoryID != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
@@ -216,7 +216,8 @@ func (h *UserCategoryRelationHandler) DeleteAll(w http.ResponseWriter, r *http.R
 
 	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{})
 
-	userID, err := strconv.ParseInt(mux.Vars(r)["user_id"], 10, 64)
+	userID, err := utils.GetIDParam(r, "user_id")
+
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),

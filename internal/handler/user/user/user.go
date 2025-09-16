@@ -11,7 +11,6 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user"
-	"github.com/gorilla/mux"
 )
 
 type UserHandler struct {
@@ -203,8 +202,7 @@ func (h *UserHandler) GetByEmail(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - GetByEmail] "
 	ctx := r.Context()
 
-	vars := mux.Vars(r)
-	email := vars["email"]
+	email, err := utils.GetStringParam(r, "email")
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"email": email,
@@ -244,8 +242,7 @@ func (h *UserHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - GetByName] "
 	ctx := r.Context()
 
-	vars := mux.Vars(r)
-	name := vars["username"]
+	name, err := utils.GetStringParam(r, "username")
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
 		"name": name,

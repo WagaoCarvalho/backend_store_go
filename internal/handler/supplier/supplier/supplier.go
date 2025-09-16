@@ -11,7 +11,6 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier"
-	"github.com/gorilla/mux"
 )
 
 type SupplierHandler struct {
@@ -210,8 +209,7 @@ func (h *SupplierHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierHandler - GetByName] "
 	ctx := r.Context()
 
-	vars := mux.Vars(r)
-	name := vars["name"]
+	name, err := utils.GetStringParam(r, "name")
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{"name": name})
 

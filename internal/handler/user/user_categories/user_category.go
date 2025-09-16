@@ -4,14 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user_category"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_categories"
-	"github.com/gorilla/mux"
 )
 
 type UserCategoryHandler struct {
@@ -69,7 +67,8 @@ func (h *UserCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
 
-	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
+	id, err := utils.GetIDParam(r, "id")
+
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
@@ -193,7 +192,7 @@ func (h *UserCategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{})
 
-	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
+	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
