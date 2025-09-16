@@ -11,10 +11,10 @@ import (
 )
 
 type SupplierFull struct {
-	Supplier   *modelsSupplier.Supplier                    `json:"supplier"`
-	Categories []modelsSupplierCategories.SupplierCategory `json:"categories"`
-	Address    *modelsAddress.Address                      `json:"address"`
-	Contact    *modelsContact.Contact                      `json:"contact"`
+	Supplier   *modelsSupplier.Supplier
+	Categories []modelsSupplierCategories.SupplierCategory
+	Address    *modelsAddress.Address
+	Contact    *modelsContact.Contact
 }
 
 func (uf *SupplierFull) Validate() error {

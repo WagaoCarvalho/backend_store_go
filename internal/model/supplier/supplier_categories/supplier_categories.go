@@ -7,11 +7,11 @@ import (
 )
 
 type SupplierCategory struct {
-	ID          int64     `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description,omitempty"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID          int64
+	Name        string
+	Description string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 func (sc *SupplierCategory) Validate() error {

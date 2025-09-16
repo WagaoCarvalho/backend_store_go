@@ -9,14 +9,14 @@ import (
 )
 
 type Supplier struct {
-	ID        int64     `json:"id"`
-	Name      string    `json:"name"`
-	CNPJ      *string   `json:"cnpj,omitempty"`
-	CPF       *string   `json:"cpf,omitempty"`
-	Version   int       `json:"version"`
-	Status    bool      `json:"status"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        int64
+	Name      string
+	CNPJ      *string
+	CPF       *string
+	Version   int
+	Status    bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func (s *Supplier) Validate() error {

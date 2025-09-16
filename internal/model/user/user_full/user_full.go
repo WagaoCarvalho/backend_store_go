@@ -11,10 +11,10 @@ import (
 )
 
 type UserFull struct {
-	User       *modelsUser.User                    `json:"user"`
-	Categories []modelsUserCategories.UserCategory `json:"categories"`
-	Address    *modelsAddress.Address              `json:"address"`
-	Contact    *modelsContact.Contact              `json:"contact"`
+	User       *modelsUser.User
+	Categories []modelsUserCategories.UserCategory
+	Address    *modelsAddress.Address
+	Contact    *modelsContact.Contact
 }
 
 func (uf *UserFull) Validate() error {

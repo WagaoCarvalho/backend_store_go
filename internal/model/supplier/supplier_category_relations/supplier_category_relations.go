@@ -7,10 +7,10 @@ import (
 )
 
 type SupplierCategoryRelations struct {
-	SupplierID int64     `json:"supplier_id"`
-	CategoryID int64     `json:"category_id"`
-	Version    int       `json:"version"`
-	CreatedAt  time.Time `json:"created_at"`
+	SupplierID int64
+	CategoryID int64
+	Version    int
+	CreatedAt  time.Time
 }
 
 func (r *SupplierCategoryRelations) Validate() error {

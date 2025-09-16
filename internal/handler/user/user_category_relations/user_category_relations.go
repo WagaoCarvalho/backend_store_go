@@ -90,7 +90,7 @@ func (h *UserCategoryRelationHandler) GetAllRelationsByUserID(w http.ResponseWri
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
 
-	id, err := strconv.ParseInt(mux.Vars(r)["user_id"], 10, 64)
+	id, err := utils.GetIDParam(r, "user_id")
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
@@ -108,13 +108,19 @@ func (h *UserCategoryRelationHandler) GetAllRelationsByUserID(w http.ResponseWri
 		return
 	}
 
+	// 🔹 Conversão para DTO
+	var relationsDTO []dto.UserCategoryRelationsDTO
+	for _, rel := range relations {
+		relationsDTO = append(relationsDTO, dto.ToUserCategoryRelationsDTO(rel))
+	}
+
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id": id,
-		"total":   len(relations),
+		"total":   len(relationsDTO),
 	})
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    relations,
+		Data:    relationsDTO,
 		Message: "Relações recuperadas com sucesso",
 		Status:  http.StatusOK,
 	})

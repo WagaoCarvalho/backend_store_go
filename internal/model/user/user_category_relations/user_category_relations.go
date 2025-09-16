@@ -7,9 +7,9 @@ import (
 )
 
 type UserCategoryRelations struct {
-	UserID     int64     `json:"user_id"`
-	CategoryID int64     `json:"category_id"`
-	CreatedAt  time.Time `json:"created_at"`
+	UserID     int64
+	CategoryID int64
+	CreatedAt  time.Time
 }
 
 func (ucr *UserCategoryRelations) Validate() error {

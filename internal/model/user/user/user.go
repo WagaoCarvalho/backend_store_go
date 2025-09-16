@@ -10,14 +10,14 @@ import (
 )
 
 type User struct {
-	UID       int64     `json:"uid"`
-	Username  string    `json:"username"`
-	Email     string    `json:"email"`
-	Password  string    `json:"password"`
-	Status    bool      `json:"status"`
-	Version   int       `json:"version"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	UID       int64
+	Username  string
+	Email     string
+	Password  string
+	Status    bool
+	Version   int
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func (u *User) Validate() error {

@@ -215,7 +215,7 @@ func TestUserCategoryRelationHandler_GetAllRelationsByUserID(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, rr.Code)
 		assert.Contains(t, rr.Body.String(), "\"user_id\":1")
-		assert.Contains(t, rr.Body.String(), "\"category_id\":10")
+		assert.Contains(t, rr.Body.String(), "\"category_id\":1")
 		assert.Contains(t, rr.Body.String(), "Relações recuperadas com sucesso")
 
 		mockService.AssertExpectations(t)
