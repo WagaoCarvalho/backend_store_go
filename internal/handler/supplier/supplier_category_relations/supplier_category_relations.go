@@ -32,10 +32,7 @@ func (h *SupplierCategoryRelationHandler) Create(w http.ResponseWriter, r *http.
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	var requestData struct {
-		Relation *dto.SupplierCategoryRelationsDTO `json:"relation"`
-	}
-
+	var requestData dto.SupplierCategoryRelationsDTO
 	if err := utils.FromJSON(r.Body, &requestData); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
@@ -44,15 +41,7 @@ func (h *SupplierCategoryRelationHandler) Create(w http.ResponseWriter, r *http.
 		return
 	}
 
-	if requestData.Relation == nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
-			"erro": "relation não fornecida",
-		})
-		utils.ErrorResponse(w, fmt.Errorf("relation não fornecida"), http.StatusBadRequest)
-		return
-	}
-
-	modelRelation := dto.ToSupplierCategoryRelationsModel(*requestData.Relation)
+	modelRelation := dto.ToSupplierCategoryRelationsModel(requestData)
 
 	created, wasCreated, err := h.service.Create(ctx, modelRelation.SupplierID, modelRelation.CategoryID)
 	if err != nil {

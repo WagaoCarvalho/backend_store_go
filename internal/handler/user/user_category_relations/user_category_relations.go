@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user_category_relation"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -30,38 +30,34 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 	const ref = "[UserCategoryRelationHandler - Create] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]interface{}{})
+	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{})
 
-	var relation *model.UserCategoryRelations
-	if err := utils.FromJSON(r.Body, &relation); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]interface{}{
+	var requestData dto.UserCategoryRelationsDTO
+	if err := utils.FromJSON(r.Body, &requestData); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, fmt.Errorf("erro ao decodificar JSON: %w", err), http.StatusBadRequest)
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	if relation == nil {
-		h.logger.Warn(ctx, ref+logger.LogMissingBodyData, nil)
-		utils.ErrorResponse(w, fmt.Errorf("dados da relação são obrigatórios"), http.StatusBadRequest)
-		return
-	}
+	modelRelation := dto.ToUserCategoryRelationsModel(requestData)
 
-	created, wasCreated, err := h.service.Create(ctx, relation.UserID, relation.CategoryID)
+	created, wasCreated, err := h.service.Create(ctx, modelRelation.UserID, modelRelation.CategoryID)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
-			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]interface{}{
-				"user_id":     relation.UserID,
-				"category_id": relation.CategoryID,
+			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
+				"user_id":     modelRelation.UserID,
+				"category_id": modelRelation.CategoryID,
 				"erro":        err.Error(),
 			})
 			utils.ErrorResponse(w, fmt.Errorf("chave estrangeira inválida: %w", err), http.StatusBadRequest)
 			return
 		}
 
-		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]interface{}{
-			"user_id":     relation.UserID,
-			"category_id": relation.CategoryID,
+		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
+			"user_id":     modelRelation.UserID,
+			"category_id": modelRelation.CategoryID,
 		})
 		utils.ErrorResponse(w, fmt.Errorf("erro ao criar relação: %w", err), http.StatusInternalServerError)
 		return
@@ -76,9 +72,9 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 		logMsg = logger.LogCreateSuccess
 	}
 
-	h.logger.Info(ctx, ref+logMsg, map[string]interface{}{
-		"user_id":     relation.UserID,
-		"category_id": relation.CategoryID,
+	h.logger.Info(ctx, ref+logMsg, map[string]any{
+		"user_id":     modelRelation.UserID,
+		"category_id": modelRelation.CategoryID,
 	})
 
 	utils.ToJSON(w, status, utils.DefaultResponse{
@@ -92,11 +88,11 @@ func (h *UserCategoryRelationHandler) GetAllRelationsByUserID(w http.ResponseWri
 	const ref = "[UserCategoryRelationHandler - GetAllRelationsByUserID] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]interface{}{})
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
 
 	id, err := strconv.ParseInt(mux.Vars(r)["user_id"], 10, 64)
 	if err != nil {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("ID de usuário inválido"), http.StatusBadRequest)
@@ -105,14 +101,14 @@ func (h *UserCategoryRelationHandler) GetAllRelationsByUserID(w http.ResponseWri
 
 	relations, err := h.service.GetAllRelationsByUserID(ctx, id)
 	if err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]interface{}{
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"user_id": id,
 		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id": id,
 		"total":   len(relations),
 	})
@@ -128,11 +124,11 @@ func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWri
 	const ref = "[UserCategoryRelationHandler - HasUserCategoryRelation] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, ref+logger.LogVerificationInit, map[string]interface{}{})
+	h.logger.Info(ctx, ref+logger.LogVerificationInit, map[string]any{})
 
 	userID, err := strconv.ParseInt(mux.Vars(r)["user_id"], 10, 64)
 	if err != nil || userID <= 0 {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"campo": "user_id",
 			"erro":  err,
 		})
@@ -142,7 +138,7 @@ func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWri
 
 	categoryID, err := strconv.ParseInt(mux.Vars(r)["category_id"], 10, 64)
 	if err != nil || categoryID <= 0 {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"campo": "category_id",
 			"erro":  err,
 		})
@@ -152,7 +148,7 @@ func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWri
 
 	exists, err := h.service.HasUserCategoryRelation(ctx, userID, categoryID)
 	if err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogVerificationError, map[string]interface{}{
+		h.logger.Error(ctx, err, ref+logger.LogVerificationError, map[string]any{
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
@@ -160,7 +156,7 @@ func (h *UserCategoryRelationHandler) HasUserCategoryRelation(w http.ResponseWri
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogVerificationSuccess, map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogVerificationSuccess, map[string]any{
 		"user_id":     userID,
 		"category_id": categoryID,
 		"exists":      exists,
@@ -177,13 +173,13 @@ func (h *UserCategoryRelationHandler) Delete(w http.ResponseWriter, r *http.Requ
 	const ref = "[UserCategoryRelationHandler - Delete] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]interface{}{})
+	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{})
 
 	userID, errUserID := strconv.ParseInt(mux.Vars(r)["user_id"], 10, 64)
 	categoryID, errCategoryID := strconv.ParseInt(mux.Vars(r)["category_id"], 10, 64)
 
 	if errUserID != nil || errCategoryID != nil {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro_user_id":     errUserID,
 			"erro_category_id": errCategoryID,
 		})
@@ -192,7 +188,7 @@ func (h *UserCategoryRelationHandler) Delete(w http.ResponseWriter, r *http.Requ
 	}
 
 	if err := h.service.Delete(ctx, userID, categoryID); err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]interface{}{
+		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"user_id":     userID,
 			"category_id": categoryID,
 		})
@@ -200,7 +196,7 @@ func (h *UserCategoryRelationHandler) Delete(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
 		"user_id":     userID,
 		"category_id": categoryID,
 	})
@@ -212,11 +208,11 @@ func (h *UserCategoryRelationHandler) DeleteAll(w http.ResponseWriter, r *http.R
 	const ref = "[UserCategoryRelationHandler - DeleteAll] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]interface{}{})
+	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{})
 
 	userID, err := strconv.ParseInt(mux.Vars(r)["user_id"], 10, 64)
 	if err != nil {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]interface{}{
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("ID de usuário inválido"), http.StatusBadRequest)
@@ -224,14 +220,14 @@ func (h *UserCategoryRelationHandler) DeleteAll(w http.ResponseWriter, r *http.R
 	}
 
 	if err := h.service.DeleteAll(ctx, userID); err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]interface{}{
+		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"user_id": userID,
 		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]interface{}{
+	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
 		"user_id": userID,
 	})
 

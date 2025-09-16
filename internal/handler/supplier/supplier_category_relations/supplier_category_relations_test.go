@@ -29,21 +29,17 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
-		// DTO para enviar no JSON
-		relationDTO := &dto.SupplierCategoryRelationsDTO{
+		relationDTO := dto.SupplierCategoryRelationsDTO{
 			SupplierID: utils.Int64Ptr(1),
 			CategoryID: utils.Int64Ptr(2),
 		}
-		// Model para mock
-		modelRelation := dto.ToSupplierCategoryRelationsModel(*relationDTO)
+		modelRelation := dto.ToSupplierCategoryRelationsModel(relationDTO)
 
 		mockService.
 			On("Create", mock.Anything, int64(1), int64(2)).
 			Return(modelRelation, true, nil)
 
-		body, _ := json.Marshal(map[string]interface{}{
-			"relation": relationDTO,
-		})
+		body, _ := json.Marshal(relationDTO)
 		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
@@ -71,19 +67,17 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
-		relationDTO := &dto.SupplierCategoryRelationsDTO{
+		relationDTO := dto.SupplierCategoryRelationsDTO{
 			SupplierID: utils.Int64Ptr(1),
 			CategoryID: utils.Int64Ptr(2),
 		}
-		modelRelation := dto.ToSupplierCategoryRelationsModel(*relationDTO)
+		modelRelation := dto.ToSupplierCategoryRelationsModel(relationDTO)
 
 		mockService.
 			On("Create", mock.Anything, int64(1), int64(2)).
 			Return(modelRelation, false, nil)
 
-		body, _ := json.Marshal(map[string]interface{}{
-			"relation": relationDTO,
-		})
+		body, _ := json.Marshal(relationDTO)
 		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
@@ -119,31 +113,11 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.Status)
 	})
 
-	t.Run("Erro relation não fornecida", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
-		handler := NewSupplierCategoryRelationHandler(mockService, logger)
-
-		reqBody := []byte(`{}`) // JSON válido, mas sem o campo "relation"
-		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(reqBody))
-		req.Header.Set("Content-Type", "application/json")
-		rec := httptest.NewRecorder()
-
-		handler.Create(rec, req)
-
-		assert.Equal(t, http.StatusBadRequest, rec.Code)
-
-		var resp utils.DefaultResponse
-		err := json.Unmarshal(rec.Body.Bytes(), &resp)
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusBadRequest, resp.Status)
-		assert.Contains(t, resp.Message, "relation não fornecida")
-	})
-
 	t.Run("Erro chave estrangeira", func(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
-		relationDTO := &dto.SupplierCategoryRelationsDTO{
+		relationDTO := dto.SupplierCategoryRelationsDTO{
 			SupplierID: utils.Int64Ptr(99),
 			CategoryID: utils.Int64Ptr(88),
 		}
@@ -152,9 +126,7 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 			On("Create", mock.Anything, int64(99), int64(88)).
 			Return(nil, false, errMsg.ErrInvalidForeignKey)
 
-		body, _ := json.Marshal(map[string]interface{}{
-			"relation": relationDTO,
-		})
+		body, _ := json.Marshal(relationDTO)
 		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
@@ -175,7 +147,7 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
 		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
-		relationDTO := &dto.SupplierCategoryRelationsDTO{
+		relationDTO := dto.SupplierCategoryRelationsDTO{
 			SupplierID: utils.Int64Ptr(1),
 			CategoryID: utils.Int64Ptr(2),
 		}
@@ -184,9 +156,7 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 			On("Create", mock.Anything, int64(1), int64(2)).
 			Return(nil, false, errors.New("erro inesperado"))
 
-		body, _ := json.Marshal(map[string]interface{}{
-			"relation": relationDTO,
-		})
+		body, _ := json.Marshal(relationDTO)
 		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
