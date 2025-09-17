@@ -33,4 +33,15 @@ CREATE INDEX idx_addresses_client_id ON addresses (client_id);
 CREATE INDEX idx_addresses_supplier_id ON addresses (supplier_id);
 
 
-CREATE UNIQUE INDEX idx_addresses_client_unique ON addresses (client_id, street, street_number, postal_code);
+CREATE UNIQUE INDEX idx_addresses_client_unique 
+    ON addresses (client_id, street, street_number, postal_code)
+    WHERE client_id IS NOT NULL;
+
+CREATE UNIQUE INDEX idx_addresses_user_unique 
+    ON addresses (user_id, street, street_number, postal_code)
+    WHERE user_id IS NOT NULL;
+
+CREATE UNIQUE INDEX idx_addresses_supplier_unique 
+    ON addresses (supplier_id, street, street_number, postal_code)
+    WHERE supplier_id IS NOT NULL;
+

@@ -6,8 +6,9 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
+	repoUser "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 )
 
 type AddressService interface {
@@ -21,12 +22,14 @@ type AddressService interface {
 }
 
 type addressService struct {
-	repo repo.AddressRepository
+	repoAddress repoAddress.AddressRepository
+	repoUser    repoUser.UserRepository
 }
 
-func NewAddressService(repo repo.AddressRepository) AddressService {
+func NewAddressService(repoAddress repoAddress.AddressRepository, repoUser repoUser.UserRepository) AddressService {
 	return &addressService{
-		repo: repo,
+		repoAddress: repoAddress,
+		repoUser:    repoUser,
 	}
 }
 
@@ -36,7 +39,7 @@ func (s *addressService) Create(ctx context.Context, address *models.Address) (*
 		return nil, err
 	}
 
-	createdAddress, err := s.repo.Create(ctx, address)
+	createdAddress, err := s.repoAddress.Create(ctx, address)
 	if err != nil {
 		return nil, err
 	}
@@ -46,15 +49,15 @@ func (s *addressService) Create(ctx context.Context, address *models.Address) (*
 
 func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address, error) {
 	if id <= 0 {
-		return nil, err_msg.ErrID
+		return nil, errMsg.ErrID
 	}
 
-	addressModel, err := s.repo.GetByID(ctx, id)
+	addressModel, err := s.repoAddress.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrNotFound) {
-			return nil, err_msg.ErrNotFound
+		if errors.Is(err, errMsg.ErrNotFound) {
+			return nil, errMsg.ErrNotFound
 		}
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	return addressModel, nil
@@ -62,23 +65,33 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address
 
 func (s *addressService) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
 	if userID <= 0 {
-		return nil, err_msg.ErrID
+		return nil, errMsg.ErrID
 	}
 
-	addressModels, err := s.repo.GetByUserID(ctx, userID)
+	addresses, err := s.repoAddress.GetByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	return addressModels, nil
+	if len(addresses) == 0 {
+		exists, err := s.repoUser.UserExists(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		if !exists {
+			return nil, errMsg.ErrNotFound
+		}
+	}
+
+	return addresses, nil
 }
 
 func (s *addressService) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
 	if clientID <= 0 {
-		return nil, err_msg.ErrID
+		return nil, errMsg.ErrID
 	}
 
-	addressModels, err := s.repo.GetByClientID(ctx, clientID)
+	addressModels, err := s.repoAddress.GetByClientID(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -88,10 +101,10 @@ func (s *addressService) GetByClientID(ctx context.Context, clientID int64) ([]*
 
 func (s *addressService) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
 	if supplierID <= 0 {
-		return nil, err_msg.ErrID
+		return nil, errMsg.ErrID
 	}
 
-	addressModels, err := s.repo.GetBySupplierID(ctx, supplierID)
+	addressModels, err := s.repoAddress.GetBySupplierID(ctx, supplierID)
 	if err != nil {
 		return nil, err
 	}
@@ -104,8 +117,8 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 		return err
 	}
 
-	if err := s.repo.Update(ctx, address); err != nil {
-		return fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
+	if err := s.repoAddress.Update(ctx, address); err != nil {
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	return nil
@@ -113,11 +126,11 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 
 func (s *addressService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return err_msg.ErrID
+		return errMsg.ErrID
 	}
 
-	if err := s.repo.Delete(ctx, id); err != nil {
-		return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
+	if err := s.repoAddress.Delete(ctx, id); err != nil {
+		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
 
 	return nil

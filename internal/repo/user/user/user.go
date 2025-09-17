@@ -23,6 +23,7 @@ type UserRepository interface {
 	Disable(ctx context.Context, uid int64) error
 	Enable(ctx context.Context, uid int64) error
 	Delete(ctx context.Context, id int64) error
+	UserExists(ctx context.Context, userID int64) (bool, error)
 }
 
 type userRepository struct {
@@ -287,4 +288,22 @@ func (r *userRepository) Delete(ctx context.Context, uid int64) error {
 	}
 
 	return nil
+}
+
+func (r *userRepository) UserExists(ctx context.Context, userID int64) (bool, error) {
+	const query = `
+		SELECT EXISTS (
+			SELECT 1
+			FROM users
+			WHERE id = $1
+		)
+	`
+
+	var exists bool
+	err := r.db.QueryRow(ctx, query, userID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+	}
+
+	return exists, nil
 }

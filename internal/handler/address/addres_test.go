@@ -12,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	mockAddress "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/address"
 	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
@@ -128,6 +129,44 @@ func TestAddressHandler_Create(t *testing.T) {
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("DuplicateAddress", func(t *testing.T) {
+		t.Parallel()
+		mockService := new(mockAddress.MockAddressService)
+		handler := NewAddressHandler(mockService, logAdapter)
+
+		uid := int64(42)
+		input := &dtoAddress.AddressDTO{
+			UserID:       &uid,
+			Street:       "Rua Repetida",
+			StreetNumber: "123",
+			City:         "CidadeTest",
+			State:        "SP",
+			Country:      "Brasil",
+			PostalCode:   "01000-000",
+		}
+
+		// Mock do service retornando ErrDuplicate
+		mockService.On("Create", mock.Anything, mock.Anything).
+			Return((*models.Address)(nil), errMsg.ErrDuplicate)
+
+		body, _ := json.Marshal(input)
+		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		handler.Create(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusConflict, resp.StatusCode) // verifica HTTP 409
+		var response utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
+		assert.Contains(t, response.Message, "já cadastrado")
+
 		mockService.AssertExpectations(t)
 	})
 
@@ -324,9 +363,35 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 
 		h.GetByUserID(w, req)
 
-		assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
+		assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 		mockService.AssertExpectations(t)
 	})
+
+	t.Run("UserNotFound", func(t *testing.T) {
+		mockService := new(mockAddress.MockAddressService)
+		h := NewAddressHandler(mockService, logAdapter)
+
+		// Mock do service retornando ErrNotFound
+		mockService.On("GetByUserID", mock.Anything, int64(1)).
+			Return(nil, errMsg.ErrNotFound)
+
+		req := httptest.NewRequest(http.MethodGet, "/addresses/user/1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		h.GetByUserID(w, req)
+
+		// Verifica se retornou 404
+		assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
+
+		// Verifica se a mensagem contém "usuário não encontrado"
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+		assert.Contains(t, resp.Message, "usuário não encontrado")
+
+		mockService.AssertExpectations(t)
+	})
+
 }
 
 func TestAddressHandler_GetByClientID(t *testing.T) {

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
@@ -43,17 +44,26 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	createdModel, err := h.service.Create(ctx, addressModel)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
+		switch {
+		case errors.Is(err, errMsg.ErrInvalidForeignKey):
 			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"erro": err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
-		}
 
-		h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
+		case errors.Is(err, errMsg.ErrDuplicate):
+			h.logger.Warn(ctx, ref+"Endereço duplicado", map[string]any{
+				"erro": err.Error(),
+			})
+			utils.ErrorResponse(w, err, http.StatusConflict) // ou BadRequest, se preferir
+			return
+
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	createdDTO := dtoAddress.ToAddressDTO(createdModel)
@@ -121,8 +131,14 @@ func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 
 	addressModels, err := h.service.GetByUserID(ctx, id)
 	if err != nil {
+		if errors.Is(err, errMsg.ErrNotFound) {
+			h.logger.Warn(ctx, ref+"usuário não encontrado", map[string]any{"user_id": id})
+			utils.ErrorResponse(w, fmt.Errorf("usuário não encontrado"), http.StatusNotFound)
+			return
+		}
+
 		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"user_id": id})
-		utils.ErrorResponse(w, err, http.StatusNotFound)
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 

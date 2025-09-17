@@ -87,3 +87,8 @@ func (m *MockUserRepository) Delete(ctx context.Context, uid int64) error {
 	args := m.Called(ctx, uid)
 	return args.Error(0)
 }
+
+func (m *MockUserRepository) UserExists(ctx context.Context, userID int64) (bool, error) {
+	args := m.Called(ctx, userID)
+	return args.Bool(0), args.Error(1)
+}
