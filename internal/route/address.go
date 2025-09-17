@@ -9,6 +9,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwtMiddlewares "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
 	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
+	repoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
 	repoUser "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/address"
 
@@ -24,7 +25,8 @@ func RegisterAddressRoutes(
 ) {
 	repoAddress := repoAddress.NewAddressRepository(db)
 	repoUser := repoUser.NewUserRepository(db)
-	service := service.NewAddressService(repoAddress, repoUser)
+	repoSupplier := repoSupplier.NewSupplierRepository(db)
+	service := service.NewAddressService(repoAddress, repoUser, repoSupplier)
 	handler := handler.NewAddressHandler(service, log)
 
 	jwtCfg := config.LoadJwtConfig()

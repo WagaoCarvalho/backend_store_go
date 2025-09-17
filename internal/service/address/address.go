@@ -8,6 +8,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
+	repoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
 	repoUser "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 )
 
@@ -22,14 +23,20 @@ type AddressService interface {
 }
 
 type addressService struct {
-	repoAddress repoAddress.AddressRepository
-	repoUser    repoUser.UserRepository
+	repoAddress  repoAddress.AddressRepository
+	repoUser     repoUser.UserRepository
+	repoSupplier repoSupplier.SupplierRepository
 }
 
-func NewAddressService(repoAddress repoAddress.AddressRepository, repoUser repoUser.UserRepository) AddressService {
+func NewAddressService(
+	repoAddress repoAddress.AddressRepository,
+	repoUser repoUser.UserRepository,
+	repoSupplier repoSupplier.SupplierRepository,
+) AddressService {
 	return &addressService{
-		repoAddress: repoAddress,
-		repoUser:    repoUser,
+		repoAddress:  repoAddress,
+		repoUser:     repoUser,
+		repoSupplier: repoSupplier,
 	}
 }
 
@@ -91,12 +98,22 @@ func (s *addressService) GetByClientID(ctx context.Context, clientID int64) ([]*
 		return nil, errMsg.ErrID
 	}
 
-	addressModels, err := s.repoAddress.GetByClientID(ctx, clientID)
+	address, err := s.repoAddress.GetByClientID(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	return addressModels, nil
+	// if len(address) == 0 {
+	// 	exists, err := s.repoClient.ClientExists(ctx, clientID)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	if !exists {
+	// 		return nil, errMsg.ErrNotFound
+	// 	}
+	// }
+
+	return address, nil
 }
 
 func (s *addressService) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
@@ -104,12 +121,22 @@ func (s *addressService) GetBySupplierID(ctx context.Context, supplierID int64) 
 		return nil, errMsg.ErrID
 	}
 
-	addressModels, err := s.repoAddress.GetBySupplierID(ctx, supplierID)
+	address, err := s.repoAddress.GetBySupplierID(ctx, supplierID)
 	if err != nil {
 		return nil, err
 	}
 
-	return addressModels, nil
+	if len(address) == 0 {
+		exists, err := s.repoSupplier.SupplierExists(ctx, supplierID)
+		if err != nil {
+			return nil, err
+		}
+		if !exists {
+			return nil, errMsg.ErrNotFound
+		}
+	}
+
+	return address, nil
 }
 
 func (s *addressService) Update(ctx context.Context, address *models.Address) error {

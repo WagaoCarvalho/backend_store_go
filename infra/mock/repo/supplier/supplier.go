@@ -67,3 +67,8 @@ func (m *MockSupplierRepository) GetVersionByID(ctx context.Context, id int64) (
 	args := m.Called(ctx, id)
 	return args.Get(0).(int64), args.Error(1)
 }
+
+func (m *MockSupplierRepository) SupplierExists(ctx context.Context, supplierID int64) (bool, error) {
+	args := m.Called(ctx, supplierID)
+	return args.Bool(0), args.Error(1)
+}

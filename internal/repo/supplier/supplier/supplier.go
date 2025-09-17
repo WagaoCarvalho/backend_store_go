@@ -21,6 +21,7 @@ type SupplierRepository interface {
 	Delete(ctx context.Context, id int64) error
 	Disable(ctx context.Context, id int64) error
 	Enable(ctx context.Context, id int64) error
+	SupplierExists(ctx context.Context, supplierID int64) (bool, error)
 }
 
 type supplierRepository struct {
@@ -279,4 +280,22 @@ func (r *supplierRepository) GetVersionByID(ctx context.Context, id int64) (int6
 	}
 
 	return version, nil
+}
+
+func (r *supplierRepository) SupplierExists(ctx context.Context, supplierID int64) (bool, error) {
+	const query = `
+		SELECT EXISTS (
+			SELECT 1
+			FROM suppliers
+			WHERE id = $1
+		)
+	`
+
+	var exists bool
+	err := r.db.QueryRow(ctx, query, supplierID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+	}
+
+	return exists, nil
 }
