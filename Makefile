@@ -9,6 +9,7 @@ include infra/make/db.mk
 include infra/make/server.mk
 include infra/make/migrate_users.mk
 include infra/make/migrate_clients.mk
+include infra/make/migrate_client_credit.mk
 include infra/make/migrate_suppliers.mk
 include infra/make/migrate_addresses.mk
 include infra/make/migrate_contacts.mk
