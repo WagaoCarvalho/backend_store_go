@@ -12,14 +12,13 @@ import (
 func TestToClientModel(t *testing.T) {
 	id := int64(1)
 	dtoInput := ClientDTO{
-		ID:         &id,
-		Name:       "Cliente Teste",
-		Email:      utils.StrToPtr("teste@email.com"),
-		CPF:        utils.StrToPtr("12345678909"),
-		CNPJ:       nil,
-		ClientType: "PF",
-		Status:     true,
-		Version:    1,
+		ID:      &id,
+		Name:    "Cliente Teste",
+		Email:   utils.StrToPtr("teste@email.com"),
+		CPF:     utils.StrToPtr("12345678909"),
+		CNPJ:    nil,
+		Status:  true,
+		Version: 1,
 	}
 
 	model := ToClientModel(dtoInput)
@@ -29,21 +28,19 @@ func TestToClientModel(t *testing.T) {
 	assert.Equal(t, "teste@email.com", *model.Email)
 	assert.Equal(t, "12345678909", *model.CPF)
 	assert.Nil(t, model.CNPJ)
-	assert.Equal(t, "PF", model.ClientType)
 	assert.True(t, model.Status)
 	assert.Equal(t, 1, model.Version)
 }
 
 func TestToClientDTO(t *testing.T) {
 	modelInput := &client.Client{
-		ID:         1,
-		Name:       "Cliente DTO",
-		Email:      utils.StrToPtr("dto@email.com"),
-		CPF:        utils.StrToPtr("12345678909"),
-		CNPJ:       nil,
-		ClientType: "PF",
-		Status:     true,
-		Version:    2,
+		ID:      1,
+		Name:    "Cliente DTO",
+		Email:   utils.StrToPtr("dto@email.com"),
+		CPF:     utils.StrToPtr("12345678909"),
+		CNPJ:    nil,
+		Status:  true,
+		Version: 2,
 	}
 
 	dtoOutput := ToClientDTO(modelInput)
@@ -54,7 +51,6 @@ func TestToClientDTO(t *testing.T) {
 	assert.Equal(t, "dto@email.com", *dtoOutput.Email)
 	assert.Equal(t, "12345678909", *dtoOutput.CPF)
 	assert.Nil(t, dtoOutput.CNPJ)
-	assert.Equal(t, "PF", dtoOutput.ClientType)
 	assert.True(t, dtoOutput.Status)
 	assert.Equal(t, 2, dtoOutput.Version)
 

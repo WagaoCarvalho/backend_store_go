@@ -4,18 +4,17 @@ CREATE TABLE IF NOT EXISTS clients (
     email VARCHAR(255) UNIQUE,
     cpf VARCHAR(14) UNIQUE,
     cnpj VARCHAR(18) UNIQUE,
-    client_type VARCHAR(20) NOT NULL CHECK (client_type IN ('PF','PJ')),
     status BOOLEAN NOT NULL DEFAULT TRUE,
     version INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    
+    CONSTRAINT chk_cpf_or_cnpj CHECK (
+        (cpf IS NOT NULL AND cnpj IS NULL)
+        OR (cpf IS NULL AND cnpj IS NOT NULL)
+    )
 );
 
-
--- Busca rápida por nome
+-- Índices auxiliares
 CREATE INDEX idx_clients_name ON clients (name);
 CREATE INDEX idx_clients_status ON clients (status);
-CREATE INDEX idx_clients_type ON clients (client_type);
-
--- Documentos são UNIQUE (logo já viram índices implícitos):
--- cpf, cnpj, email

@@ -32,8 +32,8 @@ func NewClientRepository(db *pgxpool.Pool) ClientRepository {
 
 func (r *clientRepository) Create(ctx context.Context, client *models.Client) (*models.Client, error) {
 	const query = `
-		INSERT INTO clients (name, email, cpf, cnpj, client_type, status, version)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO clients (name, email, cpf, cnpj, status, version)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id, created_at, updated_at
 	`
 
@@ -42,7 +42,6 @@ func (r *clientRepository) Create(ctx context.Context, client *models.Client) (*
 		client.Email,
 		client.CPF,
 		client.CNPJ,
-		client.ClientType,
 		client.Status,
 		client.Version,
 	).Scan(&client.ID, &client.CreatedAt, &client.UpdatedAt)
@@ -56,7 +55,7 @@ func (r *clientRepository) Create(ctx context.Context, client *models.Client) (*
 
 func (r *clientRepository) GetByID(ctx context.Context, id int64) (*models.Client, error) {
 	const query = `
-		SELECT id, name, email, cpf, cnpj, client_type, status, version, created_at, updated_at
+		SELECT id, name, email, cpf, cnpj, status, version, created_at, updated_at
 		FROM clients
 		WHERE id = $1
 	`
@@ -67,7 +66,6 @@ func (r *clientRepository) GetByID(ctx context.Context, id int64) (*models.Clien
 		&client.Email,
 		&client.CPF,
 		&client.CNPJ,
-		&client.ClientType,
 		&client.Status,
 		&client.Version,
 		&client.CreatedAt,
@@ -81,7 +79,7 @@ func (r *clientRepository) GetByID(ctx context.Context, id int64) (*models.Clien
 
 func (r *clientRepository) GetByName(ctx context.Context, name string) ([]*models.Client, error) {
 	const query = `
-		SELECT id, name, email, cpf, cnpj, client_type, status, version, created_at, updated_at
+		SELECT id, name, email, cpf, cnpj, status, version, created_at, updated_at
 		FROM clients
 		WHERE name ILIKE '%' || $1 || '%'
 	`
@@ -100,7 +98,6 @@ func (r *clientRepository) GetByName(ctx context.Context, name string) ([]*model
 			&c.Email,
 			&c.CPF,
 			&c.CNPJ,
-			&c.ClientType,
 			&c.Status,
 			&c.Version,
 			&c.CreatedAt,
@@ -125,7 +122,7 @@ func (r *clientRepository) GetVersionByID(ctx context.Context, id int64) (int, e
 
 func (r *clientRepository) GetAll(ctx context.Context) ([]*models.Client, error) {
 	const query = `
-		SELECT id, name, email, cpf, cnpj, client_type, status, version, created_at, updated_at
+		SELECT id, name, email, cpf, cnpj, status, version, created_at, updated_at
 		FROM clients
 	`
 	rows, err := r.db.Query(ctx, query)
@@ -143,7 +140,6 @@ func (r *clientRepository) GetAll(ctx context.Context) ([]*models.Client, error)
 			&c.Email,
 			&c.CPF,
 			&c.CNPJ,
-			&c.ClientType,
 			&c.Status,
 			&c.Version,
 			&c.CreatedAt,
@@ -159,7 +155,7 @@ func (r *clientRepository) GetAll(ctx context.Context) ([]*models.Client, error)
 func (r *clientRepository) Update(ctx context.Context, client *models.Client) error {
 	const query = `
 		UPDATE clients
-		SET name=$1, email=$2, cpf=$3, cnpj=$4, client_type=$5, status=$6, version=$7, updated_at=NOW()
+		SET name=$1, email=$2, cpf=$3, cnpj=$4, status=$5, version=$6, updated_at=NOW()
 		WHERE id=$8
 	`
 	_, err := r.db.Exec(ctx, query,
@@ -167,7 +163,6 @@ func (r *clientRepository) Update(ctx context.Context, client *models.Client) er
 		client.Email,
 		client.CPF,
 		client.CNPJ,
-		client.ClientType,
 		client.Status,
 		client.Version,
 		client.ID,

@@ -9,16 +9,15 @@ import (
 )
 
 type Client struct {
-	ID         int64
-	Name       string
-	Email      *string
-	CPF        *string
-	CNPJ       *string
-	ClientType string
-	Version    int
-	Status     bool
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID        int64
+	Name      string
+	Email     *string
+	CPF       *string
+	CNPJ      *string
+	Version   int
+	Status    bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func (c *Client) Validate() error {
@@ -29,32 +28,26 @@ func (c *Client) Validate() error {
 		return &validators.ValidationError{Field: "Name", Message: "máximo de 255 caracteres"}
 	}
 
-	if validators.IsBlank(c.ClientType) {
-		return &validators.ValidationError{Field: "ClientType", Message: "campo obrigatório"}
-	}
-	if c.ClientType != "PF" && c.ClientType != "PJ" {
-		return &validators.ValidationError{Field: "ClientType", Message: "deve ser PF ou PJ"}
-	}
-
-	// Regras de CPF e CNPJ
+	// Não pode preencher ambos
 	if c.CPF != nil && c.CNPJ != nil {
 		return &validators.ValidationError{Field: "CPF/CNPJ", Message: "não é permitido preencher ambos"}
 	}
 
-	if c.ClientType == "PF" {
-		if c.CPF == nil {
-			return &validators.ValidationError{Field: "CPF", Message: "obrigatório para pessoa física"}
-		}
+	// Deve preencher um dos dois
+	if c.CPF == nil && c.CNPJ == nil {
+		return &validators.ValidationError{Field: "CPF/CNPJ", Message: "deve informar CPF ou CNPJ"}
+	}
+
+	// Valida CPF
+	if c.CPF != nil {
 		cpf := strings.TrimSpace(*c.CPF)
 		if !valCpfCnpj.IsValidCPF(cpf) {
 			return &validators.ValidationError{Field: "CPF", Message: "CPF inválido"}
 		}
 	}
 
-	if c.ClientType == "PJ" {
-		if c.CNPJ == nil {
-			return &validators.ValidationError{Field: "CNPJ", Message: "obrigatório para pessoa jurídica"}
-		}
+	// Valida CNPJ
+	if c.CNPJ != nil {
 		cnpj := strings.TrimSpace(*c.CNPJ)
 		if !valCpfCnpj.IsValidCNPJ(cnpj) {
 			return &validators.ValidationError{Field: "CNPJ", Message: "CNPJ inválido"}
