@@ -8,6 +8,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
+	repoClient "github.com/WagaoCarvalho/backend_store_go/internal/repo/client/client"
 	repoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
 	repoUser "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 )
@@ -24,17 +25,20 @@ type AddressService interface {
 
 type addressService struct {
 	repoAddress  repoAddress.AddressRepository
+	repoClient   repoClient.ClientRepository
 	repoUser     repoUser.UserRepository
 	repoSupplier repoSupplier.SupplierRepository
 }
 
 func NewAddressService(
 	repoAddress repoAddress.AddressRepository,
+	repoClient repoClient.ClientRepository,
 	repoUser repoUser.UserRepository,
 	repoSupplier repoSupplier.SupplierRepository,
 ) AddressService {
 	return &addressService{
 		repoAddress:  repoAddress,
+		repoClient:   repoClient,
 		repoUser:     repoUser,
 		repoSupplier: repoSupplier,
 	}
@@ -103,15 +107,15 @@ func (s *addressService) GetByClientID(ctx context.Context, clientID int64) ([]*
 		return nil, err
 	}
 
-	// if len(address) == 0 {
-	// 	exists, err := s.repoClient.ClientExists(ctx, clientID)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if !exists {
-	// 		return nil, errMsg.ErrNotFound
-	// 	}
-	// }
+	if len(address) == 0 {
+		exists, err := s.repoClient.ClientExists(ctx, clientID)
+		if err != nil {
+			return nil, err
+		}
+		if !exists {
+			return nil, errMsg.ErrNotFound
+		}
+	}
 
 	return address, nil
 }
