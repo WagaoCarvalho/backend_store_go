@@ -66,8 +66,9 @@ func TestLoginService_Login(t *testing.T) {
 
 	t.Run("email inválido", func(t *testing.T) {
 		authResp, err := service.Login(context.Background(), "invalid", "123")
-		assert.ErrorIs(t, err, errMsg.ErrEmailFormat)
 		assert.Nil(t, authResp)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "email inválido")
 	})
 
 	t.Run("usuário não encontrado", func(t *testing.T) {

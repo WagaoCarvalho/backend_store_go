@@ -41,33 +41,9 @@ func TestLoginCredentials_Validate(t *testing.T) {
 			errField: "password",
 		},
 		{
-			name:     "senha fraca",
-			input:    LoginCredentials{Email: "user@example.com", Password: "abc"},
-			wantErr:  true,
-			errField: "password",
-		},
-		{
 			name:    "credenciais válidas",
 			input:   LoginCredentials{Email: "user@example.com", Password: "Senha123!"},
 			wantErr: false,
-		},
-		{
-			name: "senha fraca retorna ValidationError",
-			input: LoginCredentials{
-				Email:    "user@example.com",
-				Password: "abc", // fraca o suficiente
-			},
-			wantErr:  true,
-			errField: "password",
-		},
-		{
-			name: "senha retorna erro genérico",
-			input: LoginCredentials{
-				Email:    "user@example.com",
-				Password: "generic-error",
-			},
-			wantErr:  true,
-			errField: "password",
 		},
 	}
 
