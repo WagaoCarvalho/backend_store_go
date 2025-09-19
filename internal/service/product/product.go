@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product"
 )
 
@@ -47,7 +47,7 @@ func NewProductService(repo repo.ProductRepository) ProductService {
 func (s *productService) Create(ctx context.Context, product *models.Product) (*models.Product, error) {
 
 	if err := product.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 
 	createdProduct, err := s.repo.Create(ctx, product)
@@ -111,11 +111,11 @@ func (s *productService) GetVersionByID(ctx context.Context, pid int64) (int64, 
 
 	version, err := s.repo.GetVersionByID(ctx, pid)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrNotFound) {
-			return 0, err_msg.ErrNotFound
+		if errors.Is(err, errMsg.ErrNotFound) {
+			return 0, errMsg.ErrNotFound
 		}
 
-		return 0, fmt.Errorf("%w: %v", err_msg.ErrVersionConflict, err)
+		return 0, fmt.Errorf("%w: %v", errMsg.ErrVersionConflict, err)
 	}
 
 	return version, nil
@@ -125,7 +125,7 @@ func (s *productService) DisableProduct(ctx context.Context, uid int64) error {
 
 	err := s.repo.DisableProduct(ctx, uid)
 	if err != nil {
-		return fmt.Errorf("%w: %v", err_msg.ErrDisable, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrDisable, err)
 	}
 
 	return nil
@@ -135,7 +135,7 @@ func (s *productService) EnableProduct(ctx context.Context, uid int64) error {
 
 	err := s.repo.EnableProduct(ctx, uid)
 	if err != nil {
-		return fmt.Errorf("%w: %v", err_msg.ErrEnable, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrEnable, err)
 	}
 
 	return nil
@@ -143,24 +143,26 @@ func (s *productService) EnableProduct(ctx context.Context, uid int64) error {
 
 func (s *productService) Update(ctx context.Context, product *models.Product) (*models.Product, error) {
 
-	// Validação de campos do produto
+	if product.ID <= 0 {
+		return nil, errMsg.ErrID
+	}
 	if err := product.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 
 	// Validação de version para controle otimista
 	if product.Version <= 0 {
-		return nil, err_msg.ErrVersionConflict
+		return nil, errMsg.ErrVersionConflict
 	}
 
 	updatedProduct, err := s.repo.Update(ctx, product)
 	if err != nil {
 		switch {
-		case errors.Is(err, err_msg.ErrNotFound):
-			return nil, err_msg.ErrNotFound
+		case errors.Is(err, errMsg.ErrNotFound):
+			return nil, errMsg.ErrNotFound
 
-		case errors.Is(err, err_msg.ErrVersionConflict):
-			return nil, err_msg.ErrVersionConflict
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			return nil, errMsg.ErrVersionConflict
 
 		default:
 			return nil, fmt.Errorf("%w", err)
@@ -183,7 +185,7 @@ func (s *productService) Delete(ctx context.Context, id int64) error {
 func (s *productService) UpdateStock(ctx context.Context, id int64, quantity int) error {
 	err := s.repo.UpdateStock(ctx, id, quantity)
 	if err != nil {
-		return fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	return nil
@@ -193,7 +195,7 @@ func (s *productService) IncreaseStock(ctx context.Context, id int64, amount int
 
 	err := s.repo.IncreaseStock(ctx, id, amount)
 	if err != nil {
-		return fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	return nil
@@ -203,7 +205,7 @@ func (s *productService) IncreaseStock(ctx context.Context, id int64, amount int
 func (s *productService) DecreaseStock(ctx context.Context, id int64, amount int) error {
 	err := s.repo.DecreaseStock(ctx, id, amount)
 	if err != nil {
-		return fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	return nil
@@ -213,7 +215,7 @@ func (s *productService) GetStock(ctx context.Context, id int64) (int, error) {
 
 	stock, err := s.repo.GetStock(ctx, id)
 	if err != nil {
-		return 0, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return 0, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	return stock, nil
@@ -223,7 +225,7 @@ func (s *productService) EnableDiscount(ctx context.Context, id int64) error {
 
 	err := s.repo.EnableDiscount(ctx, id)
 	if err != nil {
-		return fmt.Errorf("%w: %v", err_msg.ErrProductEnableDiscount, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrProductEnableDiscount, err)
 	}
 
 	return nil
@@ -233,7 +235,7 @@ func (s *productService) DisableDiscount(ctx context.Context, id int64) error {
 
 	err := s.repo.DisableDiscount(ctx, id)
 	if err != nil {
-		return fmt.Errorf("%w: %v", err_msg.ErrProductDisableDiscount, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrProductDisableDiscount, err)
 	}
 
 	return nil
@@ -243,7 +245,7 @@ func (s *productService) ApplyDiscount(ctx context.Context, id int64, percent fl
 
 	product, err := s.repo.ApplyDiscount(ctx, id, percent)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrProductApplyDiscount, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrProductApplyDiscount, err)
 	}
 
 	return product, nil

@@ -8,8 +8,7 @@ import (
 
 	mocksale "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/sale"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	errmsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -80,7 +79,7 @@ func TestSaleService_GetByID(t *testing.T) {
 		result, err := service.GetByID(context.Background(), 0)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errmsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrID)
 		mockRepo.AssertNotCalled(t, "GetByID", mock.Anything, mock.Anything)
 	})
 
@@ -88,12 +87,12 @@ func TestSaleService_GetByID(t *testing.T) {
 		mockRepo := new(mocksale.MockSaleRepository)
 		service := NewSaleService(mockRepo)
 
-		mockRepo.On("GetByID", mock.Anything, int64(1)).Return((*models.Sale)(nil), errmsg.ErrNotFound)
+		mockRepo.On("GetByID", mock.Anything, int64(1)).Return((*models.Sale)(nil), errMsg.ErrNotFound)
 
 		result, err := service.GetByID(context.Background(), 1)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errmsg.ErrNotFound)
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -108,7 +107,7 @@ func TestSaleService_GetByID(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), errmsg.ErrGet.Error())
+		assert.Contains(t, err.Error(), errMsg.ErrGet.Error())
 		assert.Contains(t, err.Error(), unexpectedErr.Error())
 		mockRepo.AssertExpectations(t)
 	})
@@ -136,7 +135,7 @@ func TestSaleService_GetByClientID(t *testing.T) {
 		sales, err := service.GetByClientID(context.Background(), 0, 10, 0, "sale_date", "asc")
 
 		assert.Nil(t, sales)
-		assert.Equal(t, err_msg.ErrID, err)
+		assert.Equal(t, errMsg.ErrID, err)
 		mockRepo.AssertNotCalled(t, "GetByClientID", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	})
 
@@ -181,7 +180,7 @@ func TestSaleService_GetByUserID(t *testing.T) {
 		sales, err := service.GetByUserID(context.Background(), 0, 10, 0, "sale_date", "asc")
 
 		assert.Nil(t, sales)
-		assert.Equal(t, err_msg.ErrID, err)
+		assert.Equal(t, errMsg.ErrID, err)
 		mockRepo.AssertNotCalled(t, "GetByUserID", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	})
 
@@ -226,7 +225,7 @@ func TestSaleService_GetByStatus(t *testing.T) {
 		sales, err := service.GetByStatus(context.Background(), "", 10, 0, "sale_date", "asc")
 
 		assert.Nil(t, sales)
-		assert.Equal(t, err_msg.ErrInvalidData, err)
+		assert.Equal(t, errMsg.ErrInvalidData, err)
 		mockRepo.AssertNotCalled(t, "GetByStatus", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	})
 
@@ -271,7 +270,7 @@ func TestSaleService_GetByDateRange(t *testing.T) {
 		sales, err := service.GetByDateRange(context.Background(), time.Time{}, time.Time{}, 10, 0, "sale_date", "asc")
 
 		assert.Nil(t, sales)
-		assert.Equal(t, err_msg.ErrInvalidData, err)
+		assert.Equal(t, errMsg.ErrInvalidData, err)
 		mockRepo.AssertNotCalled(t, "GetByDateRange", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	})
 
@@ -360,7 +359,7 @@ func TestSaleService_Update(t *testing.T) {
 		err := service.Update(context.Background(), saleModel)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), errmsg.ErrUpdate.Error())
+		assert.Contains(t, err.Error(), errMsg.ErrUpdate.Error())
 		assert.Contains(t, err.Error(), expectedErr.Error())
 		mockRepo.AssertExpectations(t)
 	})
@@ -373,7 +372,7 @@ func TestSaleService_Delete(t *testing.T) {
 
 		err := service.Delete(context.Background(), 0)
 
-		assert.ErrorIs(t, err, errmsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrID)
 		mockRepo.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
 	})
 
@@ -399,7 +398,7 @@ func TestSaleService_Delete(t *testing.T) {
 		err := service.Delete(context.Background(), 2)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), errmsg.ErrDelete.Error())
+		assert.Contains(t, err.Error(), errMsg.ErrDelete.Error())
 		assert.Contains(t, err.Error(), expectedErr.Error())
 		mockRepo.AssertExpectations(t)
 	})

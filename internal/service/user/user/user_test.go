@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"testing"
 
-	mock_user "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
-	model_user "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
+	modelUser "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -28,125 +28,134 @@ func (m *MockHasher) Compare(_, _ string) error {
 }
 
 func TestUserService_Create(t *testing.T) {
-
-	setup := func() (
-		*mock_user.MockUserRepository,
-		*MockHasher,
-		UserService,
-	) {
-		mockUserRepo := new(mock_user.MockUserRepository)
+	setup := func() (*mockUser.MockUserRepository, *MockHasher, UserService) {
+		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
-
-		userService := NewUserService(
-			mockUserRepo,
-			mockHasher,
-		)
-
+		userService := NewUserService(mockUserRepo, mockHasher)
 		return mockUserRepo, mockHasher, userService
 	}
 
-	t.Run("erro ao hashear senha", func(t *testing.T) {
-		mockUserRepo, mockHasher, userService := setup()
+	t.Run("erro na validação do usuário", func(t *testing.T) {
+		_, _, userService := setup()
 
-		user := &model_user.User{
-			Email:    "test@example.com",
-			Password: "senhaInvalidaParaHash",
+		user := &modelUser.User{
+			Email:    "", // inválido
+			Username: "", // inválido
+			Password: "", // inválido
 		}
 
-		mockHasher.On("Hash", "senhaInvalidaParaHash").Return("", errors.New("falha no hash")).Once()
+		result, err := userService.Create(context.Background(), user)
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+	})
 
-		_, err := userService.Create(context.Background(), user)
+	t.Run("erro ao hashear senha", func(t *testing.T) {
+		mockRepo, mockHasher, userService := setup()
 
+		user := &modelUser.User{
+			Email:    "teste@example.com",
+			Username: "teste",
+			Password: "Senha@123",
+			Status:   true,
+		}
+
+		// Simula falha no hash
+		mockHasher.On("Hash", "Senha@123").Return("", errors.New("falha no hash")).Once()
+
+		result, err := userService.Create(context.Background(), user)
+
+		assert.Nil(t, result)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao hashear senha")
-		mockUserRepo.AssertExpectations(t)
+
 		mockHasher.AssertExpectations(t)
+		mockRepo.AssertNotCalled(t, "Create") // Create não deve ser chamado
 	})
 
-	t.Run("sucesso ao criar usuário com todos os dados", func(t *testing.T) {
-		mockUserRepo, mockHasher, userService := setup()
+	t.Run("sucesso ao criar usuário", func(t *testing.T) {
+		mockRepo, mockHasher, userService := setup()
 
-		newUser := &model_user.User{
-			Username: "testuser",
-			Email:    "test@example.com",
-			Password: "senha123",
-			Status:   true,
+		user := &modelUser.User{
+			Email:    "teste@example.com",
+			Username: "teste",
+			Password: "Senha@123",
+			Status:   true, // necessário para passar validação
 		}
 
+		// Hash da senha
 		hashed := "hashedSenha123"
-		mockHasher.On("Hash", "senha123").Return(hashed, nil).Once()
+		mockHasher.On("Hash", "Senha@123").Return(hashed, nil).Once()
 
-		createdUser := &model_user.User{
-			UID:      1,
-			Username: "testuser",
-			Email:    "test@example.com",
-			Password: hashed,
-			Status:   true,
-		}
+		// Mock do Create retornando UID preenchido
+		mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(u *modelUser.User) bool {
+			return u.Email == user.Email && u.Password == hashed
+		})).
+			Return(&modelUser.User{UID: 1, Email: user.Email, Password: hashed}, nil).Once()
 
-		mockUserRepo.
-			On("Create", mock.Anything, mock.MatchedBy(func(u *model_user.User) bool {
-				return u.Email == newUser.Email && u.Password == hashed
-			})).
-			Run(func(args mock.Arguments) {
-				args.Get(1).(*model_user.User).UID = 1
-			}).
-			Return(createdUser, nil)
-
-		result, err := userService.Create(context.Background(), newUser)
+		result, err := userService.Create(context.Background(), user)
 
 		assert.NoError(t, err)
-		assert.Equal(t, createdUser, result)
-		mockUserRepo.AssertExpectations(t)
+		assert.NotNil(t, result)
+		assert.Equal(t, int64(1), result.UID)
+
 		mockHasher.AssertExpectations(t)
+		mockRepo.AssertExpectations(t)
 	})
-	t.Run("erro ao criar usuário", func(t *testing.T) {
-		mockUserRepo, _, userService := setup()
 
-		newUser := model_user.User{Email: "test@example.com"}
-		mockUserRepo.On("Create", mock.Anything, &newUser).Return(nil, errors.New("erro no banco de dados"))
+	t.Run("erro ao criar usuário no repo", func(t *testing.T) {
+		mockRepo, mockHasher, userService := setup()
 
-		_, err := userService.Create(context.Background(), &newUser)
+		user := &modelUser.User{
+			Email:    "teste@example.com",
+			Username: "teste",
+			Password: "Senha@123",
+			Status:   true,
+		}
 
+		mockHasher.On("Hash", "Senha@123").Return("hashedSenha123", nil).Once()
+		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, errors.New("erro no banco")).Once()
+
+		result, err := userService.Create(context.Background(), user)
+		assert.Nil(t, result)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao criar")
-		mockUserRepo.AssertExpectations(t)
+
+		mockHasher.AssertExpectations(t)
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("usuário criado é nulo", func(t *testing.T) {
-		mockUserRepo, _, userService := setup()
+		mockRepo, mockHasher, userService := setup()
 
-		user := &model_user.User{
-			Email: "valid@email.com",
+		user := &modelUser.User{
+			Email:    "teste@example.com",
+			Username: "teste",
+			Password: "Senha@123",
+			Status:   true,
 		}
 
-		mockUserRepo.On("Create", mock.Anything, mock.Anything).Return(nil, nil)
+		mockHasher.On("Hash", "Senha@123").Return("hashedSenha123", nil).Once()
+		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, nil).Once()
 
-		_, err := userService.Create(context.Background(), user)
-
+		result, err := userService.Create(context.Background(), user)
+		assert.Nil(t, result)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "usuário criado é nulo")
-		mockUserRepo.AssertExpectations(t)
+
+		mockHasher.AssertExpectations(t)
+		mockRepo.AssertExpectations(t)
 	})
-	t.Run("email inválido", func(t *testing.T) {
-		_, _, userService := setup()
-
-		_, err := userService.Create(context.Background(), &model_user.User{Email: "email-invalido"})
-
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "erro na validação dos dados")
-	})
-
 }
 
 func TestUserService_GetAll(t *testing.T) {
 
 	setup := func() (
-		*mock_user.MockUserRepository,
+		*mockUser.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(mock_user.MockUserRepository)
+		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -160,7 +169,7 @@ func TestUserService_GetAll(t *testing.T) {
 	t.Run("Deve retornar todos os usuários com sucesso", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
-		expectedUsers := []*model_user.User{
+		expectedUsers := []*modelUser.User{
 			{UID: 1, Username: "user1", Email: "user1@example.com", Status: true},
 			{UID: 2, Username: "user2", Email: "user2@example.com", Status: false},
 		}
@@ -190,11 +199,11 @@ func TestUserService_GetAll(t *testing.T) {
 func TestUserService_GetByID(t *testing.T) {
 
 	setup := func() (
-		*mock_user.MockUserRepository,
+		*mockUser.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(mock_user.MockUserRepository)
+		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -209,7 +218,7 @@ func TestUserService_GetByID(t *testing.T) {
 	t.Run("Deve retornar usuário quando encontrado", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
-		expectedUser := &model_user.User{
+		expectedUser := &modelUser.User{
 			UID:      1,
 			Username: "user1",
 			Email:    "user1@example.com",
@@ -253,11 +262,11 @@ func TestUserService_GetByID(t *testing.T) {
 func TestUserService_GetVersionByID(t *testing.T) {
 
 	setup := func() (
-		*mock_user.MockUserRepository,
+		*mockUser.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(mock_user.MockUserRepository)
+		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -286,12 +295,12 @@ func TestUserService_GetVersionByID(t *testing.T) {
 
 		mockRepo.On("GetVersionByID", mock.Anything, int64(999)).Return(
 			int64(0),
-			err_msg.ErrNotFound,
+			errMsg.ErrNotFound,
 		)
 
 		version, err := service.GetVersionByID(context.Background(), 999)
 
-		assert.ErrorIs(t, err, err_msg.ErrNotFound)
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
 		assert.Equal(t, int64(0), version)
 		mockRepo.AssertExpectations(t)
 	})
@@ -315,11 +324,11 @@ func TestUserService_GetVersionByID(t *testing.T) {
 func TestUserService_GetByEmail(t *testing.T) {
 
 	setup := func() (
-		*mock_user.MockUserRepository,
+		*mockUser.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(mock_user.MockUserRepository)
+		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -334,7 +343,7 @@ func TestUserService_GetByEmail(t *testing.T) {
 	t.Run("Deve retornar usuário quando encontrado por e-mail", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
-		expectedUser := &model_user.User{
+		expectedUser := &modelUser.User{
 			UID:      1,
 			Username: "user1",
 			Email:    "user1@example.com",
@@ -369,11 +378,11 @@ func TestUserService_GetByEmail(t *testing.T) {
 func TestUserService_GetByName(t *testing.T) {
 
 	setup := func() (
-		*mock_user.MockUserRepository,
+		*mockUser.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(mock_user.MockUserRepository)
+		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -388,7 +397,7 @@ func TestUserService_GetByName(t *testing.T) {
 	t.Run("Deve retornar lista de usuários quando encontrados por nome parcial", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
-		expectedUsers := []*model_user.User{
+		expectedUsers := []*modelUser.User{
 			{
 				UID:      1,
 				Username: "user1",
@@ -431,11 +440,11 @@ func TestUserService_GetByName(t *testing.T) {
 func TestUserService_Update(t *testing.T) {
 
 	setup := func() (
-		*mock_user.MockUserRepository,
+		*mockUser.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(mock_user.MockUserRepository)
+		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -450,7 +459,7 @@ func TestUserService_Update(t *testing.T) {
 	t.Run("Deve retornar erro ao atualizar com e-mail inválido", func(t *testing.T) {
 		_, _, service := setup()
 
-		user := &model_user.User{
+		user := &modelUser.User{
 			UID:     1,
 			Email:   "email_invalido",
 			Version: 1,
@@ -458,14 +467,14 @@ func TestUserService_Update(t *testing.T) {
 
 		updatedUser, err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, err_msg.ErrInvalidData)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
 		assert.Nil(t, updatedUser)
 	})
 
 	t.Run("Deve retornar erro ao atualizar com versão inválida", func(t *testing.T) {
 		_, _, service := setup()
 
-		user := &model_user.User{
+		user := &modelUser.User{
 			UID:     1,
 			Email:   "user@example.com",
 			Version: 0,
@@ -473,24 +482,24 @@ func TestUserService_Update(t *testing.T) {
 
 		updatedUser, err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, err_msg.ErrVersionConflict)
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		assert.Nil(t, updatedUser)
 	})
 
 	t.Run("Deve retornar erro de usuário não encontrado", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
-		user := &model_user.User{
+		user := &modelUser.User{
 			UID:     1,
 			Email:   "user@example.com",
 			Version: 1,
 		}
 
-		mockRepo.On("Update", mock.Anything, user).Return(nil, err_msg.ErrNotFound)
+		mockRepo.On("Update", mock.Anything, user).Return(nil, errMsg.ErrNotFound)
 
 		updatedUser, err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, err_msg.ErrNotFound)
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
 		assert.Nil(t, updatedUser)
 		mockRepo.AssertExpectations(t)
 	})
@@ -498,17 +507,17 @@ func TestUserService_Update(t *testing.T) {
 	t.Run("Deve retornar erro de conflito de versão", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
-		user := &model_user.User{
+		user := &modelUser.User{
 			UID:     1,
 			Email:   "user@example.com",
 			Version: 2,
 		}
 
-		mockRepo.On("Update", mock.Anything, user).Return(nil, err_msg.ErrVersionConflict)
+		mockRepo.On("Update", mock.Anything, user).Return(nil, errMsg.ErrVersionConflict)
 
 		updatedUser, err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, err_msg.ErrVersionConflict)
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		assert.Nil(t, updatedUser)
 		mockRepo.AssertExpectations(t)
 	})
@@ -516,7 +525,7 @@ func TestUserService_Update(t *testing.T) {
 	t.Run("Deve retornar erro genérico ao atualizar", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
-		user := &model_user.User{
+		user := &modelUser.User{
 			UID:     1,
 			Email:   "user@example.com",
 			Version: 1,
@@ -534,14 +543,14 @@ func TestUserService_Update(t *testing.T) {
 	t.Run("Deve atualizar usuário com sucesso", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
-		user := &model_user.User{
+		user := &modelUser.User{
 			UID:      1,
 			Username: "usuario",
 			Email:    "user@example.com",
 			Version:  1,
 		}
 
-		expected := &model_user.User{
+		expected := &modelUser.User{
 			UID:      1,
 			Username: "usuario",
 			Email:    "user@example.com",
@@ -561,11 +570,11 @@ func TestUserService_Update(t *testing.T) {
 func TestUserService_Disable(t *testing.T) {
 
 	setup := func() (
-		*mock_user.MockUserRepository,
+		*mockUser.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(mock_user.MockUserRepository)
+		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -605,11 +614,11 @@ func TestUserService_Disable(t *testing.T) {
 func TestUserService_Enable(t *testing.T) {
 
 	setup := func() (
-		*mock_user.MockUserRepository,
+		*mockUser.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(mock_user.MockUserRepository)
+		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(
@@ -637,11 +646,11 @@ func TestUserService_Enable(t *testing.T) {
 		mockRepo, _, service := setup()
 
 		mockRepo.On("Enable", mock.Anything, int64(42)).
-			Return(err_msg.ErrNotFound).Once()
+			Return(errMsg.ErrNotFound).Once()
 
 		err := service.Enable(context.Background(), 42)
 
-		assert.ErrorIs(t, err, err_msg.ErrNotFound)
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -662,11 +671,11 @@ func TestUserService_Enable(t *testing.T) {
 func TestUserService_Delete(t *testing.T) {
 
 	setup := func() (
-		*mock_user.MockUserRepository,
+		*mockUser.MockUserRepository,
 		*MockHasher,
 		UserService,
 	) {
-		mockUserRepo := new(mock_user.MockUserRepository)
+		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
 		userService := NewUserService(

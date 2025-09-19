@@ -5,17 +5,19 @@ import (
 	"errors"
 	"testing"
 
-	mock_tx "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo"
-	mock_address "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/address"
-	mock_contact "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/contact"
-	mock_supplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
-	mock_supplier_cat_rel "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
-	model_address "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
-	model_contact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
-	model_supplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
-	model_supplier_categories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
-	model_supplier_cat_rel "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
-	model_full "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+
+	mockTX "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo"
+	mockAddress "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/address"
+	mockContact "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/contact"
+	mockSupplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
+	mockSupplierCatRel "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
+	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
+	modelSupplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
+	modelSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	modelSupplierCatRel "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
+	modelFull "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -23,18 +25,18 @@ import (
 func TestSupplierService_CreateFull(t *testing.T) {
 
 	setup := func() (
-		*mock_supplier.MockSupplierFullRepository,
-		*mock_address.MockAddressRepository,
-		*mock_contact.MockContactRepository,
-		*mock_supplier_cat_rel.MockSupplierCategoryRelationRepo,
-		*mock_tx.MockTx,
+		*mockSupplier.MockSupplierFullRepository,
+		*mockAddress.MockAddressRepository,
+		*mockContact.MockContactRepository,
+		*mockSupplierCatRel.MockSupplierCategoryRelationRepo,
+		*mockTX.MockTx,
 		SupplierFullService,
 	) {
-		mockSupplierRepo := new(mock_supplier.MockSupplierFullRepository)
-		mockAddressRepo := new(mock_address.MockAddressRepository)
-		mockContactRepo := new(mock_contact.MockContactRepository)
-		mockRelationRepo := new(mock_supplier_cat_rel.MockSupplierCategoryRelationRepo)
-		mockTx := new(mock_tx.MockTx)
+		mockSupplierRepo := new(mockSupplier.MockSupplierFullRepository)
+		mockAddressRepo := new(mockAddress.MockAddressRepository)
+		mockContactRepo := new(mockContact.MockContactRepository)
+		mockRelationRepo := new(mockSupplierCatRel.MockSupplierCategoryRelationRepo)
+		mockTx := new(mockTX.MockTx)
 
 		supplierService := NewSupplierFullService(
 			mockSupplierRepo,
@@ -53,25 +55,25 @@ func TestSupplierService_CreateFull(t *testing.T) {
 
 		cpf := "12345678900"
 
-		supplierFull := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
+		supplierFull := &modelFull.SupplierFull{
+			Supplier: &modelSupplier.Supplier{
 				Name:   "Fornecedor Teste",
 				CPF:    &cpf,
 				Status: true,
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street:     "Rua A",
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
 				PostalCode: "12345678",
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				ContactName: "João da Silva",
 				Phone:       "11999999999",
 				Email:       "joao@teste.com",
 			},
-			Categories: []model_supplier_categories.SupplierCategory{
+			Categories: []modelSupplierCategories.SupplierCategory{
 				{ID: 1},
 				{ID: 2},
 			},
@@ -85,19 +87,30 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockSupplierRepo.AssertExpectations(t)
 	})
 
-	t.Run("supplierFull_ou_supplier_nil", func(t *testing.T) {
+	t.Run("supplierFull_ou_supplier_nil_e_validacao", func(t *testing.T) {
 		_, _, _, _, _, supplierService := setup()
 
+		// Caso 1: supplierFull é nil
 		result, err := supplierService.CreateFull(context.Background(), nil)
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "supplierFull é nulo")
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
 
-		invalidSupplier := &model_full.SupplierFull{}
-		result, err = supplierService.CreateFull(context.Background(), invalidSupplier)
+		// Caso 2: supplierFull existe, mas Supplier é nil
+		invalidSupplierFull := &modelFull.SupplierFull{}
+		result, err = supplierService.CreateFull(context.Background(), invalidSupplierFull)
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "fornecedor é obrigatório")
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+
+		// Caso 3: Supplier presente mas inválido (ex: nome vazio)
+		invalidSupplierFull = &modelFull.SupplierFull{
+			Supplier: &modelSupplier.Supplier{Name: ""},
+		}
+		result, err = supplierService.CreateFull(context.Background(), invalidSupplierFull)
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
 	})
 
 	t.Run("erro ao iniciar transação", func(t *testing.T) {
@@ -105,25 +118,25 @@ func TestSupplierService_CreateFull(t *testing.T) {
 
 		cpf := "12345678900"
 
-		supplierFull := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
+		supplierFull := &modelFull.SupplierFull{
+			Supplier: &modelSupplier.Supplier{
 				Name:   "Fornecedor Teste",
 				CPF:    &cpf,
 				Status: true,
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street:     "Rua A",
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
 				PostalCode: "12345678",
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				ContactName: "João da Silva",
 				Phone:       "11999999999",
 				Email:       "joao@teste.com",
 			},
-			Categories: []model_supplier_categories.SupplierCategory{
+			Categories: []modelSupplierCategories.SupplierCategory{
 				{ID: 1},
 				{ID: 2},
 			},
@@ -145,13 +158,13 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockSupplierRepo.On("BeginTx", mock.Anything).Return(mockTx, nil)
 
 		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_supplier.Supplier{ID: 1}, nil)
+			Return(&modelSupplier.Supplier{ID: 1}, nil)
 
 		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_address.Address{ID: 1}, nil)
+			Return(&modelAddress.Address{ID: 1}, nil)
 
 		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_contact.Contact{ID: 1}, nil)
+			Return(&modelContact.Contact{ID: 1}, nil)
 
 		mockRelationRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
 			Return(nil, errors.New("erro ao criar relação"))
@@ -159,25 +172,25 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockTx.On("Rollback", mock.Anything).Return(errors.New("erro ao dar rollback"))
 
 		cpf := "12345678900"
-		supplierFull := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
+		supplierFull := &modelFull.SupplierFull{
+			Supplier: &modelSupplier.Supplier{
 				Name:   "Fornecedor Teste",
 				CPF:    &cpf,
 				Status: true,
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street:     "Rua A",
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
 				PostalCode: "12345678",
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				ContactName: "João da Silva",
 				Phone:       "1112345678",
 				Email:       "joao@teste.com",
 			},
-			Categories: []model_supplier_categories.SupplierCategory{
+			Categories: []modelSupplierCategories.SupplierCategory{
 				{ID: 1},
 			},
 		}
@@ -201,44 +214,44 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockSupplierRepo.On("BeginTx", mock.Anything).Return(mockTx, nil)
 
 		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_supplier.Supplier{
+			Return(&modelSupplier.Supplier{
 				ID:   1,
 				Name: "Fornecedor Teste",
 			}, nil)
 
 		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_address.Address{ID: 1}, nil)
+			Return(&modelAddress.Address{ID: 1}, nil)
 
 		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_contact.Contact{ID: 1}, nil)
+			Return(&modelContact.Contact{ID: 1}, nil)
 
 		mockRelationRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_supplier_cat_rel.SupplierCategoryRelations{SupplierID: 1, CategoryID: 1}, nil)
+			Return(&modelSupplierCatRel.SupplierCategoryRelations{SupplierID: 1, CategoryID: 1}, nil)
 
 		mockTx.On("Commit", mock.Anything).Return(errors.New("erro ao commitar transação"))
 
 		mockTx.On("Rollback", mock.Anything).Return(nil).Once()
 
 		cpf := "12345678900"
-		supplierFull := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
+		supplierFull := &modelFull.SupplierFull{
+			Supplier: &modelSupplier.Supplier{
 				Name:   "Fornecedor Teste",
 				CPF:    &cpf,
 				Status: true,
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street:     "Rua Teste",
 				City:       "Cidade Teste",
 				State:      "SP",
 				Country:    "Brasil",
 				PostalCode: "12345678",
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				ContactName: "Contato Teste",
 				Phone:       "1112345678",
 				Email:       "contato@teste.com",
 			},
-			Categories: []model_supplier_categories.SupplierCategory{
+			Categories: []modelSupplierCategories.SupplierCategory{
 				{ID: 1},
 			},
 		}
@@ -260,25 +273,25 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockSupplierRepo, mockAddressRepo, mockContactRepo, mockRelationRepo, mockTx, supplierService := setup()
 
 		cpf := "12345678900"
-		supplierFull := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
+		supplierFull := &modelFull.SupplierFull{
+			Supplier: &modelSupplier.Supplier{
 				Name:   "Fornecedor Teste",
 				CPF:    &cpf,
 				Status: true,
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street:     "Rua Teste",
 				City:       "Cidade Teste",
 				State:      "SP",
 				Country:    "Brasil",
 				PostalCode: "12345678",
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				ContactName: "Contato Teste",
 				Phone:       "1112345678",
 				Email:       "contato@teste.com",
 			},
-			Categories: []model_supplier_categories.SupplierCategory{
+			Categories: []modelSupplierCategories.SupplierCategory{
 				{ID: 1},
 			},
 		}
@@ -286,13 +299,13 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockSupplierRepo.On("BeginTx", mock.Anything).Return(mockTx, nil)
 
 		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_supplier.Supplier{ID: 1}, nil)
+			Return(&modelSupplier.Supplier{ID: 1}, nil)
 
 		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_address.Address{ID: 1}, nil)
+			Return(&modelAddress.Address{ID: 1}, nil)
 
 		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_contact.Contact{ID: 1}, nil)
+			Return(&modelContact.Contact{ID: 1}, nil)
 
 		mockRelationRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
 			Return(nil, nil)
@@ -324,7 +337,7 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockSupplierRepo.On("BeginTx", mock.Anything).Return(mockTx, nil)
 
 		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_supplier.Supplier{
+			Return(&modelSupplier.Supplier{
 				ID:     1,
 				Name:   "Fornecedor Teste",
 				Status: true,
@@ -340,25 +353,25 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockTx.On("Rollback", mock.Anything).Return(nil)
 
 		cpf := "12345678900"
-		supplierFull := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
+		supplierFull := &modelFull.SupplierFull{
+			Supplier: &modelSupplier.Supplier{
 				Name:   "Fornecedor Teste",
 				CPF:    &cpf,
 				Status: true,
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street:     "Rua A",
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
 				PostalCode: "12345678",
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				ContactName: "Contato Teste",
 				Phone:       "1112345678",
 				Email:       "contato@teste.com",
 			},
-			Categories: []model_supplier_categories.SupplierCategory{
+			Categories: []modelSupplierCategories.SupplierCategory{
 				{ID: 1},
 			},
 		}
@@ -380,14 +393,14 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockSupplierRepo.On("BeginTx", mock.Anything).Return(mockTx, nil)
 
 		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_supplier.Supplier{
+			Return(&modelSupplier.Supplier{
 				ID:     1,
 				Name:   "Fornecedor Teste",
 				Status: true,
 			}, nil)
 
 		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_address.Address{
+			Return(&modelAddress.Address{
 				ID:         1,
 				Street:     "Rua A",
 				City:       "Cidade B",
@@ -406,25 +419,25 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockTx.On("Rollback", mock.Anything).Return(nil)
 
 		cpf := "12345678900"
-		supplierFull := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
+		supplierFull := &modelFull.SupplierFull{
+			Supplier: &modelSupplier.Supplier{
 				Name:   "Fornecedor Teste",
 				CPF:    &cpf,
 				Status: true,
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street:     "Rua A",
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
 				PostalCode: "12345678",
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				ContactName: "Ari",
 				Phone:       "1234567895",
 				Email:       "contato@example.com",
 			},
-			Categories: []model_supplier_categories.SupplierCategory{
+			Categories: []modelSupplierCategories.SupplierCategory{
 				{ID: 1},
 			},
 		}
@@ -444,28 +457,28 @@ func TestSupplierService_CreateFull(t *testing.T) {
 
 		mockSupplierRepo.On("BeginTx", mock.Anything).Return(mockTx, nil).Once()
 
-		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.MatchedBy(func(supplier *model_supplier.Supplier) bool {
+		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.MatchedBy(func(supplier *modelSupplier.Supplier) bool {
 			return supplier.Name == "Fornecedor Teste"
 		})).Return(nil, errors.New("falha ao criar fornecedor")).Once()
 
 		mockTx.On("Rollback", mock.Anything).Return(nil).Once()
 
 		cpf := "12345678900"
-		supplierFull := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
+		supplierFull := &modelFull.SupplierFull{
+			Supplier: &modelSupplier.Supplier{
 				Name:   "Fornecedor Teste",
 				CPF:    &cpf,
 				Status: true,
 			},
-			Categories: []model_supplier_categories.SupplierCategory{
+			Categories: []modelSupplierCategories.SupplierCategory{
 				{ID: 1},
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				ContactName: "Ari",
 				Phone:       "1234567895",
 				Email:       "contato@example.com",
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street:     "Rua A",
 				City:       "Cidade B",
 				State:      "SP",
@@ -485,30 +498,30 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockSupplierRepo, mockAddressRepo, mockContactRepo, mockRelationRepo, mockTx, supplierService := setup()
 
 		cpf := "12345678900"
-		supplierFull := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
+		supplierFull := &modelFull.SupplierFull{
+			Supplier: &modelSupplier.Supplier{
 				Name:   "Fornecedor Teste",
 				CPF:    &cpf,
 				Status: true,
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street:     "Rua A",
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
 				PostalCode: "12345678",
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				ContactName: "Ari",
 				Phone:       "1234567895",
 				Email:       "contato@example.com",
 			},
-			Categories: []model_supplier_categories.SupplierCategory{
+			Categories: []modelSupplierCategories.SupplierCategory{
 				{ID: 1},
 			},
 		}
 
-		expectedSupplier := &model_supplier.Supplier{
+		expectedSupplier := &modelSupplier.Supplier{
 			ID:     1,
 			Name:   "Fornecedor Teste",
 			CPF:    &cpf,
@@ -518,20 +531,20 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockSupplierRepo.On("BeginTx", mock.Anything).
 			Return(mockTx, nil).Once()
 
-		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.MatchedBy(func(s *model_supplier.Supplier) bool {
+		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.MatchedBy(func(s *modelSupplier.Supplier) bool {
 			return s.Name == "Fornecedor Teste" && s.CPF != nil && *s.CPF == cpf
 		})).Return(expectedSupplier, nil).Once()
 
-		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.MatchedBy(func(addr *model_address.Address) bool {
+		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.MatchedBy(func(addr *modelAddress.Address) bool {
 			return addr.City == "Cidade B" && addr.PostalCode == "12345678"
-		})).Return(&model_address.Address{ID: 1}, nil).Once()
+		})).Return(&modelAddress.Address{ID: 1}, nil).Once()
 
-		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.MatchedBy(func(c *model_contact.Contact) bool {
+		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.MatchedBy(func(c *modelContact.Contact) bool {
 			return c.Phone == "1234567895" && c.ContactName == "Ari"
-		})).Return(&model_contact.Contact{ID: 1}, nil).Once()
+		})).Return(&modelContact.Contact{ID: 1}, nil).Once()
 
 		mockRelationRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_supplier_cat_rel.SupplierCategoryRelations{SupplierID: 1, CategoryID: 1}, nil).Once()
+			Return(&modelSupplierCatRel.SupplierCategoryRelations{SupplierID: 1, CategoryID: 1}, nil).Once()
 
 		mockTx.On("Commit", mock.Anything).Return(nil).Once()
 
@@ -552,28 +565,28 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockSupplierRepo, _, _, _, mockTx, supplierService := setup()
 
 		cpf := "12345678900"
-		supplierFull := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
+		supplierFull := &modelFull.SupplierFull{
+			Supplier: &modelSupplier.Supplier{
 				Name:   "Fornecedor Teste",
 				CPF:    &cpf,
 				Status: true,
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street: "",
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				ContactName: "Ari",
 				Phone:       "1234567895",
 				Email:       "contato@example.com",
 			},
-			Categories: []model_supplier_categories.SupplierCategory{
+			Categories: []modelSupplierCategories.SupplierCategory{
 				{ID: 1},
 			},
 		}
 
 		mockSupplierRepo.On("BeginTx", mock.Anything).Return(mockTx, nil).Once()
 		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_supplier.Supplier{ID: 1, Name: "Fornecedor Teste", CPF: &cpf}, nil).Once()
+			Return(&modelSupplier.Supplier{ID: 1, Name: "Fornecedor Teste", CPF: &cpf}, nil).Once()
 
 		mockTx.On("Rollback", mock.Anything).Return(nil).Once()
 
@@ -588,33 +601,33 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockSupplierRepo, mockAddressRepo, _, _, mockTx, supplierService := setup()
 
 		cpf := "12345678900"
-		supplierFull := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
+		supplierFull := &modelFull.SupplierFull{
+			Supplier: &modelSupplier.Supplier{
 				Name:   "Fornecedor Teste",
 				CPF:    &cpf,
 				Status: true,
 			},
-			Categories: []model_supplier_categories.SupplierCategory{
+			Categories: []modelSupplierCategories.SupplierCategory{
 				{ID: 1},
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street:     "Rua A",
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
 				PostalCode: "12345678",
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				Phone: "invalido",
 			},
 		}
 
 		mockSupplierRepo.On("BeginTx", mock.Anything).Return(mockTx, nil).Once()
 		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_supplier.Supplier{ID: 1, Name: "Fornecedor Teste", CPF: &cpf}, nil).Once()
+			Return(&modelSupplier.Supplier{ID: 1, Name: "Fornecedor Teste", CPF: &cpf}, nil).Once()
 
 		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_address.Address{ID: 1}, nil).Once()
+			Return(&modelAddress.Address{ID: 1}, nil).Once()
 
 		mockTx.On("Rollback", mock.Anything).Return(nil).Once()
 
@@ -629,23 +642,23 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockSupplierRepo, mockAddressRepo, mockContactRepo, _, mockTx, supplierService := setup()
 
 		cpf := "12345678900"
-		supplierFull := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
+		supplierFull := &modelFull.SupplierFull{
+			Supplier: &modelSupplier.Supplier{
 				Name:   "Fornecedor Teste",
 				CPF:    &cpf,
 				Status: true,
 			},
-			Categories: []model_supplier_categories.SupplierCategory{
+			Categories: []modelSupplierCategories.SupplierCategory{
 				{ID: 0},
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street:     "Rua A",
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
 				PostalCode: "12345678",
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				ContactName: "João",
 				Phone:       "1234567890",
 				Email:       "joao@example.com",
@@ -654,13 +667,13 @@ func TestSupplierService_CreateFull(t *testing.T) {
 
 		mockSupplierRepo.On("BeginTx", mock.Anything).Return(mockTx, nil).Once()
 		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_supplier.Supplier{ID: 1, Name: "Fornecedor Teste", CPF: &cpf}, nil).Once()
+			Return(&modelSupplier.Supplier{ID: 1, Name: "Fornecedor Teste", CPF: &cpf}, nil).Once()
 
 		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_address.Address{ID: 1}, nil).Once()
+			Return(&modelAddress.Address{ID: 1}, nil).Once()
 
 		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_contact.Contact{ID: 1}, nil).Once()
+			Return(&modelContact.Contact{ID: 1}, nil).Once()
 
 		mockTx.On("Rollback", mock.Anything).Return(nil).Once()
 
@@ -676,23 +689,23 @@ func TestSupplierService_CreateFull(t *testing.T) {
 		mockSupplierRepo, mockAddressRepo, mockContactRepo, _, mockTx, supplierService := setup()
 
 		cpf := "12345678900"
-		supplierFull := &model_full.SupplierFull{
-			Supplier: &model_supplier.Supplier{
+		supplierFull := &modelFull.SupplierFull{
+			Supplier: &modelSupplier.Supplier{
 				Name:   "Fornecedor Teste",
 				CPF:    &cpf,
 				Status: true,
 			},
-			Categories: []model_supplier_categories.SupplierCategory{
+			Categories: []modelSupplierCategories.SupplierCategory{
 				{ID: 1},
 			},
-			Address: &model_address.Address{
+			Address: &modelAddress.Address{
 				Street:     "Rua A",
 				City:       "Cidade B",
 				State:      "SP",
 				Country:    "Brasil",
 				PostalCode: "12345678",
 			},
-			Contact: &model_contact.Contact{
+			Contact: &modelContact.Contact{
 				ContactName: "Ari",
 				Phone:       "1234567895",
 				Email:       "contato@example.com",
@@ -701,10 +714,10 @@ func TestSupplierService_CreateFull(t *testing.T) {
 
 		mockSupplierRepo.On("BeginTx", mock.Anything).Return(mockTx, nil).Once()
 		mockSupplierRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_supplier.Supplier{ID: 1, Name: "Fornecedor Teste", CPF: &cpf}, nil).Once()
+			Return(&modelSupplier.Supplier{ID: 1, Name: "Fornecedor Teste", CPF: &cpf}, nil).Once()
 
 		mockAddressRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
-			Return(&model_address.Address{ID: 1}, nil).Once()
+			Return(&modelAddress.Address{ID: 1}, nil).Once()
 
 		mockContactRepo.On("CreateTx", mock.Anything, mockTx, mock.Anything).
 			Run(func(_ mock.Arguments) {

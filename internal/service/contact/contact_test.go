@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	mock_contact "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/contact"
+	mockContact "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/contact"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -16,7 +16,7 @@ import (
 
 func TestContactService_Create(t *testing.T) {
 	t.Run("sucesso na criação do contato", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		userID := int64(1)
@@ -46,7 +46,7 @@ func TestContactService_Create(t *testing.T) {
 	})
 
 	t.Run("falha na validação do contato ContactName obrigatório", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		userID := int64(1)
@@ -66,12 +66,12 @@ func TestContactService_Create(t *testing.T) {
 
 		assert.Nil(t, createdContact)
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "erro no campo 'contact_name'") // conforme Validate do model
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
 		mockRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 	})
 
 	t.Run("falha no repositório ao criar contato", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		userID := int64(1)
@@ -102,7 +102,7 @@ func TestContactService_Create(t *testing.T) {
 
 func TestContactService_GetByID(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		expectedContact := &model.Contact{
@@ -127,7 +127,7 @@ func TestContactService_GetByID(t *testing.T) {
 	})
 
 	t.Run("not found", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).
@@ -142,7 +142,7 @@ func TestContactService_GetByID(t *testing.T) {
 	})
 
 	t.Run("invalid id", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		contact, err := service.GetByID(context.Background(), 0)
@@ -154,7 +154,7 @@ func TestContactService_GetByID(t *testing.T) {
 	})
 
 	t.Run("repository error", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		mockRepo.On("GetByID", mock.Anything, int64(2)).
@@ -171,7 +171,7 @@ func TestContactService_GetByID(t *testing.T) {
 
 func TestContactService_GetByUserID(t *testing.T) {
 	t.Run("sucesso ao buscar contatos por UserID", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		contactModels := []*model.Contact{
@@ -198,7 +198,7 @@ func TestContactService_GetByUserID(t *testing.T) {
 	})
 
 	t.Run("falha ao buscar contatos com UserID inválido", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		result, err := service.GetByUserID(context.Background(), 0)
@@ -210,7 +210,7 @@ func TestContactService_GetByUserID(t *testing.T) {
 	})
 
 	t.Run("nenhum contato encontrado por UserID", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		mockRepo.On("GetByUserID", mock.Anything, int64(2)).
@@ -227,7 +227,7 @@ func TestContactService_GetByUserID(t *testing.T) {
 
 func TestContactService_GetByClientID(t *testing.T) {
 	t.Run("sucesso ao buscar contatos por ClientID", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		contactModels := []*model.Contact{
@@ -254,7 +254,7 @@ func TestContactService_GetByClientID(t *testing.T) {
 	})
 
 	t.Run("falha ao buscar contatos com ClientID inválido", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		result, err := service.GetByClientID(context.Background(), 0)
@@ -266,7 +266,7 @@ func TestContactService_GetByClientID(t *testing.T) {
 	})
 
 	t.Run("nenhum contato encontrado por ClientID", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		mockRepo.On("GetByClientID", mock.Anything, int64(2)).
@@ -283,7 +283,7 @@ func TestContactService_GetByClientID(t *testing.T) {
 
 func TestContactService_GetBySupplierID(t *testing.T) {
 	t.Run("sucesso ao buscar contatos por SupplierID", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		contactModels := []*model.Contact{
@@ -310,7 +310,7 @@ func TestContactService_GetBySupplierID(t *testing.T) {
 	})
 
 	t.Run("falha ao buscar contatos com SupplierID inválido", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		result, err := service.GetBySupplierID(context.Background(), 0)
@@ -322,7 +322,7 @@ func TestContactService_GetBySupplierID(t *testing.T) {
 	})
 
 	t.Run("nenhum contato encontrado por SupplierID", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		mockRepo.On("GetBySupplierID", mock.Anything, int64(2)).
@@ -350,7 +350,7 @@ func TestContactService_UpdateContact(t *testing.T) {
 	}
 
 	t.Run("sucesso na atualização do contato", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		contact := makeContactModel()
@@ -365,7 +365,7 @@ func TestContactService_UpdateContact(t *testing.T) {
 	})
 
 	t.Run("erro ao atualizar contato com ID inválido", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		userID := int64(1)
@@ -381,7 +381,7 @@ func TestContactService_UpdateContact(t *testing.T) {
 	})
 
 	t.Run("falha na validação do contato no update", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		contact := &model.Contact{
@@ -391,12 +391,12 @@ func TestContactService_UpdateContact(t *testing.T) {
 
 		err := service.Update(context.Background(), contact)
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "contact_name")
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
 	t.Run("erro genérico ao atualizar contato", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		contact := &model.Contact{
@@ -421,7 +421,7 @@ func TestContactService_UpdateContact(t *testing.T) {
 
 func TestContactService_DeleteContact(t *testing.T) {
 	t.Run("sucesso ao deletar contato", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		existingContact := &model.Contact{ID: 1, ContactName: "Test User"}
@@ -434,7 +434,7 @@ func TestContactService_DeleteContact(t *testing.T) {
 	})
 
 	t.Run("contato não encontrado", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).
@@ -447,7 +447,7 @@ func TestContactService_DeleteContact(t *testing.T) {
 	})
 
 	t.Run("id inválido", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		err := service.Delete(context.Background(), 0)
@@ -459,7 +459,7 @@ func TestContactService_DeleteContact(t *testing.T) {
 	})
 
 	t.Run("erro do repositório no GetByID", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).
@@ -472,7 +472,7 @@ func TestContactService_DeleteContact(t *testing.T) {
 	})
 
 	t.Run("erro do repositório no Delete", func(t *testing.T) {
-		mockRepo := new(mock_contact.MockContactRepository)
+		mockRepo := new(mockContact.MockContactRepository)
 		service := NewContactService(mockRepo)
 
 		existingContact := &model.Contact{ID: 1, ContactName: "Test User"}

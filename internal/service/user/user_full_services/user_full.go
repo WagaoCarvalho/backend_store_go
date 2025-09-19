@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+
 	modelsUserCatRel "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
 	modelsUserFull "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
@@ -44,21 +46,15 @@ func NewUserFullService(
 }
 
 func (s *userFullService) CreateFull(ctx context.Context, userFull *modelsUserFull.UserFull) (*modelsUserFull.UserFull, error) {
-	if userFull == nil {
-		return nil, fmt.Errorf("userFull é nulo")
-	}
-
 	if err := userFull.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 
-	if userFull.User.Password != "" {
-		hashed, err := s.hasher.Hash(userFull.User.Password)
-		if err != nil {
-			return nil, fmt.Errorf("erro ao hashear senha: %w", err)
-		}
-		userFull.User.Password = hashed
+	hashed, err := s.hasher.Hash(userFull.User.Password)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao hashear senha: %w", err)
 	}
+	userFull.User.Password = hashed
 
 	tx, err := s.repoUser.BeginTx(ctx)
 	if err != nil {

@@ -32,7 +32,7 @@ func NewContactService(contactRepo repo.ContactRepository) ContactService {
 
 func (s *contactService) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
 	if err := contact.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 
 	createdContact, err := s.contactRepo.Create(ctx, contact)
@@ -99,12 +99,11 @@ func (s *contactService) GetBySupplierID(ctx context.Context, supplierID int64) 
 }
 
 func (s *contactService) Update(ctx context.Context, contact *models.Contact) error {
-	if err := contact.Validate(); err != nil {
-		return err
-	}
-
-	if contact.ID == 0 {
+	if contact.ID <= 0 {
 		return errMsg.ErrID
+	}
+	if err := contact.Validate(); err != nil {
+		return fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 
 	if err := s.contactRepo.Update(ctx, contact); err != nil {

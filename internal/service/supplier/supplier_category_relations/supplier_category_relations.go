@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
 )
 
@@ -29,16 +29,16 @@ func NewSupplierCategoryRelationService(repository repo.SupplierCategoryRelation
 
 func (s *supplierCategoryRelationService) Create(ctx context.Context, supplierID, categoryID int64) (*models.SupplierCategoryRelations, bool, error) {
 	if supplierID <= 0 || categoryID <= 0 {
-		return nil, false, err_msg.ErrInvalidData
+		return nil, false, errMsg.ErrInvalidData
 	}
 
 	exists, err := s.relationRepo.HasRelation(ctx, supplierID, categoryID)
 	if err != nil {
-		return nil, false, fmt.Errorf("%w: %v", err_msg.ErrRelationCheck, err)
+		return nil, false, fmt.Errorf("%w: %v", errMsg.ErrRelationCheck, err)
 	}
 
 	if exists {
-		return nil, false, err_msg.ErrRelationExists
+		return nil, false, errMsg.ErrRelationExists
 	}
 
 	relation := &models.SupplierCategoryRelations{
@@ -48,7 +48,7 @@ func (s *supplierCategoryRelationService) Create(ctx context.Context, supplierID
 
 	created, err := s.relationRepo.Create(ctx, relation)
 	if err != nil {
-		return nil, false, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
+		return nil, false, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 
 	return created, true, nil
@@ -56,12 +56,12 @@ func (s *supplierCategoryRelationService) Create(ctx context.Context, supplierID
 
 func (s *supplierCategoryRelationService) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {
 	if supplierID <= 0 {
-		return nil, err_msg.ErrInvalidData
+		return nil, errMsg.ErrInvalidData
 	}
 
 	result, err := s.relationRepo.GetBySupplierID(ctx, supplierID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	return result, nil
@@ -69,12 +69,12 @@ func (s *supplierCategoryRelationService) GetBySupplierID(ctx context.Context, s
 
 func (s *supplierCategoryRelationService) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error) {
 	if categoryID <= 0 {
-		return nil, err_msg.ErrInvalidData
+		return nil, errMsg.ErrInvalidData
 	}
 
 	result, err := s.relationRepo.GetByCategoryID(ctx, categoryID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	return result, nil
@@ -82,15 +82,15 @@ func (s *supplierCategoryRelationService) GetByCategoryID(ctx context.Context, c
 
 func (s *supplierCategoryRelationService) DeleteByID(ctx context.Context, supplierID, categoryID int64) error {
 	if supplierID <= 0 || categoryID <= 0 {
-		return err_msg.ErrInvalidData
+		return errMsg.ErrInvalidData
 	}
 
 	err := s.relationRepo.Delete(ctx, supplierID, categoryID)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrNotFound) {
-			return err_msg.ErrNotFound
+		if errors.Is(err, errMsg.ErrNotFound) {
+			return errMsg.ErrNotFound
 		}
-		return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
 
 	return nil
@@ -98,12 +98,12 @@ func (s *supplierCategoryRelationService) DeleteByID(ctx context.Context, suppli
 
 func (s *supplierCategoryRelationService) DeleteAllBySupplierID(ctx context.Context, supplierID int64) error {
 	if supplierID <= 0 {
-		return err_msg.ErrInvalidData
+		return errMsg.ErrInvalidData
 	}
 
 	err := s.relationRepo.DeleteAllBySupplierID(ctx, supplierID)
 	if err != nil {
-		return fmt.Errorf("%w: %v", err_msg.ErrDelete, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
 
 	return nil
@@ -111,12 +111,12 @@ func (s *supplierCategoryRelationService) DeleteAllBySupplierID(ctx context.Cont
 
 func (s *supplierCategoryRelationService) HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {
 	if supplierID <= 0 || categoryID <= 0 {
-		return false, err_msg.ErrInvalidData
+		return false, errMsg.ErrInvalidData
 	}
 
 	exists, err := s.relationRepo.HasRelation(ctx, supplierID, categoryID)
 	if err != nil {
-		return false, fmt.Errorf("%w: %v", err_msg.ErrRelationCheck, err)
+		return false, fmt.Errorf("%w: %v", errMsg.ErrRelationCheck, err)
 	}
 
 	return exists, nil

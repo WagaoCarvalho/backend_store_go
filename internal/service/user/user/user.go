@@ -7,7 +7,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	val_contact "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/contact"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 )
@@ -38,21 +38,19 @@ func NewUserService(repoUser repo.UserRepository, hasher auth.PasswordHasher) Us
 }
 
 func (s *userService) Create(ctx context.Context, user *models.User) (*models.User, error) {
-	if !val_contact.IsValidEmail(user.Email) {
-		return nil, err_msg.ErrInvalidData
+	if err := user.Validate(); err != nil {
+		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 
-	if user.Password != "" {
-		hashed, err := s.hasher.Hash(user.Password)
-		if err != nil {
-			return nil, fmt.Errorf("erro ao hashear senha: %w", err)
-		}
-		user.Password = hashed
+	hashed, err := s.hasher.Hash(user.Password)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao hashear senha: %w", err)
 	}
+	user.Password = hashed
 
 	createdUser, err := s.repoUser.Create(ctx, user)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 
 	if createdUser == nil {
@@ -65,7 +63,7 @@ func (s *userService) Create(ctx context.Context, user *models.User) (*models.Us
 func (s *userService) GetAll(ctx context.Context) ([]*models.User, error) {
 	users, err := s.repoUser.GetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	return users, nil
@@ -78,7 +76,7 @@ func (s *userService) GetByID(ctx context.Context, uid int64) (*models.User, err
 
 	user, err := s.repoUser.GetByID(ctx, uid)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	return user, nil
@@ -87,10 +85,10 @@ func (s *userService) GetByID(ctx context.Context, uid int64) (*models.User, err
 func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, error) {
 	version, err := s.repoUser.GetVersionByID(ctx, uid)
 	if err != nil {
-		if errors.Is(err, err_msg.ErrNotFound) {
-			return 0, err_msg.ErrNotFound
+		if errors.Is(err, errMsg.ErrNotFound) {
+			return 0, errMsg.ErrNotFound
 		}
-		return 0, fmt.Errorf("%w: %v", err_msg.ErrVersionConflict, err)
+		return 0, fmt.Errorf("%w: %v", errMsg.ErrVersionConflict, err)
 	}
 	return version, nil
 }
@@ -98,7 +96,7 @@ func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, err
 func (s *userService) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	user, err := s.repoUser.GetByEmail(ctx, email)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	return user, nil
 }
@@ -106,29 +104,29 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*models.Use
 func (s *userService) GetByName(ctx context.Context, name string) ([]*models.User, error) {
 	users, err := s.repoUser.GetByName(ctx, name)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	return users, nil
 }
 
 func (s *userService) Update(ctx context.Context, user *models.User) (*models.User, error) {
 	if !val_contact.IsValidEmail(user.Email) {
-		return nil, err_msg.ErrInvalidData
+		return nil, errMsg.ErrInvalidData
 	}
 
 	if user.Version <= 0 {
-		return nil, err_msg.ErrVersionConflict
+		return nil, errMsg.ErrVersionConflict
 	}
 
 	updatedUser, err := s.repoUser.Update(ctx, user)
 	if err != nil {
 		switch {
-		case errors.Is(err, err_msg.ErrNotFound):
-			return nil, err_msg.ErrNotFound
-		case errors.Is(err, err_msg.ErrVersionConflict):
-			return nil, err_msg.ErrVersionConflict
+		case errors.Is(err, errMsg.ErrNotFound):
+			return nil, errMsg.ErrNotFound
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			return nil, errMsg.ErrVersionConflict
 		default:
-			return nil, fmt.Errorf("%w: %v", err_msg.ErrUpdate, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 		}
 	}
 
@@ -141,7 +139,7 @@ func (s *userService) Disable(ctx context.Context, uid int64) error {
 
 func (s *userService) Enable(ctx context.Context, uid int64) error {
 	err := s.repoUser.Enable(ctx, uid)
-	if errors.Is(err, err_msg.ErrNotFound) {
+	if errors.Is(err, errMsg.ErrNotFound) {
 		return err
 	}
 	return err

@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	modelsCatRel "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+
 	modelsFull "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
@@ -40,12 +42,12 @@ func NewSupplierFullService(
 }
 
 func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *modelsFull.SupplierFull) (*modelsFull.SupplierFull, error) {
-	if supplierFull == nil {
-		return nil, fmt.Errorf("supplierFull é nulo")
+	if supplierFull == nil || supplierFull.Supplier == nil {
+		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 
 	if err := supplierFull.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 
 	tx, err := s.repoSupplier.BeginTx(ctx)

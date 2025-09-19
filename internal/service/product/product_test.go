@@ -11,9 +11,8 @@ import (
 
 	mock_product "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/product"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
-	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
 func TestProductService_Create(t *testing.T) {
@@ -59,32 +58,16 @@ func TestProductService_Create(t *testing.T) {
 
 	t.Run("produto inválido", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-
 		service := NewProductService(mockRepo)
 
 		input := &models.Product{
-			Status: true,
+			Status: true, // faltando campos obrigatórios
 		}
 
 		created, err := service.Create(ctx, input)
 
 		assert.Nil(t, created)
-		assert.Error(t, err)
-
-		// Verifica se todos os campos obrigatórios estão na lista de erros
-		var vErrs validators.ValidationErrors
-		if ok := errors.As(err, &vErrs); ok {
-			fields := map[string]bool{}
-			for _, e := range vErrs {
-				fields[e.Field] = true
-			}
-			assert.True(t, fields["product_name"], "esperado erro no campo 'product_name'")
-			assert.True(t, fields["manufacturer"], "esperado erro no campo 'manufacturer'")
-			assert.True(t, fields["supplier_id"], "esperado erro no campo 'supplier_id'")
-		} else {
-			t.Fatalf("erro esperado ser ValidationErrors, got: %v", err)
-		}
-
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
 		mockRepo.AssertNotCalled(t, "Create")
 	})
 
@@ -357,45 +340,36 @@ func TestProductService_Update(t *testing.T) {
 		}
 	}
 
-	t.Run("sucesso", func(t *testing.T) {
+	t.Run("falha: ID inválido", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-
 		service := NewProductService(mockRepo)
 
 		input := validProduct()
-
-		mockRepo.
-			On("Update", ctx, input).
-			Return(input, nil).Once()
-
-		updated, err := service.Update(ctx, input)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, updated)
-		assert.Equal(t, int64(1), updated.ID)
-		assert.Equal(t, "Produto Atualizado", updated.ProductName)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("erro de validação: nome inválido", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
-
-		service := NewProductService(mockRepo)
-
-		input := validProduct()
-		input.ProductName = ""
+		input.ID = 0
 
 		updated, err := service.Update(ctx, input)
 
 		assert.Nil(t, updated)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "product_name")
+		assert.ErrorIs(t, err, errMsg.ErrID)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
-	t.Run("erro de validação: versão inválida", func(t *testing.T) {
+	t.Run("falha: validação inválida", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
+		service := NewProductService(mockRepo)
 
+		input := validProduct()
+		input.ProductName = "" // invalida a validação
+
+		updated, err := service.Update(ctx, input)
+
+		assert.Nil(t, updated)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("falha: versão inválida", func(t *testing.T) {
+		mockRepo := new(mock_product.ProductRepositoryMock)
 		service := NewProductService(mockRepo)
 
 		input := validProduct()
@@ -404,49 +378,46 @@ func TestProductService_Update(t *testing.T) {
 		updated, err := service.Update(ctx, input)
 
 		assert.Nil(t, updated)
-		assert.ErrorIs(t, err, err_msg.ErrVersionConflict)
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
-	t.Run("erro do repositório: produto não encontrado", func(t *testing.T) {
+	t.Run("falha: produto não encontrado", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-
 		service := NewProductService(mockRepo)
 
 		input := validProduct()
 
 		mockRepo.
 			On("Update", ctx, input).
-			Return(nil, err_msg.ErrNotFound).Once()
+			Return(nil, errMsg.ErrNotFound).Once()
 
 		updated, err := service.Update(ctx, input)
 
 		assert.Nil(t, updated)
-		assert.ErrorIs(t, err, err_msg.ErrNotFound)
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("erro do repositório: conflito de versão", func(t *testing.T) {
+	t.Run("falha: conflito de versão", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-
 		service := NewProductService(mockRepo)
 
 		input := validProduct()
 
 		mockRepo.
 			On("Update", ctx, input).
-			Return(nil, err_msg.ErrVersionConflict).Once()
+			Return(nil, errMsg.ErrVersionConflict).Once()
 
 		updated, err := service.Update(ctx, input)
 
 		assert.Nil(t, updated)
-		assert.ErrorIs(t, err, err_msg.ErrVersionConflict)
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("erro do repositório genérico", func(t *testing.T) {
+	t.Run("falha: erro genérico do repositório", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
-
 		service := NewProductService(mockRepo)
 
 		input := validProduct()
@@ -461,6 +432,25 @@ func TestProductService_Update(t *testing.T) {
 		assert.Nil(t, updated)
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "erro no repositório")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("sucesso", func(t *testing.T) {
+		mockRepo := new(mock_product.ProductRepositoryMock)
+		service := NewProductService(mockRepo)
+
+		input := validProduct()
+
+		mockRepo.
+			On("Update", ctx, input).
+			Return(input, nil).Once()
+
+		updated, err := service.Update(ctx, input)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, updated)
+		assert.Equal(t, int64(1), updated.ID)
+		assert.Equal(t, "Produto Atualizado", updated.ProductName)
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -589,10 +579,10 @@ func TestProductService_GetVersionByID(t *testing.T) {
 		t.Parallel()
 
 		mockRepo, service := newService()
-		mockRepo.On("GetVersionByID", mock.Anything, int64(2)).Return(int64(0), err_msg.ErrNotFound)
+		mockRepo.On("GetVersionByID", mock.Anything, int64(2)).Return(int64(0), errMsg.ErrNotFound)
 
 		version, err := service.GetVersionByID(context.Background(), 2)
-		assert.ErrorIs(t, err, err_msg.ErrNotFound)
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
 		assert.Equal(t, int64(0), version)
 
 		mockRepo.AssertExpectations(t)
@@ -607,7 +597,7 @@ func TestProductService_GetVersionByID(t *testing.T) {
 		version, err := service.GetVersionByID(context.Background(), 3)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "db failure")
-		assert.True(t, errors.Is(err, err_msg.ErrVersionConflict))
+		assert.True(t, errors.Is(err, errMsg.ErrVersionConflict))
 		assert.Equal(t, int64(0), version)
 
 		mockRepo.AssertExpectations(t)
@@ -655,12 +645,12 @@ func TestProductService_IncreaseStock(t *testing.T) {
 
 		service := productService{repo: repoMock}
 
-		repoMock.On("IncreaseStock", ctx, int64(1), 10).Return(err_msg.ErrNotFound)
+		repoMock.On("IncreaseStock", ctx, int64(1), 10).Return(errMsg.ErrNotFound)
 
 		err := service.IncreaseStock(ctx, 1, 10)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, err_msg.ErrUpdate)
+		assert.ErrorIs(t, err, errMsg.ErrUpdate)
 		repoMock.AssertExpectations(t)
 	})
 
@@ -686,12 +676,12 @@ func TestProductService_DecreaseStock(t *testing.T) {
 
 		service := productService{repo: repoMock}
 
-		repoMock.On("DecreaseStock", ctx, int64(1), 10).Return(err_msg.ErrNotFound)
+		repoMock.On("DecreaseStock", ctx, int64(1), 10).Return(errMsg.ErrNotFound)
 
 		err := service.DecreaseStock(ctx, 1, 10)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, err_msg.ErrUpdate)
+		assert.ErrorIs(t, err, errMsg.ErrUpdate)
 		repoMock.AssertExpectations(t)
 	})
 
@@ -723,7 +713,7 @@ func TestProductService_GetStock(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Equal(t, 0, stock)
-		assert.ErrorIs(t, err, err_msg.ErrGet)
+		assert.ErrorIs(t, err, errMsg.ErrGet)
 		repoMock.AssertExpectations(t)
 	})
 
@@ -764,12 +754,12 @@ func TestProductService_EnableDiscount(t *testing.T) {
 	t.Run("Deve retornar erro quando repo falhar", func(t *testing.T) {
 		mockRepo, service := setup()
 
-		mockRepo.On("EnableDiscount", mock.Anything, int64(1)).Return(err_msg.ErrNotFound).Once()
+		mockRepo.On("EnableDiscount", mock.Anything, int64(1)).Return(errMsg.ErrNotFound).Once()
 
 		err := service.EnableDiscount(context.Background(), 1)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, err_msg.ErrProductEnableDiscount)
+		assert.ErrorIs(t, err, errMsg.ErrProductEnableDiscount)
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -795,11 +785,11 @@ func TestProductService_DisableDiscount(t *testing.T) {
 
 	t.Run("Erro: produto não encontrado", func(t *testing.T) {
 		mockRepo, service := setup()
-		mockRepo.On("EnableDiscount", mock.Anything, int64(2)).Return(err_msg.ErrNotFound).Once()
+		mockRepo.On("EnableDiscount", mock.Anything, int64(2)).Return(errMsg.ErrNotFound).Once()
 
 		err := service.EnableDiscount(context.Background(), 2)
 
-		assert.ErrorIs(t, err, err_msg.ErrProductEnableDiscount)
+		assert.ErrorIs(t, err, errMsg.ErrProductEnableDiscount)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -811,7 +801,7 @@ func TestProductService_DisableDiscount(t *testing.T) {
 		err := service.DisableDiscount(context.Background(), 3)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, err_msg.ErrProductDisableDiscount)
+		assert.ErrorIs(t, err, errMsg.ErrProductDisableDiscount)
 		assert.Contains(t, err.Error(), "erro de conexão")
 		mockRepo.AssertExpectations(t)
 	})
@@ -856,14 +846,14 @@ func TestProductService_ApplyDiscount(t *testing.T) {
 		percent := 15.0
 
 		mockRepo.On("ApplyDiscount", mock.Anything, productID, percent).
-			Return(nil, err_msg.ErrNotFound).
+			Return(nil, errMsg.ErrNotFound).
 			Once()
 
 		product, err := service.ApplyDiscount(context.Background(), productID, percent)
 
 		assert.Error(t, err)
 		assert.Nil(t, product)
-		assert.ErrorIs(t, err, err_msg.ErrProductApplyDiscount)
+		assert.ErrorIs(t, err, errMsg.ErrProductApplyDiscount)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -881,7 +871,7 @@ func TestProductService_ApplyDiscount(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, product)
-		assert.ErrorIs(t, err, err_msg.ErrProductApplyDiscount)
+		assert.ErrorIs(t, err, errMsg.ErrProductApplyDiscount)
 		mockRepo.AssertExpectations(t)
 	})
 }
