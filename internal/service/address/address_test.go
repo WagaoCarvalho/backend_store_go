@@ -35,7 +35,7 @@ func TestAddressService_Create(t *testing.T) {
 		assert.Nil(t, createdAddress)
 		assert.Error(t, err)
 		// ajustado para matchar o que o model realmente retorna
-		assert.ErrorContains(t, err, "user_id/client_id/supplier_id")
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
 		mockRepoAddress.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 	})
 
@@ -542,55 +542,39 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 func TestAddressService_Update(t *testing.T) {
 	userID := int64(1)
 
-	t.Run("falha na validacao do endereco", func(t *testing.T) {
+	t.Run("falha por ID inválido", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoClient := new(mockClient.MockClientRepository)
-		mockRepoUser := new(mockUser.MockUserRepository)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, nil, nil, nil)
 
-		addressModel := &model.Address{} // endereço inválido, sem IDs nem campos obrigatórios
+		addressModel := &model.Address{ID: 0} // ID inválido
 
 		err := service.Update(context.Background(), addressModel)
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "user_id/client_id/supplier_id")
+		assert.ErrorIs(t, err, errMsg.ErrID)
 		mockRepoAddress.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
 	})
 
-	t.Run("sucesso no update do endereco", func(t *testing.T) {
+	t.Run("falha na validação do endereço", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoClient := new(mockClient.MockClientRepository)
-		mockRepoUser := new(mockUser.MockUserRepository)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, nil, nil, nil)
 
 		addressModel := &model.Address{
-			UserID:     &userID,
-			Street:     "Rua Teste",
-			City:       "Cidade Teste",
-			State:      "SP",
-			Country:    "Brasil",
-			PostalCode: "12345678",
-			IsActive:   true,
+			ID:     1,       // ID válido
+			UserID: &userID, // mas faltam campos obrigatórios (ex: Street vazio)
 		}
-
-		mockRepoAddress.On("Update", mock.Anything, addressModel).Return(nil)
 
 		err := service.Update(context.Background(), addressModel)
 
-		assert.NoError(t, err)
-		mockRepoAddress.AssertExpectations(t)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		mockRepoAddress.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
 	})
 
 	t.Run("erro do repositorio ao atualizar endereco", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoClient := new(mockClient.MockClientRepository)
-		mockRepoUser := new(mockUser.MockUserRepository)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, nil, nil, nil)
 
 		addressModel := &model.Address{
+			ID:         1,
 			UserID:     &userID,
 			Street:     "Rua Teste",
 			City:       "Cidade Teste",
@@ -608,6 +592,29 @@ func TestAddressService_Update(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), errMsg.ErrUpdate.Error())
 		assert.Contains(t, err.Error(), expectedErr.Error())
+		mockRepoAddress.AssertExpectations(t)
+	})
+
+	t.Run("sucesso no update do endereco", func(t *testing.T) {
+		mockRepoAddress := new(mockAddress.MockAddressRepository)
+		service := NewAddressService(mockRepoAddress, nil, nil, nil)
+
+		addressModel := &model.Address{
+			ID:         1,
+			UserID:     &userID,
+			Street:     "Rua Teste",
+			City:       "Cidade Teste",
+			State:      "SP",
+			Country:    "Brasil",
+			PostalCode: "12345678",
+			IsActive:   true,
+		}
+
+		mockRepoAddress.On("Update", mock.Anything, addressModel).Return(nil)
+
+		err := service.Update(context.Background(), addressModel)
+
+		assert.NoError(t, err)
 		mockRepoAddress.AssertExpectations(t)
 	})
 }

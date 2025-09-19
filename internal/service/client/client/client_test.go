@@ -280,15 +280,28 @@ func TestClientService_ClientExists(t *testing.T) {
 }
 
 func TestClientService_Update(t *testing.T) {
-	t.Run("falha na validação", func(t *testing.T) {
+	t.Run("falha por ID inválido", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClientRepository)
 		service := NewClientService(mockRepo)
 
-		invalidClient := &models.Client{Name: ""} // continua inválido de propósito
+		cpf := "12345678901"
+		client := &models.Client{ID: 0, Name: "Teste", CPF: &cpf}
+
+		err := service.Update(context.Background(), client)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		mockRepo.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
+	})
+
+	t.Run("falha na validação do cliente", func(t *testing.T) {
+		mockRepo := new(mockClient.MockClientRepository)
+		service := NewClientService(mockRepo)
+
+		invalidClient := &models.Client{ID: 1, Name: ""} // ID válido, mas inválido na validação
 
 		err := service.Update(context.Background(), invalidClient)
 
-		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
 		mockRepo.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
 	})
 
@@ -307,6 +320,7 @@ func TestClientService_Update(t *testing.T) {
 		err := service.Update(context.Background(), client)
 
 		assert.ErrorContains(t, err, errMsg.ErrUpdate.Error())
+		assert.ErrorContains(t, err, expectedErr.Error())
 		mockRepo.AssertExpectations(t)
 	})
 

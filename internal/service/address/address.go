@@ -47,7 +47,7 @@ func NewAddressService(
 func (s *addressService) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
 
 	if err := address.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 
 	createdAddress, err := s.repoAddress.Create(ctx, address)
@@ -144,8 +144,11 @@ func (s *addressService) GetBySupplierID(ctx context.Context, supplierID int64) 
 }
 
 func (s *addressService) Update(ctx context.Context, address *models.Address) error {
+	if address.ID <= 0 {
+		return errMsg.ErrID
+	}
 	if err := address.Validate(); err != nil {
-		return err
+		return fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 
 	if err := s.repoAddress.Update(ctx, address); err != nil {
