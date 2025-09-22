@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
@@ -71,7 +72,7 @@ func (s *userService) GetAll(ctx context.Context) ([]*models.User, error) {
 
 func (s *userService) GetByID(ctx context.Context, uid int64) (*models.User, error) {
 	if uid <= 0 {
-		return nil, errors.New("ID inválido")
+		return nil, errMsg.ErrID
 	}
 
 	user, err := s.repoUser.GetByID(ctx, uid)
@@ -83,6 +84,11 @@ func (s *userService) GetByID(ctx context.Context, uid int64) (*models.User, err
 }
 
 func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, error) {
+
+	if uid <= 0 {
+		return 0, errMsg.ErrID
+	}
+
 	version, err := s.repoUser.GetVersionByID(ctx, uid)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
@@ -94,6 +100,10 @@ func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, err
 }
 
 func (s *userService) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+	if strings.TrimSpace(email) == "" {
+		return nil, errors.New("email inválido")
+	}
+
 	user, err := s.repoUser.GetByEmail(ctx, email)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
@@ -102,6 +112,9 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*models.Use
 }
 
 func (s *userService) GetByName(ctx context.Context, name string) ([]*models.User, error) {
+	if strings.TrimSpace(name) == "" {
+		return nil, errors.New("nome inválido")
+	}
 	users, err := s.repoUser.GetByName(ctx, name)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
@@ -134,10 +147,16 @@ func (s *userService) Update(ctx context.Context, user *models.User) (*models.Us
 }
 
 func (s *userService) Disable(ctx context.Context, uid int64) error {
+	if uid <= 0 {
+		return errMsg.ErrID
+	}
 	return s.repoUser.Disable(ctx, uid)
 }
 
 func (s *userService) Enable(ctx context.Context, uid int64) error {
+	if uid <= 0 {
+		return errMsg.ErrID
+	}
 	err := s.repoUser.Enable(ctx, uid)
 	if errors.Is(err, errMsg.ErrNotFound) {
 		return err
@@ -146,5 +165,9 @@ func (s *userService) Enable(ctx context.Context, uid int64) error {
 }
 
 func (s *userService) Delete(ctx context.Context, uid int64) error {
+
+	if uid <= 0 {
+		return errMsg.ErrID
+	}
 	return s.repoUser.Delete(ctx, uid)
 }

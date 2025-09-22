@@ -9,6 +9,7 @@ import (
 	mocksale "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/sale"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -18,7 +19,7 @@ func TestSaleService_Create(t *testing.T) {
 		mockRepo := new(mocksale.MockSaleRepository)
 		service := NewSaleService(mockRepo)
 
-		saleModel := &models.Sale{} // inválido: sem UserID, PaymentType etc.
+		saleModel := &models.Sale{}
 
 		createdSale, err := service.Create(context.Background(), saleModel)
 
@@ -128,6 +129,46 @@ func TestSaleService_GetByID(t *testing.T) {
 }
 
 func TestSaleService_GetByClientID(t *testing.T) {
+
+	mockRepo := new(mocksale.MockSaleRepository)
+	service := NewSaleService(mockRepo)
+
+	ctx := context.Background()
+
+	t.Run("falha por clientID inválido", func(t *testing.T) {
+		sales, err := service.GetByClientID(ctx, 0, 10, 0, "sale_date", "asc")
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		mockRepo.AssertNotCalled(t, "GetByClientID")
+	})
+
+	t.Run("falha por limit inválido", func(t *testing.T) {
+		sales, err := service.GetByClientID(ctx, 1, 0, 0, "sale_date", "asc")
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidLimit)
+		mockRepo.AssertNotCalled(t, "GetByClientID")
+	})
+
+	t.Run("falha por offset inválido", func(t *testing.T) {
+		sales, err := service.GetByClientID(ctx, 1, 10, -1, "sale_date", "asc")
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidOffset)
+		mockRepo.AssertNotCalled(t, "GetByClientID")
+	})
+
+	t.Run("falha por campo orderBy inválido", func(t *testing.T) {
+		sales, err := service.GetByClientID(ctx, 1, 10, 0, "invalid_field", "asc")
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidOrderField)
+		mockRepo.AssertNotCalled(t, "GetByClientID")
+	})
+
+	t.Run("falha por orderDir inválido", func(t *testing.T) {
+		sales, err := service.GetByClientID(ctx, 1, 10, 0, "sale_date", "invalid_dir")
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidOrderDirection)
+		mockRepo.AssertNotCalled(t, "GetByClientID")
+	})
 	t.Run("falha por clientID inválido", func(t *testing.T) {
 		mockRepo := new(mocksale.MockSaleRepository)
 		service := NewSaleService(mockRepo)
@@ -173,6 +214,14 @@ func TestSaleService_GetByClientID(t *testing.T) {
 }
 
 func TestSaleService_GetByUserID(t *testing.T) {
+
+	ctx := context.Background()
+
+	setup := func() (*mocksale.MockSaleRepository, SaleService) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+		return mockRepo, service
+	}
 	t.Run("falha por userID inválido", func(t *testing.T) {
 		mockRepo := new(mocksale.MockSaleRepository)
 		service := NewSaleService(mockRepo)
@@ -215,9 +264,50 @@ func TestSaleService_GetByUserID(t *testing.T) {
 		assert.Equal(t, assert.AnError, err)
 		mockRepo.AssertExpectations(t)
 	})
+
+	t.Run("falha: limit inválido", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		sales, err := service.GetByUserID(ctx, 1, 0, 0, "sale_date", "asc")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidLimit)
+		mockRepo.AssertNotCalled(t, "GetByUserID")
+	})
+
+	t.Run("falha: offset inválido", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		sales, err := service.GetByUserID(ctx, 1, 10, -1, "sale_date", "asc")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidOffset)
+		mockRepo.AssertNotCalled(t, "GetByUserID")
+	})
+
+	t.Run("falha: orderBy inválido", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		sales, err := service.GetByUserID(ctx, 1, 10, 0, "invalid_field", "asc")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidOrderField)
+		mockRepo.AssertNotCalled(t, "GetByUserID")
+	})
+
+	t.Run("falha: orderDir inválido", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		sales, err := service.GetByUserID(ctx, 1, 10, 0, "sale_date", "wrong")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidOrderDirection)
+		mockRepo.AssertNotCalled(t, "GetByUserID")
+	})
 }
 
 func TestSaleService_GetByStatus(t *testing.T) {
+	ctx := context.Background()
 	t.Run("falha por status vazio", func(t *testing.T) {
 		mockRepo := new(mocksale.MockSaleRepository)
 		service := NewSaleService(mockRepo)
@@ -260,9 +350,55 @@ func TestSaleService_GetByStatus(t *testing.T) {
 		assert.Equal(t, assert.AnError, err)
 		mockRepo.AssertExpectations(t)
 	})
+
+	t.Run("falha por limit inválido", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		sales, err := service.GetByStatus(ctx, "completed", 0, 0, "sale_date", "asc")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidLimit)
+		mockRepo.AssertNotCalled(t, "GetByStatus")
+	})
+
+	t.Run("falha por offset inválido", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		sales, err := service.GetByStatus(ctx, "completed", 10, -1, "sale_date", "asc")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidOffset)
+		mockRepo.AssertNotCalled(t, "GetByStatus")
+	})
+
+	t.Run("falha por orderBy inválido", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		sales, err := service.GetByStatus(ctx, "completed", 10, 0, "invalid_field", "asc")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidOrderField)
+		mockRepo.AssertNotCalled(t, "GetByStatus")
+	})
+
+	t.Run("falha por orderDir inválido", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		sales, err := service.GetByStatus(ctx, "completed", 10, 0, "sale_date", "upward")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidOrderDirection)
+		mockRepo.AssertNotCalled(t, "GetByStatus")
+	})
 }
 
 func TestSaleService_GetByDateRange(t *testing.T) {
+	ctx := context.Background()
+
 	t.Run("falha por datas inválidas", func(t *testing.T) {
 		mockRepo := new(mocksale.MockSaleRepository)
 		service := NewSaleService(mockRepo)
@@ -307,9 +443,103 @@ func TestSaleService_GetByDateRange(t *testing.T) {
 		assert.Equal(t, assert.AnError, err)
 		mockRepo.AssertExpectations(t)
 	})
+
+	t.Run("falha por data inicial zerada", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		sales, err := service.GetByDateRange(ctx, time.Time{}, time.Now(), 10, 0, "sale_date", "asc")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		mockRepo.AssertNotCalled(t, "GetByDateRange")
+	})
+
+	t.Run("falha por data final zerada", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		sales, err := service.GetByDateRange(ctx, time.Now(), time.Time{}, 10, 0, "sale_date", "asc")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		mockRepo.AssertNotCalled(t, "GetByDateRange")
+	})
+
+	t.Run("falha por intervalo inválido (start > end)", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		start := time.Now()
+		end := start.Add(-time.Hour)
+
+		sales, err := service.GetByDateRange(ctx, start, end, 10, 0, "sale_date", "asc")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidDateRange)
+		mockRepo.AssertNotCalled(t, "GetByDateRange")
+	})
+
+	t.Run("falha por limit inválido", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		start := time.Now().Add(-time.Hour)
+		end := time.Now()
+
+		sales, err := service.GetByDateRange(ctx, start, end, 0, 0, "sale_date", "asc")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidLimit)
+		mockRepo.AssertNotCalled(t, "GetByDateRange")
+	})
+
+	t.Run("falha por offset inválido", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		start := time.Now().Add(-time.Hour)
+		end := time.Now()
+
+		sales, err := service.GetByDateRange(ctx, start, end, 10, -1, "sale_date", "asc")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidOffset)
+		mockRepo.AssertNotCalled(t, "GetByDateRange")
+	})
+
+	t.Run("falha por orderBy inválido", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		start := time.Now().Add(-time.Hour)
+		end := time.Now()
+
+		sales, err := service.GetByDateRange(ctx, start, end, 10, 0, "invalid", "asc")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidOrderField)
+		mockRepo.AssertNotCalled(t, "GetByDateRange")
+	})
+
+	t.Run("falha por orderDir inválido", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		start := time.Now().Add(-time.Hour)
+		end := time.Now()
+
+		sales, err := service.GetByDateRange(ctx, start, end, 10, 0, "sale_date", "upward")
+
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidOrderDirection)
+		mockRepo.AssertNotCalled(t, "GetByDateRange")
+	})
 }
 
 func TestSaleService_Update(t *testing.T) {
+	ctx := context.Background()
+
 	t.Run("falha na validação", func(t *testing.T) {
 		mockRepo := new(mocksale.MockSaleRepository)
 		service := NewSaleService(mockRepo)
@@ -332,6 +562,7 @@ func TestSaleService_Update(t *testing.T) {
 			PaymentType: "cash",
 			Status:      "active",
 			TotalAmount: 50,
+			Version:     1,
 		}
 
 		mockRepo.On("Update", mock.Anything, saleModel).Return(nil)
@@ -351,6 +582,7 @@ func TestSaleService_Update(t *testing.T) {
 			UserID:      1,
 			PaymentType: "cash",
 			Status:      "active",
+			Version:     1,
 		}
 
 		expectedErr := errors.New("erro no banco")
@@ -363,6 +595,60 @@ func TestSaleService_Update(t *testing.T) {
 		assert.Contains(t, err.Error(), expectedErr.Error())
 		mockRepo.AssertExpectations(t)
 	})
+
+	t.Run("falha: sale nulo", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		err := service.Update(ctx, nil)
+
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		sale := &models.Sale{ID: 0, Version: 1}
+
+		err := service.Update(ctx, sale)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("falha: versão inválida", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		sale := &models.Sale{ID: 1, Version: 0}
+
+		err := service.Update(ctx, sale)
+
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("falha: validação inválida", func(t *testing.T) {
+		mockRepo := new(mocksale.MockSaleRepository)
+		service := NewSaleService(mockRepo)
+
+		input := &models.Sale{
+			ID:      1,
+			Version: 1,
+			// aqui você pode deixar um campo obrigatório vazio
+			// ex: se "ClientID" ou "TotalAmount" for obrigatório, zera ele:
+			ClientID: utils.Int64Ptr(0),
+		}
+
+		// forçamos o erro de validação chamando Update
+		err := service.Update(ctx, input)
+
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
 }
 
 func TestSaleService_Delete(t *testing.T) {

@@ -297,7 +297,7 @@ func TestClientService_Update(t *testing.T) {
 		mockRepo := new(mockClient.MockClientRepository)
 		service := NewClientService(mockRepo)
 
-		invalidClient := &models.Client{ID: 1, Name: ""} // ID válido, mas inválido na validação
+		invalidClient := &models.Client{ID: 1, Name: "", Version: 1} // ID válido, mas inválido na validação
 
 		err := service.Update(context.Background(), invalidClient)
 
@@ -310,7 +310,7 @@ func TestClientService_Update(t *testing.T) {
 		service := NewClientService(mockRepo)
 
 		cpf := "12345678901"
-		client := &models.Client{ID: 1, Name: "Teste", CPF: &cpf}
+		client := &models.Client{ID: 1, Name: "Teste", CPF: &cpf, Version: 1}
 		expectedErr := errors.New("db error")
 
 		mockRepo.
@@ -324,12 +324,28 @@ func TestClientService_Update(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("falha: versão inválida", func(t *testing.T) {
+		mockRepo := new(mockClient.MockClientRepository)
+		service := NewClientService(mockRepo)
+
+		input := &models.Client{
+			ID:      1,
+			Version: 0, // invalida a versão
+			Name:    "Cliente Teste",
+		}
+
+		err := service.Update(context.Background(), input)
+
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClientRepository)
 		service := NewClientService(mockRepo)
 
 		cpf := "12345678901"
-		client := &models.Client{ID: 1, Name: "Teste", CPF: &cpf}
+		client := &models.Client{ID: 1, Name: "Teste", CPF: &cpf, Version: 1}
 
 		mockRepo.
 			On("Update", mock.Anything, client).

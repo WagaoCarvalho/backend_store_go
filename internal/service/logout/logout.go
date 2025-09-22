@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
@@ -38,6 +39,9 @@ func NewLogoutService(
 }
 
 func (s *logoutService) Logout(ctx context.Context, tokenString string) error {
+	if strings.TrimSpace(tokenString) == "" {
+		return err_msg.ErrInvalidToken
+	}
 
 	token, err := s.jwtService.Parse(tokenString)
 	if err != nil {

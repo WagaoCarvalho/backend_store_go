@@ -23,7 +23,6 @@ func (m *MockHasher) Hash(password string) (string, error) {
 }
 
 func (m *MockHasher) Compare(_, _ string) error {
-	// Implementado apenas para satisfazer a interface
 	return nil
 }
 
@@ -241,7 +240,7 @@ func TestUserService_GetByID(t *testing.T) {
 
 		assert.Nil(t, user)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "ID inválido")
+		assert.Equal(t, err, errMsg.ErrID)
 
 		mockRepo.AssertNotCalled(t, "GetByID")
 	})
@@ -277,6 +276,15 @@ func TestUserService_GetVersionByID(t *testing.T) {
 
 		return mockUserRepo, mockHasher, userService
 	}
+
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		_, _, service := setup()
+
+		version, err := service.GetVersionByID(context.Background(), 0)
+
+		assert.Equal(t, int64(0), version)
+		assert.ErrorIs(t, err, errMsg.ErrID)
+	})
 
 	t.Run("Deve retornar versão quando usuário for encontrado", func(t *testing.T) {
 		mockRepo, _, service := setup()
@@ -340,6 +348,15 @@ func TestUserService_GetByEmail(t *testing.T) {
 		return mockUserRepo, mockHasher, userService
 	}
 
+	t.Run("falha: email inválido", func(t *testing.T) {
+		_, _, service := setup()
+
+		user, err := service.GetByEmail(context.Background(), "   ")
+
+		assert.Nil(t, user)
+		assert.EqualError(t, err, "email inválido")
+	})
+
 	t.Run("Deve retornar usuário quando encontrado por e-mail", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
@@ -393,6 +410,15 @@ func TestUserService_GetByName(t *testing.T) {
 
 		return mockUserRepo, mockHasher, userService
 	}
+
+	t.Run("falha: nome inválido", func(t *testing.T) {
+		_, _, service := setup()
+
+		user, err := service.GetByName(context.Background(), "   ")
+
+		assert.Nil(t, user)
+		assert.EqualError(t, err, "nome inválido")
+	})
 
 	t.Run("Deve retornar lista de usuários quando encontrados por nome parcial", func(t *testing.T) {
 		mockRepo, _, service := setup()
@@ -586,6 +612,14 @@ func TestUserService_Disable(t *testing.T) {
 		return mockUserRepo, mockHasher, userService
 	}
 
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		_, _, service := setup()
+
+		err := service.Disable(context.Background(), 0)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+	})
+
 	t.Run("Deve desativar usuário com sucesso", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
@@ -629,6 +663,14 @@ func TestUserService_Enable(t *testing.T) {
 
 		return mockUserRepo, mockHasher, userService
 	}
+
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		_, _, service := setup()
+
+		err := service.Enable(context.Background(), 0)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+	})
 
 	t.Run("Deve ativar usuário com sucesso", func(t *testing.T) {
 		mockRepo, _, service := setup()
@@ -686,6 +728,14 @@ func TestUserService_Delete(t *testing.T) {
 
 		return mockUserRepo, mockHasher, userService
 	}
+
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		_, _, service := setup()
+
+		err := service.Delete(context.Background(), 0)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+	})
 
 	t.Run("Deve deletar usuário com sucesso", func(t *testing.T) {
 		mockRepo, _, service := setup()

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
@@ -65,6 +66,25 @@ func (s *saleService) GetByClientID(ctx context.Context, clientID int64, limit, 
 	if clientID <= 0 {
 		return nil, errMsg.ErrID
 	}
+	if limit <= 0 {
+		return nil, errMsg.ErrInvalidLimit
+	}
+	if offset < 0 {
+		return nil, errMsg.ErrInvalidOffset
+	}
+
+	validOrderFields := map[string]bool{
+		"sale_date":    true,
+		"total_amount": true,
+	}
+	if !validOrderFields[orderBy] {
+		return nil, errMsg.ErrInvalidOrderField
+	}
+
+	orderDir = strings.ToLower(orderDir)
+	if orderDir != "asc" && orderDir != "desc" {
+		return nil, errMsg.ErrInvalidOrderDirection
+	}
 
 	sales, err := s.repo.GetByClientID(ctx, clientID, limit, offset, orderBy, orderDir)
 	if err != nil {
@@ -77,6 +97,28 @@ func (s *saleService) GetByClientID(ctx context.Context, clientID int64, limit, 
 func (s *saleService) GetByUserID(ctx context.Context, userID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	if userID <= 0 {
 		return nil, errMsg.ErrID
+	}
+
+	if limit <= 0 {
+		return nil, errMsg.ErrInvalidLimit
+	}
+
+	if offset < 0 {
+		return nil, errMsg.ErrInvalidOffset
+	}
+
+	validOrderFields := map[string]bool{
+		"sale_date":    true,
+		"total_amount": true,
+	}
+
+	if !validOrderFields[orderBy] {
+		return nil, errMsg.ErrInvalidOrderField
+	}
+
+	orderDir = strings.ToLower(orderDir)
+	if orderDir != "asc" && orderDir != "desc" {
+		return nil, errMsg.ErrInvalidOrderDirection
 	}
 
 	sales, err := s.repo.GetByUserID(ctx, userID, limit, offset, orderBy, orderDir)
@@ -92,6 +134,28 @@ func (s *saleService) GetByStatus(ctx context.Context, status string, limit, off
 		return nil, errMsg.ErrInvalidData
 	}
 
+	if limit <= 0 {
+		return nil, errMsg.ErrInvalidLimit
+	}
+
+	if offset < 0 {
+		return nil, errMsg.ErrInvalidOffset
+	}
+
+	allowedFields := map[string]bool{
+		"id":        true,
+		"sale_date": true,
+		"amount":    true,
+		"status":    true,
+	}
+	if !allowedFields[orderBy] {
+		return nil, errMsg.ErrInvalidOrderField
+	}
+
+	if orderDir != "asc" && orderDir != "desc" {
+		return nil, errMsg.ErrInvalidOrderDirection
+	}
+
 	sales, err := s.repo.GetByStatus(ctx, status, limit, offset, orderBy, orderDir)
 	if err != nil {
 		return nil, err
@@ -105,6 +169,32 @@ func (s *saleService) GetByDateRange(ctx context.Context, start, end time.Time, 
 		return nil, errMsg.ErrInvalidData
 	}
 
+	if start.After(end) {
+		return nil, errMsg.ErrInvalidDateRange
+	}
+
+	if limit <= 0 {
+		return nil, errMsg.ErrInvalidLimit
+	}
+
+	if offset < 0 {
+		return nil, errMsg.ErrInvalidOffset
+	}
+
+	allowedOrderFields := map[string]bool{
+		"sale_date": true,
+		"total":     true,
+		"id":        true,
+	}
+
+	if !allowedOrderFields[orderBy] {
+		return nil, errMsg.ErrInvalidOrderField
+	}
+
+	if orderDir != "asc" && orderDir != "desc" {
+		return nil, errMsg.ErrInvalidOrderDirection
+	}
+
 	sales, err := s.repo.GetByDateRange(ctx, start, end, limit, offset, orderBy, orderDir)
 	if err != nil {
 		return nil, err
@@ -114,8 +204,20 @@ func (s *saleService) GetByDateRange(ctx context.Context, start, end time.Time, 
 }
 
 func (s *saleService) Update(ctx context.Context, sale *models.Sale) error {
+	if sale == nil {
+		return errMsg.ErrInvalidData
+	}
+
+	if sale.ID <= 0 {
+		return errMsg.ErrID
+	}
+
+	if sale.Version <= 0 {
+		return errMsg.ErrVersionConflict
+	}
+
 	if err := sale.Validate(); err != nil {
-		return err
+		return fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 
 	if err := s.repo.Update(ctx, sale); err != nil {

@@ -117,6 +117,31 @@ func TestProductService_GetAll(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("falha: limit inválido", func(t *testing.T) {
+		mockRepo := new(mock_product.ProductRepositoryMock)
+		service := NewProductService(mockRepo)
+
+		limit := 0   // inválido
+		offset := 10 // qualquer valor válido
+
+		result, err := service.GetAll(ctx, limit, offset)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidLimit)
+		mockRepo.AssertNotCalled(t, "GetAll")
+	})
+
+	t.Run("falha: offset inválido", func(t *testing.T) {
+		mockRepo := new(mock_product.ProductRepositoryMock)
+		service := NewProductService(mockRepo)
+
+		result, err := service.GetAll(ctx, 10, -1)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidOffset)
+		mockRepo.AssertNotCalled(t, "GetAll")
+	})
+
 	t.Run("erro do repositório", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
 
@@ -140,11 +165,17 @@ func TestProductService_GetAll(t *testing.T) {
 
 func TestProductService_GetByID(t *testing.T) {
 	ctx := context.Background()
+	mockRepo := new(mock_product.ProductRepositoryMock)
+
+	service := NewProductService(mockRepo)
+
+	t.Run("GetByID com ID inválido", func(t *testing.T) {
+		result, err := service.GetByID(ctx, 0)
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrID)
+	})
 
 	t.Run("sucesso", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
-
-		service := NewProductService(mockRepo)
 
 		id := int64(1)
 		expectedProduct := &models.Product{
@@ -165,24 +196,17 @@ func TestProductService_GetByID(t *testing.T) {
 	})
 
 	t.Run("id inválido", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
-
-		service := NewProductService(mockRepo)
 
 		id := int64(0)
 
 		result, err := service.GetByID(ctx, id)
 
 		assert.Nil(t, result)
-		assert.Error(t, err)
-		assert.EqualError(t, err, "ID inválido")
+		assert.ErrorIs(t, err, errMsg.ErrID) // ✅ usa ErrorIs
 		mockRepo.AssertNotCalled(t, "GetByID")
 	})
 
 	t.Run("erro do repositório", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
-
-		service := NewProductService(mockRepo)
 
 		id := int64(99)
 		mockErr := errors.New("erro ao buscar produto")
@@ -463,6 +487,16 @@ func TestProductService_DisableProduct(t *testing.T) {
 		return mockRepo, service
 	}
 
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		invalidID := int64(0)
+		err := service.DisableProduct(context.Background(), invalidID)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		mockRepo.AssertNotCalled(t, "DisableProduct")
+	})
+
 	t.Run("Deve desabilitar produto com sucesso", func(t *testing.T) {
 		mockRepo, service := setup()
 
@@ -493,6 +527,16 @@ func TestProductService_EnableProduct(t *testing.T) {
 		service := NewProductService(mockRepo)
 		return mockRepo, service
 	}
+
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		invalidID := int64(0)
+		err := service.EnableProduct(context.Background(), invalidID)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		mockRepo.AssertNotCalled(t, "EnableProduct")
+	})
 
 	t.Run("Deve habilitar produto com sucesso", func(t *testing.T) {
 		mockRepo, service := setup()
@@ -535,6 +579,18 @@ func TestProductService_Delete(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		mockRepo := new(mock_product.ProductRepositoryMock)
+
+		service := NewProductService(mockRepo)
+
+		invalidID := int64(0)
+		err := service.Delete(context.Background(), invalidID)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		mockRepo.AssertNotCalled(t, "Delete")
+	})
+
 	t.Run("erro do repositório", func(t *testing.T) {
 		mockRepo := new(mock_product.ProductRepositoryMock)
 
@@ -561,6 +617,17 @@ func TestProductService_GetVersionByID(t *testing.T) {
 
 		return mr, NewProductService(mr)
 	}
+
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		mockRepo, service := newService()
+
+		invalidID := int64(0) // inválido
+		version, err := service.GetVersionByID(context.Background(), invalidID)
+
+		assert.Equal(t, int64(0), version)
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		mockRepo.AssertNotCalled(t, "GetVersionByID")
+	})
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
@@ -623,6 +690,24 @@ func TestProductService_UpdateStock(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		err := service.UpdateStock(context.Background(), 0, 10)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		mockRepo.AssertNotCalled(t, "UpdateStock")
+	})
+
+	t.Run("falha: quantidade inválida", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		err := service.UpdateStock(context.Background(), 1, 0)
+
+		assert.ErrorIs(t, err, errMsg.ErrInvalidQuantity)
+		mockRepo.AssertNotCalled(t, "UpdateStock")
+	})
+
 	t.Run("Deve retornar erro quando repo falhar", func(t *testing.T) {
 		mockRepo, service := setup()
 		expectedErr := fmt.Errorf("erro de banco")
@@ -652,6 +737,26 @@ func TestProductService_IncreaseStock(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errMsg.ErrUpdate)
 		repoMock.AssertExpectations(t)
+	})
+
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		repoMock := new(mock_product.ProductRepositoryMock)
+		service := productService{repo: repoMock}
+
+		err := service.IncreaseStock(ctx, 0, 10)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		repoMock.AssertNotCalled(t, "IncreaseStock")
+	})
+
+	t.Run("falha: quantidade inválida", func(t *testing.T) {
+		repoMock := new(mock_product.ProductRepositoryMock)
+		service := productService{repo: repoMock}
+
+		err := service.IncreaseStock(ctx, 1, 0)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		repoMock.AssertNotCalled(t, "IncreaseStock")
 	})
 
 	t.Run("Deve aumentar estoque com sucesso", func(t *testing.T) {
@@ -685,6 +790,26 @@ func TestProductService_DecreaseStock(t *testing.T) {
 		repoMock.AssertExpectations(t)
 	})
 
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		repoMock := new(mock_product.ProductRepositoryMock)
+		service := productService{repo: repoMock}
+
+		err := service.DecreaseStock(ctx, 0, 10)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		repoMock.AssertNotCalled(t, "DecreaseStock")
+	})
+
+	t.Run("falha: quantidade inválida", func(t *testing.T) {
+		repoMock := new(mock_product.ProductRepositoryMock)
+		service := productService{repo: repoMock}
+
+		err := service.DecreaseStock(ctx, 1, 0)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		repoMock.AssertNotCalled(t, "DecreaseStock")
+	})
+
 	t.Run("Deve diminuir estoque com sucesso", func(t *testing.T) {
 		repoMock := new(mock_product.ProductRepositoryMock)
 
@@ -715,6 +840,17 @@ func TestProductService_GetStock(t *testing.T) {
 		assert.Equal(t, 0, stock)
 		assert.ErrorIs(t, err, errMsg.ErrGet)
 		repoMock.AssertExpectations(t)
+	})
+
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		repoMock := new(mock_product.ProductRepositoryMock)
+		service := productService{repo: repoMock}
+
+		stock, err := service.GetStock(ctx, 0)
+
+		assert.Equal(t, 0, stock)
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		repoMock.AssertNotCalled(t, "GetStock")
 	})
 
 	t.Run("Deve retornar estoque com sucesso", func(t *testing.T) {
@@ -751,6 +887,17 @@ func TestProductService_EnableDiscount(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		repoMock := new(mock_product.ProductRepositoryMock)
+		service := productService{repo: repoMock}
+
+		ctx := context.Background() // ⚠️ necessário criar o contexto
+		err := service.EnableDiscount(ctx, 0)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		repoMock.AssertNotCalled(t, "EnableDiscount")
+	})
+
 	t.Run("Deve retornar erro quando repo falhar", func(t *testing.T) {
 		mockRepo, service := setup()
 
@@ -781,6 +928,17 @@ func TestProductService_DisableDiscount(t *testing.T) {
 
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		repoMock := new(mock_product.ProductRepositoryMock)
+		service := productService{repo: repoMock}
+
+		ctx := context.Background() // ⚠️ necessário criar o contexto
+		err := service.DisableDiscount(ctx, 0)
+
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		repoMock.AssertNotCalled(t, "DisableDiscount")
 	})
 
 	t.Run("Erro: produto não encontrado", func(t *testing.T) {
@@ -815,6 +973,28 @@ func TestProductService_ApplyDiscount(t *testing.T) {
 		service := NewProductService(mockRepo)
 		return mockRepo, service
 	}
+
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		ctx := context.Background()
+		product, err := service.ApplyDiscount(ctx, 0, 10.0) // ID inválido
+
+		assert.Nil(t, product)
+		assert.ErrorIs(t, err, errMsg.ErrID)
+		mockRepo.AssertNotCalled(t, "ApplyDiscount")
+	})
+
+	t.Run("falha: percent inválido", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		ctx := context.Background()
+		product, err := service.ApplyDiscount(ctx, 1, 0) // percent inválido
+
+		assert.Nil(t, product)
+		assert.ErrorIs(t, err, errMsg.ErrPercentInvalid)
+		mockRepo.AssertNotCalled(t, "ApplyDiscount")
+	})
 
 	t.Run("Deve aplicar desconto com sucesso", func(t *testing.T) {
 		mockRepo, service := setup()

@@ -59,6 +59,13 @@ func (s *productService) Create(ctx context.Context, product *models.Product) (*
 }
 
 func (s *productService) GetAll(ctx context.Context, limit, offset int) ([]*models.Product, error) {
+	if limit <= 0 {
+		return nil, errMsg.ErrInvalidLimit
+	}
+	if offset < 0 {
+		return nil, errMsg.ErrInvalidOffset
+	}
+
 	products, err := s.repo.GetAll(ctx, limit, offset)
 	if err != nil {
 		return nil, err
@@ -69,7 +76,7 @@ func (s *productService) GetAll(ctx context.Context, limit, offset int) ([]*mode
 
 func (s *productService) GetByID(ctx context.Context, id int64) (*models.Product, error) {
 	if id <= 0 {
-		return nil, errors.New("ID inválido")
+		return nil, errMsg.ErrID
 	}
 
 	product, err := s.repo.GetByID(ctx, id)
@@ -109,6 +116,10 @@ func (s *productService) GetByManufacturer(ctx context.Context, manufacturer str
 
 func (s *productService) GetVersionByID(ctx context.Context, pid int64) (int64, error) {
 
+	if pid <= 0 {
+		return 0, errMsg.ErrID
+	}
+
 	version, err := s.repo.GetVersionByID(ctx, pid)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
@@ -123,6 +134,10 @@ func (s *productService) GetVersionByID(ctx context.Context, pid int64) (int64, 
 
 func (s *productService) DisableProduct(ctx context.Context, uid int64) error {
 
+	if uid <= 0 {
+		return errMsg.ErrID
+	}
+
 	err := s.repo.DisableProduct(ctx, uid)
 	if err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrDisable, err)
@@ -132,6 +147,9 @@ func (s *productService) DisableProduct(ctx context.Context, uid int64) error {
 }
 
 func (s *productService) EnableProduct(ctx context.Context, uid int64) error {
+	if uid <= 0 {
+		return errMsg.ErrID
+	}
 
 	err := s.repo.EnableProduct(ctx, uid)
 	if err != nil {
@@ -173,6 +191,9 @@ func (s *productService) Update(ctx context.Context, product *models.Product) (*
 }
 
 func (s *productService) Delete(ctx context.Context, id int64) error {
+	if id <= 0 {
+		return errMsg.ErrID
+	}
 
 	err := s.repo.Delete(ctx, id)
 	if err != nil {
@@ -183,6 +204,14 @@ func (s *productService) Delete(ctx context.Context, id int64) error {
 }
 
 func (s *productService) UpdateStock(ctx context.Context, id int64, quantity int) error {
+	if id <= 0 {
+		return errMsg.ErrID
+	}
+
+	if quantity <= 0 {
+		return errMsg.ErrInvalidQuantity
+	}
+
 	err := s.repo.UpdateStock(ctx, id, quantity)
 	if err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
@@ -192,6 +221,13 @@ func (s *productService) UpdateStock(ctx context.Context, id int64, quantity int
 }
 
 func (s *productService) IncreaseStock(ctx context.Context, id int64, amount int) error {
+	if id <= 0 {
+		return errMsg.ErrID
+	}
+
+	if amount <= 0 {
+		return errMsg.ErrID
+	}
 
 	err := s.repo.IncreaseStock(ctx, id, amount)
 	if err != nil {
@@ -203,6 +239,14 @@ func (s *productService) IncreaseStock(ctx context.Context, id int64, amount int
 }
 
 func (s *productService) DecreaseStock(ctx context.Context, id int64, amount int) error {
+	if id <= 0 {
+		return errMsg.ErrID
+	}
+
+	if amount <= 0 {
+		return errMsg.ErrID
+	}
+
 	err := s.repo.DecreaseStock(ctx, id, amount)
 	if err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
@@ -212,6 +256,9 @@ func (s *productService) DecreaseStock(ctx context.Context, id int64, amount int
 }
 
 func (s *productService) GetStock(ctx context.Context, id int64) (int, error) {
+	if id <= 0 {
+		return 0, errMsg.ErrID
+	}
 
 	stock, err := s.repo.GetStock(ctx, id)
 	if err != nil {
@@ -222,6 +269,9 @@ func (s *productService) GetStock(ctx context.Context, id int64) (int, error) {
 }
 
 func (s *productService) EnableDiscount(ctx context.Context, id int64) error {
+	if id <= 0 {
+		return errMsg.ErrID
+	}
 
 	err := s.repo.EnableDiscount(ctx, id)
 	if err != nil {
@@ -232,6 +282,9 @@ func (s *productService) EnableDiscount(ctx context.Context, id int64) error {
 }
 
 func (s *productService) DisableDiscount(ctx context.Context, id int64) error {
+	if id <= 0 {
+		return errMsg.ErrID
+	}
 
 	err := s.repo.DisableDiscount(ctx, id)
 	if err != nil {
@@ -242,6 +295,13 @@ func (s *productService) DisableDiscount(ctx context.Context, id int64) error {
 }
 
 func (s *productService) ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error) {
+	if id <= 0 {
+		return nil, errMsg.ErrID
+	}
+
+	if percent <= 0 {
+		return nil, errMsg.ErrPercentInvalid
+	}
 
 	product, err := s.repo.ApplyDiscount(ctx, id, percent)
 	if err != nil {

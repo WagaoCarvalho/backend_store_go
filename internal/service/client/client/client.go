@@ -94,6 +94,10 @@ func (s *clientService) Update(ctx context.Context, client *models.Client) error
 		return errMsg.ErrID
 	}
 
+	if client.Version <= 0 {
+		return errMsg.ErrVersionConflict
+	}
+
 	if err := client.Validate(); err != nil {
 		return fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}

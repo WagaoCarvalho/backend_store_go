@@ -866,7 +866,15 @@ func TestAddressHandler_Delete(t *testing.T) {
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		assert.Contains(t, w.Body.String(), "erro ID inválido")
+
+		var bodyErr struct {
+			Message string `json:"message"`
+			Status  int    `json:"status"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&bodyErr)
+
+		assert.Equal(t, errMsg.ErrID.Error(), bodyErr.Message)
+		assert.Equal(t, http.StatusBadRequest, bodyErr.Status)
 
 		mockSvc.AssertExpectations(t)
 	})

@@ -67,7 +67,7 @@ func (s *userCategoryService) GetByID(ctx context.Context, id int64) (*models.Us
 }
 
 func (s *userCategoryService) Update(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error) {
-	if category.ID == 0 {
+	if category.ID <= 0 {
 		return nil, errMsg.ErrID
 	}
 

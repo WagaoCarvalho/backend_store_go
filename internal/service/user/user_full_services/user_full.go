@@ -46,6 +46,11 @@ func NewUserFullService(
 }
 
 func (s *userFullService) CreateFull(ctx context.Context, userFull *modelsUserFull.UserFull) (*modelsUserFull.UserFull, error) {
+
+	if userFull == nil {
+		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
+	}
+
 	if err := userFull.Validate(); err != nil {
 		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}

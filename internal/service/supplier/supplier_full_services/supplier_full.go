@@ -42,7 +42,7 @@ func NewSupplierFullService(
 }
 
 func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *modelsFull.SupplierFull) (*modelsFull.SupplierFull, error) {
-	if supplierFull == nil || supplierFull.Supplier == nil {
+	if supplierFull == nil {
 		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 

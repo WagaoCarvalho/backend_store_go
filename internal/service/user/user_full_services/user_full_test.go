@@ -128,6 +128,15 @@ func TestUserService_CreateFull(t *testing.T) {
 		mockUserRepo.AssertExpectations(t)
 	})
 
+	t.Run("falha: userFull nil", func(t *testing.T) {
+		_, _, _, _, _, _, userService := setup()
+
+		result, err := userService.CreateFull(context.Background(), nil)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+	})
+
 	t.Run("erro_ao_hash_senha", func(t *testing.T) {
 		_, _, _, _, _, mockHasher, userService := setup()
 

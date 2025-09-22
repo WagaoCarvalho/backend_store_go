@@ -56,6 +56,16 @@ func TestLogoutService_Logout(t *testing.T) {
 	ctx := context.Background()
 	secret := "test-secret"
 
+	t.Run("falha: token vazio", func(t *testing.T) {
+		mockBL := new(mockBlacklist)
+		mockJWT := new(mockJWTService)
+		service := NewLogoutService(mockBL, mockJWT)
+
+		err := service.Logout(ctx, "")
+
+		assert.ErrorIs(t, err, errMsg.ErrInvalidToken)
+	})
+
 	t.Run("logout com sucesso", func(t *testing.T) {
 		tokenStr := generateTestToken(secret, time.Now().Add(time.Hour))
 		mockBL := new(mockBlacklist)
