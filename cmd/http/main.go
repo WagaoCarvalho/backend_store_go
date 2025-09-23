@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
@@ -15,14 +18,12 @@ import (
 )
 
 func main() {
-	// Carrega configurações
 	configs := config.LoadConfig()
 	port := configs.Server.Port
 	if port == "" {
 		port = "5000"
 	}
 
-	// Define nível de log baseado na configuração
 	level := logrus.InfoLevel
 	switch configs.App.LogLevel {
 	case "debug":
@@ -33,35 +34,62 @@ func main() {
 		level = logrus.ErrorLevel
 	}
 
-	// Logger base com rotação
-	rawLogger := logger.NewLogger(logger.LogConfig{
+	// Logger para sistema (infra)
+	systemRawLogger := logger.NewLogger(logger.LogConfig{
+		Environment: configs.App.Env,
+		LogFile:     "logs/system.log",
+		Level:       level,
+	})
+	systemLogger := logger.NewLoggerAdapter(systemRawLogger, "system")
+
+	// Logger para app (requests, handlers, etc.)
+	appRawLogger := logger.NewLogger(logger.LogConfig{
 		Environment: configs.App.Env,
 		LogFile:     "logs/app.log",
 		Level:       level,
 	})
+	appLogger := logger.NewLoggerAdapter(appRawLogger)
 
-	// Logger com suporte a contexto (request_id)
-	appLogger := logger.NewLoggerAdapter(rawLogger)
-
-	// Conecta ao banco de dados (e aborta se não conseguir)
+	// Conecta DB
 	db, err := repo.Connect(&repo.RealPgxPool{})
 	if err != nil {
-		appLogger.Error(context.TODO(), err, "❌ Erro ao conectar ao banco de dados", nil)
-		os.Exit(1) // não deixa o servidor subir
+		systemLogger.Error(context.TODO(), err, "❌ Erro ao conectar ao banco de dados", nil)
+		os.Exit(1)
 	}
 	defer db.Close()
+	systemLogger.Info(context.TODO(), "[✅ - DB CONECTADO -]", nil)
 
-	appLogger.Info(context.TODO(), "[✅ - DB CONECTADO -]", nil)
-
-	// Log inicial (sem request_id)
-	appLogger.Info(context.TODO(), "[✅ - SERVIDOR INICIADO -]", map[string]any{
+	// Início servidor
+	systemLogger.Info(context.TODO(), "[✅ - SERVIDOR INICIADO -]", map[string]any{
 		"env":  configs.App.Env,
 		"port": port,
 	})
 
-	// Inicializa roteador com logger adaptado
 	r := routes.NewRouter(appLogger)
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", port),
+		Handler: r,
+	}
 
-	// Inicia o servidor HTTP
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), r))
+	// Shutdown gracioso
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		sig := <-quit
+		systemLogger.Info(context.TODO(), "[🔹 - SHUTDOWN INICIADO -]", map[string]any{"signal": sig.String()})
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := srv.Shutdown(ctx); err != nil {
+			systemLogger.Error(context.TODO(), err, "❌ Erro durante shutdown", nil)
+		} else {
+			systemLogger.Info(context.TODO(), "[✅ - SERVIDOR ENCERRADO -]", nil)
+		}
+	}()
+
+	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		systemLogger.Error(context.TODO(), err, "❌ Falha no ListenAndServe", nil)
+	}
 }
