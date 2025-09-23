@@ -17,6 +17,7 @@ import (
 )
 
 func init() {
+	// Carrega .env local apenas se existir
 	_ = godotenv.Load("../../../.env.test")
 }
 
@@ -26,7 +27,7 @@ func TestConnect_Success(t *testing.T) {
 
 	connURL := os.Getenv("DB_CONN_URL")
 	if connURL == "" {
-		t.Skip("DB_CONN_URL não definido no .env")
+		t.Skip("DB_CONN_URL não definido no .env ou no CI")
 	}
 
 	mockPool.On("ParseConfig", connURL).Return(mockConfig, nil)
@@ -75,9 +76,7 @@ func TestConnect_DBConnURLNotDefined(t *testing.T) {
 	defer func() { config.LoadDatabaseConfig = originalLoader }()
 
 	config.LoadDatabaseConfig = func() config.Database {
-		return config.Database{
-			ConnURL: "",
-		}
+		return config.Database{ConnURL: ""}
 	}
 
 	pool, err := Connect(&RealPgxPool{})
@@ -90,7 +89,7 @@ func TestRealPgxPool_ParseConfig(t *testing.T) {
 
 	connStr := os.Getenv("DB_CONN_URL")
 	if connStr == "" {
-		t.Skip("DB_CONN_URL não definido no .env")
+		t.Skip("DB_CONN_URL não definido no .env ou no CI")
 	}
 
 	cfg, err := realPool.ParseConfig(connStr)
@@ -105,7 +104,7 @@ func TestRealPgxPool_NewWithConfig(t *testing.T) {
 
 	connStr := os.Getenv("DB_CONN_URL")
 	if connStr == "" {
-		t.Skip("DB_CONN_URL não definido no .env para teste de integração")
+		t.Skip("DB_CONN_URL não definido no .env ou no CI")
 	}
 
 	realPool := &RealPgxPool{}
