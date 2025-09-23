@@ -51,10 +51,10 @@ func main() {
 	}
 	defer db.Close()
 
-	appLogger.Info(context.TODO(), "✅ Conectado ao banco de dados com sucesso!", nil)
+	appLogger.Info(context.TODO(), "[✅ - DB CONECTADO -]", nil)
 
 	// Log inicial (sem request_id)
-	appLogger.Info(context.TODO(), "[✅ - Servidor iniciado -]", map[string]any{
+	appLogger.Info(context.TODO(), "[✅ - SERVIDOR INICIADO -]", map[string]any{
 		"env":  configs.App.Env,
 		"port": port,
 	})

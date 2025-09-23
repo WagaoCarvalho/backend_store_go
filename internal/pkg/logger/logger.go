@@ -42,7 +42,7 @@ func NewLogger(cfg LogConfig) *logrus.Logger {
 		log.SetOutput(io.MultiWriter(os.Stdout, logWriter))
 	}
 
-	log.SetReportCaller(true)
+	log.SetReportCaller(false)
 
 	return log
 }
