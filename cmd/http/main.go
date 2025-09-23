@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db_postgres"
 	routes "github.com/WagaoCarvalho/backend_store_go/internal/route"
 	"github.com/sirupsen/logrus"
 )
@@ -41,8 +43,18 @@ func main() {
 	// Logger com suporte a contexto (request_id)
 	appLogger := logger.NewLoggerAdapter(rawLogger)
 
+	// Conecta ao banco de dados (e aborta se não conseguir)
+	db, err := repo.Connect(&repo.RealPgxPool{})
+	if err != nil {
+		appLogger.Error(context.TODO(), err, "❌ Erro ao conectar ao banco de dados", nil)
+		os.Exit(1) // não deixa o servidor subir
+	}
+	defer db.Close()
+
+	appLogger.Info(context.TODO(), "✅ Conectado ao banco de dados com sucesso!", nil)
+
 	// Log inicial (sem request_id)
-	appLogger.Info(context.TODO(), "[*** - Servidor iniciado - ***]", map[string]any{
+	appLogger.Info(context.TODO(), "[✅ - Servidor iniciado -]", map[string]any{
 		"env":  configs.App.Env,
 		"port": port,
 	})

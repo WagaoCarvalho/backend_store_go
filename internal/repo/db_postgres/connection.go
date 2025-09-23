@@ -3,7 +3,6 @@ package repo
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
@@ -28,7 +27,6 @@ func (r *RealPgxPool) NewWithConfig(ctx context.Context, config *pgxpool.Config)
 }
 
 func Connect(pool PgxPool) (*pgxpool.Pool, error) {
-
 	dbConfig := config.LoadDatabaseConfig()
 
 	if dbConfig.ConnURL == "" {
@@ -45,6 +43,11 @@ func Connect(pool PgxPool) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrDBNewPool, err)
 	}
 
-	log.Println("✅ Conectado ao banco de dados com sucesso!")
+	if _, ok := pool.(*RealPgxPool); ok {
+		if err := dbPool.Ping(context.Background()); err != nil {
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrDBPing, err)
+		}
+	}
+
 	return dbPool, nil
 }

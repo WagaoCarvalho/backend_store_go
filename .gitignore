@@ -41,6 +41,7 @@ coverage.out
 
 # Configurações locais e credenciais
 .env
+.env.test
 .env.*
 config.yaml
 config.json

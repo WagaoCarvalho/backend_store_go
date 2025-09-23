@@ -6,24 +6,30 @@ import (
 	"os"
 	"testing"
 
-	config "github.com/WagaoCarvalho/backend_store_go/config"
+	"github.com/WagaoCarvalho/backend_store_go/config"
 	mockRepo "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
+func init() {
+	_ = godotenv.Load("../../../.env.test")
+}
+
 func TestConnect_Success(t *testing.T) {
 	mockPool := new(mockRepo.MockPgxPool)
 	mockConfig := &pgxpool.Config{}
 
-	// Setar variável de ambiente obrigatória para o config.LoadDatabaseConfig()
-	os.Setenv("DB_CONN_URL", "postgres://user:pass@localhost:5432/dbname?sslmode=disable")
-	defer os.Unsetenv("DB_CONN_URL")
+	connURL := os.Getenv("DB_CONN_URL")
+	if connURL == "" {
+		t.Skip("DB_CONN_URL não definido no .env")
+	}
 
-	mockPool.On("ParseConfig", mock.Anything).Return(mockConfig, nil)
+	mockPool.On("ParseConfig", connURL).Return(mockConfig, nil)
 	mockPool.On("NewWithConfig", mock.Anything, mockConfig).Return(&pgxpool.Pool{}, nil)
 
 	pool, err := Connect(mockPool)
@@ -35,9 +41,6 @@ func TestConnect_Success(t *testing.T) {
 
 func TestConnect_ParseConfigError(t *testing.T) {
 	mockPool := new(mockRepo.MockPgxPool)
-
-	os.Setenv("DB_CONN_URL", "fake_conn_string")
-	defer os.Unsetenv("DB_CONN_URL")
 
 	mockPool.On("ParseConfig", mock.Anything).
 		Return(nil, errors.New("erro parse config")).Once()
@@ -53,9 +56,6 @@ func TestConnect_ParseConfigError(t *testing.T) {
 func TestConnect_NewWithConfigError(t *testing.T) {
 	mockPool := new(mockRepo.MockPgxPool)
 
-	os.Setenv("DB_CONN_URL", "fake_conn_string")
-	defer os.Unsetenv("DB_CONN_URL")
-
 	mockPool.On("ParseConfig", mock.Anything).
 		Return(&pgxpool.Config{}, nil).Once()
 
@@ -63,7 +63,6 @@ func TestConnect_NewWithConfigError(t *testing.T) {
 		Return(nil, errors.New("erro new pool")).Once()
 
 	pool, err := Connect(mockPool)
-
 	assert.Error(t, err)
 	assert.Nil(t, pool)
 	assert.Contains(t, err.Error(), "erro new pool")
@@ -89,19 +88,28 @@ func TestConnect_DBConnURLNotDefined(t *testing.T) {
 func TestRealPgxPool_ParseConfig(t *testing.T) {
 	realPool := &RealPgxPool{}
 
-	// Usar uma connection string válida (pode ser fake para teste)
-	connStr := "postgres://user:pass@localhost:5432/dbname?sslmode=disable"
+	connStr := os.Getenv("DB_CONN_URL")
+	if connStr == "" {
+		t.Skip("DB_CONN_URL não definido no .env")
+	}
 
 	cfg, err := realPool.ParseConfig(connStr)
-
 	assert.NoError(t, err)
 	assert.NotNil(t, cfg)
 }
 
 func TestRealPgxPool_NewWithConfig(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipando teste de integração em modo short")
+	}
+
+	connStr := os.Getenv("DB_CONN_URL")
+	if connStr == "" {
+		t.Skip("DB_CONN_URL não definido no .env para teste de integração")
+	}
+
 	realPool := &RealPgxPool{}
 
-	connStr := "postgres://user:pass@localhost:5432/dbname?sslmode=disable"
 	cfg, err := realPool.ParseConfig(connStr)
 	require.NoError(t, err)
 
@@ -109,6 +117,8 @@ func TestRealPgxPool_NewWithConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, pool)
 
-	// Limpar a conexão após o teste
+	err = pool.Ping(context.Background())
+	assert.NoError(t, err)
+
 	pool.Close()
 }
