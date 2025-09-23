@@ -55,9 +55,6 @@ func TestConnect_ParseConfigError(t *testing.T) {
 }
 
 func TestConnect_NewWithConfigError(t *testing.T) {
-	if os.Getenv("CI") != "" {
-		t.Skip("skipando teste de integração no CI")
-	}
 	mockPool := new(mockRepo.MockPgxPool)
 
 	mockPool.On("ParseConfig", mock.Anything).
@@ -102,13 +99,13 @@ func TestRealPgxPool_ParseConfig(t *testing.T) {
 }
 
 func TestRealPgxPool_NewWithConfig(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipando teste de integração em modo short")
+	if testing.Short() || os.Getenv("CI") != "" {
+		t.Skip("skipando teste de integração no modo short ou no CI")
 	}
 
 	connStr := os.Getenv("DB_CONN_URL")
 	if connStr == "" {
-		t.Skip("DB_CONN_URL não definido no .env ou no CI")
+		t.Skip("DB_CONN_URL não definido para teste de integração")
 	}
 
 	realPool := &RealPgxPool{}
@@ -117,11 +114,11 @@ func TestRealPgxPool_NewWithConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	pool, err := realPool.NewWithConfig(context.Background(), cfg)
-	assert.NoError(t, err)
-	assert.NotNil(t, pool)
+	require.NoError(t, err)
+	require.NotNil(t, pool)
 
 	err = pool.Ping(context.Background())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	pool.Close()
 }
