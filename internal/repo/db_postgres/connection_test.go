@@ -55,6 +55,9 @@ func TestConnect_ParseConfigError(t *testing.T) {
 }
 
 func TestConnect_NewWithConfigError(t *testing.T) {
+	if os.Getenv("CI") != "" {
+		t.Skip("skipando teste de integração no CI")
+	}
 	mockPool := new(mockRepo.MockPgxPool)
 
 	mockPool.On("ParseConfig", mock.Anything).
@@ -85,9 +88,7 @@ func TestConnect_DBConnURLNotDefined(t *testing.T) {
 }
 
 func TestRealPgxPool_ParseConfig(t *testing.T) {
-	if os.Getenv("CI") != "" {
-		t.Skip("skipando teste de integração no CI")
-	}
+
 	realPool := &RealPgxPool{}
 
 	connStr := os.Getenv("DB_CONN_URL")
