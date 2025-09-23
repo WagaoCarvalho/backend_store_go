@@ -85,6 +85,9 @@ func TestConnect_DBConnURLNotDefined(t *testing.T) {
 }
 
 func TestRealPgxPool_ParseConfig(t *testing.T) {
+	if os.Getenv("CI") != "" {
+		t.Skip("skipando teste de integração no CI")
+	}
 	realPool := &RealPgxPool{}
 
 	connStr := os.Getenv("DB_CONN_URL")
