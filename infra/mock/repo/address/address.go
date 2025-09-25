@@ -70,3 +70,13 @@ func (m *MockAddressRepository) Delete(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
+
+func (m *MockAddressRepository) Disable(ctx context.Context, aid int64) error {
+	args := m.Called(ctx, aid)
+	return args.Error(0)
+}
+
+func (m *MockAddressRepository) Enable(ctx context.Context, aid int64) error {
+	args := m.Called(ctx, aid)
+	return args.Error(0)
+}

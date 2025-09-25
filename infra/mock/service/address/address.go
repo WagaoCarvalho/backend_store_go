@@ -62,3 +62,13 @@ func (m *MockAddressService) Delete(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
+
+func (m *MockAddressService) Disable(ctx context.Context, id int64) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
+
+func (m *MockAddressService) Enable(ctx context.Context, id int64) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}

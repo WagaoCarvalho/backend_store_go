@@ -21,6 +21,8 @@ type AddressService interface {
 	GetBySupplierID(ctx context.Context, clientID int64) ([]*models.Address, error)
 	Update(ctx context.Context, address *models.Address) error
 	Delete(ctx context.Context, id int64) error
+	Disable(ctx context.Context, uid int64) error
+	Enable(ctx context.Context, uid int64) error
 }
 
 type addressService struct {
@@ -165,6 +167,30 @@ func (s *addressService) Delete(ctx context.Context, id int64) error {
 
 	if err := s.repoAddress.Delete(ctx, id); err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
+	}
+
+	return nil
+}
+
+func (s *addressService) Disable(ctx context.Context, id int64) error {
+	if id <= 0 {
+		return errMsg.ErrID
+	}
+
+	if err := s.repoAddress.Disable(ctx, id); err != nil {
+		return fmt.Errorf("%w: %v", errMsg.ErrDisable, err)
+	}
+
+	return nil
+}
+
+func (s *addressService) Enable(ctx context.Context, id int64) error {
+	if id <= 0 {
+		return errMsg.ErrID
+	}
+
+	if err := s.repoAddress.Enable(ctx, id); err != nil {
+		return fmt.Errorf("%w: %v", errMsg.ErrEnable, err)
 	}
 
 	return nil

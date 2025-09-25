@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
@@ -21,6 +22,8 @@ type AddressRepository interface {
 	GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error)
 	Update(ctx context.Context, address *models.Address) error
 	Delete(ctx context.Context, id int64) error
+	Disable(ctx context.Context, uid int64) error
+	Enable(ctx context.Context, uid int64) error
 }
 
 type addressRepository struct {
@@ -335,6 +338,46 @@ func (r *addressRepository) Delete(ctx context.Context, id int64) error {
 
 	if cmdTag.RowsAffected() == 0 {
 		return errMsg.ErrNotFound
+	}
+
+	return nil
+}
+
+func (r *addressRepository) Disable(ctx context.Context, aid int64) error {
+	const query = `
+		UPDATE addresses
+		SET is_active = FALSE, updated_at = NOW()
+		WHERE id = $1
+		RETURNING updated_at;
+	`
+
+	var updatedAt time.Time
+	err := r.db.QueryRow(ctx, query, aid).Scan(&updatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return errMsg.ErrNotFound
+		}
+		return fmt.Errorf("%w: %v", errMsg.ErrDisable, err)
+	}
+
+	return nil
+}
+
+func (r *addressRepository) Enable(ctx context.Context, aid int64) error {
+	const query = `
+		UPDATE addresses
+		SET is_active = TRUE, updated_at = NOW()
+		WHERE id = $1
+		RETURNING updated_at;
+	`
+
+	var updatedAt time.Time
+	err := r.db.QueryRow(ctx, query, aid).Scan(&updatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return errMsg.ErrNotFound
+		}
+		return fmt.Errorf("%w: %v", errMsg.ErrEnable, err)
 	}
 
 	return nil

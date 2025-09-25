@@ -49,5 +49,7 @@ func RegisterAddressRoutes(
 	s.HandleFunc("/address/client/{id:[0-9]+}", handler.GetByClientID).Methods(http.MethodGet)
 	s.HandleFunc("/address/supplier/{id:[0-9]+}", handler.GetBySupplierID).Methods(http.MethodGet)
 	s.HandleFunc("/address/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
+	s.HandleFunc("/address/enable/{id:[0-9]+}", handler.Enable).Methods(http.MethodPatch)
+	s.HandleFunc("/address/disable/{id:[0-9]+}", handler.Disable).Methods(http.MethodPatch)
 	s.HandleFunc("/address/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
 }

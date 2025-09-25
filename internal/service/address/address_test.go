@@ -656,3 +656,83 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 		mockRepoAddress.AssertExpectations(t)
 	})
 }
+
+func TestAddressService_DisableAddress(t *testing.T) {
+	mockRepoAddress := new(mockAddress.MockAddressRepository)
+	mockRepoClient := new(mockClient.MockClientRepository)
+	mockRepoUser := new(mockUser.MockUserRepository)
+	mockSupplier := new(mockSupplier.MockSupplierRepository)
+	service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+
+	t.Run("sucesso ao desabilitar endereço", func(t *testing.T) {
+		mockRepoAddress.On("Disable", mock.Anything, int64(1)).Return(nil)
+
+		err := service.Disable(context.Background(), 1)
+
+		assert.NoError(t, err)
+		mockRepoAddress.AssertExpectations(t)
+
+		mockRepoAddress.ExpectedCalls = nil
+		mockRepoAddress.Calls = nil
+	})
+
+	t.Run("erro ao desabilitar com ID inválido", func(t *testing.T) {
+		err := service.Disable(context.Background(), 0)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrID)
+	})
+
+	t.Run("erro ao desabilitar no repository", func(t *testing.T) {
+		mockRepoAddress.On("Disable", mock.Anything, int64(1)).Return(errors.New("db error"))
+
+		err := service.Disable(context.Background(), 1)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrDisable)
+		mockRepoAddress.AssertExpectations(t)
+
+		mockRepoAddress.ExpectedCalls = nil
+		mockRepoAddress.Calls = nil
+	})
+}
+
+func TestAddressService_EnableAddress(t *testing.T) {
+	mockRepoAddress := new(mockAddress.MockAddressRepository)
+	mockRepoClient := new(mockClient.MockClientRepository)
+	mockRepoUser := new(mockUser.MockUserRepository)
+	mockSupplier := new(mockSupplier.MockSupplierRepository)
+	service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+
+	t.Run("sucesso ao habilitar endereço", func(t *testing.T) {
+		mockRepoAddress.On("Enable", mock.Anything, int64(1)).Return(nil)
+
+		err := service.Enable(context.Background(), 1)
+
+		assert.NoError(t, err)
+		mockRepoAddress.AssertExpectations(t)
+
+		mockRepoAddress.ExpectedCalls = nil
+		mockRepoAddress.Calls = nil
+	})
+
+	t.Run("erro ao habilitar com ID inválido", func(t *testing.T) {
+		err := service.Enable(context.Background(), 0)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrID)
+	})
+
+	t.Run("erro ao habilitar no repository", func(t *testing.T) {
+		mockRepoAddress.On("Enable", mock.Anything, int64(1)).Return(errors.New("db error"))
+
+		err := service.Enable(context.Background(), 1)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrEnable)
+		mockRepoAddress.AssertExpectations(t)
+
+		mockRepoAddress.ExpectedCalls = nil
+		mockRepoAddress.Calls = nil
+	})
+}
