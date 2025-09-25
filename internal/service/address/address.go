@@ -49,7 +49,7 @@ func NewAddressService(
 func (s *addressService) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
 
 	if err := address.Validate(); err != nil {
-		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
 	createdAddress, err := s.repoAddress.Create(ctx, address)
