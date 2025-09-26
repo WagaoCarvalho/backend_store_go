@@ -73,7 +73,8 @@ func TestAddressService_Create(t *testing.T) {
 		mockSupplier := new(mockSupplier.MockSupplierRepository)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
-		addressModel := &model.Address{
+		userID := int64(1)
+		addressModel := &models.Address{
 			UserID:       &userID,
 			Street:       "Rua Teste",
 			StreetNumber: "56",
@@ -85,14 +86,19 @@ func TestAddressService_Create(t *testing.T) {
 		}
 
 		expectedErr := errors.New("erro no banco")
-		mockRepoAddress.On("Create", mock.Anything, addressModel).Return((*model.Address)(nil), expectedErr)
+		mockRepoAddress.On("Create", mock.Anything, addressModel).Return((*models.Address)(nil), expectedErr)
 
 		createdAddress, err := service.Create(context.Background(), addressModel)
 
 		assert.Nil(t, createdAddress)
-		assert.Equal(t, expectedErr, err)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrCreate)                  // garante que o erro foi encapsulado
+		assert.Contains(t, err.Error(), errMsg.ErrCreate.Error()) // mensagem base presente
+		assert.Contains(t, err.Error(), expectedErr.Error())      // mensagem original presente
+
 		mockRepoAddress.AssertExpectations(t)
 	})
+
 }
 
 func TestAddressService_GetByID(t *testing.T) {
@@ -662,39 +668,97 @@ func TestAddressService_Update(t *testing.T) {
 }
 
 func TestAddressService_DeleteAddress(t *testing.T) {
-	mockRepoAddress := new(mockAddress.MockAddressRepository)
-	mockRepoClient := new(mockClient.MockClientRepository)
-	mockRepoUser := new(mockUser.MockUserRepository)
-	mockSupplier := new(mockSupplier.MockSupplierRepository)
-	service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
-
 	t.Run("sucesso ao deletar endereço", func(t *testing.T) {
-		mockRepoAddress.On("Delete", mock.Anything, int64(1)).Return(nil)
+		mockRepoAddress := new(mockAddress.MockAddressRepository)
+		mockRepoClient := new(mockClient.MockClientRepository)
+		mockRepoUser := new(mockUser.MockUserRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
-		err := service.Delete(context.Background(), 1)
+		addressID := int64(1)
+
+		// Simula GetByID retornando um endereço existente
+		mockRepoAddress.On("GetByID", mock.Anything, addressID).Return(&models.Address{ID: addressID}, nil)
+		// Simula Delete sem erro
+		mockRepoAddress.On("Delete", mock.Anything, addressID).Return(nil)
+
+		err := service.Delete(context.Background(), addressID)
 
 		assert.NoError(t, err)
 		mockRepoAddress.AssertExpectations(t)
-
-		mockRepoAddress.ExpectedCalls = nil
-		mockRepoAddress.Calls = nil
 	})
 
 	t.Run("erro ao deletar com ID inválido", func(t *testing.T) {
+		mockRepoAddress := new(mockAddress.MockAddressRepository)
+		mockRepoClient := new(mockClient.MockClientRepository)
+		mockRepoUser := new(mockUser.MockUserRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
+
 		err := service.Delete(context.Background(), 0)
 
-		assert.Error(t, err)
 		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		mockRepoAddress.AssertNotCalled(t, "GetByID", mock.Anything, mock.Anything)
+		mockRepoAddress.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
 	})
 
-	t.Run("erro ao deletar do repositório", func(t *testing.T) {
-		mockRepoAddress.On("Delete", mock.Anything, int64(1)).Return(fmt.Errorf("erro no banco"))
+	t.Run("Delete retorna ErrNotFound quando GetByID não encontra endereço", func(t *testing.T) {
+		mockRepoAddress := new(mockAddress.MockAddressRepository)
+		mockRepoClient := new(mockClient.MockClientRepository)
+		mockRepoUser := new(mockUser.MockUserRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
-		err := service.Delete(context.Background(), 1)
+		addressID := int64(1)
 
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "erro ao deletar")
-		assert.ErrorContains(t, err, "erro no banco")
+		mockRepoAddress.On("GetByID", mock.Anything, addressID).Return((*models.Address)(nil), errMsg.ErrNotFound)
+
+		err := service.Delete(context.Background(), addressID)
+
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		mockRepoAddress.AssertExpectations(t)
+	})
+
+	t.Run("Delete retorna erro inesperado do GetByID encapsulado em ErrGet", func(t *testing.T) {
+		mockRepoAddress := new(mockAddress.MockAddressRepository)
+		mockRepoClient := new(mockClient.MockClientRepository)
+		mockRepoUser := new(mockUser.MockUserRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
+
+		addressID := int64(2)
+		unexpectedErr := errors.New("erro no banco")
+
+		mockRepoAddress.On("GetByID", mock.Anything, addressID).Return((*models.Address)(nil), unexpectedErr)
+
+		err := service.Delete(context.Background(), addressID)
+
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+		assert.Contains(t, err.Error(), errMsg.ErrGet.Error())
+		assert.Contains(t, err.Error(), unexpectedErr.Error())
+		mockRepoAddress.AssertExpectations(t)
+	})
+
+	t.Run("erro ao deletar do repositório encapsulado em ErrDelete", func(t *testing.T) {
+		mockRepoAddress := new(mockAddress.MockAddressRepository)
+		mockRepoClient := new(mockClient.MockClientRepository)
+		mockRepoUser := new(mockUser.MockUserRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
+
+		addressID := int64(3)
+		expectedErr := fmt.Errorf("erro no banco")
+
+		// Simula GetByID retornando endereço existente
+		mockRepoAddress.On("GetByID", mock.Anything, addressID).Return(&models.Address{ID: addressID}, nil)
+		// Simula erro no Delete
+		mockRepoAddress.On("Delete", mock.Anything, addressID).Return(expectedErr)
+
+		err := service.Delete(context.Background(), addressID)
+
+		assert.ErrorIs(t, err, errMsg.ErrDelete)
+		assert.Contains(t, err.Error(), errMsg.ErrDelete.Error())
+		assert.Contains(t, err.Error(), expectedErr.Error())
 		mockRepoAddress.AssertExpectations(t)
 	})
 }

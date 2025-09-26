@@ -7,7 +7,10 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	repoClient "github.com/WagaoCarvalho/backend_store_go/internal/repo/client/client"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
+	repoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
+	repoUser "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 )
 
 type ContactService interface {
@@ -21,23 +24,33 @@ type ContactService interface {
 }
 
 type contactService struct {
-	contactRepo repo.ContactRepository
+	contactRepo  repo.ContactRepository
+	repoClient   repoClient.ClientRepository
+	repoUser     repoUser.UserRepository
+	repoSupplier repoSupplier.SupplierRepository
 }
 
-func NewContactService(contactRepo repo.ContactRepository) ContactService {
+func NewContactService(contactRepo repo.ContactRepository,
+	repoClient repoClient.ClientRepository,
+	repoUser repoUser.UserRepository,
+	repoSupplier repoSupplier.SupplierRepository,
+) ContactService {
 	return &contactService{
-		contactRepo: contactRepo,
+		contactRepo:  contactRepo,
+		repoClient:   repoClient,
+		repoUser:     repoUser,
+		repoSupplier: repoSupplier,
 	}
 }
 
 func (s *contactService) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
 	if err := contact.Validate(); err != nil {
-		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
 	createdContact, err := s.contactRepo.Create(ctx, contact)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 
 	return createdContact, nil
@@ -66,7 +79,17 @@ func (s *contactService) GetByUserID(ctx context.Context, userID int64) ([]*mode
 
 	contacts, err := s.contactRepo.GetByUserID(ctx, userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+	}
+
+	if len(contacts) == 0 {
+		exists, err := s.repoUser.UserExists(ctx, userID)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+		}
+		if !exists {
+			return nil, errMsg.ErrNotFound
+		}
 	}
 
 	return contacts, nil
@@ -79,7 +102,17 @@ func (s *contactService) GetByClientID(ctx context.Context, clientID int64) ([]*
 
 	contacts, err := s.contactRepo.GetByClientID(ctx, clientID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+	}
+
+	if len(contacts) == 0 {
+		exists, err := s.repoClient.ClientExists(ctx, clientID)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+		}
+		if !exists {
+			return nil, errMsg.ErrNotFound
+		}
 	}
 
 	return contacts, nil
@@ -92,7 +125,18 @@ func (s *contactService) GetBySupplierID(ctx context.Context, supplierID int64) 
 
 	contacts, err := s.contactRepo.GetBySupplierID(ctx, supplierID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+
+	}
+
+	if len(contacts) == 0 {
+		exists, err := s.repoSupplier.SupplierExists(ctx, supplierID)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+		}
+		if !exists {
+			return nil, errMsg.ErrNotFound
+		}
 	}
 
 	return contacts, nil

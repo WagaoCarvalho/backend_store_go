@@ -54,7 +54,7 @@ func (s *addressService) Create(ctx context.Context, address *models.Address) (*
 
 	createdAddress, err := s.repoAddress.Create(ctx, address)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 
 	return createdAddress, nil
@@ -163,6 +163,14 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 func (s *addressService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrIDZero
+	}
+
+	_, err := s.repoAddress.GetByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, errMsg.ErrNotFound) {
+			return errMsg.ErrNotFound
+		}
+		return fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	if err := s.repoAddress.Delete(ctx, id); err != nil {
