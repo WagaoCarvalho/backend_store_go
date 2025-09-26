@@ -111,7 +111,7 @@ func TestAddressService_GetByID(t *testing.T) {
 		result, err := service.GetByID(context.Background(), 0)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepoAddress.AssertNotCalled(t, "GetByID", mock.Anything, mock.Anything)
 	})
 
@@ -214,7 +214,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 		result, err := service.GetByUserID(context.Background(), 0)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepoAddress.AssertNotCalled(t, "GetByUserID", mock.Anything, mock.Anything)
 	})
 
@@ -367,7 +367,7 @@ func TestAddressService_GetByClientID(t *testing.T) {
 		result, err := service.GetByClientID(context.Background(), 0)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepoAddress.AssertNotCalled(t, "GetByClientID", mock.Anything, mock.Anything)
 	})
 
@@ -460,7 +460,7 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 		result, err := service.GetBySupplierID(context.Background(), 0)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepoAddress.AssertNotCalled(t, "GetBySupplierID", mock.Anything, mock.Anything)
 	})
 
@@ -596,7 +596,7 @@ func TestAddressService_Update(t *testing.T) {
 
 		err := service.Update(context.Background(), addressModel)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepoAddress.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
 	})
 
@@ -697,7 +697,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 
 		err := service.Delete(context.Background(), 0)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepoAddress.AssertNotCalled(t, "GetByID", mock.Anything, mock.Anything)
 		mockRepoAddress.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
 	})
@@ -786,7 +786,7 @@ func TestAddressService_DisableAddress(t *testing.T) {
 		err := service.Disable(context.Background(), 0)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 	})
 
 	t.Run("erro ao desabilitar no repository", func(t *testing.T) {
@@ -826,7 +826,7 @@ func TestAddressService_EnableAddress(t *testing.T) {
 		err := service.Enable(context.Background(), 0)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 	})
 
 	t.Run("erro ao habilitar no repository", func(t *testing.T) {

@@ -279,7 +279,7 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 			id = $10
 	`
 
-	cmdTag, err := r.db.Exec(ctx, query,
+	err := r.db.QueryRow(ctx, query,
 		contact.UserID,
 		contact.ClientID,
 		contact.SupplierID,
@@ -290,13 +290,16 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 		contact.Cell,
 		contact.ContactType,
 		contact.ID,
-	)
-	if err != nil {
-		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
-	}
+	).Scan(&contact.UpdatedAt)
 
-	if cmdTag.RowsAffected() == 0 {
-		return errMsg.ErrNotFound
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return errMsg.ErrNotFound
+		}
+		if errMsgPg.IsForeignKeyViolation(err) {
+			return errMsg.ErrInvalidForeignKey
+		}
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	return nil

@@ -72,7 +72,7 @@ func (s *userService) GetAll(ctx context.Context) ([]*models.User, error) {
 
 func (s *userService) GetByID(ctx context.Context, uid int64) (*models.User, error) {
 	if uid <= 0 {
-		return nil, errMsg.ErrIDZero
+		return nil, errMsg.ErrZeroID
 	}
 
 	user, err := s.repoUser.GetByID(ctx, uid)
@@ -86,7 +86,7 @@ func (s *userService) GetByID(ctx context.Context, uid int64) (*models.User, err
 func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, error) {
 
 	if uid <= 0 {
-		return 0, errMsg.ErrIDZero
+		return 0, errMsg.ErrZeroID
 	}
 
 	version, err := s.repoUser.GetVersionByID(ctx, uid)
@@ -148,14 +148,14 @@ func (s *userService) Update(ctx context.Context, user *models.User) (*models.Us
 
 func (s *userService) Disable(ctx context.Context, uid int64) error {
 	if uid <= 0 {
-		return errMsg.ErrIDZero
+		return errMsg.ErrZeroID
 	}
 	return s.repoUser.Disable(ctx, uid)
 }
 
 func (s *userService) Enable(ctx context.Context, uid int64) error {
 	if uid <= 0 {
-		return errMsg.ErrIDZero
+		return errMsg.ErrZeroID
 	}
 	err := s.repoUser.Enable(ctx, uid)
 	if errors.Is(err, errMsg.ErrNotFound) {
@@ -167,7 +167,7 @@ func (s *userService) Enable(ctx context.Context, uid int64) error {
 func (s *userService) Delete(ctx context.Context, uid int64) error {
 
 	if uid <= 0 {
-		return errMsg.ErrIDZero
+		return errMsg.ErrZeroID
 	}
 	return s.repoUser.Delete(ctx, uid)
 }

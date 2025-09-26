@@ -271,7 +271,7 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if errors.Is(err, errMsg.ErrIDZero) {
+		if errors.Is(err, errMsg.ErrZeroID) {
 			h.logger.Warn(ctx, ref+"Invalid ID", map[string]any{"id": id})
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
@@ -327,7 +327,7 @@ func (h *AddressHandler) Enable(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.service.Enable(ctx, id); err != nil {
 		status := http.StatusInternalServerError
-		if errors.Is(err, errMsg.ErrIDZero) {
+		if errors.Is(err, errMsg.ErrZeroID) {
 			status = http.StatusBadRequest
 			h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 				"address_id": id,
@@ -378,7 +378,7 @@ func (h *AddressHandler) Disable(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.service.Disable(ctx, id); err != nil {
 		status := http.StatusInternalServerError
-		if errors.Is(err, errMsg.ErrIDZero) {
+		if errors.Is(err, errMsg.ErrZeroID) {
 			status = http.StatusBadRequest
 			h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 				"address_id": id,
@@ -430,11 +430,11 @@ func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 				"erro":       err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusNotFound)
-		case errors.Is(err, errMsg.ErrIDZero):
+		case errors.Is(err, errMsg.ErrZeroID):
 			h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{
 				"erro": err.Error(),
 			})
-			utils.ErrorResponse(w, errMsg.ErrIDZero, http.StatusBadRequest)
+			utils.ErrorResponse(w, errMsg.ErrZeroID, http.StatusBadRequest)
 		default:
 			h.logger.Error(r.Context(), err, ref+logger.LogDeleteError, map[string]any{
 				"address_id": id,

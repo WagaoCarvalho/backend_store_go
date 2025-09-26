@@ -147,7 +147,7 @@ func TestSupplierCategoryService_Update(t *testing.T) {
 		err := service.Update(context.Background(), category)
 
 		assert.Error(t, err)
-		assert.Equal(t, errMsg.ErrIDZero, err)
+		assert.Equal(t, errMsg.ErrZeroID, err)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 

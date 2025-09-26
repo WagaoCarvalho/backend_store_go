@@ -30,10 +30,10 @@ func NewUserCategoryRelationServices(repo repo.UserCategoryRelationRepository) U
 
 func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelations, bool, error) {
 	if userID <= 0 {
-		return nil, false, err_msg.ErrIDZero
+		return nil, false, err_msg.ErrZeroID
 	}
 	if categoryID <= 0 {
-		return nil, false, err_msg.ErrIDZero
+		return nil, false, err_msg.ErrZeroID
 	}
 
 	relation := models.UserCategoryRelations{
@@ -71,7 +71,7 @@ func (s *userCategoryRelationServices) Create(ctx context.Context, userID, categ
 
 func (s *userCategoryRelationServices) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
 	if userID <= 0 {
-		return nil, err_msg.ErrIDZero
+		return nil, err_msg.ErrZeroID
 	}
 
 	relationsPtr, err := s.relationRepo.GetAllRelationsByUserID(ctx, userID)
@@ -84,10 +84,10 @@ func (s *userCategoryRelationServices) GetAllRelationsByUserID(ctx context.Conte
 
 func (s *userCategoryRelationServices) HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error) {
 	if userID <= 0 {
-		return false, err_msg.ErrIDZero
+		return false, err_msg.ErrZeroID
 	}
 	if categoryID <= 0 {
-		return false, err_msg.ErrIDZero
+		return false, err_msg.ErrZeroID
 	}
 
 	exists, err := s.relationRepo.HasUserCategoryRelation(ctx, userID, categoryID)
@@ -100,10 +100,10 @@ func (s *userCategoryRelationServices) HasUserCategoryRelation(ctx context.Conte
 
 func (s *userCategoryRelationServices) Delete(ctx context.Context, userID, categoryID int64) error {
 	if userID <= 0 {
-		return err_msg.ErrIDZero
+		return err_msg.ErrZeroID
 	}
 	if categoryID <= 0 {
-		return err_msg.ErrIDZero
+		return err_msg.ErrZeroID
 	}
 
 	err := s.relationRepo.Delete(ctx, userID, categoryID)
@@ -119,7 +119,7 @@ func (s *userCategoryRelationServices) Delete(ctx context.Context, userID, categ
 
 func (s *userCategoryRelationServices) DeleteAll(ctx context.Context, userID int64) error {
 	if userID <= 0 {
-		return err_msg.ErrIDZero
+		return err_msg.ErrZeroID
 	}
 
 	err := s.relationRepo.DeleteAll(ctx, userID)

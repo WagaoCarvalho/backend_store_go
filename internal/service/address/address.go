@@ -62,7 +62,7 @@ func (s *addressService) Create(ctx context.Context, address *models.Address) (*
 
 func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address, error) {
 	if id <= 0 {
-		return nil, errMsg.ErrIDZero
+		return nil, errMsg.ErrZeroID
 	}
 
 	addressModel, err := s.repoAddress.GetByID(ctx, id)
@@ -78,7 +78,7 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address
 
 func (s *addressService) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
 	if userID <= 0 {
-		return nil, errMsg.ErrIDZero
+		return nil, errMsg.ErrZeroID
 	}
 
 	addresses, err := s.repoAddress.GetByUserID(ctx, userID)
@@ -101,7 +101,7 @@ func (s *addressService) GetByUserID(ctx context.Context, userID int64) ([]*mode
 
 func (s *addressService) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
 	if clientID <= 0 {
-		return nil, errMsg.ErrIDZero
+		return nil, errMsg.ErrZeroID
 	}
 
 	addresses, err := s.repoAddress.GetByClientID(ctx, clientID)
@@ -124,7 +124,7 @@ func (s *addressService) GetByClientID(ctx context.Context, clientID int64) ([]*
 
 func (s *addressService) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
 	if supplierID <= 0 {
-		return nil, errMsg.ErrIDZero
+		return nil, errMsg.ErrZeroID
 	}
 
 	addresses, err := s.repoAddress.GetBySupplierID(ctx, supplierID)
@@ -147,7 +147,7 @@ func (s *addressService) GetBySupplierID(ctx context.Context, supplierID int64) 
 
 func (s *addressService) Update(ctx context.Context, address *models.Address) error {
 	if address.ID <= 0 {
-		return errMsg.ErrIDZero
+		return errMsg.ErrZeroID
 	}
 	if err := address.Validate(); err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
@@ -162,7 +162,7 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 
 func (s *addressService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrIDZero
+		return errMsg.ErrZeroID
 	}
 
 	_, err := s.repoAddress.GetByID(ctx, id)
@@ -182,7 +182,7 @@ func (s *addressService) Delete(ctx context.Context, id int64) error {
 
 func (s *addressService) Disable(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrIDZero
+		return errMsg.ErrZeroID
 	}
 
 	if err := s.repoAddress.Disable(ctx, id); err != nil {
@@ -194,7 +194,7 @@ func (s *addressService) Disable(ctx context.Context, id int64) error {
 
 func (s *addressService) Enable(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrIDZero
+		return errMsg.ErrZeroID
 	}
 
 	if err := s.repoAddress.Enable(ctx, id); err != nil {

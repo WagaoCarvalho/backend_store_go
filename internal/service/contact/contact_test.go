@@ -155,7 +155,7 @@ func TestContactService_GetByID(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, contact)
-		assert.EqualError(t, err, errMsg.ErrIDZero.Error())
+		assert.EqualError(t, err, errMsg.ErrZeroID.Error())
 		mockRepo.AssertNotCalled(t, "GetByID")
 	})
 
@@ -220,7 +220,7 @@ func TestContactService_GetByUserID(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.EqualError(t, err, errMsg.ErrIDZero.Error())
+		assert.EqualError(t, err, errMsg.ErrZeroID.Error())
 		mockRepo.AssertNotCalled(t, "GetByUserID")
 	})
 
@@ -366,7 +366,7 @@ func TestContactService_GetByClientID(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.EqualError(t, err, errMsg.ErrIDZero.Error())
+		assert.EqualError(t, err, errMsg.ErrZeroID.Error())
 		mockRepo.AssertNotCalled(t, "GetByClientID")
 	})
 
@@ -484,7 +484,7 @@ func TestContactService_GetBySupplierID(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.EqualError(t, err, errMsg.ErrIDZero.Error())
+		assert.EqualError(t, err, errMsg.ErrZeroID.Error())
 		mockRepo.AssertNotCalled(t, "GetBySupplierID")
 	})
 
@@ -605,7 +605,7 @@ func TestContactService_UpdateContact(t *testing.T) {
 		}
 
 		err := service.Update(context.Background(), contact)
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 

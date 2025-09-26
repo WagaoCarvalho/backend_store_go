@@ -172,7 +172,7 @@ func TestProductService_GetByID(t *testing.T) {
 	t.Run("GetByID com ID inválido", func(t *testing.T) {
 		result, err := service.GetByID(ctx, 0)
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 	})
 
 	t.Run("sucesso", func(t *testing.T) {
@@ -202,7 +202,7 @@ func TestProductService_GetByID(t *testing.T) {
 		result, err := service.GetByID(ctx, id)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrIDZero) // ✅ usa ErrorIs
+		assert.ErrorIs(t, err, errMsg.ErrZeroID) // ✅ usa ErrorIs
 		mockRepo.AssertNotCalled(t, "GetByID")
 	})
 
@@ -374,7 +374,7 @@ func TestProductService_Update(t *testing.T) {
 		updated, err := service.Update(ctx, input)
 
 		assert.Nil(t, updated)
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
@@ -493,7 +493,7 @@ func TestProductService_DisableProduct(t *testing.T) {
 		invalidID := int64(0)
 		err := service.DisableProduct(context.Background(), invalidID)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepo.AssertNotCalled(t, "DisableProduct")
 	})
 
@@ -534,7 +534,7 @@ func TestProductService_EnableProduct(t *testing.T) {
 		invalidID := int64(0)
 		err := service.EnableProduct(context.Background(), invalidID)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepo.AssertNotCalled(t, "EnableProduct")
 	})
 
@@ -587,7 +587,7 @@ func TestProductService_Delete(t *testing.T) {
 		invalidID := int64(0)
 		err := service.Delete(context.Background(), invalidID)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepo.AssertNotCalled(t, "Delete")
 	})
 
@@ -625,7 +625,7 @@ func TestProductService_GetVersionByID(t *testing.T) {
 		version, err := service.GetVersionByID(context.Background(), invalidID)
 
 		assert.Equal(t, int64(0), version)
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepo.AssertNotCalled(t, "GetVersionByID")
 	})
 
@@ -695,7 +695,7 @@ func TestProductService_UpdateStock(t *testing.T) {
 
 		err := service.UpdateStock(context.Background(), 0, 10)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepo.AssertNotCalled(t, "UpdateStock")
 	})
 
@@ -745,7 +745,7 @@ func TestProductService_IncreaseStock(t *testing.T) {
 
 		err := service.IncreaseStock(ctx, 0, 10)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		repoMock.AssertNotCalled(t, "IncreaseStock")
 	})
 
@@ -755,7 +755,7 @@ func TestProductService_IncreaseStock(t *testing.T) {
 
 		err := service.IncreaseStock(ctx, 1, 0)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		repoMock.AssertNotCalled(t, "IncreaseStock")
 	})
 
@@ -796,7 +796,7 @@ func TestProductService_DecreaseStock(t *testing.T) {
 
 		err := service.DecreaseStock(ctx, 0, 10)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		repoMock.AssertNotCalled(t, "DecreaseStock")
 	})
 
@@ -806,7 +806,7 @@ func TestProductService_DecreaseStock(t *testing.T) {
 
 		err := service.DecreaseStock(ctx, 1, 0)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		repoMock.AssertNotCalled(t, "DecreaseStock")
 	})
 
@@ -849,7 +849,7 @@ func TestProductService_GetStock(t *testing.T) {
 		stock, err := service.GetStock(ctx, 0)
 
 		assert.Equal(t, 0, stock)
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		repoMock.AssertNotCalled(t, "GetStock")
 	})
 
@@ -894,7 +894,7 @@ func TestProductService_EnableDiscount(t *testing.T) {
 		ctx := context.Background() // ⚠️ necessário criar o contexto
 		err := service.EnableDiscount(ctx, 0)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		repoMock.AssertNotCalled(t, "EnableDiscount")
 	})
 
@@ -937,7 +937,7 @@ func TestProductService_DisableDiscount(t *testing.T) {
 		ctx := context.Background() // ⚠️ necessário criar o contexto
 		err := service.DisableDiscount(ctx, 0)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		repoMock.AssertNotCalled(t, "DisableDiscount")
 	})
 
@@ -981,7 +981,7 @@ func TestProductService_ApplyDiscount(t *testing.T) {
 		product, err := service.ApplyDiscount(ctx, 0, 10.0) // ID inválido
 
 		assert.Nil(t, product)
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepo.AssertNotCalled(t, "ApplyDiscount")
 	})
 

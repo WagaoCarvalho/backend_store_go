@@ -12,7 +12,7 @@ var (
 	ErrIDNotFound            = errors.New("id não encontrado")
 	ErrUpdate                = errors.New("erro ao atualizar")
 	ErrDelete                = errors.New("erro ao deletar")
-	ErrIDZero                = errors.New("erro ID deve ser maior que zero")
+	ErrZeroID                = errors.New("erro ID deve ser maior que zero")
 	ErrScan                  = errors.New("erro ao ler banco de dados")
 	ErrIterate               = errors.New("erro ao iterar")
 	ErrPercentInvalid        = errors.New("erro porcentagem inválida")

@@ -48,7 +48,7 @@ func (s *saleService) Create(ctx context.Context, sale *models.Sale) (*models.Sa
 
 func (s *saleService) GetByID(ctx context.Context, id int64) (*models.Sale, error) {
 	if id <= 0 {
-		return nil, errMsg.ErrIDZero
+		return nil, errMsg.ErrZeroID
 	}
 
 	saleModel, err := s.repo.GetByID(ctx, id)
@@ -64,7 +64,7 @@ func (s *saleService) GetByID(ctx context.Context, id int64) (*models.Sale, erro
 
 func (s *saleService) GetByClientID(ctx context.Context, clientID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	if clientID <= 0 {
-		return nil, errMsg.ErrIDZero
+		return nil, errMsg.ErrZeroID
 	}
 	if limit <= 0 {
 		return nil, errMsg.ErrInvalidLimit
@@ -96,7 +96,7 @@ func (s *saleService) GetByClientID(ctx context.Context, clientID int64, limit, 
 
 func (s *saleService) GetByUserID(ctx context.Context, userID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	if userID <= 0 {
-		return nil, errMsg.ErrIDZero
+		return nil, errMsg.ErrZeroID
 	}
 
 	if limit <= 0 {
@@ -209,7 +209,7 @@ func (s *saleService) Update(ctx context.Context, sale *models.Sale) error {
 	}
 
 	if sale.ID <= 0 {
-		return errMsg.ErrIDZero
+		return errMsg.ErrZeroID
 	}
 
 	if sale.Version <= 0 {
@@ -229,7 +229,7 @@ func (s *saleService) Update(ctx context.Context, sale *models.Sale) error {
 
 func (s *saleService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrIDZero
+		return errMsg.ErrZeroID
 	}
 
 	if err := s.repo.Delete(ctx, id); err != nil {

@@ -240,7 +240,7 @@ func TestUserService_GetByID(t *testing.T) {
 
 		assert.Nil(t, user)
 		assert.Error(t, err)
-		assert.Equal(t, err, errMsg.ErrIDZero)
+		assert.Equal(t, err, errMsg.ErrZeroID)
 
 		mockRepo.AssertNotCalled(t, "GetByID")
 	})
@@ -283,7 +283,7 @@ func TestUserService_GetVersionByID(t *testing.T) {
 		version, err := service.GetVersionByID(context.Background(), 0)
 
 		assert.Equal(t, int64(0), version)
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 	})
 
 	t.Run("Deve retornar versão quando usuário for encontrado", func(t *testing.T) {
@@ -617,7 +617,7 @@ func TestUserService_Disable(t *testing.T) {
 
 		err := service.Disable(context.Background(), 0)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 	})
 
 	t.Run("Deve desativar usuário com sucesso", func(t *testing.T) {
@@ -669,7 +669,7 @@ func TestUserService_Enable(t *testing.T) {
 
 		err := service.Enable(context.Background(), 0)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 	})
 
 	t.Run("Deve ativar usuário com sucesso", func(t *testing.T) {
@@ -734,7 +734,7 @@ func TestUserService_Delete(t *testing.T) {
 
 		err := service.Delete(context.Background(), 0)
 
-		assert.ErrorIs(t, err, errMsg.ErrIDZero)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 	})
 
 	t.Run("Deve deletar usuário com sucesso", func(t *testing.T) {

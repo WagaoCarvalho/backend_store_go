@@ -37,10 +37,10 @@ func Test_Create(t *testing.T) {
 		service := NewUserCategoryRelationServices(mockRepo)
 
 		_, _, err := service.Create(context.Background(), 0, 1)
-		assert.ErrorIs(t, err, err_msg.ErrIDZero)
+		assert.ErrorIs(t, err, err_msg.ErrZeroID)
 
 		_, _, err = service.Create(context.Background(), 1, 0)
-		assert.ErrorIs(t, err, err_msg.ErrIDZero)
+		assert.ErrorIs(t, err, err_msg.ErrZeroID)
 	})
 
 	t.Run("AlreadyExists_ReturnsExisting", func(t *testing.T) {
@@ -142,7 +142,7 @@ func Test_GetAllRelationsByUserID(t *testing.T) {
 		service := NewUserCategoryRelationServices(mockRepo)
 
 		_, err := service.GetAllRelationsByUserID(context.Background(), 0)
-		assert.ErrorIs(t, err, err_msg.ErrIDZero)
+		assert.ErrorIs(t, err, err_msg.ErrZeroID)
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
@@ -194,7 +194,7 @@ func Test_HasUserCategoryRelation(t *testing.T) {
 		service := NewUserCategoryRelationServices(mockRepo)
 
 		_, err := service.HasUserCategoryRelation(context.Background(), 0, 1)
-		assert.ErrorIs(t, err, err_msg.ErrIDZero)
+		assert.ErrorIs(t, err, err_msg.ErrZeroID)
 	})
 
 	t.Run("InvalidCategoryID", func(t *testing.T) {
@@ -202,7 +202,7 @@ func Test_HasUserCategoryRelation(t *testing.T) {
 		service := NewUserCategoryRelationServices(mockRepo)
 
 		_, err := service.HasUserCategoryRelation(context.Background(), 1, 0)
-		assert.ErrorIs(t, err, err_msg.ErrIDZero)
+		assert.ErrorIs(t, err, err_msg.ErrZeroID)
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
@@ -238,12 +238,12 @@ func Test_Delete(t *testing.T) {
 
 	t.Run("InvalidUserID", func(t *testing.T) {
 		err := service.Delete(context.Background(), 0, 1)
-		assert.ErrorIs(t, err, err_msg.ErrIDZero)
+		assert.ErrorIs(t, err, err_msg.ErrZeroID)
 	})
 
 	t.Run("InvalidCategoryID", func(t *testing.T) {
 		err := service.Delete(context.Background(), 1, 0)
-		assert.ErrorIs(t, err, err_msg.ErrIDZero)
+		assert.ErrorIs(t, err, err_msg.ErrZeroID)
 	})
 
 	t.Run("RelationNotFound", func(t *testing.T) {
@@ -285,7 +285,7 @@ func Test_DeleteAll(t *testing.T) {
 	t.Run("InvalidUserID", func(t *testing.T) {
 		err := service.DeleteAll(context.Background(), 0)
 
-		assert.ErrorIs(t, err, err_msg.ErrIDZero)
+		assert.ErrorIs(t, err, err_msg.ErrZeroID)
 	})
 
 	t.Run("DeleteAllError", func(t *testing.T) {
