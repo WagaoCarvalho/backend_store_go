@@ -47,7 +47,7 @@ func (s *clientService) Create(ctx context.Context, client *models.Client) (*mod
 
 func (s *clientService) GetByID(ctx context.Context, id int64) (*models.Client, error) {
 	if id <= 0 {
-		return nil, errMsg.ErrID
+		return nil, errMsg.ErrIDZero
 	}
 
 	client, err := s.repo.GetByID(ctx, id)
@@ -71,7 +71,7 @@ func (s *clientService) GetByName(ctx context.Context, name string) ([]*models.C
 
 func (s *clientService) GetVersionByID(ctx context.Context, id int64) (int, error) {
 	if id <= 0 {
-		return 0, errMsg.ErrID
+		return 0, errMsg.ErrIDZero
 	}
 
 	version, err := s.repo.GetVersionByID(ctx, id)
@@ -91,7 +91,7 @@ func (s *clientService) GetAll(ctx context.Context) ([]*models.Client, error) {
 
 func (s *clientService) Update(ctx context.Context, client *models.Client) error {
 	if client.ID <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	if client.Version <= 0 {
@@ -110,7 +110,7 @@ func (s *clientService) Update(ctx context.Context, client *models.Client) error
 
 func (s *clientService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	if err := s.repo.Delete(ctx, id); err != nil {
@@ -121,7 +121,7 @@ func (s *clientService) Delete(ctx context.Context, id int64) error {
 
 func (s *clientService) Disable(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	if err := s.repo.Disable(ctx, id); err != nil {
@@ -132,7 +132,7 @@ func (s *clientService) Disable(ctx context.Context, id int64) error {
 
 func (s *clientService) Enable(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	if err := s.repo.Enable(ctx, id); err != nil {
@@ -143,7 +143,7 @@ func (s *clientService) Enable(ctx context.Context, id int64) error {
 
 func (s *clientService) ClientExists(ctx context.Context, clientID int64) (bool, error) {
 	if clientID <= 0 {
-		return false, errMsg.ErrID
+		return false, errMsg.ErrIDZero
 	}
 
 	exists, err := s.repo.ClientExists(ctx, clientID)

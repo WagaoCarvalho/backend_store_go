@@ -80,7 +80,7 @@ func TestSaleService_GetByID(t *testing.T) {
 		result, err := service.GetByID(context.Background(), 0)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepo.AssertNotCalled(t, "GetByID", mock.Anything, mock.Anything)
 	})
 
@@ -138,7 +138,7 @@ func TestSaleService_GetByClientID(t *testing.T) {
 	t.Run("falha por clientID inválido", func(t *testing.T) {
 		sales, err := service.GetByClientID(ctx, 0, 10, 0, "sale_date", "asc")
 		assert.Nil(t, sales)
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepo.AssertNotCalled(t, "GetByClientID")
 	})
 
@@ -176,7 +176,7 @@ func TestSaleService_GetByClientID(t *testing.T) {
 		sales, err := service.GetByClientID(context.Background(), 0, 10, 0, "sale_date", "asc")
 
 		assert.Nil(t, sales)
-		assert.Equal(t, errMsg.ErrID, err)
+		assert.Equal(t, errMsg.ErrIDZero, err)
 		mockRepo.AssertNotCalled(t, "GetByClientID", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	})
 
@@ -229,7 +229,7 @@ func TestSaleService_GetByUserID(t *testing.T) {
 		sales, err := service.GetByUserID(context.Background(), 0, 10, 0, "sale_date", "asc")
 
 		assert.Nil(t, sales)
-		assert.Equal(t, errMsg.ErrID, err)
+		assert.Equal(t, errMsg.ErrIDZero, err)
 		mockRepo.AssertNotCalled(t, "GetByUserID", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	})
 
@@ -614,7 +614,7 @@ func TestSaleService_Update(t *testing.T) {
 
 		err := service.Update(ctx, sale)
 
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
@@ -658,7 +658,7 @@ func TestSaleService_Delete(t *testing.T) {
 
 		err := service.Delete(context.Background(), 0)
 
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepo.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
 	})
 

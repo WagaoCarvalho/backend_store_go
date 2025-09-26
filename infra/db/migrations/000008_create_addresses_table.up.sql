@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS addresses (
     supplier_id INTEGER REFERENCES suppliers(id) ON DELETE CASCADE,
 
     street VARCHAR(255) NOT NULL,
-    street_number VARCHAR(20),
+    street_number VARCHAR(20) NOT NULL,
     complement VARCHAR(255),
     city VARCHAR(100) NOT NULL,
     state CHAR(2) NOT NULL, 

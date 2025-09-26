@@ -51,6 +51,12 @@ func (a *Address) Validate() error {
 	if len(a.StreetNumber) > 20 {
 		errs = append(errs, validators.ValidationError{Field: "street_number", Message: "street_number max 20 characters"})
 	}
+	if validators.IsBlank(a.StreetNumber) {
+		errs = append(errs, validators.ValidationError{
+			Field:   "street_number",
+			Message: "street_number é obrigatório",
+		})
+	}
 
 	// --- Complement ---
 	if len(a.Complement) > 255 {

@@ -72,7 +72,7 @@ func TestClientService_GetByID(t *testing.T) {
 		result, err := service.GetByID(context.Background(), 0)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepo.AssertNotCalled(t, "GetByID", mock.Anything, mock.Anything)
 	})
 
@@ -164,7 +164,7 @@ func TestClientService_GetVersionByID(t *testing.T) {
 		version, err := service.GetVersionByID(context.Background(), 0)
 
 		assert.Zero(t, version)
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepo.AssertNotCalled(t, "GetVersionByID", mock.Anything, mock.Anything)
 	})
 
@@ -243,7 +243,7 @@ func TestClientService_ClientExists(t *testing.T) {
 		exists, err := service.ClientExists(context.Background(), 0)
 
 		assert.False(t, exists)
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepo.AssertNotCalled(t, "ClientExists", mock.Anything, mock.Anything)
 	})
 
@@ -289,7 +289,7 @@ func TestClientService_Update(t *testing.T) {
 
 		err := service.Update(context.Background(), client)
 
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepo.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
 	})
 
@@ -365,7 +365,7 @@ func TestClientService_Delete(t *testing.T) {
 
 		err := service.Delete(context.Background(), 0)
 
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepo.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
 	})
 
@@ -406,7 +406,7 @@ func TestClientService_Disable(t *testing.T) {
 
 		err := service.Disable(context.Background(), 0)
 
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepo.AssertNotCalled(t, "Disable", mock.Anything, mock.Anything)
 	})
 
@@ -447,7 +447,7 @@ func TestClientService_Enable(t *testing.T) {
 
 		err := service.Enable(context.Background(), 0)
 
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepo.AssertNotCalled(t, "Enable", mock.Anything, mock.Anything)
 	})
 

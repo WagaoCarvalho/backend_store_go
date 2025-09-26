@@ -56,7 +56,7 @@ func (s *supplierService) GetAll(ctx context.Context) ([]*models.Supplier, error
 
 func (s *supplierService) GetByID(ctx context.Context, id int64) (*models.Supplier, error) {
 	if id <= 0 {
-		return nil, errMsg.ErrID
+		return nil, errMsg.ErrIDZero
 	}
 
 	supplier, err := s.repo.GetByID(ctx, id)
@@ -90,7 +90,7 @@ func (s *supplierService) GetByName(ctx context.Context, name string) ([]*models
 
 func (s *supplierService) GetVersionByID(ctx context.Context, id int64) (int64, error) {
 	if id <= 0 {
-		return 0, errMsg.ErrID
+		return 0, errMsg.ErrIDZero
 	}
 
 	version, err := s.repo.GetVersionByID(ctx, id)
@@ -103,7 +103,7 @@ func (s *supplierService) GetVersionByID(ctx context.Context, id int64) (int64, 
 
 func (s *supplierService) Update(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error) {
 	if supplier.ID <= 0 {
-		return nil, errMsg.ErrID
+		return nil, errMsg.ErrIDZero
 	}
 
 	if err := supplier.Validate(); err != nil {
@@ -130,7 +130,7 @@ func (s *supplierService) Update(ctx context.Context, supplier *models.Supplier)
 
 func (s *supplierService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	if err := s.repo.Delete(ctx, id); err != nil {
@@ -142,7 +142,7 @@ func (s *supplierService) Delete(ctx context.Context, id int64) error {
 
 func (s *supplierService) Disable(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	supplier, err := s.repo.GetByID(ctx, id)
@@ -161,7 +161,7 @@ func (s *supplierService) Disable(ctx context.Context, id int64) error {
 
 func (s *supplierService) Enable(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	supplier, err := s.repo.GetByID(ctx, id)

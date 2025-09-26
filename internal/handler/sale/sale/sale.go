@@ -67,7 +67,7 @@ func (h *SaleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil || id <= 0 {
 		h.logger.Warn(ctx, ref+"ID inválido", map[string]any{"id": id})
-		utils.ErrorResponse(w, errMsg.ErrID, http.StatusBadRequest)
+		utils.ErrorResponse(w, errMsg.ErrIDZero, http.StatusBadRequest)
 		return
 	}
 
@@ -92,7 +92,7 @@ func (h *SaleHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 	clientID, err := utils.GetIDParam(r, "client_id")
 	if err != nil || clientID <= 0 {
 		h.logger.Warn(ctx, ref+"clientID inválido", map[string]any{"client_id": clientID})
-		utils.ErrorResponse(w, errMsg.ErrID, http.StatusBadRequest)
+		utils.ErrorResponse(w, errMsg.ErrIDZero, http.StatusBadRequest)
 		return
 	}
 
@@ -121,7 +121,7 @@ func (h *SaleHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	userID, err := utils.GetIDParam(r, "user_id")
 	if err != nil || userID <= 0 {
 		h.logger.Warn(ctx, ref+"userID inválido", map[string]any{"user_id": userID})
-		utils.ErrorResponse(w, errMsg.ErrID, http.StatusBadRequest)
+		utils.ErrorResponse(w, errMsg.ErrIDZero, http.StatusBadRequest)
 		return
 	}
 
@@ -226,7 +226,7 @@ func (h *SaleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil || id <= 0 {
 		h.logger.Warn(ctx, ref+"ID inválido", map[string]any{"id": id})
-		utils.ErrorResponse(w, errMsg.ErrID, http.StatusBadRequest)
+		utils.ErrorResponse(w, errMsg.ErrIDZero, http.StatusBadRequest)
 		return
 	}
 
@@ -255,7 +255,7 @@ func (h *SaleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil || id <= 0 {
-		utils.ErrorResponse(w, errMsg.ErrID, http.StatusBadRequest)
+		utils.ErrorResponse(w, errMsg.ErrIDZero, http.StatusBadRequest)
 		return
 	}
 

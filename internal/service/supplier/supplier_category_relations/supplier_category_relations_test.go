@@ -59,7 +59,7 @@ func TestSupplierCategoryRelationService_Create(t *testing.T) {
 				result, created, err := svc.Create(ctx, tt.supplierID, tt.categoryID)
 				assert.Nil(t, result)
 				assert.False(t, created)
-				assert.ErrorIs(t, err, errMsg.ErrID)
+				assert.ErrorIs(t, err, errMsg.ErrIDZero)
 			})
 		}
 	})

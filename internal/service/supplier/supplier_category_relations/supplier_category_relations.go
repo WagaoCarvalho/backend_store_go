@@ -29,7 +29,7 @@ func NewSupplierCategoryRelationService(repository repo.SupplierCategoryRelation
 
 func (s *supplierCategoryRelationService) Create(ctx context.Context, supplierID, categoryID int64) (*models.SupplierCategoryRelations, bool, error) {
 	if supplierID <= 0 || categoryID <= 0 {
-		return nil, false, errMsg.ErrID
+		return nil, false, errMsg.ErrIDZero
 	}
 
 	exists, err := s.relationRepo.HasRelation(ctx, supplierID, categoryID)

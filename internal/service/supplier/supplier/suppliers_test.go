@@ -143,7 +143,7 @@ func TestSupplierService_GetByID(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.Equal(t, errMsg.ErrID, err)
+		assert.Equal(t, errMsg.ErrIDZero, err)
 	})
 
 	t.Run("erro do repositório ao buscar por ID", func(t *testing.T) {
@@ -272,7 +272,7 @@ func TestSupplierService_GetVersionByID(t *testing.T) {
 				// não deve chamar o repo
 			},
 			expectedResult: 0,
-			expectedErr:    errMsg.ErrID,
+			expectedErr:    errMsg.ErrIDZero,
 		},
 		{
 			name: "erro ao buscar versão",
@@ -342,7 +342,7 @@ func TestSupplierService_Update(t *testing.T) {
 			},
 			mockRepo:    nil,
 			expected:    nil,
-			expectedErr: errMsg.ErrID,
+			expectedErr: errMsg.ErrIDZero,
 		},
 		{
 			name: "nome obrigatório",
@@ -447,7 +447,7 @@ func TestSupplierService_Delete(t *testing.T) {
 			mockRepo: func(_ *mock_supplier.MockSupplierRepository) {
 				// não deve chamar Delete
 			},
-			expectedErr: errMsg.ErrID,
+			expectedErr: errMsg.ErrIDZero,
 		},
 		{
 			name: "erro ao deletar",
@@ -513,7 +513,7 @@ func TestSupplierService_Disable(t *testing.T) {
 			mockRepo: func(_ *mock_supplier.MockSupplierRepository) {
 				// não deve chamar o repo
 			},
-			expectedErr: errMsg.ErrID,
+			expectedErr: errMsg.ErrIDZero,
 		},
 		{
 			name: "erro ao obter fornecedor",
@@ -591,7 +591,7 @@ func TestSupplierService_Enable(t *testing.T) {
 			mockRepo: func(_ *mock_supplier.MockSupplierRepository) {
 				// não deve chamar o repo
 			},
-			expectedErr: errMsg.ErrID,
+			expectedErr: errMsg.ErrIDZero,
 		},
 		{
 			name: "erro ao obter fornecedor",

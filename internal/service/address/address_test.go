@@ -47,13 +47,14 @@ func TestAddressService_Create(t *testing.T) {
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		addressModel := &model.Address{
-			UserID:     &userID,
-			Street:     "Rua Teste",
-			City:       "Cidade Teste",
-			State:      "SP",
-			Country:    "Brasil",
-			PostalCode: "12345678",
-			IsActive:   true,
+			UserID:       &userID,
+			Street:       "Rua Teste",
+			City:         "Cidade Teste",
+			StreetNumber: "45",
+			State:        "SP",
+			Country:      "Brasil",
+			PostalCode:   "12345678",
+			IsActive:     true,
 		}
 
 		mockRepoAddress.On("Create", mock.Anything, addressModel).Return(addressModel, nil)
@@ -73,13 +74,14 @@ func TestAddressService_Create(t *testing.T) {
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		addressModel := &model.Address{
-			UserID:     &userID,
-			Street:     "Rua Teste",
-			City:       "Cidade Teste",
-			State:      "SP",
-			Country:    "Brasil",
-			PostalCode: "12345678",
-			IsActive:   true,
+			UserID:       &userID,
+			Street:       "Rua Teste",
+			StreetNumber: "56",
+			City:         "Cidade Teste",
+			State:        "SP",
+			Country:      "Brasil",
+			PostalCode:   "12345678",
+			IsActive:     true,
 		}
 
 		expectedErr := errors.New("erro no banco")
@@ -103,7 +105,7 @@ func TestAddressService_GetByID(t *testing.T) {
 		result, err := service.GetByID(context.Background(), 0)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepoAddress.AssertNotCalled(t, "GetByID", mock.Anything, mock.Anything)
 	})
 
@@ -123,24 +125,24 @@ func TestAddressService_GetByID(t *testing.T) {
 		assert.ErrorIs(t, err, errMsg.ErrNotFound)
 		mockRepoAddress.AssertExpectations(t)
 	})
-
-	t.Run("erro inesperado do repositório", func(t *testing.T) {
+	t.Run("erro do repositório", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddressRepository)
 		mockRepoClient := new(mockClient.MockClientRepository)
 		mockRepoUser := new(mockUser.MockUserRepository)
 		mockSupplier := new(mockSupplier.MockSupplierRepository)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
-		addressID := int64(2)
+		userID := int64(2)
 		unexpectedErr := errors.New("erro no banco")
-		mockRepoAddress.On("GetByID", mock.Anything, addressID).Return((*models.Address)(nil), unexpectedErr)
+		mockRepoAddress.On("GetByUserID", mock.Anything, userID).Return(nil, unexpectedErr)
 
-		result, err := service.GetByID(context.Background(), addressID)
+		result, err := service.GetByUserID(context.Background(), userID)
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), errMsg.ErrGet.Error())
-		assert.Contains(t, err.Error(), unexpectedErr.Error())
+		assert.ErrorIs(t, err, errMsg.ErrGet)                  // garante que o wrap foi feito com ErrGet
+		assert.Contains(t, err.Error(), errMsg.ErrGet.Error()) // a mensagem base está presente
+		assert.Contains(t, err.Error(), unexpectedErr.Error()) // a mensagem original também
 		mockRepoAddress.AssertExpectations(t)
 	})
 
@@ -169,6 +171,30 @@ func TestAddressService_GetByID(t *testing.T) {
 		assert.Equal(t, expectedAddress, result)
 		mockRepoAddress.AssertExpectations(t)
 	})
+
+	t.Run("erro inesperado do repositório", func(t *testing.T) {
+		mockRepoAddress := new(mockAddress.MockAddressRepository)
+		mockRepoClient := new(mockClient.MockClientRepository)
+		mockRepoUser := new(mockUser.MockUserRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
+
+		addressID := int64(1)
+		unexpectedErr := errors.New("erro no banco")
+
+		mockRepoAddress.On("GetByID", mock.Anything, addressID).Return((*models.Address)(nil), unexpectedErr)
+
+		result, err := service.GetByID(context.Background(), addressID)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrGet)                  // garante wrap com ErrGet
+		assert.Contains(t, err.Error(), errMsg.ErrGet.Error()) // mensagem base presente
+		assert.Contains(t, err.Error(), unexpectedErr.Error()) // mensagem original presente
+
+		mockRepoAddress.AssertExpectations(t)
+	})
+
 }
 
 func TestAddressService_GetByUserID(t *testing.T) {
@@ -182,7 +208,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 		result, err := service.GetByUserID(context.Background(), 0)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepoAddress.AssertNotCalled(t, "GetByUserID", mock.Anything, mock.Anything)
 	})
 
@@ -193,15 +219,17 @@ func TestAddressService_GetByUserID(t *testing.T) {
 		mockSupplier := new(mockSupplier.MockSupplierRepository)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
-		userID := int64(1)
-		expectedErr := errors.New("erro no banco")
-
-		mockRepoAddress.On("GetByUserID", mock.Anything, userID).Return(nil, expectedErr)
+		userID := int64(2)
+		unexpectedErr := errors.New("erro no banco")
+		mockRepoAddress.On("GetByUserID", mock.Anything, userID).Return(nil, unexpectedErr)
 
 		result, err := service.GetByUserID(context.Background(), userID)
 
 		assert.Nil(t, result)
-		assert.Equal(t, expectedErr, err)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrGet)                  // garante que o wrap foi feito com ErrGet
+		assert.Contains(t, err.Error(), errMsg.ErrGet.Error()) // a mensagem base está presente
+		assert.Contains(t, err.Error(), unexpectedErr.Error()) // a mensagem original também
 		mockRepoAddress.AssertExpectations(t)
 	})
 
@@ -333,7 +361,7 @@ func TestAddressService_GetByClientID(t *testing.T) {
 		result, err := service.GetByClientID(context.Background(), 0)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepoAddress.AssertNotCalled(t, "GetByClientID", mock.Anything, mock.Anything)
 	})
 
@@ -352,7 +380,10 @@ func TestAddressService_GetByClientID(t *testing.T) {
 		result, err := service.GetByClientID(context.Background(), clientID)
 
 		assert.Nil(t, result)
-		assert.Equal(t, expectedErr, err)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrGet)                  // garante que foi wrapado com ErrGet
+		assert.Contains(t, err.Error(), errMsg.ErrGet.Error()) // msg base
+		assert.Contains(t, err.Error(), expectedErr.Error())   // msg original
 		mockRepoAddress.AssertExpectations(t)
 	})
 
@@ -401,7 +432,10 @@ func TestAddressService_GetByClientID(t *testing.T) {
 		result, err := service.GetByClientID(context.Background(), clientID)
 
 		assert.Nil(t, result)
-		assert.EqualError(t, err, expectedErr.Error())
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrGet)                  // erro raiz padronizado
+		assert.Contains(t, err.Error(), errMsg.ErrGet.Error()) // mensagem "erro ao buscar"
+		assert.Contains(t, err.Error(), expectedErr.Error())   // mensagem "db failure"
 
 		mockRepoAddress.AssertExpectations(t)
 		mockRepoClient.AssertExpectations(t)
@@ -420,7 +454,7 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 		result, err := service.GetBySupplierID(context.Background(), 0)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepoAddress.AssertNotCalled(t, "GetBySupplierID", mock.Anything, mock.Anything)
 	})
 
@@ -439,7 +473,11 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 		result, err := service.GetBySupplierID(context.Background(), supplierID)
 
 		assert.Nil(t, result)
-		assert.Equal(t, expectedErr, err)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrGet)                  // garante wrap com ErrGet
+		assert.Contains(t, err.Error(), errMsg.ErrGet.Error()) // mensagem base presente
+		assert.Contains(t, err.Error(), expectedErr.Error())   // mensagem original presente
+
 		mockRepoAddress.AssertExpectations(t)
 	})
 
@@ -510,7 +548,9 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
-		assert.Equal(t, assert.AnError, err)
+		assert.ErrorIs(t, err, errMsg.ErrGet)                   // garante wrap com ErrGet
+		assert.Contains(t, err.Error(), errMsg.ErrGet.Error())  // mensagem base presente
+		assert.Contains(t, err.Error(), assert.AnError.Error()) // mensagem original presente
 
 		mockRepoAddress.AssertExpectations(t)
 		mockRepoSupplier.AssertExpectations(t)
@@ -550,7 +590,7 @@ func TestAddressService_Update(t *testing.T) {
 
 		err := service.Update(context.Background(), addressModel)
 
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		mockRepoAddress.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
 	})
 
@@ -574,14 +614,15 @@ func TestAddressService_Update(t *testing.T) {
 		service := NewAddressService(mockRepoAddress, nil, nil, nil)
 
 		addressModel := &model.Address{
-			ID:         1,
-			UserID:     &userID,
-			Street:     "Rua Teste",
-			City:       "Cidade Teste",
-			State:      "SP",
-			Country:    "Brasil",
-			PostalCode: "12345678",
-			IsActive:   true,
+			ID:           1,
+			UserID:       &userID,
+			Street:       "Rua Teste",
+			StreetNumber: "68",
+			City:         "Cidade Teste",
+			State:        "SP",
+			Country:      "Brasil",
+			PostalCode:   "12345678",
+			IsActive:     true,
 		}
 
 		expectedErr := errors.New("erro no banco")
@@ -600,14 +641,15 @@ func TestAddressService_Update(t *testing.T) {
 		service := NewAddressService(mockRepoAddress, nil, nil, nil)
 
 		addressModel := &model.Address{
-			ID:         1,
-			UserID:     &userID,
-			Street:     "Rua Teste",
-			City:       "Cidade Teste",
-			State:      "SP",
-			Country:    "Brasil",
-			PostalCode: "12345678",
-			IsActive:   true,
+			ID:           1,
+			UserID:       &userID,
+			Street:       "Rua Teste",
+			StreetNumber: "187",
+			City:         "Cidade Teste",
+			State:        "SP",
+			Country:      "Brasil",
+			PostalCode:   "12345678",
+			IsActive:     true,
 		}
 
 		mockRepoAddress.On("Update", mock.Anything, addressModel).Return(nil)
@@ -642,7 +684,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 		err := service.Delete(context.Background(), 0)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 	})
 
 	t.Run("erro ao deletar do repositório", func(t *testing.T) {
@@ -680,7 +722,7 @@ func TestAddressService_DisableAddress(t *testing.T) {
 		err := service.Disable(context.Background(), 0)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 	})
 
 	t.Run("erro ao desabilitar no repository", func(t *testing.T) {
@@ -720,7 +762,7 @@ func TestAddressService_EnableAddress(t *testing.T) {
 		err := service.Enable(context.Background(), 0)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 	})
 
 	t.Run("erro ao habilitar no repository", func(t *testing.T) {

@@ -568,7 +568,7 @@ func TestContactHandler_Update(t *testing.T) {
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(c *models.Contact) bool {
 			return c != nil && c.ID == 1
-		})).Return(errMsg.ErrID)
+		})).Return(errMsg.ErrIDZero)
 
 		handler.Update(w, req)
 		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)

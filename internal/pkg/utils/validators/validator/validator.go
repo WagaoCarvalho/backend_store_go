@@ -29,7 +29,7 @@ func (ve ValidationErrors) HasErrors() bool {
 }
 
 func IsBlank(s string) bool {
-	return strings.TrimSpace(s) == ""
+	return len(strings.TrimSpace(s)) == 0
 }
 
 func EqualsIgnoreCaseAndTrim(a, b string) bool {

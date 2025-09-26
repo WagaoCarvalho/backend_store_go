@@ -42,7 +42,7 @@ func (s *supplierCategoryService) Create(ctx context.Context, category *models.S
 
 func (s *supplierCategoryService) GetByID(ctx context.Context, id int64) (*models.SupplierCategory, error) {
 	if id <= 0 {
-		return nil, errMsg.ErrID
+		return nil, errMsg.ErrIDZero
 	}
 
 	category, err := s.repo.GetByID(ctx, id)
@@ -64,7 +64,7 @@ func (s *supplierCategoryService) GetAll(ctx context.Context) ([]*models.Supplie
 
 func (s *supplierCategoryService) Update(ctx context.Context, category *models.SupplierCategory) error {
 	if category.ID <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	if err := category.Validate(); err != nil {
@@ -80,7 +80,7 @@ func (s *supplierCategoryService) Update(ctx context.Context, category *models.S
 
 func (s *supplierCategoryService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	if err := s.repo.Delete(ctx, id); err != nil {

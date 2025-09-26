@@ -701,7 +701,7 @@ func TestAddressHandler_Update(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		// Mock retornando ErrID específico
-		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrID)
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrIDZero)
 
 		handler.Update(w, req)
 
@@ -855,7 +855,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 		mockSvc := new(mockAddress.MockAddressService)
 		handler := NewAddressHandler(mockSvc, logAdapter)
 
-		mockSvc.On("Delete", mock.Anything, int64(2)).Return(errMsg.ErrID).Once()
+		mockSvc.On("Delete", mock.Anything, int64(2)).Return(errMsg.ErrIDZero).Once()
 
 		req := newRequestWithVars("DELETE", "/addresses/2", nil, map[string]string{"id": "2"})
 		w := httptest.NewRecorder()
@@ -873,7 +873,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 		}
 		_ = json.NewDecoder(resp.Body).Decode(&bodyErr)
 
-		assert.Equal(t, errMsg.ErrID.Error(), bodyErr.Message)
+		assert.Equal(t, errMsg.ErrIDZero.Error(), bodyErr.Message)
 		assert.Equal(t, http.StatusBadRequest, bodyErr.Status)
 
 		mockSvc.AssertExpectations(t)
@@ -1026,7 +1026,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 		handler := NewAddressHandler(mockService, logAdapter)
 
 		id := int64(1)
-		mockService.On("Enable", mock.Anything, id).Return(errMsg.ErrID)
+		mockService.On("Enable", mock.Anything, id).Return(errMsg.ErrIDZero)
 
 		req := httptest.NewRequest(http.MethodPatch, "/addresses/1/enable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -1167,7 +1167,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 		handler := NewAddressHandler(mockService, logAdapter)
 
 		id := int64(1)
-		mockService.On("Disable", mock.Anything, id).Return(errMsg.ErrID)
+		mockService.On("Disable", mock.Anything, id).Return(errMsg.ErrIDZero)
 
 		req := httptest.NewRequest(http.MethodPatch, "/addresses/1/disable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})

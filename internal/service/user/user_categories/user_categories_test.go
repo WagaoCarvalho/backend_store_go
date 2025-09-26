@@ -116,7 +116,7 @@ func TestUserCategoryService_GetById(t *testing.T) {
 		category, err := service.GetByID(context.Background(), 0)
 
 		assert.Nil(t, category)
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 	})
 
 	t.Run("ReturnCategoryNotFound", func(t *testing.T) {
@@ -242,7 +242,7 @@ func TestUserCategoryService_Update(t *testing.T) {
 	t.Run("InvalidCategoryID", func(t *testing.T) {
 		category := &models.UserCategory{ID: 0}
 		result, err := service.Update(context.Background(), category)
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 		assert.Nil(t, result)
 	})
 }
@@ -310,6 +310,6 @@ func TestUserCategoryService_Delete(t *testing.T) {
 	t.Run("InvalidID", func(t *testing.T) {
 		err := service.Delete(context.Background(), 0)
 
-		assert.ErrorIs(t, err, errMsg.ErrID)
+		assert.ErrorIs(t, err, errMsg.ErrIDZero)
 	})
 }

@@ -52,7 +52,7 @@ func (s *userCategoryService) GetAll(ctx context.Context) ([]*models.UserCategor
 
 func (s *userCategoryService) GetByID(ctx context.Context, id int64) (*models.UserCategory, error) {
 	if id <= 0 {
-		return nil, errMsg.ErrID
+		return nil, errMsg.ErrIDZero
 	}
 
 	category, err := s.repo.GetByID(ctx, id)
@@ -68,7 +68,7 @@ func (s *userCategoryService) GetByID(ctx context.Context, id int64) (*models.Us
 
 func (s *userCategoryService) Update(ctx context.Context, category *models.UserCategory) (*models.UserCategory, error) {
 	if category.ID <= 0 {
-		return nil, errMsg.ErrID
+		return nil, errMsg.ErrIDZero
 	}
 
 	if err := category.Validate(); err != nil {
@@ -91,7 +91,7 @@ func (s *userCategoryService) Update(ctx context.Context, category *models.UserC
 
 func (s *userCategoryService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	if _, err := s.repo.GetByID(ctx, id); err != nil {

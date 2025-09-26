@@ -76,7 +76,7 @@ func (s *productService) GetAll(ctx context.Context, limit, offset int) ([]*mode
 
 func (s *productService) GetByID(ctx context.Context, id int64) (*models.Product, error) {
 	if id <= 0 {
-		return nil, errMsg.ErrID
+		return nil, errMsg.ErrIDZero
 	}
 
 	product, err := s.repo.GetByID(ctx, id)
@@ -117,7 +117,7 @@ func (s *productService) GetByManufacturer(ctx context.Context, manufacturer str
 func (s *productService) GetVersionByID(ctx context.Context, pid int64) (int64, error) {
 
 	if pid <= 0 {
-		return 0, errMsg.ErrID
+		return 0, errMsg.ErrIDZero
 	}
 
 	version, err := s.repo.GetVersionByID(ctx, pid)
@@ -135,7 +135,7 @@ func (s *productService) GetVersionByID(ctx context.Context, pid int64) (int64, 
 func (s *productService) DisableProduct(ctx context.Context, uid int64) error {
 
 	if uid <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	err := s.repo.DisableProduct(ctx, uid)
@@ -148,7 +148,7 @@ func (s *productService) DisableProduct(ctx context.Context, uid int64) error {
 
 func (s *productService) EnableProduct(ctx context.Context, uid int64) error {
 	if uid <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	err := s.repo.EnableProduct(ctx, uid)
@@ -162,7 +162,7 @@ func (s *productService) EnableProduct(ctx context.Context, uid int64) error {
 func (s *productService) Update(ctx context.Context, product *models.Product) (*models.Product, error) {
 
 	if product.ID <= 0 {
-		return nil, errMsg.ErrID
+		return nil, errMsg.ErrIDZero
 	}
 	if err := product.Validate(); err != nil {
 		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
@@ -192,7 +192,7 @@ func (s *productService) Update(ctx context.Context, product *models.Product) (*
 
 func (s *productService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	err := s.repo.Delete(ctx, id)
@@ -205,7 +205,7 @@ func (s *productService) Delete(ctx context.Context, id int64) error {
 
 func (s *productService) UpdateStock(ctx context.Context, id int64, quantity int) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	if quantity <= 0 {
@@ -222,11 +222,11 @@ func (s *productService) UpdateStock(ctx context.Context, id int64, quantity int
 
 func (s *productService) IncreaseStock(ctx context.Context, id int64, amount int) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	if amount <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	err := s.repo.IncreaseStock(ctx, id, amount)
@@ -240,11 +240,11 @@ func (s *productService) IncreaseStock(ctx context.Context, id int64, amount int
 
 func (s *productService) DecreaseStock(ctx context.Context, id int64, amount int) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	if amount <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	err := s.repo.DecreaseStock(ctx, id, amount)
@@ -257,7 +257,7 @@ func (s *productService) DecreaseStock(ctx context.Context, id int64, amount int
 
 func (s *productService) GetStock(ctx context.Context, id int64) (int, error) {
 	if id <= 0 {
-		return 0, errMsg.ErrID
+		return 0, errMsg.ErrIDZero
 	}
 
 	stock, err := s.repo.GetStock(ctx, id)
@@ -270,7 +270,7 @@ func (s *productService) GetStock(ctx context.Context, id int64) (int, error) {
 
 func (s *productService) EnableDiscount(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	err := s.repo.EnableDiscount(ctx, id)
@@ -283,7 +283,7 @@ func (s *productService) EnableDiscount(ctx context.Context, id int64) error {
 
 func (s *productService) DisableDiscount(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	err := s.repo.DisableDiscount(ctx, id)
@@ -296,7 +296,7 @@ func (s *productService) DisableDiscount(ctx context.Context, id int64) error {
 
 func (s *productService) ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error) {
 	if id <= 0 {
-		return nil, errMsg.ErrID
+		return nil, errMsg.ErrIDZero
 	}
 
 	if percent <= 0 {

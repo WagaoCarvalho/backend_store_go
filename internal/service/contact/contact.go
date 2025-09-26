@@ -45,7 +45,7 @@ func (s *contactService) Create(ctx context.Context, contact *models.Contact) (*
 
 func (s *contactService) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
 	if id <= 0 {
-		return nil, errMsg.ErrID
+		return nil, errMsg.ErrIDZero
 	}
 
 	contact, err := s.contactRepo.GetByID(ctx, id)
@@ -61,7 +61,7 @@ func (s *contactService) GetByID(ctx context.Context, id int64) (*models.Contact
 
 func (s *contactService) GetByUserID(ctx context.Context, userID int64) ([]*models.Contact, error) {
 	if userID <= 0 {
-		return nil, errMsg.ErrID
+		return nil, errMsg.ErrIDZero
 	}
 
 	contacts, err := s.contactRepo.GetByUserID(ctx, userID)
@@ -74,7 +74,7 @@ func (s *contactService) GetByUserID(ctx context.Context, userID int64) ([]*mode
 
 func (s *contactService) GetByClientID(ctx context.Context, clientID int64) ([]*models.Contact, error) {
 	if clientID <= 0 {
-		return nil, errMsg.ErrID
+		return nil, errMsg.ErrIDZero
 	}
 
 	contacts, err := s.contactRepo.GetByClientID(ctx, clientID)
@@ -87,7 +87,7 @@ func (s *contactService) GetByClientID(ctx context.Context, clientID int64) ([]*
 
 func (s *contactService) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Contact, error) {
 	if supplierID <= 0 {
-		return nil, errMsg.ErrID
+		return nil, errMsg.ErrIDZero
 	}
 
 	contacts, err := s.contactRepo.GetBySupplierID(ctx, supplierID)
@@ -100,7 +100,7 @@ func (s *contactService) GetBySupplierID(ctx context.Context, supplierID int64) 
 
 func (s *contactService) Update(ctx context.Context, contact *models.Contact) error {
 	if contact.ID <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 	if err := contact.Validate(); err != nil {
 		return fmt.Errorf("%w", errMsg.ErrInvalidData)
@@ -115,7 +115,7 @@ func (s *contactService) Update(ctx context.Context, contact *models.Contact) er
 
 func (s *contactService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
-		return errMsg.ErrID
+		return errMsg.ErrIDZero
 	}
 
 	_, err := s.contactRepo.GetByID(ctx, id)
