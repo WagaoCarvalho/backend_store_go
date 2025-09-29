@@ -47,7 +47,7 @@ func NewProductService(repo repo.ProductRepository) ProductService {
 func (s *productService) Create(ctx context.Context, product *models.Product) (*models.Product, error) {
 
 	if err := product.Validate(); err != nil {
-		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
 	createdProduct, err := s.repo.Create(ctx, product)
@@ -165,7 +165,7 @@ func (s *productService) Update(ctx context.Context, product *models.Product) (*
 		return nil, errMsg.ErrZeroID
 	}
 	if err := product.Validate(); err != nil {
-		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
 	// Validação de version para controle otimista

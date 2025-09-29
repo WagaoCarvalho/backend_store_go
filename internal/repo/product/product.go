@@ -419,11 +419,16 @@ func (r *productRepository) Update(ctx context.Context, product *models.Product)
 		product.Version,
 	).Scan(&product.CreatedAt, &product.UpdatedAt, &product.Version)
 
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, errMsg.ErrVersionConflict
+	if errors.Is(err, pgx.ErrNoRows) {
+		var exists bool
+		checkQuery := `SELECT EXISTS(SELECT 1 FROM products WHERE id = $1)`
+		if errCheck := r.db.QueryRow(ctx, checkQuery, product.ID).Scan(&exists); errCheck != nil {
+			return nil, fmt.Errorf("%w: erro ao verificar existência: %v", errMsg.ErrUpdate, errCheck)
 		}
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+		if !exists {
+			return nil, errMsg.ErrNotFound
+		}
+		return nil, errMsg.ErrVersionConflict
 	}
 
 	return product, nil

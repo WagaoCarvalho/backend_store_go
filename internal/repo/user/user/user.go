@@ -215,19 +215,16 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) (*models
 		user.Version,
 	).Scan(&user.UpdatedAt, &user.Version)
 
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			var exists bool
-			checkQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)`
-			if errCheck := r.db.QueryRow(ctx, checkQuery, user.UID).Scan(&exists); errCheck != nil {
-				return nil, fmt.Errorf("%w: erro ao verificar existência: %v", errMsg.ErrUpdate, errCheck)
-			}
-			if !exists {
-				return nil, errMsg.ErrNotFound
-			}
-			return nil, errMsg.ErrVersionConflict
+	if errors.Is(err, pgx.ErrNoRows) {
+		var exists bool
+		checkQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)`
+		if errCheck := r.db.QueryRow(ctx, checkQuery, user.UID).Scan(&exists); errCheck != nil {
+			return nil, fmt.Errorf("%w: erro ao verificar existência: %v", errMsg.ErrUpdate, errCheck)
 		}
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+		if !exists {
+			return nil, errMsg.ErrNotFound
+		}
+		return nil, errMsg.ErrVersionConflict
 	}
 
 	return user, nil
