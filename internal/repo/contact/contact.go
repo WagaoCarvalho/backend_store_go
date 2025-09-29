@@ -275,8 +275,8 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 			cell             = $8,
 			contact_type     = $9,
 			updated_at       = NOW()
-		WHERE
-			id = $10
+		WHERE id = $10
+		RETURNING updated_at
 	`
 
 	err := r.db.QueryRow(ctx, query,
