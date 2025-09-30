@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
@@ -267,10 +268,10 @@ func (r *saleRepository) listByField(ctx context.Context, field string, value in
 		FROM sales
 		WHERE %s = $1
 		ORDER BY %s %s
-		LIMIT $2 OFFSET $3;
-	`, field, sanitizeOrderBy(orderBy), sanitizeOrderDir(orderDir))
+		LIMIT %d OFFSET %d;
+	`, field, sanitizeOrderBy(orderBy), sanitizeOrderDir(orderDir), limit, offset)
 
-	rows, err := r.db.Query(ctx, query, value, limit, offset)
+	rows, err := r.db.Query(ctx, query, value)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
@@ -301,19 +302,20 @@ func (r *saleRepository) listByField(ctx context.Context, field string, value in
 	return sales, nil
 }
 
-// Sanitize order by to avoid SQL injection
 func sanitizeOrderBy(orderBy string) string {
 	switch orderBy {
-	case "sale_date", "created_at", "updated_at", "total_amount", "status":
-		return orderBy
-	default:
+	case "sale_date":
 		return "sale_date"
+	case "total_amount":
+		return "total_amount"
+	default:
+		return "sale_date" // default seguro
 	}
 }
 
 func sanitizeOrderDir(orderDir string) string {
-	if orderDir == "ASC" {
-		return "ASC"
+	if strings.ToLower(orderDir) == "desc" {
+		return "DESC"
 	}
-	return "DESC"
+	return "ASC"
 }

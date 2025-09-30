@@ -29,6 +29,10 @@ func (s *Sale) Validate() error {
 		errs = append(errs, validators.ValidationError{Field: "user_id", Message: validators.MsgRequiredField})
 	}
 
+	if s.SaleDate.IsZero() {
+		s.SaleDate = time.Now()
+	}
+
 	// --- Totais ---
 	if s.TotalAmount < 0 {
 		errs = append(errs, validators.ValidationError{Field: "total_amount", Message: "total_amount must be >= 0"})

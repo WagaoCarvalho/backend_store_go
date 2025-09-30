@@ -265,9 +265,7 @@ func (h *SaleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info(ctx, ref+"Venda excluída com sucesso", map[string]any{"sale_id": id})
-	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
-		Message: "Venda excluída com sucesso",
-	})
+	h.logger.Info(ctx, ref+ref+logger.LogDeleteSuccess, map[string]any{"sale_id": id})
+
+	w.WriteHeader(http.StatusNoContent)
 }

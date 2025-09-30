@@ -518,7 +518,12 @@ func TestSaleHandler_Delete(t *testing.T) {
 		mockService.On("Delete", mock.Anything, int64(1)).Return(nil)
 
 		h.Delete(w, req)
-		assert.Equal(t, http.StatusOK, w.Code)
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+		assert.Empty(t, w.Body.String())
+
 		mockService.AssertExpectations(t)
 	})
 }
