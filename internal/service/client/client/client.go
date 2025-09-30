@@ -34,7 +34,7 @@ func NewClientService(repo repo.ClientRepository) ClientService {
 
 func (s *clientService) Create(ctx context.Context, client *models.Client) (*models.Client, error) {
 	if err := client.Validate(); err != nil {
-		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
 	created, err := s.repo.Create(ctx, client)
