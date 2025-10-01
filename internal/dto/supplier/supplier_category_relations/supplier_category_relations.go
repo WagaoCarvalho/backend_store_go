@@ -42,3 +42,17 @@ func ToSupplierCategoryRelationsDTO(model *models.SupplierCategoryRelations) Sup
 		CreatedAt:  &model.CreatedAt,
 	}
 }
+
+func ToSupplierRelatiosDTOs(models []*models.SupplierCategoryRelations) []SupplierCategoryRelationsDTO {
+	if len(models) == 0 {
+		return []SupplierCategoryRelationsDTO{}
+	}
+
+	dtos := make([]SupplierCategoryRelationsDTO, 0, len(models))
+	for _, m := range models {
+		if m != nil {
+			dtos = append(dtos, ToSupplierCategoryRelationsDTO(m))
+		}
+	}
+	return dtos
+}

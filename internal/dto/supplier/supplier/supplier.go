@@ -46,3 +46,17 @@ func ToSupplierDTO(m *models.Supplier) SupplierDTO {
 		UpdatedAt: m.UpdatedAt.Format(time.RFC3339),
 	}
 }
+
+func ToSupplierDTOs(models []*models.Supplier) []SupplierDTO {
+	if len(models) == 0 {
+		return []SupplierDTO{}
+	}
+
+	dtos := make([]SupplierDTO, 0, len(models))
+	for _, m := range models {
+		if m != nil {
+			dtos = append(dtos, ToSupplierDTO(m))
+		}
+	}
+	return dtos
+}

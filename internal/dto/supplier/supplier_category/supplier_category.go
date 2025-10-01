@@ -42,3 +42,17 @@ func ToSupplierCategoryDTO(model *models.SupplierCategory) SupplierCategoryDTO {
 		UpdatedAt:   &model.UpdatedAt,
 	}
 }
+
+func ToSupplierCategoryDTOs(models []*models.SupplierCategory) []SupplierCategoryDTO {
+	if len(models) == 0 {
+		return []SupplierCategoryDTO{}
+	}
+
+	dtos := make([]SupplierCategoryDTO, 0, len(models))
+	for _, m := range models {
+		if m != nil {
+			dtos = append(dtos, ToSupplierCategoryDTO(m))
+		}
+	}
+	return dtos
+}

@@ -76,8 +76,10 @@ func (h *SupplierCategoryRelationHandler) Create(w http.ResponseWriter, r *http.
 		"category_id": modelRelation.CategoryID,
 	})
 
+	createdDTO := dto.ToSupplierCategoryRelationsDTO(created)
+
 	utils.ToJSON(w, status, utils.DefaultResponse{
-		Data:    created,
+		Data:    createdDTO,
 		Message: message,
 		Status:  status,
 	})
@@ -102,8 +104,11 @@ func (h *SupplierCategoryRelationHandler) GetBySupplierID(w http.ResponseWriter,
 	}
 
 	h.logger.Info(ctx, ref+"Relações retornadas com sucesso", map[string]any{"supplier_id": supplierID})
+
+	supplierDTO := dto.ToSupplierRelatiosDTOs(relations)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    relations,
+		Data:    supplierDTO,
 		Message: "Relações encontradas",
 		Status:  http.StatusOK,
 	})
@@ -128,8 +133,11 @@ func (h *SupplierCategoryRelationHandler) GetByCategoryID(w http.ResponseWriter,
 	}
 
 	h.logger.Info(ctx, ref+"Relações retornadas com sucesso", map[string]any{"category_id": categoryID})
+
+	supplierDTO := dto.ToSupplierRelatiosDTOs(relations)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    relations,
+		Data:    supplierDTO,
 		Message: "Relações encontradas",
 		Status:  http.StatusOK,
 	})
@@ -165,6 +173,7 @@ func (h *SupplierCategoryRelationHandler) DeleteByID(w http.ResponseWriter, r *h
 		"supplier_id": supplierID,
 		"category_id": categoryID,
 	})
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Message: "Relação excluída com sucesso",
 		Status:  http.StatusOK,
@@ -191,6 +200,7 @@ func (h *SupplierCategoryRelationHandler) DeleteAllBySupplierID(w http.ResponseW
 	}
 
 	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{"supplier_id": supplierID})
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Message: "Relações excluídas com sucesso",
 		Status:  http.StatusOK,

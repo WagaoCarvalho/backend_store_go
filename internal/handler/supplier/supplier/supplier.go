@@ -80,10 +80,12 @@ func (h *SupplierHandler) Create(w http.ResponseWriter, r *http.Request) {
 		"cnpj":        createdSupplier.CNPJ,
 	})
 
+	createdDTO := dto.ToSupplierDTO(createdSupplier)
+
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Fornecedor criado com sucesso",
-		Data:    createdSupplier,
+		Data:    createdDTO,
 	})
 }
 
@@ -104,10 +106,12 @@ func (h *SupplierHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		"quantidade": len(suppliers),
 	})
 
+	supplierDTO := dto.ToSupplierDTOs(suppliers)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Fornecedores encontrados",
-		Data:    suppliers,
+		Data:    supplierDTO,
 	})
 }
 
@@ -150,10 +154,12 @@ func (h *SupplierHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		"name":        supplier.Name,
 	})
 
+	createdDTO := dto.ToSupplierDTO(supplier)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Fornecedor encontrado",
-		Data:    supplier,
+		Data:    createdDTO,
 	})
 }
 
@@ -230,10 +236,12 @@ func (h *SupplierHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 		"count": len(suppliers),
 	})
 
+	supplierDTO := dto.ToSupplierDTOs(suppliers)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Fornecedores encontrados com sucesso",
-		Data:    suppliers,
+		Data:    supplierDTO,
 	})
 }
 

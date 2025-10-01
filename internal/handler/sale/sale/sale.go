@@ -78,10 +78,12 @@ func (h *SaleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	createdDTO := dtoSale.ToSaleDTO(sale)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Venda encontrada",
-		Data:    dtoSale.ToSaleDTO(sale),
+		Data:    createdDTO,
 	})
 }
 
@@ -107,6 +109,7 @@ func (h *SaleHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	salesDTO := dtoSale.ToSaleDTOList(sales)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Vendas do cliente recuperadas",
@@ -136,6 +139,7 @@ func (h *SaleHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	salesDTO := dtoSale.ToSaleDTOList(sales)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Vendas do usuário recuperadas",

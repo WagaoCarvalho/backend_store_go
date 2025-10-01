@@ -87,8 +87,11 @@ func (h *SupplierCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request
 	}
 
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{"category_id": category.ID})
+
+	createdDTO := dto.ToSupplierCategoryDTO(category)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    category,
+		Data:    createdDTO,
 		Message: "Categoria encontrada com sucesso",
 		Status:  http.StatusOK,
 	})
@@ -107,8 +110,11 @@ func (h *SupplierCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request)
 	}
 
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{"total": len(categories)})
+
+	categoryDTO := dto.ToSupplierCategoryDTOs(categories)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    categories,
+		Data:    categoryDTO,
 		Message: "Categorias encontradas com sucesso",
 		Status:  http.StatusOK,
 	})
