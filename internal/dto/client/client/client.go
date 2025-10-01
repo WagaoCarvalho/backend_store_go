@@ -48,3 +48,17 @@ func ToClientDTO(m *models.Client) ClientDTO {
 		UpdatedAt: m.UpdatedAt.Format(time.RFC3339),
 	}
 }
+
+func ToClientDTOs(models []*models.Client) []ClientDTO {
+	if len(models) == 0 {
+		return []ClientDTO{}
+	}
+
+	dtos := make([]ClientDTO, 0, len(models))
+	for _, m := range models {
+		if m != nil {
+			dtos = append(dtos, ToClientDTO(m))
+		}
+	}
+	return dtos
+}

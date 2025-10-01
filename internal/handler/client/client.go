@@ -113,3 +113,48 @@ func (h *ClientHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		Data:    clientDTO,
 	})
 }
+
+func (h *ClientHandler) GetByName(w http.ResponseWriter, r *http.Request) {
+	const ref = "[clientHandler - GetByName] "
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
+
+	name, err := utils.GetStringParam(r, "name")
+	if err != nil || name == "" {
+		h.logger.Warn(ctx, ref+logger.LogQueryError, map[string]any{
+			"param": "name",
+			"erro":  err,
+		})
+		utils.ErrorResponse(w, errors.New("parâmetro 'name' é obrigatório"), http.StatusBadRequest)
+		return
+	}
+
+	clients, err := h.service.GetByName(ctx, name)
+	if err != nil {
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"name": name,
+		})
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	// retorna 200 mesmo se lista vazia
+	clientDTOs := dtoClient.ToClientDTOs(clients)
+
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"name": name,
+		"qtd":  len(clientDTOs),
+	})
+
+	message := "Clientes encontrados"
+	if len(clientDTOs) == 0 {
+		message = "Nenhum cliente encontrado"
+	}
+
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: message,
+		Data:    clientDTOs,
+	})
+}
