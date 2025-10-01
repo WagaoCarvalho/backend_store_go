@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	dto_contact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
+	dtoContact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -29,7 +29,7 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	var contactDTO dto_contact.ContactDTO
+	var contactDTO dtoContact.ContactDTO
 	if err := utils.FromJSON(r.Body, &contactDTO); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
@@ -38,7 +38,7 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contactModel := dto_contact.ToContactModel(contactDTO)
+	contactModel := dtoContact.ToContactModel(contactDTO)
 
 	createdContact, err := h.service.Create(ctx, contactModel)
 	if err != nil {
@@ -55,7 +55,7 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdDTO := dto_contact.ToContactDTO(createdContact)
+	createdDTO := dtoContact.ToContactDTO(createdContact)
 
 	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
 		"contact_id": createdDTO.ID,
@@ -93,7 +93,7 @@ func (h *ContactHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contactDTO := dto_contact.ToContactDTO(contactModel)
+	contactDTO := dtoContact.ToContactDTO(contactModel)
 
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"contact_id": contactDTO.ID,
@@ -131,10 +131,7 @@ func (h *ContactHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contactDTOs := make([]dto_contact.ContactDTO, len(contactModels))
-	for i, c := range contactModels {
-		contactDTOs[i] = dto_contact.ToContactDTO(c)
-	}
+	contactDTOs := dtoContact.ToAddressDTOs(contactModels)
 
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id": userID,
@@ -161,10 +158,7 @@ func (h *ContactHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contactDTOs := make([]dto_contact.ContactDTO, len(contactModels))
-	for i, c := range contactModels {
-		contactDTOs[i] = dto_contact.ToContactDTO(c)
-	}
+	contactDTOs := dtoContact.ToAddressDTOs(contactModels)
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
@@ -186,10 +180,7 @@ func (h *ContactHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	contactDTOs := make([]dto_contact.ContactDTO, len(contactModels))
-	for i, c := range contactModels {
-		contactDTOs[i] = dto_contact.ToContactDTO(c)
-	}
+	contactDTOs := dtoContact.ToAddressDTOs(contactModels)
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
@@ -213,7 +204,7 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dto dto_contact.ContactDTO
+	var dto dtoContact.ContactDTO
 	if err := utils.FromJSON(r.Body, &dto); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
@@ -222,7 +213,7 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contactModel := dto_contact.ToContactModel(dto)
+	contactModel := dtoContact.ToContactModel(dto)
 	contactModel.ID = id
 
 	if err := h.service.Update(ctx, contactModel); err != nil {
@@ -233,7 +224,7 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedDTO := dto_contact.ToContactDTO(contactModel)
+	updatedDTO := dtoContact.ToContactDTO(contactModel)
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
 		"contact_id": updatedDTO.ID,
 	})

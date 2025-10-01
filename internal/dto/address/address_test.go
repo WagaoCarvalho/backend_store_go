@@ -109,3 +109,58 @@ func TestAddressDTO_FromModel(t *testing.T) {
 	assert.Equal(t, address.PostalCode, dtoResult.PostalCode)
 	assert.Equal(t, &address.IsActive, dtoResult.IsActive)
 }
+
+func TestToAddressDTOs(t *testing.T) {
+	userID := int64(1)
+	clientID := int64(2)
+
+	address1 := &models.Address{
+		ID:         1,
+		UserID:     &userID,
+		ClientID:   &clientID,
+		Street:     "Rua 1",
+		City:       "Cidade1",
+		State:      "SP",
+		Country:    "Brasil",
+		PostalCode: "11111-111",
+		IsActive:   true,
+	}
+
+	address2 := &models.Address{
+		ID:         2,
+		Street:     "Rua 2",
+		City:       "Cidade2",
+		State:      "RJ",
+		Country:    "Brasil",
+		PostalCode: "22222-222",
+		IsActive:   false,
+	}
+
+	t.Run("Multiple valid addresses", func(t *testing.T) {
+		input := []*models.Address{address1, address2}
+		result := dto.ToAddressDTOs(input)
+
+		assert.Len(t, result, 2)
+		assert.Equal(t, address1.ID, *result[0].ID)
+		assert.Equal(t, address2.ID, *result[1].ID)
+		assert.Equal(t, address1.Street, result[0].Street)
+		assert.Equal(t, address2.Street, result[1].Street)
+	})
+
+	t.Run("List with nil element", func(t *testing.T) {
+		input := []*models.Address{address1, nil, address2}
+		result := dto.ToAddressDTOs(input)
+
+		assert.Len(t, result, 2) // ignora o nil
+		assert.Equal(t, address1.ID, *result[0].ID)
+		assert.Equal(t, address2.ID, *result[1].ID)
+	})
+
+	t.Run("Empty list", func(t *testing.T) {
+		input := []*models.Address{}
+		result := dto.ToAddressDTOs(input)
+
+		assert.NotNil(t, result) // deve retornar slice vazio, não nil
+		assert.Empty(t, result)
+	})
+}

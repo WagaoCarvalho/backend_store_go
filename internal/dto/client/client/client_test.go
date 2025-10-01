@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	client "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
@@ -33,7 +33,7 @@ func TestToClientModel(t *testing.T) {
 }
 
 func TestToClientDTO(t *testing.T) {
-	modelInput := &client.Client{
+	modelInput := &models.Client{
 		ID:      1,
 		Name:    "Cliente DTO",
 		Email:   utils.StrToPtr("dto@email.com"),
@@ -60,4 +60,51 @@ func TestToClientDTO(t *testing.T) {
 		assert.Equal(t, ClientDTO{}, dto)
 	})
 
+}
+
+func TestToClientDTOs(t *testing.T) {
+	email := "teste@cliente.com"
+	cpf := "12345678900"
+
+	client1 := &models.Client{
+		ID:     1,
+		Name:   "Cliente 1",
+		Email:  &email,
+		CPF:    &cpf,
+		Status: true,
+	}
+
+	client2 := &models.Client{
+		ID:     2,
+		Name:   "Cliente 2",
+		Status: false,
+	}
+
+	t.Run("Multiple valid clients", func(t *testing.T) {
+		input := []*models.Client{client1, client2}
+		result := ToClientDTOs(input)
+
+		assert.Len(t, result, 2)
+		assert.Equal(t, client1.ID, *result[0].ID)
+		assert.Equal(t, client2.ID, *result[1].ID)
+		assert.Equal(t, client1.Name, result[0].Name)
+		assert.Equal(t, client2.Name, result[1].Name)
+	})
+
+	t.Run("List with nil element", func(t *testing.T) {
+		input := []*models.Client{client1, nil, client2}
+		result := ToClientDTOs(input)
+
+		assert.Len(t, result, 2) // ignora o nil
+		assert.Equal(t, client1.ID, *result[0].ID)
+		assert.Equal(t, client2.ID, *result[1].ID)
+	})
+
+	t.Run("Empty list", func(t *testing.T) {
+		input := []*models.Client{}
+		result := ToClientDTOs(input)
+
+		assert.NotNil(t, result) // deve retornar slice vazio, não nil
+		assert.Empty(t, result)
+	})
 }

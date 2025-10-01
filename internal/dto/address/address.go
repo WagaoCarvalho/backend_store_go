@@ -57,3 +57,17 @@ func ToAddressDTO(model *models.Address) AddressDTO {
 		IsActive:     &model.IsActive,
 	}
 }
+
+func ToAddressDTOs(models []*models.Address) []AddressDTO {
+	if len(models) == 0 {
+		return []AddressDTO{}
+	}
+
+	dtos := make([]AddressDTO, 0, len(models))
+	for _, m := range models {
+		if m != nil {
+			dtos = append(dtos, ToAddressDTO(m))
+		}
+	}
+	return dtos
+}

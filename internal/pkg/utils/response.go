@@ -12,9 +12,9 @@ import (
 )
 
 type DefaultResponse struct {
-	Data    interface{} `json:"data,omitempty"`
-	Message string      `json:"message,omitempty"`
-	Status  int         `json:"status"`
+	Data    any    `json:"data,omitempty"`
+	Message string `json:"message,omitempty"`
+	Status  int    `json:"status"`
 }
 
 func ErrorResponse(w http.ResponseWriter, err error, statusCode int) {

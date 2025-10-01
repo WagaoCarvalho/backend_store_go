@@ -695,7 +695,7 @@ func TestProductHandler_GetByName(t *testing.T) {
 		var response map[string]interface{}
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		assert.NoError(t, err)
-		assert.Equal(t, "Produtos recuperados com sucesso", response["message"])
+		assert.Equal(t, "Produtos encontrados", response["message"])
 		assert.NotNil(t, response["data"])
 
 		mockService.AssertExpectations(t)
@@ -750,6 +750,42 @@ func TestProductHandler_GetByName(t *testing.T) {
 
 		mockService.AssertExpectations(t)
 	})
+
+	t.Run("No products found", func(t *testing.T) {
+		t.Parallel()
+		mockService := new(mockProduct.ProductServiceMock)
+		handler := NewProductHandler(mockService, logAdapter)
+
+		// Mock retornando lista vazia
+		mockService.On("GetByName", mock.Anything, "Inexistente").
+			Return([]*models.Product{}, nil).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/product/name/Inexistente", nil)
+		req = mux.SetURLVars(req, map[string]string{"name": "Inexistente"})
+		w := httptest.NewRecorder()
+
+		handler.GetByName(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var response struct {
+			Status  int              `json:"status"`
+			Message string           `json:"message"`
+			Data    []dto.ProductDTO `json:"data"`
+		}
+
+		err := json.NewDecoder(resp.Body).Decode(&response)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "Nenhum produto encontrado", response.Message)
+		assert.Len(t, response.Data, 0)
+
+		mockService.AssertExpectations(t)
+	})
+
 }
 
 func TestProductHandler_GetByManufacturer(t *testing.T) {
@@ -804,7 +840,7 @@ func TestProductHandler_GetByManufacturer(t *testing.T) {
 		manufacturer := "UnknownBrand"
 
 		mockService.On("GetByManufacturer", mock.Anything, manufacturer).
-			Return(nil, errors.New("produtos não encontrados")).Once()
+			Return(nil, errMsg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/products/manufacturer/"+manufacturer, nil)
 		req = mux.SetURLVars(req, map[string]string{"manufacturer": manufacturer})

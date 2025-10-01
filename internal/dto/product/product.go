@@ -86,3 +86,17 @@ func getOrDefault(id *int64) int64 {
 	}
 	return *id
 }
+
+func ToProductDTOs(models []*models.Product) []ProductDTO {
+	if len(models) == 0 {
+		return []ProductDTO{}
+	}
+
+	dtos := make([]ProductDTO, 0, len(models))
+	for _, m := range models {
+		if m != nil {
+			dtos = append(dtos, ToProductDTO(m))
+		}
+	}
+	return dtos
+}

@@ -109,10 +109,12 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		"total_encontrados": len(products),
 	})
 
+	productDTOs := dto.ToProductDTOs(products)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Produtos listados com sucesso",
-		Data:    products,
+		Data:    productDTOs,
 	})
 }
 
@@ -140,6 +142,8 @@ func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	productDTO := dto.ToProductDTO(product)
+
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"product_id": product.ID,
 	})
@@ -147,7 +151,7 @@ func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Produto recuperado com sucesso",
-		Data:    product,
+		Data:    productDTO,
 	})
 }
 
@@ -176,14 +180,22 @@ func (h *ProductHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	prouctDTOs := dto.ToProductDTOs(products)
+
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"name":         name,
 		"result_count": len(products),
 	})
 
+	message := "Produtos encontrados"
+	if len(prouctDTOs) == 0 {
+		message = "Nenhum produto encontrado"
+	}
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
-		Message: "Produtos recuperados com sucesso",
-		Data:    products,
+		Message: message,
+		Data:    prouctDTOs,
 	})
 }
 
@@ -207,7 +219,7 @@ func (h *ProductHandler) GetByManufacturer(w http.ResponseWriter, r *http.Reques
 	products, err := h.service.GetByManufacturer(ctx, manufacturer)
 	if err != nil {
 		status := http.StatusInternalServerError
-		if err.Error() == "produtos não encontrados" {
+		if errors.Is(err, errMsg.ErrNotFound) {
 			status = http.StatusNotFound
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"manufacturer": manufacturer,
@@ -222,15 +234,23 @@ func (h *ProductHandler) GetByManufacturer(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// converte para DTO
+	productDTOs := dto.ToProductDTOs(products)
+
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"manufacturer": manufacturer,
-		"count":        len(products),
+		"count":        len(productDTOs),
 	})
+
+	message := "Produtos encontrados"
+	if len(productDTOs) == 0 {
+		message = "Nenhum produto encontrado"
+	}
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
-		Message: "Produtos encontrados",
-		Data:    products,
+		Message: message,
+		Data:    productDTOs,
 	})
 }
 

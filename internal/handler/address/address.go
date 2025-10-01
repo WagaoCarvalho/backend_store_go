@@ -142,11 +142,7 @@ func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
-	for i, m := range addressModels {
-		dto := dtoAddress.ToAddressDTO(m)
-		addressDTOs[i] = &dto
-	}
+	addressDTOs := dtoAddress.ToAddressDTOs(addressModels)
 
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"user_id": id,
@@ -180,11 +176,7 @@ func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
-	for i, m := range addressModels {
-		dto := dtoAddress.ToAddressDTO(m)
-		addressDTOs[i] = &dto
-	}
+	addressDTOs := dtoAddress.ToAddressDTOs(addressModels)
 
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"client_id": id,
@@ -218,11 +210,7 @@ func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	addressDTOs := make([]*dtoAddress.AddressDTO, len(addressModels))
-	for i, m := range addressModels {
-		dto := dtoAddress.ToAddressDTO(m)
-		addressDTOs[i] = &dto
-	}
+	addressDTOs := dtoAddress.ToAddressDTOs(addressModels)
 
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"supplier_id": id,

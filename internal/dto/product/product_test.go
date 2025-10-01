@@ -151,3 +151,51 @@ func TestToProductDTO_NilPointers(t *testing.T) {
 	assert.NotNil(t, dto.UpdatedAt)
 	assert.Equal(t, model.UpdatedAt, *dto.UpdatedAt)
 }
+
+func TestToProductDTOs(t *testing.T) {
+	createdAt := time.Now()
+	updatedAt := createdAt.Add(time.Hour)
+
+	t.Run("Convert multiple products", func(t *testing.T) {
+		products := []*models.Product{
+			{
+				ID:            1,
+				ProductName:   "Produto A",
+				SalePrice:     100,
+				StockQuantity: 10,
+				Status:        true,
+				CreatedAt:     createdAt,
+				UpdatedAt:     updatedAt,
+			},
+			{
+				ID:            2,
+				ProductName:   "Produto B",
+				SalePrice:     200,
+				StockQuantity: 20,
+				Status:        false,
+				CreatedAt:     createdAt,
+				UpdatedAt:     updatedAt,
+			},
+		}
+
+		dtos := ToProductDTOs(products)
+
+		assert.Len(t, dtos, 2)
+		assert.Equal(t, products[0].ID, *dtos[0].ID)
+		assert.Equal(t, products[0].ProductName, dtos[0].ProductName)
+		assert.Equal(t, products[1].ID, *dtos[1].ID)
+		assert.Equal(t, products[1].ProductName, dtos[1].ProductName)
+	})
+
+	t.Run("Handle empty slice", func(t *testing.T) {
+		var products []*models.Product
+		dtos := ToProductDTOs(products)
+		assert.Empty(t, dtos)
+	})
+
+	t.Run("Handle slice with nil elements", func(t *testing.T) {
+		products := []*models.Product{nil}
+		dtos := ToProductDTOs(products)
+		assert.Empty(t, dtos)
+	})
+}

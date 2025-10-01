@@ -63,3 +63,17 @@ func ToContactDTO(model *models.Contact) ContactDTO {
 		UpdatedAt:       &model.UpdatedAt,
 	}
 }
+
+func ToAddressDTOs(models []*models.Contact) []ContactDTO {
+	if len(models) == 0 {
+		return []ContactDTO{}
+	}
+
+	dtos := make([]ContactDTO, 0, len(models))
+	for _, m := range models {
+		if m != nil {
+			dtos = append(dtos, ToContactDTO(m))
+		}
+	}
+	return dtos
+}
