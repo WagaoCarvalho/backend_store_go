@@ -207,10 +207,10 @@ func TestClientService_GetAll(t *testing.T) {
 
 		expectedErr := errors.New("db error")
 		mockRepo.
-			On("GetAll", mock.Anything).
+			On("GetAll", mock.Anything, 10, 0).
 			Return(nil, expectedErr)
 
-		result, err := service.GetAll(context.Background())
+		result, err := service.GetAll(context.Background(), 10, 0)
 
 		assert.Nil(t, result)
 		assert.ErrorContains(t, err, errMsg.ErrGet.Error())
@@ -223,10 +223,10 @@ func TestClientService_GetAll(t *testing.T) {
 
 		client := &models.Client{ID: 1, Name: "Teste"}
 		mockRepo.
-			On("GetAll", mock.Anything).
+			On("GetAll", mock.Anything, 5, 2).
 			Return([]*models.Client{client}, nil)
 
-		result, err := service.GetAll(context.Background())
+		result, err := service.GetAll(context.Background(), 5, 2)
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 1)
@@ -356,6 +356,43 @@ func TestClientService_Update(t *testing.T) {
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
 	})
+
+	t.Run("falha - cliente não encontrado", func(t *testing.T) {
+		mockRepo := new(mockClient.MockClientRepository)
+		service := NewClientService(mockRepo)
+
+		cpf := "12345678901"
+		client := &models.Client{ID: 1, Name: "Teste", CPF: &cpf, Version: 1}
+
+		mockRepo.
+			On("Update", mock.Anything, client).
+			Return(errMsg.ErrNotFound).
+			Once()
+
+		err := service.Update(context.Background(), client)
+
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha - conflito de versão", func(t *testing.T) {
+		mockRepo := new(mockClient.MockClientRepository)
+		service := NewClientService(mockRepo)
+
+		cpf := "12345678901"
+		client := &models.Client{ID: 1, Name: "Teste", CPF: &cpf, Version: 1}
+
+		mockRepo.
+			On("Update", mock.Anything, client).
+			Return(errMsg.ErrVersionConflict).
+			Once()
+
+		err := service.Update(context.Background(), client)
+
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		mockRepo.AssertExpectations(t)
+	})
+
 }
 
 func TestClientService_Delete(t *testing.T) {

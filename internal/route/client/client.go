@@ -37,6 +37,15 @@ func RegisterClientRoutes(
 	s := r.PathPrefix("/").Subrouter()
 	s.Use(jwtMiddlewares.IsAuthByBearerToken(blacklist, log, jwtManager))
 
-	s.HandleFunc("/clients", handler.Create).Methods(http.MethodPost)
+	s.HandleFunc("/client", handler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/client/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)
+	s.HandleFunc("/clients/name/{name}", handler.GetByName).Methods(http.MethodGet)
+	s.HandleFunc("/client/{id:[0-9]+}/version", handler.GetVersionByID).Methods(http.MethodGet)
+	s.HandleFunc("/clients", handler.GetAll).Methods(http.MethodGet)
+	s.HandleFunc("/client/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
+	s.HandleFunc("/client/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
+	s.HandleFunc("/client/{id:[0-9]+}/disable", handler.Disable).Methods(http.MethodPatch)
+	s.HandleFunc("/client/{id:[0-9]+}/enable", handler.Enable).Methods(http.MethodPatch)
+	s.HandleFunc("/client/{id:[0-9]+}/exists", handler.ClientExists).Methods(http.MethodGet)
+
 }

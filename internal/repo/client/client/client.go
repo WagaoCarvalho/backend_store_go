@@ -2,10 +2,13 @@ package repo
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -14,7 +17,7 @@ type ClientRepository interface {
 	GetByID(ctx context.Context, id int64) (*models.Client, error)
 	GetByName(ctx context.Context, name string) ([]*models.Client, error)
 	GetVersionByID(ctx context.Context, id int64) (int, error)
-	GetAll(ctx context.Context) ([]*models.Client, error)
+	GetAll(ctx context.Context, limit, offset int) ([]*models.Client, error)
 	Update(ctx context.Context, client *models.Client) error
 	Delete(ctx context.Context, id int64) error
 	Disable(ctx context.Context, id int64) error
@@ -120,12 +123,15 @@ func (r *clientRepository) GetVersionByID(ctx context.Context, id int64) (int, e
 	return version, nil
 }
 
-func (r *clientRepository) GetAll(ctx context.Context) ([]*models.Client, error) {
+func (r *clientRepository) GetAll(ctx context.Context, limit, offset int) ([]*models.Client, error) {
 	const query = `
 		SELECT id, name, email, cpf, cnpj, status, version, created_at, updated_at
 		FROM clients
+		ORDER BY id
+		LIMIT $1 OFFSET $2
 	`
-	rows, err := r.db.Query(ctx, query)
+
+	rows, err := r.db.Query(ctx, query, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
@@ -149,26 +155,40 @@ func (r *clientRepository) GetAll(ctx context.Context) ([]*models.Client, error)
 		}
 		clients = append(clients, c)
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+	}
+
 	return clients, nil
 }
 
 func (r *clientRepository) Update(ctx context.Context, client *models.Client) error {
 	const query = `
 		UPDATE clients
-		SET name=$1, email=$2, cpf=$3, cnpj=$4, status=$5, version=$6, updated_at=NOW()
-		WHERE id=$8
+		SET name=$1, email=$2, cpf=$3, cnpj=$4, status=$5, version=version+1, updated_at=NOW()
+		WHERE id=$6 AND version=$7
+		RETURNING version
 	`
-	_, err := r.db.Exec(ctx, query,
+
+	err := r.db.QueryRow(ctx, query,
 		client.Name,
 		client.Email,
 		client.CPF,
 		client.CNPJ,
 		client.Status,
-		client.Version,
 		client.ID,
-	)
+		client.Version,
+	).Scan(&client.Version)
+
 	if err != nil {
-		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+		switch {
+		case errors.Is(err, pgx.ErrNoRows), errors.Is(err, sql.ErrNoRows):
+			// não encontrou registro ou versão diferente
+			return errMsg.ErrVersionConflict
+		default:
+			return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+		}
 	}
 	return nil
 }

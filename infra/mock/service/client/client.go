@@ -40,8 +40,8 @@ func (m *MockClientService) GetVersionByID(ctx context.Context, id int64) (int, 
 	return args.Int(0), args.Error(1)
 }
 
-func (m *MockClientService) GetAll(ctx context.Context) ([]*models.Client, error) {
-	args := m.Called(ctx)
+func (m *MockClientService) GetAll(ctx context.Context, limit, offset int) ([]*models.Client, error) {
+	args := m.Called(ctx, limit, offset)
 	if result := args.Get(0); result != nil {
 		return result.([]*models.Client), args.Error(1)
 	}

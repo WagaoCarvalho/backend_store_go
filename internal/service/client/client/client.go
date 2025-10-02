@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client"
@@ -14,7 +15,7 @@ type ClientService interface {
 	GetByID(ctx context.Context, id int64) (*models.Client, error)
 	GetByName(ctx context.Context, name string) ([]*models.Client, error)
 	GetVersionByID(ctx context.Context, id int64) (int, error)
-	GetAll(ctx context.Context) ([]*models.Client, error)
+	GetAll(ctx context.Context, limit, offset int) ([]*models.Client, error)
 	Update(ctx context.Context, client *models.Client) error
 	Delete(ctx context.Context, id int64) error
 	Disable(ctx context.Context, id int64) error
@@ -81,8 +82,8 @@ func (s *clientService) GetVersionByID(ctx context.Context, id int64) (int, erro
 	return version, nil
 }
 
-func (s *clientService) GetAll(ctx context.Context) ([]*models.Client, error) {
-	clients, err := s.repo.GetAll(ctx)
+func (s *clientService) GetAll(ctx context.Context, limit, offset int) ([]*models.Client, error) {
+	clients, err := s.repo.GetAll(ctx, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
@@ -99,11 +100,19 @@ func (s *clientService) Update(ctx context.Context, client *models.Client) error
 	}
 
 	if err := client.Validate(); err != nil {
-		return fmt.Errorf("%w", errMsg.ErrInvalidData)
+		return fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
 	if err := s.repo.Update(ctx, client); err != nil {
-		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+		// aqui só tratamos erros de domínio vindos do repo
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			return errMsg.ErrNotFound
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			return errMsg.ErrVersionConflict
+		default:
+			return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+		}
 	}
 	return nil
 }

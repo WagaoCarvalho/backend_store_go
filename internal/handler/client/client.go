@@ -2,9 +2,11 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 
-	dtoClient "github.com/WagaoCarvalho/backend_store_go/internal/dto/client/client"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/client/client"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -29,7 +31,7 @@ func (h *ClientHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	var clientDTO dtoClient.ClientDTO
+	var clientDTO dto.ClientDTO
 	if err := utils.FromJSON(r.Body, &clientDTO); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
@@ -38,7 +40,7 @@ func (h *ClientHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientModel := dtoClient.ToClientModel(clientDTO)
+	clientModel := dto.ToClientModel(clientDTO)
 
 	createdModel, err := h.service.Create(ctx, clientModel)
 	if err != nil {
@@ -64,7 +66,7 @@ func (h *ClientHandler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	createdDTO := dtoClient.ToClientDTO(createdModel)
+	createdDTO := dto.ToClientDTO(createdModel)
 
 	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
 		"client_id": createdDTO.ID,
@@ -101,7 +103,7 @@ func (h *ClientHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientDTO := dtoClient.ToClientDTO(clientModel)
+	clientDTO := dto.ToClientDTO(clientModel)
 
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"client_id": clientDTO.ID,
@@ -139,8 +141,7 @@ func (h *ClientHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// retorna 200 mesmo se lista vazia
-	clientDTOs := dtoClient.ToClientDTOs(clients)
+	clientDTOs := dto.ToClientDTOs(clients)
 
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
 		"name": name,
@@ -156,5 +157,342 @@ func (h *ClientHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 		Status:  http.StatusOK,
 		Message: message,
 		Data:    clientDTOs,
+	})
+}
+
+func (h *ClientHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
+	const ref = "[clientHandler - GetVersionByID] "
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
+
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	version, err := h.service.GetVersionByID(ctx, uid)
+	if err != nil {
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"client_id": uid,
+		})
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"client_id": uid,
+		"version":   version,
+	})
+
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Versão do cliente recuperada com sucesso",
+		Data: map[string]any{
+			"client_id": uid,
+			"version":   version,
+		},
+	})
+}
+
+func (h *ClientHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	const ref = "[clientHandler - GetAll] "
+
+	limit := 10
+	offset := 0
+
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	if o := r.URL.Query().Get("offset"); o != "" {
+		if parsed, err := strconv.Atoi(o); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
+		"limit":  limit,
+		"offset": offset,
+	})
+
+	clients, err := h.service.GetAll(ctx, limit, offset)
+	if err != nil {
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"limit":  limit,
+			"offset": offset,
+		})
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"total_encontrados": len(clients),
+	})
+
+	clientDTOs := dto.ToClientDTOs(clients)
+
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Clientes listados com sucesso",
+		Data:    clientDTOs,
+	})
+}
+
+func (h *ClientHandler) Update(w http.ResponseWriter, r *http.Request) {
+	const ref = "[ClientHandler - Update] "
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	// Extrai ID da URL
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Faz parse do corpo
+	var clientDTO dto.ClientDTO
+	if err := utils.FromJSON(r.Body, &clientDTO); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Converte para model
+	clientModel := dto.ToClientModel(clientDTO)
+	clientModel.ID = uid // garante que o ID do path seja usado
+
+	// Chama o serviço
+	if err := h.service.Update(ctx, clientModel); err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"client_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusNotFound)
+			return
+
+		case errors.Is(err, errMsg.ErrInvalidForeignKey):
+			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
+				"client_id": uid,
+				"erro":      err.Error(),
+			})
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+
+		case errors.Is(err, errMsg.ErrDuplicate):
+			h.logger.Warn(ctx, ref+"Cliente duplicado", map[string]any{
+				"client_id": uid,
+				"erro":      err.Error(),
+			})
+			utils.ErrorResponse(w, err, http.StatusConflict)
+			return
+
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"client_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Sucesso
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"client_id": uid,
+	})
+
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Cliente atualizado com sucesso",
+		Data:    clientDTO, // retorna o DTO enviado
+	})
+}
+
+func (h *ClientHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	const ref = "[clientHandler - Delete] "
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{})
+
+	// Obtém o ID do cliente da URL
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Chama o serviço para deletar o cliente
+	err = h.service.Delete(ctx, id)
+	if err != nil {
+		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
+			"client_id": id,
+		})
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
+		"client_id": id,
+	})
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *ClientHandler) Disable(w http.ResponseWriter, r *http.Request) {
+	const ref = "[clientHandler - Disable] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.Disable(ctx, uid)
+	if err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"client_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("cliente não encontrado"), http.StatusNotFound)
+			return
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
+				"client_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"client_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"client_id": uid,
+	})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *ClientHandler) Enable(w http.ResponseWriter, r *http.Request) {
+	const ref = "[clientHandler - Enable] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.Enable(ctx, uid)
+	if err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"client_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("cliente não encontrado"), http.StatusNotFound)
+			return
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
+				"client_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"client_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"client_id": uid,
+	})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *ClientHandler) ClientExists(w http.ResponseWriter, r *http.Request) {
+	const ref = "[clientHandler - ClientExists] "
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, nil)
+
+	clientID, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+"ID inválido", map[string]any{"erro": err.Error()})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	exists, err := h.service.ClientExists(ctx, clientID)
+	if err != nil {
+		h.logger.Error(ctx, err, ref+logger.LogNotFound, map[string]any{"client_id": clientID})
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	h.logger.Info(ctx, ref+"Verificação concluída", map[string]any{
+		"client_id": clientID,
+		"exists":    exists,
+	})
+
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Verificação concluída com sucesso",
+		Data: map[string]any{
+			"client_id": clientID,
+			"exists":    exists,
+		},
 	})
 }

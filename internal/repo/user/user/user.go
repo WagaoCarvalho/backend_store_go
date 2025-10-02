@@ -201,8 +201,12 @@ func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.
 
 func (r *userRepository) Update(ctx context.Context, user *models.User) (*models.User, error) {
 	const query = `
-		UPDATE users 
-		SET username = $1, email = $2, status = $3, updated_at = NOW(), version = version + 1
+		UPDATE users
+		SET username = $1,
+		    email = $2,
+		    status = $3,
+		    updated_at = NOW(),
+		    version = version + 1
 		WHERE id = $4 AND version = $5
 		RETURNING updated_at, version
 	`
@@ -215,16 +219,20 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) (*models
 		user.Version,
 	).Scan(&user.UpdatedAt, &user.Version)
 
-	if errors.Is(err, pgx.ErrNoRows) {
-		var exists bool
-		checkQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)`
-		if errCheck := r.db.QueryRow(ctx, checkQuery, user.UID).Scan(&exists); errCheck != nil {
-			return nil, fmt.Errorf("%w: erro ao verificar existência: %v", errMsg.ErrUpdate, errCheck)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			// Primeiro verifica se o usuário existe
+			var exists bool
+			checkQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)`
+			if errCheck := r.db.QueryRow(ctx, checkQuery, user.UID).Scan(&exists); errCheck != nil {
+				return nil, fmt.Errorf("%w: erro ao verificar existência: %v", errMsg.ErrUpdate, errCheck)
+			}
+			if !exists {
+				return nil, errMsg.ErrNotFound
+			}
+			return nil, errMsg.ErrVersionConflict
 		}
-		if !exists {
-			return nil, errMsg.ErrNotFound
-		}
-		return nil, errMsg.ErrVersionConflict
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	return user, nil
