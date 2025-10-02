@@ -46,3 +46,17 @@ func ToUserDTO(m *models.User) UserDTO {
 		UpdatedAt: m.UpdatedAt.Format(time.RFC3339),
 	}
 }
+
+func ToUserDTOs(models []*models.User) []UserDTO {
+	if len(models) == 0 {
+		return []UserDTO{}
+	}
+
+	dtos := make([]UserDTO, 0, len(models))
+	for _, m := range models {
+		if m != nil {
+			dtos = append(dtos, ToUserDTO(m))
+		}
+	}
+	return dtos
+}

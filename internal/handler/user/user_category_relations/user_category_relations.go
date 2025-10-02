@@ -75,8 +75,10 @@ func (h *UserCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Requ
 		"category_id": modelRelation.CategoryID,
 	})
 
+	createdDTO := dto.ToUserCategoryRelationsDTO(created)
+
 	utils.ToJSON(w, status, utils.DefaultResponse{
-		Data:    created,
+		Data:    createdDTO,
 		Message: message,
 		Status:  status,
 	})

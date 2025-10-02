@@ -39,7 +39,6 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	// Recebe o DTO no lugar do model
 	var requestData struct {
 		User *dto.UserDTO `json:"user"`
 	}
@@ -52,7 +51,6 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Converte DTO para model antes de enviar para o service
 	userModel := dto.ToUserModel(*requestData.User)
 
 	createdUser, err := h.service.Create(ctx, userModel)
@@ -70,7 +68,6 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		"email":    createdUser.Email,
 	})
 
-	// Converte model criado de volta para DTO antes de retornar
 	createdDTO := dto.ToUserDTO(createdUser)
 
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
@@ -97,10 +94,12 @@ func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		"quantidade": len(users),
 	})
 
+	userDTOs := dto.ToUserDTOs(users)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Usuários encontrados",
-		Data:    users,
+		Data:    userDTOs,
 	})
 }
 
@@ -143,10 +142,12 @@ func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		"email":   user.Email,
 	})
 
+	userDTO := dto.ToUserDTO(user)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Usuário encontrado",
-		Data:    user,
+		Data:    userDTO,
 	})
 }
 
@@ -231,10 +232,12 @@ func (h *UserHandler) GetByEmail(w http.ResponseWriter, r *http.Request) {
 		"email":   user.Email,
 	})
 
+	userDTO := dto.ToUserDTO(user)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Usuário encontrado",
-		Data:    user,
+		Data:    userDTO,
 	})
 }
 
@@ -270,10 +273,12 @@ func (h *UserHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 		"count": len(users),
 	})
 
+	userDTOs := dto.ToUserDTOs(users)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Usuários encontrados",
-		Data:    users,
+		Data:    userDTOs,
 	})
 }
 
@@ -292,7 +297,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{})
 
 	var requestData struct {
-		User *dto.UserDTO `json:"user"` // <-- agora DTO
+		User *dto.UserDTO `json:"user"`
 	}
 
 	id, err := utils.GetIDParam(r, "id")
@@ -318,7 +323,6 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Converte DTO para model antes de enviar para o service
 	userModel := dto.ToUserModel(*requestData.User)
 	userModel.UID = id
 
@@ -342,7 +346,6 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"user_id": updatedUser.UID,
 	})
 
-	// Converte model de volta para DTO na resposta
 	updatedDTO := dto.ToUserDTO(updatedUser)
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{

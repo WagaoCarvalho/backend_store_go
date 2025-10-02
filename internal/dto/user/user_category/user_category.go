@@ -42,3 +42,17 @@ func ToUserCategoryDTO(m *models.UserCategory) UserCategoryDTO {
 		UpdatedAt:   m.UpdatedAt.Format(time.RFC3339),
 	}
 }
+
+func ToUserCategoryDTOs(models []*models.UserCategory) []UserCategoryDTO {
+	if len(models) == 0 {
+		return []UserCategoryDTO{}
+	}
+
+	dtos := make([]UserCategoryDTO, 0, len(models))
+	for _, m := range models {
+		if m != nil {
+			dtos = append(dtos, ToUserCategoryDTO(m))
+		}
+	}
+	return dtos
+}

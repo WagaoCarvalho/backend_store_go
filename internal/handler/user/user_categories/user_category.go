@@ -98,8 +98,10 @@ func (h *UserCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		"id": id,
 	})
 
+	userDTO := dto.ToUserCategoryDTO(category)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    category,
+		Data:    userDTO,
 		Message: "Categoria recuperada com sucesso",
 		Status:  http.StatusOK,
 	})
@@ -122,8 +124,10 @@ func (h *UserCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		"total": len(categories),
 	})
 
+	userDTOs := dto.ToUserCategoryDTOs(categories)
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    categories,
+		Data:    userDTOs,
 		Message: "Categorias recuperadas com sucesso",
 		Status:  http.StatusOK,
 	})
