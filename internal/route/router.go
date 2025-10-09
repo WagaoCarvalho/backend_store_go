@@ -46,12 +46,14 @@ func NewRouter(log *logger.LogAdapter) *mux.Router {
 	routesSupplier.RegisterSupplierFullRoutes(r, db, log, blacklist)
 	routesSupplier.RegisterSupplierCategoryRoutes(r, db, log, blacklist)
 	routesSupplier.RegisterSupplierCategoryRelationRoutes(r, db, log, blacklist)
+	routesSupplier.RegisterSupplierContactRelationRoutes(r, db, log, blacklist)
 
 	//Users
 	routesUser.RegisterUserRoutes(r, db, log, blacklist)
 	routesUser.RegisterUserFullRoutes(r, db, log, blacklist)
 	routesUser.RegisterUserCategoryRoutes(r, db, log, blacklist)
 	routesUser.RegisterUserCategoryRelationRoutes(r, db, log, blacklist)
+	routesUser.RegisterUserContactRelationRoutes(r, db, log, blacklist)
 
 	//Clients
 	routesClient.RegisterClientRoutes(r, db, log, blacklist)

@@ -45,6 +45,9 @@ func NewProductService(repo repo.ProductRepository) ProductService {
 }
 
 func (s *productService) Create(ctx context.Context, product *models.Product) (*models.Product, error) {
+	if product == nil {
+		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
+	}
 
 	if err := product.Validate(); err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)

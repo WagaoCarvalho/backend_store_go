@@ -39,9 +39,7 @@ func TestContactHandler_Create(t *testing.T) {
 		mockService := new(mockContact.MockContactService)
 		handler := NewContactHandler(mockService, logAdapter)
 
-		userID := int64(10)
 		inputDTO := &dtoContact.ContactDTO{
-			UserID:      &userID,
 			ContactName: "Contato Teste",
 			Email:       "teste@email.com",
 			Phone:       "123456789",
@@ -74,8 +72,6 @@ func TestContactHandler_Create(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "Contato criado com sucesso", response.Message)
 
-		assert.NotNil(t, response.Data.UserID)
-		assert.Equal(t, *inputDTO.UserID, *response.Data.UserID)
 		assert.Equal(t, inputDTO.ContactName, response.Data.ContactName)
 		assert.Equal(t, inputDTO.Email, response.Data.Email)
 		assert.Equal(t, inputDTO.Phone, response.Data.Phone)
@@ -88,9 +84,7 @@ func TestContactHandler_Create(t *testing.T) {
 		mockService := new(mockContact.MockContactService)
 		handler := NewContactHandler(mockService, logAdapter)
 
-		userID := int64(42)
 		inputDTO := &dtoContact.ContactDTO{
-			UserID:      &userID,
 			ContactName: "Contato Erro",
 			Email:       "erro@email.com",
 			Phone:       "987654321",
@@ -135,9 +129,7 @@ func TestContactHandler_Create(t *testing.T) {
 		mockService := new(mockContact.MockContactService)
 		handler := NewContactHandler(mockService, logAdapter)
 
-		userID := int64(99)
 		inputDTO := &dtoContact.ContactDTO{
-			UserID:      &userID,
 			ContactName: "Contato FK",
 			Email:       "fk@email.com",
 			Phone:       "999999999",
@@ -230,216 +222,6 @@ func TestContactHandler_GetByID(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		handler.GetByID(w, req)
-
-		assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
-		mockService.AssertExpectations(t)
-	})
-}
-
-func TestContactHandler_GetByUserID(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
-
-	t.Run("Success", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
-		handler := NewContactHandler(mockService, logger)
-
-		expectedModels := []*models.Contact{
-			{ID: 1, ContactName: "Contato 1", Email: "c1@email.com"},
-			{ID: 2, ContactName: "Contato 2", Email: "c2@email.com"},
-		}
-
-		mockService.On("GetByUserID", mock.Anything, int64(1)).Return(expectedModels, nil)
-
-		req := httptest.NewRequest(http.MethodGet, "/contacts/user/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"user_id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.GetByUserID(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		var response map[string]interface{}
-		err := json.NewDecoder(resp.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, "Contatos do usuário encontrados", response["message"])
-		assert.Equal(t, float64(http.StatusOK), response["status"])
-
-		data, ok := response["data"].([]interface{})
-		assert.True(t, ok)
-		assert.Len(t, data, 2)
-
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("InvalidID", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
-		handler := NewContactHandler(mockService, logger)
-
-		req := httptest.NewRequest(http.MethodGet, "/contacts/user/abc", nil)
-		req = mux.SetURLVars(req, map[string]string{"user_id": "abc"})
-		w := httptest.NewRecorder()
-
-		handler.GetByUserID(w, req)
-
-		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-	})
-
-	t.Run("ServiceError", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
-		handler := NewContactHandler(mockService, logger)
-
-		mockService.On("GetByUserID", mock.Anything, int64(1)).Return(([]*models.Contact)(nil), assert.AnError)
-
-		req := httptest.NewRequest(http.MethodGet, "/contacts/user/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"user_id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.GetByUserID(w, req)
-
-		assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
-		mockService.AssertExpectations(t)
-	})
-}
-
-func TestContactHandler_GetByClientID(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
-
-	t.Run("Success", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
-		handler := NewContactHandler(mockService, logger)
-
-		expectedModels := []*models.Contact{
-			{ID: 1, ContactName: "Cliente 1"},
-			{ID: 2, ContactName: "Cliente 2"},
-		}
-
-		mockService.On("GetByClientID", mock.Anything, int64(1)).Return(expectedModels, nil)
-
-		req := httptest.NewRequest(http.MethodGet, "/contacts/client/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"client_id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.GetByClientID(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		var response map[string]interface{}
-		err := json.NewDecoder(resp.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, "Contatos do cliente encontrados", response["message"])
-		assert.Equal(t, float64(http.StatusOK), response["status"])
-
-		data, ok := response["data"].([]interface{})
-		assert.True(t, ok)
-		assert.Len(t, data, 2)
-
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("InvalidID", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
-		handler := NewContactHandler(mockService, logger)
-
-		req := httptest.NewRequest(http.MethodGet, "/contacts/client/abc", nil)
-		req = mux.SetURLVars(req, map[string]string{"client_id": "abc"})
-		w := httptest.NewRecorder()
-
-		handler.GetByClientID(w, req)
-
-		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-	})
-
-	t.Run("ServiceError", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
-		handler := NewContactHandler(mockService, logger)
-
-		mockService.On("GetByClientID", mock.Anything, int64(1)).Return(([]*models.Contact)(nil), assert.AnError)
-
-		req := httptest.NewRequest(http.MethodGet, "/contacts/client/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"client_id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.GetByClientID(w, req)
-
-		assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
-		mockService.AssertExpectations(t)
-	})
-}
-
-func TestContactHandler_GetBySupplierID(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
-
-	t.Run("Success", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
-		handler := NewContactHandler(mockService, logger)
-
-		expectedModels := []*models.Contact{
-			{ID: 1, ContactName: "Fornecedor 1"},
-			{ID: 2, ContactName: "Fornecedor 2"},
-		}
-
-		mockService.On("GetBySupplierID", mock.Anything, int64(1)).Return(expectedModels, nil)
-
-		req := httptest.NewRequest(http.MethodGet, "/contacts/supplier/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"supplier_id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.GetBySupplierID(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		var response map[string]interface{}
-		err := json.NewDecoder(resp.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, "Contatos do fornecedor encontrados", response["message"])
-		assert.Equal(t, float64(http.StatusOK), response["status"])
-
-		data, ok := response["data"].([]interface{})
-		assert.True(t, ok)
-		assert.Len(t, data, 2)
-
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("InvalidID", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
-		handler := NewContactHandler(mockService, logger)
-
-		req := httptest.NewRequest(http.MethodGet, "/contacts/supplier/abc", nil)
-		req = mux.SetURLVars(req, map[string]string{"supplier_id": "abc"})
-		w := httptest.NewRecorder()
-
-		handler.GetBySupplierID(w, req)
-
-		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-	})
-
-	t.Run("ServiceError", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
-		handler := NewContactHandler(mockService, logger)
-
-		mockService.On("GetBySupplierID", mock.Anything, int64(1)).Return(([]*models.Contact)(nil), assert.AnError)
-
-		req := httptest.NewRequest(http.MethodGet, "/contacts/supplier/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"supplier_id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.GetBySupplierID(w, req)
 
 		assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
 		mockService.AssertExpectations(t)

@@ -9,30 +9,19 @@ import (
 )
 
 type Contact struct {
-	ID              int64
-	UserID          *int64
-	ClientID        *int64
-	SupplierID      *int64
-	ContactName     string
-	ContactPosition string
-	Email           string
-	Phone           string
-	Cell            string
-	ContactType     string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	ID                 int64
+	ContactName        string
+	ContactDescription string
+	Email              string
+	Phone              string
+	Cell               string
+	ContactType        string
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
 }
 
 func (c *Contact) Validate() error {
 	var errs validators.ValidationErrors
-
-	// --- Associação ---
-	if !validators.ValidateSingleNonNil(c.UserID, c.ClientID, c.SupplierID) {
-		errs = append(errs, validators.ValidationError{
-			Field:   "UserID/ClientID/SupplierID",
-			Message: validators.MsgInvalidAssociation,
-		})
-	}
 
 	// ContactName
 	if validators.IsBlank(c.ContactName) {
@@ -46,9 +35,9 @@ func (c *Contact) Validate() error {
 		}
 	}
 
-	// ContactPosition
-	if len(c.ContactPosition) > 100 {
-		errs = append(errs, validators.ValidationError{Field: "contact_position", Message: validators.MsgMax100})
+	// ContactDescription
+	if len(c.ContactDescription) > 100 {
+		errs = append(errs, validators.ValidationError{Field: "contact_description", Message: validators.MsgMax100})
 	}
 
 	// Email

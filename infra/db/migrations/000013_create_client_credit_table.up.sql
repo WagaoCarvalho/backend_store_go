@@ -3,7 +3,9 @@ CREATE TABLE IF NOT EXISTS client_credit (
     client_id INT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
     allow_credit BOOLEAN NOT NULL DEFAULT FALSE,
     credit_limit DECIMAL(10,2) DEFAULT 0.00 CHECK (credit_limit >= 0),
-    credit_balance DECIMAL(10,2) DEFAULT 0.00 CHECK (credit_balance >= 0)
+    credit_balance DECIMAL(10,2) DEFAULT 0.00 CHECK (credit_balance >= 0),
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 

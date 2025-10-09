@@ -9,8 +9,6 @@ import (
 )
 
 func TestContact_Validate(t *testing.T) {
-	id := int64(1)
-
 	tests := []struct {
 		name     string
 		contact  Contact
@@ -19,42 +17,21 @@ func TestContact_Validate(t *testing.T) {
 		errMsg   string
 	}{
 		{
-			name: "Valid contact with UserID",
+			name: "Valid contact",
 			contact: Contact{
-				UserID:      &id,
-				ContactName: "João Silva",
-				Email:       "joao@example.com",
-				Phone:       "1134567890",
-				Cell:        "11998765432",
-				ContactType: "principal",
+				ContactName:        "João Silva",
+				ContactDescription: "Gerente de contas",
+				Email:              "joao@example.com",
+				Phone:              "1134567890",
+				Cell:               "11998765432",
+				ContactType:        "principal",
 			},
 			wantErr: false,
 		},
 		{
-			name: "Invalid IDs (none provided)",
-			contact: Contact{
-				ContactName: "Maria",
-			},
-			wantErr:  true,
-			errField: "UserID/ClientID/SupplierID",     // atualizado
-			errMsg:   validators.MsgInvalidAssociation, // atualizado
-		},
-
-		{
-			name: "Invalid IDs (multiple provided)",
-			contact: Contact{
-				UserID:      &id,
-				ClientID:    &id,
-				ContactName: "Carlos",
-			},
-			wantErr:  true,
-			errField: "UserID/ClientID/SupplierID",
-			errMsg:   validators.MsgInvalidAssociation,
-		},
-		{
 			name: "Blank ContactName",
 			contact: Contact{
-				UserID: &id,
+				Email: "teste@example.com",
 			},
 			wantErr:  true,
 			errField: "contact_name",
@@ -63,7 +40,6 @@ func TestContact_Validate(t *testing.T) {
 		{
 			name: "ContactName too short",
 			contact: Contact{
-				UserID:      &id,
 				ContactName: "Jo",
 			},
 			wantErr:  true,
@@ -73,7 +49,6 @@ func TestContact_Validate(t *testing.T) {
 		{
 			name: "ContactName too long",
 			contact: Contact{
-				UserID:      &id,
 				ContactName: strings.Repeat("a", 101),
 			},
 			wantErr:  true,
@@ -81,20 +56,18 @@ func TestContact_Validate(t *testing.T) {
 			errMsg:   validators.MsgMax100,
 		},
 		{
-			name: "ContactPosition too long",
+			name: "ContactDescription too long",
 			contact: Contact{
-				UserID:          &id,
-				ContactName:     "Pedro",
-				ContactPosition: strings.Repeat("x", 101),
+				ContactName:        "Pedro",
+				ContactDescription: strings.Repeat("x", 101),
 			},
 			wantErr:  true,
-			errField: "contact_position",
+			errField: "contact_description",
 			errMsg:   validators.MsgMax100,
 		},
 		{
 			name: "Invalid Email format",
 			contact: Contact{
-				UserID:      &id,
 				ContactName: "José",
 				Email:       "invalid-email",
 			},
@@ -105,7 +78,6 @@ func TestContact_Validate(t *testing.T) {
 		{
 			name: "Email too long",
 			contact: Contact{
-				UserID:      &id,
 				ContactName: "José",
 				Email:       strings.Repeat("a", 101) + "@example.com",
 			},
@@ -116,7 +88,6 @@ func TestContact_Validate(t *testing.T) {
 		{
 			name: "Invalid Phone format",
 			contact: Contact{
-				UserID:      &id,
 				ContactName: "Ana",
 				Phone:       "abc123",
 			},
@@ -127,7 +98,6 @@ func TestContact_Validate(t *testing.T) {
 		{
 			name: "Invalid Cell format",
 			contact: Contact{
-				UserID:      &id,
 				ContactName: "Ana",
 				Cell:        "12345",
 			},
@@ -138,7 +108,6 @@ func TestContact_Validate(t *testing.T) {
 		{
 			name: "Invalid ContactType",
 			contact: Contact{
-				UserID:      &id,
 				ContactName: "Roberto",
 				ContactType: "gerente",
 			},

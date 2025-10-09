@@ -13,6 +13,7 @@ import (
 	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
 	repoContact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	repoRelation "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
+	repoContactRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_contact_relations"
 	repoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_full_repositories"
 )
 
@@ -21,10 +22,11 @@ type SupplierFullService interface {
 }
 
 type supplierFullService struct {
-	repoSupplier repoSupplier.SupplierFullRepository
-	repoAddress  repoAddress.AddressRepository
-	repoContact  repoContact.ContactRepository
-	repoCatRel   repoRelation.SupplierCategoryRelationRepository
+	repoSupplier   repoSupplier.SupplierFullRepository
+	repoAddress    repoAddress.AddressRepository
+	repoContact    repoContact.ContactRepository
+	repoCatRel     repoRelation.SupplierCategoryRelationRepository
+	repoContactRel repoContactRel.SupplierContactRelationRepository
 }
 
 func NewSupplierFullService(
@@ -32,12 +34,14 @@ func NewSupplierFullService(
 	repoAddress repoAddress.AddressRepository,
 	repoContact repoContact.ContactRepository,
 	repoCatRel repoRelation.SupplierCategoryRelationRepository,
+	repoContactRel repoContactRel.SupplierContactRelationRepository,
 ) SupplierFullService {
 	return &supplierFullService{
-		repoSupplier: repoSupplier,
-		repoAddress:  repoAddress,
-		repoContact:  repoContact,
-		repoCatRel:   repoCatRel,
+		repoSupplier:   repoSupplier,
+		repoAddress:    repoAddress,
+		repoContact:    repoContact,
+		repoCatRel:     repoCatRel,
+		repoContactRel: repoContactRel,
 	}
 }
 
@@ -47,9 +51,10 @@ func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *mode
 	}
 
 	if err := supplierFull.Validate(); err != nil {
-		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
+	// Inicia transação
 	tx, err := s.repoSupplier.BeginTx(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao iniciar transação: %w", err)
@@ -81,11 +86,13 @@ func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *mode
 		return nil
 	}
 
+	// Criação do fornecedor
 	createdSupplier, err := s.repoSupplier.CreateTx(ctx, tx, supplierFull.Supplier)
 	if err != nil {
 		return nil, commitOrRollback(err)
 	}
 
+	// Criação do endereço
 	supplierFull.Address.SupplierID = utils.StrToPtr(createdSupplier.ID)
 	if err := supplierFull.Address.Validate(); err != nil {
 		return nil, commitOrRollback(fmt.Errorf("endereço inválido: %w", err))
@@ -95,7 +102,7 @@ func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *mode
 		return nil, commitOrRollback(err)
 	}
 
-	supplierFull.Contact.SupplierID = utils.StrToPtr(createdSupplier.ID)
+	// Criação do contato
 	if err := supplierFull.Contact.Validate(); err != nil {
 		return nil, commitOrRollback(fmt.Errorf("contato inválido: %w", err))
 	}
@@ -104,6 +111,7 @@ func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *mode
 		return nil, commitOrRollback(err)
 	}
 
+	// Relações fornecedor-categoria
 	for _, category := range supplierFull.Categories {
 		relation := &modelsCatRel.SupplierCategoryRelations{
 			SupplierID: createdSupplier.ID,
@@ -119,12 +127,15 @@ func (s *supplierFullService) CreateFull(ctx context.Context, supplierFull *mode
 		}
 	}
 
-	result := &modelsFull.SupplierFull{
+	// Commit final
+	if err := commitOrRollback(nil); err != nil {
+		return nil, err // garante que não retorne o objeto se o commit falhar
+	}
+
+	return &modelsFull.SupplierFull{
 		Supplier:   createdSupplier,
 		Address:    createdAddress,
 		Contact:    createdContact,
 		Categories: supplierFull.Categories,
-	}
-
-	return result, commitOrRollback(nil)
+	}, nil
 }

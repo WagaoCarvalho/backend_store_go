@@ -1,31 +1,12 @@
 CREATE TABLE IF NOT EXISTS contacts (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
-    supplier_id INTEGER REFERENCES suppliers(id) ON DELETE CASCADE,
-
-    contact_name VARCHAR(255),
-    contact_position VARCHAR(100),
-    email VARCHAR(255),
+    id BIGSERIAL PRIMARY KEY,
+    contact_name VARCHAR(100) NOT NULL,
+    contact_description VARCHAR(100),
+    email VARCHAR(100),
     phone VARCHAR(20),
     cell VARCHAR(20),
-    contact_type VARCHAR(50),
+    contact_type VARCHAR(20),
 
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
-
-    -- Garante que apenas uma FK esteja preenchida
-    CONSTRAINT chk_only_one_entity CHECK (
-        (user_id IS NOT NULL)::int +
-        (client_id IS NOT NULL)::int +
-        (supplier_id IS NOT NULL)::int = 1
-    )
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
 );
-
--- Índices
-CREATE INDEX idx_contacts_user_id ON contacts (user_id);
-CREATE INDEX idx_contacts_client_id ON contacts (client_id);
-CREATE INDEX idx_contacts_supplier_id ON contacts (supplier_id);
-CREATE INDEX idx_contacts_email ON contacts (email);
-CREATE INDEX idx_contacts_phone ON contacts (phone);
-CREATE INDEX idx_contacts_cell ON contacts (cell);

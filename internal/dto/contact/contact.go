@@ -7,31 +7,25 @@ import (
 )
 
 type ContactDTO struct {
-	ID              *int64     `json:"id,omitempty"`
-	UserID          *int64     `json:"user_id,omitempty"`
-	ClientID        *int64     `json:"client_id,omitempty"`
-	SupplierID      *int64     `json:"supplier_id,omitempty"`
-	ContactName     string     `json:"contact_name"`
-	ContactPosition string     `json:"contact_position,omitempty"`
-	Email           string     `json:"email,omitempty"`
-	Phone           string     `json:"phone,omitempty"`
-	Cell            string     `json:"cell,omitempty"`
-	ContactType     string     `json:"contact_type,omitempty"`
-	CreatedAt       *time.Time `json:"created_at,omitempty"`
-	UpdatedAt       *time.Time `json:"updated_at,omitempty"`
+	ID                 *int64     `json:"id,omitempty"`
+	ContactName        string     `json:"contact_name"`
+	ContactDescription string     `json:"contact_description,omitempty"`
+	Email              string     `json:"email,omitempty"`
+	Phone              string     `json:"phone,omitempty"`
+	Cell               string     `json:"cell,omitempty"`
+	ContactType        string     `json:"contact_type,omitempty"`
+	CreatedAt          *time.Time `json:"created_at,omitempty"`
+	UpdatedAt          *time.Time `json:"updated_at,omitempty"`
 }
 
 func ToContactModel(dto ContactDTO) *models.Contact {
 	c := &models.Contact{
-		UserID:          dto.UserID,
-		ClientID:        dto.ClientID,
-		SupplierID:      dto.SupplierID,
-		ContactName:     dto.ContactName,
-		ContactPosition: dto.ContactPosition,
-		Email:           dto.Email,
-		Phone:           dto.Phone,
-		Cell:            dto.Cell,
-		ContactType:     dto.ContactType,
+		ContactName:        dto.ContactName,
+		ContactDescription: dto.ContactDescription,
+		Email:              dto.Email,
+		Phone:              dto.Phone,
+		Cell:               dto.Cell,
+		ContactType:        dto.ContactType,
 	}
 
 	if dto.ID != nil {
@@ -49,22 +43,19 @@ func ToContactModel(dto ContactDTO) *models.Contact {
 
 func ToContactDTO(model *models.Contact) ContactDTO {
 	return ContactDTO{
-		ID:              &model.ID,
-		UserID:          model.UserID,
-		ClientID:        model.ClientID,
-		SupplierID:      model.SupplierID,
-		ContactName:     model.ContactName,
-		ContactPosition: model.ContactPosition,
-		Email:           model.Email,
-		Phone:           model.Phone,
-		Cell:            model.Cell,
-		ContactType:     model.ContactType,
-		CreatedAt:       &model.CreatedAt,
-		UpdatedAt:       &model.UpdatedAt,
+		ID:                 &model.ID,
+		ContactName:        model.ContactName,
+		ContactDescription: model.ContactDescription,
+		Email:              model.Email,
+		Phone:              model.Phone,
+		Cell:               model.Cell,
+		ContactType:        model.ContactType,
+		CreatedAt:          &model.CreatedAt,
+		UpdatedAt:          &model.UpdatedAt,
 	}
 }
 
-func ToAddressDTOs(models []*models.Contact) []ContactDTO {
+func ToContactDTOs(models []*models.Contact) []ContactDTO {
 	if len(models) == 0 {
 		return []ContactDTO{}
 	}

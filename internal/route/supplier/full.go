@@ -10,7 +10,8 @@ import (
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
 	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
 	repoContact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
-	repoSupplierCatRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
+	repoCatRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category_relations"
+	repoContactRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_contact_relations"
 	repoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_full_repositories"
 	services "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_full_services"
 
@@ -24,13 +25,14 @@ func RegisterSupplierFullRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repoUser := repoSupplier.NewSupplierFullRepository(db)
+	repoSupplier := repoSupplier.NewSupplierFullRepository(db)
 	repoAddress := repoAddress.NewAddressRepository(db)
 	repoContact := repoContact.NewContactRepository(db)
-	repoUserCatRel := repoSupplierCatRel.NewSupplierCategoryRelationRepo(db)
+	repoCatRel := repoCatRel.NewSupplierCategoryRelationRepo(db)
+	repoContactRel := repoContactRel.NewSupplierContactRelationRepositories(db)
 
-	userService := services.NewSupplierFullService(repoUser, repoAddress, repoContact, repoUserCatRel)
-	handler := handlers.NewSupplierFullHandler(userService, log)
+	supplierService := services.NewSupplierFullService(repoSupplier, repoAddress, repoContact, repoCatRel, repoContactRel)
+	handler := handlers.NewSupplierFullHandler(supplierService, log)
 
 	// Config JWT
 	jwtCfg := config.LoadJwtConfig()
