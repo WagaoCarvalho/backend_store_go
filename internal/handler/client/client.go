@@ -277,17 +277,12 @@ func (h *ClientHandler) Update(w http.ResponseWriter, r *http.Request) {
 	clientModel.ID = uid // garante que o ID do path seja usado
 
 	// Chama o serviço
-	if err := h.service.Update(ctx, clientModel); err != nil {
+	err = h.service.Update(ctx, clientModel)
+	if err != nil {
 		switch {
-		case errors.Is(err, errMsg.ErrNotFound):
-			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-				"client_id": uid,
-			})
-			utils.ErrorResponse(w, err, http.StatusNotFound)
-			return
-
-		case errors.Is(err, errMsg.ErrInvalidForeignKey):
-			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
+		case errors.Is(err, errMsg.ErrInvalidData),
+			errors.Is(err, errMsg.ErrZeroID):
+			h.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
 				"client_id": uid,
 				"erro":      err.Error(),
 			})
@@ -300,6 +295,20 @@ func (h *ClientHandler) Update(w http.ResponseWriter, r *http.Request) {
 				"erro":      err.Error(),
 			})
 			utils.ErrorResponse(w, err, http.StatusConflict)
+			return
+
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
+				"client_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusConflict)
+			return
+
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"client_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusNotFound)
 			return
 
 		default:

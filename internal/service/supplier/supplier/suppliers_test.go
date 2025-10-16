@@ -311,115 +311,129 @@ func TestSupplierService_GetVersionByID(t *testing.T) {
 }
 
 func TestSupplierService_Update(t *testing.T) {
-	type args struct {
-		supplier *models.Supplier
+	ctx := context.Background()
+
+	validSupplier := func() *models.Supplier {
+		return &models.Supplier{
+			ID:      1,
+			Name:    "Fornecedor Teste",
+			Version: 1,
+		}
 	}
 
-	tests := []struct {
-		name        string
-		args        args
-		mockRepo    func(m *mock_supplier.MockSupplierRepository)
-		expected    *models.Supplier
-		expectedErr error
-	}{
-		{
-			name: "sucesso na atualização",
-			args: args{
-				supplier: &models.Supplier{ID: 1, Name: "Fornecedor A", Version: 1},
-			},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
-				m.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
-					return s.ID == 1 && s.Name == "Fornecedor A" && s.Version == 1
-				})).Return(nil).Once()
-			},
-			expected:    &models.Supplier{ID: 1, Name: "Fornecedor A", Version: 1},
-			expectedErr: nil,
-		},
-		{
-			name: "id inválido",
-			args: args{
-				supplier: &models.Supplier{ID: 0, Name: "Fornecedor B", Version: 1},
-			},
-			mockRepo:    nil,
-			expected:    nil,
-			expectedErr: errMsg.ErrZeroID,
-		},
-		{
-			name: "nome obrigatório",
-			args: args{
-				supplier: &models.Supplier{ID: 1, Name: "", Version: 1},
-			},
-			mockRepo:    nil,
-			expected:    nil,
-			expectedErr: errMsg.ErrInvalidData,
-		},
-		{
-			name: "versão obrigatória",
-			args: args{
-				supplier: &models.Supplier{ID: 1, Name: "Fornecedor C", Version: 0},
-			},
-			mockRepo:    nil,
-			expected:    nil,
-			expectedErr: errMsg.ErrVersionConflict,
-		},
-		{
-			name: "conflito de versão",
-			args: args{
-				supplier: &models.Supplier{ID: 1, Name: "Fornecedor D", Version: 2},
-			},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
-				m.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrVersionConflict).Once()
-			},
-			expected:    nil,
-			expectedErr: errMsg.ErrVersionConflict,
-		},
-		{
-			name: "fornecedor não encontrado",
-			args: args{
-				supplier: &models.Supplier{ID: 10, Name: "Fornecedor X", Version: 1},
-			},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
-				m.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrNotFound).Once()
-			},
-			expected:    nil,
-			expectedErr: errMsg.ErrNotFound,
-		},
-		{
-			name: "erro genérico na atualização",
-			args: args{
-				supplier: &models.Supplier{ID: 1, Name: "Fornecedor Z", Version: 1},
-			},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
-				m.On("Update", mock.Anything, mock.Anything).Return(errors.New("erro banco")).Once()
-			},
-			expected:    nil,
-			expectedErr: errMsg.ErrUpdate,
-		},
-	}
+	t.Run("falha: ID inválido", func(t *testing.T) {
+		mockRepo := new(mock_supplier.MockSupplierRepository)
+		service := NewSupplierService(mockRepo)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockRepo := &mock_supplier.MockSupplierRepository{}
-			if tt.mockRepo != nil {
-				tt.mockRepo(mockRepo)
-			}
+		input := validSupplier()
+		input.ID = 0
 
-			service := NewSupplierService(mockRepo)
+		err := service.Update(ctx, input)
 
-			result, err := service.Update(context.Background(), tt.args.supplier)
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
 
-			assert.Equal(t, tt.expected, result)
+	t.Run("falha: validação inválida", func(t *testing.T) {
+		mockRepo := new(mock_supplier.MockSupplierRepository)
+		service := NewSupplierService(mockRepo)
 
-			if tt.expectedErr != nil {
-				assert.Error(t, err)
-				assert.ErrorContains(t, err, tt.expectedErr.Error())
-			} else {
-				assert.NoError(t, err)
-			}
+		input := validSupplier()
+		input.Name = ""
 
-			mockRepo.AssertExpectations(t)
-		})
-	}
+		err := service.Update(ctx, input)
+
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("falha: versão inválida", func(t *testing.T) {
+		mockRepo := new(mock_supplier.MockSupplierRepository)
+		service := NewSupplierService(mockRepo)
+
+		input := validSupplier()
+		input.Version = 0
+
+		err := service.Update(ctx, input)
+
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		mockRepo.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("falha: fornecedor não encontrado (SupplierExists = false)", func(t *testing.T) {
+		mockRepo := new(mock_supplier.MockSupplierRepository)
+		service := NewSupplierService(mockRepo)
+
+		input := validSupplier()
+
+		mockRepo.On("Update", ctx, input).Return(errMsg.ErrNotFound).Once()
+		mockRepo.On("SupplierExists", ctx, input.ID).Return(false, nil).Once()
+
+		err := service.Update(ctx, input)
+
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha: conflito de versão (SupplierExists = true)", func(t *testing.T) {
+		mockRepo := new(mock_supplier.MockSupplierRepository)
+		service := NewSupplierService(mockRepo)
+
+		input := validSupplier()
+
+		mockRepo.On("Update", ctx, input).Return(errMsg.ErrNotFound).Once()
+		mockRepo.On("SupplierExists", ctx, input.ID).Return(true, nil).Once()
+
+		err := service.Update(ctx, input)
+
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha: erro ao verificar existência", func(t *testing.T) {
+		mockRepo := new(mock_supplier.MockSupplierRepository)
+		service := NewSupplierService(mockRepo)
+
+		input := validSupplier()
+
+		mockRepo.On("Update", ctx, input).Return(errMsg.ErrNotFound).Once()
+		mockRepo.On("SupplierExists", ctx, input.ID).Return(false, errors.New("erro banco")).Once()
+
+		err := service.Update(ctx, input)
+
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+		assert.ErrorContains(t, err, "erro banco")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha: erro genérico no repositório", func(t *testing.T) {
+		mockRepo := new(mock_supplier.MockSupplierRepository)
+		service := NewSupplierService(mockRepo)
+
+		input := validSupplier()
+
+		mockRepo.On("Update", ctx, input).Return(errors.New("erro genérico")).Once()
+
+		err := service.Update(ctx, input)
+
+		assert.ErrorIs(t, err, errMsg.ErrUpdate)
+		assert.ErrorContains(t, err, "erro genérico")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("sucesso", func(t *testing.T) {
+		mockRepo := new(mock_supplier.MockSupplierRepository)
+		service := NewSupplierService(mockRepo)
+
+		input := validSupplier()
+
+		mockRepo.On("Update", ctx, input).Return(nil).Once()
+
+		err := service.Update(ctx, input)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
 func TestSupplierService_Delete(t *testing.T) {

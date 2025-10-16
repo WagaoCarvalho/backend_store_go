@@ -40,7 +40,16 @@ func (s *clientService) Create(ctx context.Context, client *models.Client) (*mod
 
 	created, err := s.repo.Create(ctx, client)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
+		switch {
+		case errors.Is(err, errMsg.ErrDuplicate):
+			return nil, errMsg.ErrDuplicate
+
+		case errors.Is(err, errMsg.ErrInvalidForeignKey):
+			return nil, errMsg.ErrInvalidForeignKey
+
+		default:
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
+		}
 	}
 
 	return created, nil
@@ -104,16 +113,14 @@ func (s *clientService) Update(ctx context.Context, client *models.Client) error
 	}
 
 	if err := s.repo.Update(ctx, client); err != nil {
-		// aqui só tratamos erros de domínio vindos do repo
-		switch {
-		case errors.Is(err, errMsg.ErrNotFound):
-			return errMsg.ErrNotFound
-		case errors.Is(err, errMsg.ErrVersionConflict):
-			return errMsg.ErrVersionConflict
-		default:
-			return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+		if errors.Is(err, errMsg.ErrVersionConflict) ||
+			errors.Is(err, errMsg.ErrDuplicate) ||
+			errors.Is(err, errMsg.ErrInvalidData) {
+			return err
 		}
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
+
 	return nil
 }
 

@@ -8,6 +8,7 @@ import (
 	mockClient "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/client"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -24,6 +25,44 @@ func TestClientService_Create(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Error(t, err)
 		mockRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+	})
+
+	t.Run("erro - cliente duplicado", func(t *testing.T) {
+		mockRepo := new(mockClient.MockClientRepository)
+		service := NewClientService(mockRepo)
+
+		client := &models.Client{
+			Name:  "Cliente Teste",
+			Email: utils.StrToPtr("teste@teste.com"),
+			CNPJ:  utils.StrToPtr("12345678000199"),
+		}
+
+		mockRepo.On("Create", mock.Anything, client).Return(nil, errMsg.ErrDuplicate).Once()
+
+		result, err := service.Create(context.Background(), client)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrDuplicate)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro - chave estrangeira inválida", func(t *testing.T) {
+		mockRepo := new(mockClient.MockClientRepository)
+		service := NewClientService(mockRepo)
+
+		client := &models.Client{
+			Name:  "Cliente Teste",
+			Email: utils.StrToPtr("teste@teste.com"),
+			CNPJ:  utils.StrToPtr("12345678000199"),
+		}
+
+		mockRepo.On("Create", mock.Anything, client).Return(nil, errMsg.ErrInvalidForeignKey).Once()
+
+		result, err := service.Create(context.Background(), client)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidForeignKey)
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("falha ao criar no repo", func(t *testing.T) {
@@ -280,98 +319,51 @@ func TestClientService_ClientExists(t *testing.T) {
 }
 
 func TestClientService_Update(t *testing.T) {
-	t.Run("falha por ID inválido", func(t *testing.T) {
+	t.Run("falha - ID inválido", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClientRepository)
 		service := NewClientService(mockRepo)
 
-		cpf := "12345678901"
-		client := &models.Client{ID: 0, Name: "Teste", CPF: &cpf}
+		client := &models.Client{ID: 0, Name: "Teste", Version: 1}
 
 		err := service.Update(context.Background(), client)
-
 		assert.ErrorIs(t, err, errMsg.ErrZeroID)
-		mockRepo.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
+		mockRepo.AssertNotCalled(t, "Update")
 	})
 
-	t.Run("falha na validação do cliente", func(t *testing.T) {
+	t.Run("falha - versão inválida", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClientRepository)
 		service := NewClientService(mockRepo)
 
-		invalidClient := &models.Client{ID: 1, Name: "", Version: 1} // ID válido, mas inválido na validação
-
-		err := service.Update(context.Background(), invalidClient)
-
-		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
-		mockRepo.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
-	})
-
-	t.Run("falha no repo", func(t *testing.T) {
-		mockRepo := new(mockClient.MockClientRepository)
-		service := NewClientService(mockRepo)
-
-		cpf := "12345678901"
-		client := &models.Client{ID: 1, Name: "Teste", CPF: &cpf, Version: 1}
-		expectedErr := errors.New("db error")
-
-		mockRepo.
-			On("Update", mock.Anything, client).
-			Return(expectedErr)
+		client := &models.Client{ID: 1, Name: "Teste", Version: 0}
 
 		err := service.Update(context.Background(), client)
-
-		assert.ErrorContains(t, err, errMsg.ErrUpdate.Error())
-		assert.ErrorContains(t, err, expectedErr.Error())
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("falha: versão inválida", func(t *testing.T) {
-		mockRepo := new(mockClient.MockClientRepository)
-		service := NewClientService(mockRepo)
-
-		input := &models.Client{
-			ID:      1,
-			Version: 0, // invalida a versão
-			Name:    "Cliente Teste",
-		}
-
-		err := service.Update(context.Background(), input)
-
 		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
-	t.Run("sucesso", func(t *testing.T) {
+	t.Run("falha - validação", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClientRepository)
 		service := NewClientService(mockRepo)
 
-		cpf := "12345678901"
-		client := &models.Client{ID: 1, Name: "Teste", CPF: &cpf, Version: 1}
-
-		mockRepo.
-			On("Update", mock.Anything, client).
-			Return(nil)
+		client := &models.Client{ID: 1, Name: "", Version: 1, CNPJ: nil} // inválido
 
 		err := service.Update(context.Background(), client)
-
-		assert.NoError(t, err)
-		mockRepo.AssertExpectations(t)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		mockRepo.AssertNotCalled(t, "Update")
 	})
 
-	t.Run("falha - cliente não encontrado", func(t *testing.T) {
+	t.Run("falha - erro genérico do repo", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClientRepository)
 		service := NewClientService(mockRepo)
 
-		cpf := "12345678901"
-		client := &models.Client{ID: 1, Name: "Teste", CPF: &cpf, Version: 1}
+		client := &models.Client{ID: 1, Name: "Teste", Version: 1, CNPJ: utils.StrToPtr("12135135000158")}
+		expectedErr := errors.New("db error")
 
-		mockRepo.
-			On("Update", mock.Anything, client).
-			Return(errMsg.ErrNotFound).
-			Once()
+		mockRepo.On("Update", mock.Anything, client).Return(expectedErr).Once()
 
 		err := service.Update(context.Background(), client)
-
-		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		assert.ErrorContains(t, err, errMsg.ErrUpdate.Error())
+		assert.ErrorContains(t, err, expectedErr.Error())
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -379,20 +371,40 @@ func TestClientService_Update(t *testing.T) {
 		mockRepo := new(mockClient.MockClientRepository)
 		service := NewClientService(mockRepo)
 
-		cpf := "12345678901"
-		client := &models.Client{ID: 1, Name: "Teste", CPF: &cpf, Version: 1}
+		client := &models.Client{ID: 1, Name: "Teste", Version: 1, CNPJ: utils.StrToPtr("12135135000158")}
 
-		mockRepo.
-			On("Update", mock.Anything, client).
-			Return(errMsg.ErrVersionConflict).
-			Once()
+		mockRepo.On("Update", mock.Anything, client).Return(errMsg.ErrVersionConflict).Once()
 
 		err := service.Update(context.Background(), client)
-
 		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("falha - cliente duplicado", func(t *testing.T) {
+		mockRepo := new(mockClient.MockClientRepository)
+		service := NewClientService(mockRepo)
+
+		client := &models.Client{ID: 1, Name: "Teste", Version: 1, CNPJ: utils.StrToPtr("12135135000158")}
+
+		mockRepo.On("Update", mock.Anything, client).Return(errMsg.ErrDuplicate).Once()
+
+		err := service.Update(context.Background(), client)
+		assert.ErrorIs(t, err, errMsg.ErrDuplicate)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("sucesso", func(t *testing.T) {
+		mockRepo := new(mockClient.MockClientRepository)
+		service := NewClientService(mockRepo)
+
+		client := &models.Client{ID: 1, Name: "Teste", Version: 1, CNPJ: utils.StrToPtr("12135135000158")}
+
+		mockRepo.On("Update", mock.Anything, client).Return(nil).Once()
+
+		err := service.Update(context.Background(), client)
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
 func TestClientService_Delete(t *testing.T) {

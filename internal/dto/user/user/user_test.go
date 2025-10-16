@@ -72,3 +72,69 @@ func TestToUserDTO(t *testing.T) {
 		assert.Equal(t, "", dto.UpdatedAt)
 	})
 }
+
+func TestToUserDTOs(t *testing.T) {
+	t.Run("Convert slice of User models to DTOs", func(t *testing.T) {
+		now := time.Now()
+		modelsList := []*models.User{
+			{
+				UID:       1,
+				Username:  "usuario1",
+				Email:     "user1@example.com",
+				Password:  "Senha123",
+				Status:    true,
+				Version:   1,
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+			{
+				UID:       2,
+				Username:  "usuario2",
+				Email:     "user2@example.com",
+				Password:  "Senha456",
+				Status:    false,
+				Version:   2,
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+		}
+
+		dtos := ToUserDTOs(modelsList)
+
+		assert.Len(t, dtos, 2)
+		assert.Equal(t, modelsList[0].UID, *dtos[0].UID)
+		assert.Equal(t, modelsList[1].UID, *dtos[1].UID)
+		assert.Equal(t, modelsList[0].Email, dtos[0].Email)
+		assert.Equal(t, modelsList[1].Email, dtos[1].Email)
+	})
+
+	t.Run("Return empty slice when input slice is empty", func(t *testing.T) {
+		var modelsList []*models.User
+		dtos := ToUserDTOs(modelsList)
+
+		assert.NotNil(t, dtos)
+		assert.Empty(t, dtos)
+	})
+
+	t.Run("Ignore nil elements in the input slice", func(t *testing.T) {
+		now := time.Now()
+		modelsList := []*models.User{
+			{
+				UID:       1,
+				Username:  "usuario1",
+				Email:     "user1@example.com",
+				Password:  "Senha123",
+				Status:    true,
+				Version:   1,
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+			nil,
+		}
+
+		dtos := ToUserDTOs(modelsList)
+
+		assert.Len(t, dtos, 1)
+		assert.Equal(t, modelsList[0].Username, dtos[0].Username)
+	})
+}

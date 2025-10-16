@@ -38,13 +38,31 @@ func NewUserRepository(db *pgxpool.Pool) UserRepository {
 
 func (r *userRepository) Create(ctx context.Context, user *models.User) (*models.User, error) {
 	const query = `
-		INSERT INTO users (username, email, password_hash, status, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, NOW(), NOW())
-		RETURNING id, created_at, updated_at
+		INSERT INTO users (
+			username,
+			email,
+			password_hash,
+			description,
+			status,
+			version,
+			created_at,
+			updated_at
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+		RETURNING id, version, description, created_at, updated_at
 	`
 
-	err := r.db.QueryRow(ctx, query, user.Username, user.Email, user.Password, user.Status).
-		Scan(&user.UID, &user.CreatedAt, &user.UpdatedAt)
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		user.Username,
+		user.Email,
+		user.Password,
+		user.Description,
+		user.Status,
+		user.Version,
+	).Scan(&user.UID, &user.Version, &user.Description, &user.CreatedAt, &user.UpdatedAt)
+
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
@@ -54,7 +72,14 @@ func (r *userRepository) Create(ctx context.Context, user *models.User) (*models
 
 func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 	const query = `
-		SELECT id, username, email, status, created_at, updated_at
+		SELECT 
+			id,
+			username,
+			email,
+			description,
+			status,
+			created_at,
+			updated_at
 		FROM users
 	`
 
@@ -71,6 +96,7 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 			&user.UID,
 			&user.Username,
 			&user.Email,
+			&user.Description,
 			&user.Status,
 			&user.CreatedAt,
 			&user.UpdatedAt,
@@ -87,18 +113,26 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 	return users, nil
 }
 
-func (r *userRepository) GetByID(ctx context.Context, uid int64) (*models.User, error) {
+func (r *userRepository) GetByID(ctx context.Context, id int64) (*models.User, error) {
 	const query = `
-		SELECT id, username, email, status, created_at, updated_at
+		SELECT 
+			id,
+			username,
+			email,
+			description,
+			status,
+			created_at,
+			updated_at
 		FROM users
 		WHERE id = $1
 	`
 
 	user := &models.User{}
-	err := r.db.QueryRow(ctx, query, uid).Scan(
+	err := r.db.QueryRow(ctx, query, id).Scan(
 		&user.UID,
 		&user.Username,
 		&user.Email,
+		&user.Description,
 		&user.Status,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -131,7 +165,7 @@ func (r *userRepository) GetVersionByID(ctx context.Context, id int64) (int64, e
 
 func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	const query = `
-		SELECT id, username, email, password_hash, status, version, created_at, updated_at
+		SELECT id, username, email, password_hash, status, created_at, updated_at
 		FROM users
 		WHERE email = $1
 	`
@@ -143,7 +177,6 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.
 		&user.Email,
 		&user.Password,
 		&user.Status,
-		&user.Version,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -160,7 +193,14 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.
 
 func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.User, error) {
 	const query = `
-		SELECT id, username, email, status, created_at, updated_at
+		SELECT 
+			id,
+			username,
+			email,
+			description,
+			status,
+			created_at,
+			updated_at
 		FROM users
 		WHERE username ILIKE $1
 		ORDER BY username ASC
@@ -179,17 +219,18 @@ func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.
 			&user.UID,
 			&user.Username,
 			&user.Email,
+			&user.Description,
 			&user.Status,
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 		}
 		users = append(users, user)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrIterate, err)
 	}
 
 	if len(users) == 0 {
@@ -202,18 +243,21 @@ func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.
 func (r *userRepository) Update(ctx context.Context, user *models.User) (*models.User, error) {
 	const query = `
 		UPDATE users
-		SET username = $1,
-		    email = $2,
-		    status = $3,
-		    updated_at = NOW(),
-		    version = version + 1
-		WHERE id = $4 AND version = $5
+		SET 
+			username = $1,
+			email = $2,
+			description = $3,
+			status = $4,
+			updated_at = NOW(),
+			version = version + 1
+		WHERE id = $5 AND version = $6
 		RETURNING updated_at, version
 	`
 
 	err := r.db.QueryRow(ctx, query,
 		user.Username,
 		user.Email,
+		user.Description,
 		user.Status,
 		user.UID,
 		user.Version,
@@ -221,15 +265,6 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) (*models
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			// Primeiro verifica se o usuário existe
-			var exists bool
-			checkQuery := `SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)`
-			if errCheck := r.db.QueryRow(ctx, checkQuery, user.UID).Scan(&exists); errCheck != nil {
-				return nil, fmt.Errorf("%w: erro ao verificar existência: %v", errMsg.ErrUpdate, errCheck)
-			}
-			if !exists {
-				return nil, errMsg.ErrNotFound
-			}
 			return nil, errMsg.ErrVersionConflict
 		}
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)

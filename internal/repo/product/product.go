@@ -21,8 +21,10 @@ type ProductRepository interface {
 	GetByName(ctx context.Context, name string) ([]*models.Product, error)
 	GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error)
 	GetVersionByID(ctx context.Context, id int64) (int64, error)
-	Update(ctx context.Context, product *models.Product) (*models.Product, error)
+	Update(ctx context.Context, product *models.Product) error
 	Delete(ctx context.Context, id int64) error
+
+	ProductExists(ctx context.Context, productID int64) (bool, error)
 
 	EnableProduct(ctx context.Context, uid int64) error
 	DisableProduct(ctx context.Context, uid int64) error
@@ -376,7 +378,7 @@ func (r *productRepository) DisableProduct(ctx context.Context, uid int64) error
 	return nil
 }
 
-func (r *productRepository) Update(ctx context.Context, product *models.Product) (*models.Product, error) {
+func (r *productRepository) Update(ctx context.Context, product *models.Product) error {
 	const query = `
 		UPDATE products
 		SET
@@ -423,15 +425,15 @@ func (r *productRepository) Update(ctx context.Context, product *models.Product)
 		var exists bool
 		checkQuery := `SELECT EXISTS(SELECT 1 FROM products WHERE id = $1)`
 		if errCheck := r.db.QueryRow(ctx, checkQuery, product.ID).Scan(&exists); errCheck != nil {
-			return nil, fmt.Errorf("%w: erro ao verificar existência: %v", errMsg.ErrUpdate, errCheck)
+			return fmt.Errorf("%w: erro ao verificar existência: %v", errMsg.ErrUpdate, errCheck)
 		}
 		if !exists {
-			return nil, errMsg.ErrNotFound
+			return errMsg.ErrNotFound
 		}
-		return nil, errMsg.ErrVersionConflict
+		return errMsg.ErrVersionConflict
 	}
 
-	return product, nil
+	return nil
 }
 
 func (r *productRepository) Delete(ctx context.Context, id int64) error {
@@ -447,6 +449,16 @@ func (r *productRepository) Delete(ctx context.Context, id int64) error {
 	}
 
 	return nil
+}
+
+func (r *productRepository) ProductExists(ctx context.Context, productID int64) (bool, error) {
+	const query = `SELECT EXISTS(SELECT 1 FROM products WHERE id=$1)`
+	var exists bool
+	err := r.db.QueryRow(ctx, query, productID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+	}
+	return exists, nil
 }
 
 func (r *productRepository) UpdateStock(ctx context.Context, id int64, quantity int) error {

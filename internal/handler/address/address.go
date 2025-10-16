@@ -56,7 +56,7 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 			h.logger.Warn(ctx, ref+"Endereço duplicado", map[string]any{
 				"erro": err.Error(),
 			})
-			utils.ErrorResponse(w, err, http.StatusConflict) // ou BadRequest, se preferir
+			utils.ErrorResponse(w, err, http.StatusConflict)
 			return
 
 		default:

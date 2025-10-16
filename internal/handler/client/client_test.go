@@ -561,6 +561,71 @@ func TestClientHandler_Update(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
+	t.Run("erro - dados inválidos (ErrInvalidData)", func(t *testing.T) {
+		t.Parallel()
+		mockService := new(mockClient.MockClientService)
+		handler := NewClientHandler(mockService, logAdapter)
+
+		// Simula um client com dados inválidos
+		invalidClient := &models.Client{ID: 1, Name: ""} // Name obrigatório, por exemplo
+
+		body, _ := json.Marshal(invalidClient)
+		req := httptest.NewRequest(http.MethodPut, "/clients/1", bytes.NewReader(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrInvalidData).Once()
+
+		handler.Update(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("erro - ID zero (ErrZeroID)", func(t *testing.T) {
+		t.Parallel()
+		mockService := new(mockClient.MockClientService)
+		handler := NewClientHandler(mockService, logAdapter)
+
+		clientWithZeroID := &models.Client{ID: 0, Name: "Cliente X"}
+		body, _ := json.Marshal(clientWithZeroID)
+		req := httptest.NewRequest(http.MethodPut, "/clients/0", bytes.NewReader(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "0"})
+		w := httptest.NewRecorder()
+
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrZeroID).Once()
+
+		handler.Update(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("erro - conflito de versão (ErrVersionConflict)", func(t *testing.T) {
+		t.Parallel()
+		mockService := new(mockClient.MockClientService)
+		handler := NewClientHandler(mockService, logAdapter)
+
+		clientWithVersion := &models.Client{ID: 1, Name: "Cliente Y", Version: 1}
+		body, _ := json.Marshal(clientWithVersion)
+		req := httptest.NewRequest(http.MethodPut, "/clients/1", bytes.NewReader(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrVersionConflict).Once()
+
+		handler.Update(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusConflict, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
 	t.Run("erro - corpo inválido", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockClient.MockClientService)
@@ -670,31 +735,6 @@ func TestClientHandler_Update(t *testing.T) {
 		assert.Equal(t, inputDTO.Name, response.Data.Name)
 		assert.Equal(t, *inputDTO.Email, *response.Data.Email)
 		assert.Equal(t, *inputDTO.CPF, *response.Data.CPF)
-
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("erro - service retorna ErrInvalidForeignKey", func(t *testing.T) {
-		mockService := new(mockClient.MockClientService)
-		handler := NewClientHandler(mockService, logAdapter)
-
-		uid := "1"
-		reqBody := &dto.ClientDTO{Name: "Cliente Teste"}
-		body, _ := json.Marshal(reqBody)
-		req := httptest.NewRequest(http.MethodPut, "/clients/1", bytes.NewBuffer(body))
-		req = mux.SetURLVars(req, map[string]string{"id": uid})
-		rec := httptest.NewRecorder()
-
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(c *models.Client) bool {
-			return c.ID == 1
-		})).Return(errMsg.ErrInvalidForeignKey)
-
-		handler.Update(rec, req)
-
-		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		var resp utils.DefaultResponse
-		_ = json.Unmarshal(rec.Body.Bytes(), &resp)
-		assert.Equal(t, http.StatusBadRequest, resp.Status)
 
 		mockService.AssertExpectations(t)
 	})

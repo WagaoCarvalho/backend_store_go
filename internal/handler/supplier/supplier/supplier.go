@@ -259,7 +259,7 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
 
-	// Pegar ID da URL
+	// ID da URL
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
@@ -269,7 +269,7 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Decodificar JSON usando DTO
+	// Decodificar JSON
 	var requestData struct {
 		Supplier *dto.SupplierDTO `json:"supplier"`
 	}
@@ -288,40 +288,73 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Inicializa ID se estiver nil e seta o valor da URL
+	// Setar ID vindo da URL
 	if requestData.Supplier.ID == nil {
 		requestData.Supplier.ID = new(int64)
 	}
 	*requestData.Supplier.ID = id
 
-	// Converter DTO para Model
 	supplierModel := dto.ToSupplierModel(*requestData.Supplier)
 
-	updatedSupplier, err := h.service.Update(ctx, supplierModel)
+	// Chamar service
+	err = h.service.Update(ctx, supplierModel)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrVersionConflict) {
+		switch {
+		case errors.Is(err, errMsg.ErrInvalidData),
+			errors.Is(err, errMsg.ErrZeroID):
+			h.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
+				"supplier_id": id,
+				"erro":        err.Error(),
+			})
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+
+		case errors.Is(err, errMsg.ErrInvalidForeignKey):
+			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
+				"supplier_id": id,
+				"erro":        err.Error(),
+			})
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+
+		case errors.Is(err, errMsg.ErrDuplicate):
+			h.logger.Warn(ctx, ref+"Fornecedor duplicado", map[string]any{
+				"supplier_id": id,
+				"erro":        err.Error(),
+			})
+			utils.ErrorResponse(w, err, http.StatusConflict)
+			return
+
+		case errors.Is(err, errMsg.ErrVersionConflict):
 			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"supplier_id": id,
 			})
 			utils.ErrorResponse(w, err, http.StatusConflict)
 			return
-		}
 
-		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-			"supplier_id": id,
-		})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"supplier_id": id,
+			})
+			utils.ErrorResponse(w, err, http.StatusNotFound)
+			return
+
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"supplier_id": id,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
-		"supplier_id": updatedSupplier.ID,
+		"supplier_id": id,
 	})
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Fornecedor atualizado com sucesso",
-		Data:    dto.ToSupplierDTO(updatedSupplier),
 	})
 }
 
@@ -361,38 +394,43 @@ func (h *SupplierHandler) Disable(w http.ResponseWriter, r *http.Request) {
 
 	supplier, err := h.service.GetByID(ctx, id)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err.Error() == "fornecedor não encontrado" {
-			status = http.StatusNotFound
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"supplier_id": id,
 			})
-		} else {
+			utils.ErrorResponse(w, err, http.StatusNotFound)
+			return
+
+		default:
 			h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 				"supplier_id": id,
 			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
 		}
-		utils.ErrorResponse(w, err, status)
-		return
 	}
 
 	supplier.Status = false
 	supplier.Version = payload.Version
 
-	_, err = h.service.Update(ctx, supplier)
+	err = h.service.Update(ctx, supplier)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrVersionConflict) {
+		switch {
+		case errors.Is(err, errMsg.ErrVersionConflict):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"supplier_id": id,
 			})
 			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
 			return
+
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"supplier_id": id,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("erro ao desabilitar fornecedor: %w", err), http.StatusInternalServerError)
+			return
 		}
-		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-			"supplier_id": id,
-		})
-		utils.ErrorResponse(w, fmt.Errorf("erro ao desabilitar fornecedor: %w", err), http.StatusInternalServerError)
-		return
 	}
 
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
@@ -438,26 +476,25 @@ func (h *SupplierHandler) Enable(w http.ResponseWriter, r *http.Request) {
 
 	supplier, err := h.service.GetByID(ctx, id)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err.Error() == "fornecedor não encontrado" {
-			status = http.StatusNotFound
+		if errors.Is(err, errMsg.ErrNotFound) {
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"supplier_id": id,
 			})
-		} else {
-			h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-				"supplier_id": id,
-			})
+			utils.ErrorResponse(w, fmt.Errorf("fornecedor não encontrado"), http.StatusNotFound)
+			return
 		}
-		utils.ErrorResponse(w, err, status)
+
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"supplier_id": id,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("erro ao buscar fornecedor: %w", err), http.StatusInternalServerError)
 		return
 	}
 
 	supplier.Status = true
 	supplier.Version = payload.Version
 
-	_, err = h.service.Update(ctx, supplier)
-	if err != nil {
+	if err := h.service.Update(ctx, supplier); err != nil {
 		if errors.Is(err, errMsg.ErrVersionConflict) {
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"supplier_id": id,
@@ -465,6 +502,7 @@ func (h *SupplierHandler) Enable(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
 			return
 		}
+
 		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
 			"supplier_id": id,
 		})

@@ -502,13 +502,6 @@ func TestSupplierHandler_Update(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		supplierID := int64(1)
-		supplierToUpdate := &models.Supplier{
-			ID:      supplierID,
-			Name:    "Fornecedor Atualizado",
-			Version: 2,
-			CNPJ:    strPtr("12345678000199"),
-		}
-
 		requestBody := map[string]interface{}{
 			"supplier": map[string]interface{}{
 				"name":    "Fornecedor Atualizado",
@@ -516,12 +509,11 @@ func TestSupplierHandler_Update(t *testing.T) {
 				"cnpj":    "12345678000199",
 			},
 		}
-
 		body, _ := json.Marshal(requestBody)
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == supplierID && s.Name == "Fornecedor Atualizado" && s.Version == 2
-		})).Return(supplierToUpdate, nil).Once()
+		})).Return(nil).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -530,6 +522,60 @@ func TestSupplierHandler_Update(t *testing.T) {
 		handler.Update(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro chave estrangeira inválida", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+
+		supplierID := int64(1)
+		requestBody := map[string]interface{}{
+			"supplier": map[string]interface{}{
+				"name":    "Fornecedor X",
+				"version": 1,
+				"cnpj":    "12345678000199",
+			},
+		}
+		body, _ := json.Marshal(requestBody)
+
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
+			return s.ID == supplierID
+		})).Return(errMsg.ErrInvalidForeignKey).Once()
+
+		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		rec := httptest.NewRecorder()
+
+		handler.Update(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro fornecedor duplicado", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+
+		supplierID := int64(1)
+		requestBody := map[string]interface{}{
+			"supplier": map[string]interface{}{
+				"name":    "Fornecedor Y",
+				"version": 1,
+				"cnpj":    "12345678000199",
+			},
+		}
+		body, _ := json.Marshal(requestBody)
+
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
+			return s.ID == supplierID
+		})).Return(errMsg.ErrDuplicate).Once()
+
+		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		rec := httptest.NewRecorder()
+
+		handler.Update(rec, req)
+
+		assert.Equal(t, http.StatusConflict, rec.Code)
 		mockService.AssertExpectations(t)
 	})
 
@@ -577,24 +623,45 @@ func TestSupplierHandler_Update(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 	})
 
+	t.Run("Erro validação (ErrInvalidData)", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+		body := `{"supplier": {"name": "", "version": 1}}`
+
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrInvalidData).Once()
+
+		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader([]byte(body)))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		rec := httptest.NewRecorder()
+
+		handler.Update(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro ID zero (ErrZeroID)", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+		body := `{"supplier": {"name": "Fornecedor", "version": 1}}`
+
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrZeroID).Once()
+
+		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader([]byte(body)))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		rec := httptest.NewRecorder()
+
+		handler.Update(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
 	t.Run("Erro conflito de versão", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
+		body := `{"supplier": {"name": "Fornecedor", "version": 2}}`
 
-		supplierID := int64(1)
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrVersionConflict).Once()
 
-		requestBody := map[string]interface{}{
-			"supplier": map[string]interface{}{
-				"version": 2,
-			},
-		}
-
-		body, _ := json.Marshal(requestBody)
-
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
-			return s.ID == supplierID && s.Version == 2
-		})).Return(nil, errMsg.ErrVersionConflict).Once()
-
-		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader(body))
+		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader([]byte(body)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		rec := httptest.NewRecorder()
 
@@ -604,24 +671,29 @@ func TestSupplierHandler_Update(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("Erro genérico ao atualizar fornecedor", func(t *testing.T) {
+	t.Run("Erro não encontrado", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
+		body := `{"supplier": {"name": "Fornecedor Inexistente", "version": 2}}`
 
-		supplierID := int64(1)
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrNotFound).Once()
 
-		requestBody := map[string]interface{}{
-			"supplier": map[string]interface{}{
-				"version": 2,
-			},
-		}
+		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader([]byte(body)))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		rec := httptest.NewRecorder()
 
-		body, _ := json.Marshal(requestBody)
+		handler.Update(rec, req)
 
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
-			return s.ID == supplierID && s.Version == 2
-		})).Return(nil, errors.New("erro interno")).Once()
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+		mockService.AssertExpectations(t)
+	})
 
-		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader(body))
+	t.Run("Erro interno genérico", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+		body := `{"supplier": {"name": "Fornecedor X", "version": 1}}`
+
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errors.New("erro inesperado")).Once()
+
+		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader([]byte(body)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		rec := httptest.NewRecorder()
 
@@ -643,27 +715,21 @@ func TestSupplierHandler_Enable(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		supplierID := int64(1)
-		supplierToUpdate := &models.Supplier{
-			ID:      supplierID,
-			Status:  true,
-			Version: 2,
-		}
-
 		requestBody := map[string]interface{}{
 			"version": 2,
 		}
-
 		body, _ := json.Marshal(requestBody)
 
-		mockService.On("GetByID", mock.Anything, supplierID).Return(&models.Supplier{
-			ID:      supplierID,
-			Status:  false,
-			Version: 2,
-		}, nil).Once()
+		mockService.On("GetByID", mock.Anything, supplierID).
+			Return(&models.Supplier{
+				ID:      supplierID,
+				Status:  false,
+				Version: 2,
+			}, nil).Once()
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
-			return s.ID == supplierID && s.Status == true && s.Version == 2
-		})).Return(supplierToUpdate, nil).Once()
+			return s.ID == supplierID && s.Status && s.Version == 2
+		})).Return(nil).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/enable", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -704,10 +770,11 @@ func TestSupplierHandler_Enable(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 	})
 
-	t.Run("Erro ao obter fornecedor", func(t *testing.T) {
+	t.Run("Erro ao obter fornecedor - não encontrado", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetByID", mock.Anything, int64(1)).Return(nil, fmt.Errorf("fornecedor não encontrado")).Once()
+		mockService.On("GetByID", mock.Anything, int64(1)).
+			Return(nil, errMsg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/enable", bytes.NewReader([]byte(`{"version":1}`)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -719,17 +786,35 @@ func TestSupplierHandler_Enable(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
+	t.Run("Erro genérico ao obter fornecedor", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+
+		mockService.On("GetByID", mock.Anything, int64(1)).
+			Return(nil, errors.New("erro banco")).Once()
+
+		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/enable", bytes.NewReader([]byte(`{"version":1}`)))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		rec := httptest.NewRecorder()
+
+		handler.Enable(rec, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
 	t.Run("Conflito de versão ao atualizar fornecedor", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetByID", mock.Anything, int64(1)).Return(&models.Supplier{
-			ID:      1,
-			Status:  false,
-			Version: 1,
-		}, nil).Once()
+		mockService.On("GetByID", mock.Anything, int64(1)).
+			Return(&models.Supplier{
+				ID:      1,
+				Status:  false,
+				Version: 1,
+			}, nil).Once()
+
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == 1 && s.Version == 1
-		})).Return(nil, errMsg.ErrVersionConflict).Once()
+		})).Return(errMsg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/enable", bytes.NewReader([]byte(`{"version":1}`)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -741,35 +826,19 @@ func TestSupplierHandler_Enable(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("Erro genérico ao obter fornecedor", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
-
-		mockService.On("GetByID", mock.Anything, int64(1)).Return(nil, errors.New("erro banco")).Once()
-
-		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/enable", bytes.NewReader([]byte(`{"version":1}`)))
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		rec := httptest.NewRecorder()
-
-		handler.Enable(rec, req)
-
-		assert.Equal(t, http.StatusInternalServerError, rec.Code)
-		mockService.AssertExpectations(t)
-	})
-
 	t.Run("Erro genérico ao habilitar fornecedor", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		// Simula retorno válido do GetByID para seguir no fluxo
-		mockService.On("GetByID", mock.Anything, int64(1)).Return(&models.Supplier{
-			ID:      1,
-			Status:  false,
-			Version: 1,
-		}, nil).Once()
+		mockService.On("GetByID", mock.Anything, int64(1)).
+			Return(&models.Supplier{
+				ID:      1,
+				Status:  false,
+				Version: 1,
+			}, nil).Once()
 
-		// Simula erro genérico no Update, que deve disparar o h.logger.Error e HTTP 500
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == 1 && s.Version == 1
-		})).Return((*models.Supplier)(nil), errors.New("erro interno")).Once()
+		})).Return(errors.New("erro interno")).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/enable", bytes.NewReader([]byte(`{"version":1}`)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -780,7 +849,6 @@ func TestSupplierHandler_Enable(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
 		mockService.AssertExpectations(t)
 	})
-
 }
 
 func TestSupplierHandler_Disable(t *testing.T) {
@@ -794,16 +862,7 @@ func TestSupplierHandler_Disable(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		supplierID := int64(1)
-		supplierToUpdate := &models.Supplier{
-			ID:      supplierID,
-			Status:  false,
-			Version: 2,
-		}
-
-		requestBody := map[string]interface{}{
-			"version": 2,
-		}
-
+		requestBody := map[string]interface{}{"version": 2}
 		body, _ := json.Marshal(requestBody)
 
 		mockService.On("GetByID", mock.Anything, supplierID).Return(&models.Supplier{
@@ -813,8 +872,8 @@ func TestSupplierHandler_Disable(t *testing.T) {
 		}, nil).Once()
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
-			return s.ID == supplierID && s.Status == false && s.Version == 2
-		})).Return(supplierToUpdate, nil).Once()
+			return s.ID == supplierID && !s.Status && s.Version == 2
+		})).Return(nil).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/disable", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -855,10 +914,10 @@ func TestSupplierHandler_Disable(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 	})
 
-	t.Run("Erro ao obter fornecedor", func(t *testing.T) {
+	t.Run("Erro ao obter fornecedor - não encontrado", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
-		mockService.On("GetByID", mock.Anything, int64(1)).Return(nil, fmt.Errorf("fornecedor não encontrado")).Once()
+		mockService.On("GetByID", mock.Anything, int64(1)).Return(nil, errMsg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/disable", bytes.NewReader([]byte(`{"version":1}`)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -870,29 +929,7 @@ func TestSupplierHandler_Disable(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("Conflito de versão ao atualizar fornecedor", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
-
-		mockService.On("GetByID", mock.Anything, int64(1)).Return(&models.Supplier{
-			ID:      1,
-			Status:  true,
-			Version: 1,
-		}, nil).Once()
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
-			return s.ID == 1 && s.Version == 1
-		})).Return(nil, errMsg.ErrVersionConflict).Once()
-
-		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/disable", bytes.NewReader([]byte(`{"version":1}`)))
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		rec := httptest.NewRecorder()
-
-		handler.Disable(rec, req)
-
-		assert.Equal(t, http.StatusConflict, rec.Code)
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("Erro genérico ao obter fornecedor", func(t *testing.T) {
+	t.Run("Erro ao obter fornecedor - genérico", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		mockService.On("GetByID", mock.Anything, int64(1)).Return(nil, errors.New("erro banco")).Once()
@@ -907,7 +944,7 @@ func TestSupplierHandler_Disable(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("Erro genérico ao desabilitar fornecedor", func(t *testing.T) {
+	t.Run("Conflito de versão ao atualizar fornecedor", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		mockService.On("GetByID", mock.Anything, int64(1)).Return(&models.Supplier{
@@ -917,8 +954,31 @@ func TestSupplierHandler_Disable(t *testing.T) {
 		}, nil).Once()
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
-			return s.ID == 1 && s.Version == 1
-		})).Return((*models.Supplier)(nil), errors.New("erro interno")).Once()
+			return s.ID == 1 && !s.Status && s.Version == 1
+		})).Return(errMsg.ErrVersionConflict).Once()
+
+		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/disable", bytes.NewReader([]byte(`{"version":1}`)))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		rec := httptest.NewRecorder()
+
+		handler.Disable(rec, req)
+
+		assert.Equal(t, http.StatusConflict, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro genérico ao atualizar fornecedor", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+
+		mockService.On("GetByID", mock.Anything, int64(1)).Return(&models.Supplier{
+			ID:      1,
+			Status:  true,
+			Version: 1,
+		}, nil).Once()
+
+		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
+			return s.ID == 1 && !s.Status && s.Version == 1
+		})).Return(errors.New("erro interno")).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/disable", bytes.NewReader([]byte(`{"version":1}`)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})

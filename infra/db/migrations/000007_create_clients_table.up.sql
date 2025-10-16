@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS clients (
     email VARCHAR(255) UNIQUE,
     cpf VARCHAR(14) UNIQUE,
     cnpj VARCHAR(18) UNIQUE,
+    description TEXT,
     status BOOLEAN NOT NULL DEFAULT TRUE,
     version INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
@@ -15,6 +16,6 @@ CREATE TABLE IF NOT EXISTS clients (
     )
 );
 
--- Índices auxiliares
+-- Índices opcionais
 CREATE INDEX idx_clients_name ON clients (name);
-CREATE INDEX idx_clients_status ON clients (status);
+CREATE INDEX idx_clients_status_true ON clients (id) WHERE status = TRUE;

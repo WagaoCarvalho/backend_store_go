@@ -10,14 +10,15 @@ import (
 )
 
 type User struct {
-	UID       int64
-	Username  string
-	Email     string
-	Password  string
-	Status    bool
-	Version   int
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	UID         int64
+	Username    string
+	Email       string
+	Password    string
+	Description string
+	Status      bool
+	Version     int
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 func (u *User) Validate() error {

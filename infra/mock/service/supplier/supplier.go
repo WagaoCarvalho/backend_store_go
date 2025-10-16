@@ -48,12 +48,9 @@ func (m *MockSupplierService) GetVersionByID(ctx context.Context, id int64) (int
 	return args.Get(0).(int64), args.Error(1)
 }
 
-func (m *MockSupplierService) Update(ctx context.Context, s *models.Supplier) (*models.Supplier, error) {
+func (m *MockSupplierService) Update(ctx context.Context, s *models.Supplier) error {
 	args := m.Called(ctx, s)
-	if supplier, ok := args.Get(0).(*models.Supplier); ok {
-		return supplier, args.Error(1)
-	}
-	return nil, args.Error(1)
+	return args.Error(0)
 }
 
 func (m *MockSupplierService) Delete(ctx context.Context, id int64) error {

@@ -66,12 +66,9 @@ func (m *ProductServiceMock) EnableProduct(ctx context.Context, uid int64) error
 	return args.Error(0)
 }
 
-func (m *ProductServiceMock) Update(ctx context.Context, product *models.Product) (*models.Product, error) {
+func (m *ProductServiceMock) Update(ctx context.Context, product *models.Product) error {
 	args := m.Called(ctx, product)
-	if prod, ok := args.Get(0).(*models.Product); ok {
-		return prod, args.Error(1)
-	}
-	return nil, args.Error(1)
+	return args.Error(0)
 }
 
 func (m *ProductServiceMock) Delete(ctx context.Context, id int64) error {

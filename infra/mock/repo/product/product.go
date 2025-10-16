@@ -51,12 +51,9 @@ func (m *ProductRepositoryMock) GetByManufacturer(ctx context.Context, manufactu
 	return nil, args.Error(1)
 }
 
-func (m *ProductRepositoryMock) Update(ctx context.Context, product *models.Product) (*models.Product, error) {
+func (m *ProductRepositoryMock) Update(ctx context.Context, product *models.Product) error {
 	args := m.Called(ctx, product)
-	if prod, ok := args.Get(0).(*models.Product); ok {
-		return prod, args.Error(1)
-	}
-	return nil, args.Error(1)
+	return args.Error(0)
 }
 
 func (m *ProductRepositoryMock) GetVersionByID(ctx context.Context, pid int64) (int64, error) {
@@ -120,4 +117,9 @@ func (m *ProductRepositoryMock) ApplyDiscount(ctx context.Context, id int64, per
 		return product, args.Error(1)
 	}
 	return nil, args.Error(1)
+}
+
+func (m *ProductRepositoryMock) ProductExists(ctx context.Context, productID int64) (bool, error) {
+	args := m.Called(ctx, productID)
+	return args.Bool(0), args.Error(1)
 }

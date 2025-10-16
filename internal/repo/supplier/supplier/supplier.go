@@ -34,8 +34,8 @@ func NewSupplierRepository(db *pgxpool.Pool) SupplierRepository {
 
 func (r *supplierRepository) Create(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error) {
 	const query = `
-		INSERT INTO suppliers (name, cnpj, cpf, status)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO suppliers (name, cnpj, cpf, description, status)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, created_at, updated_at
 	`
 
@@ -43,6 +43,7 @@ func (r *supplierRepository) Create(ctx context.Context, supplier *models.Suppli
 		supplier.Name,
 		supplier.CNPJ,
 		supplier.CPF,
+		supplier.Description,
 		supplier.Status,
 	).Scan(&supplier.ID, &supplier.CreatedAt, &supplier.UpdatedAt)
 
@@ -55,7 +56,7 @@ func (r *supplierRepository) Create(ctx context.Context, supplier *models.Suppli
 
 func (r *supplierRepository) GetByID(ctx context.Context, id int64) (*models.Supplier, error) {
 	const query = `
-		SELECT id, name, cnpj, cpf, status, created_at, updated_at
+		SELECT id, name, cnpj, cpf, status, description, created_at, updated_at
 		FROM suppliers
 		WHERE id = $1
 	`
@@ -66,6 +67,7 @@ func (r *supplierRepository) GetByID(ctx context.Context, id int64) (*models.Sup
 		&supplier.Name,
 		&supplier.CNPJ,
 		&supplier.CPF,
+		&supplier.Description,
 		&supplier.Status,
 		&supplier.CreatedAt,
 		&supplier.UpdatedAt,
@@ -83,7 +85,7 @@ func (r *supplierRepository) GetByID(ctx context.Context, id int64) (*models.Sup
 
 func (r *supplierRepository) GetByName(ctx context.Context, name string) ([]*models.Supplier, error) {
 	const query = `
-		SELECT id, name, cnpj, cpf, status, created_at, updated_at
+		SELECT id, name, cnpj, cpf, description, status, created_at, updated_at
 		FROM suppliers
 		WHERE name ILIKE $1
 		ORDER BY name ASC
@@ -103,6 +105,7 @@ func (r *supplierRepository) GetByName(ctx context.Context, name string) ([]*mod
 			&s.Name,
 			&s.CNPJ,
 			&s.CPF,
+			&s.Description,
 			&s.Status,
 			&s.CreatedAt,
 			&s.UpdatedAt,
@@ -125,7 +128,7 @@ func (r *supplierRepository) GetByName(ctx context.Context, name string) ([]*mod
 
 func (r *supplierRepository) GetAll(ctx context.Context) ([]*models.Supplier, error) {
 	const query = `
-		SELECT id, name, cnpj, cpf, status, created_at, updated_at
+		SELECT id, name, cnpj, cpf, description, status, created_at, updated_at
 		FROM suppliers
 		ORDER BY id
 	`
@@ -144,6 +147,7 @@ func (r *supplierRepository) GetAll(ctx context.Context) ([]*models.Supplier, er
 			&s.Name,
 			&s.CNPJ,
 			&s.CPF,
+			&s.Description,
 			&s.Status,
 			&s.CreatedAt,
 			&s.UpdatedAt,
@@ -166,46 +170,37 @@ func (r *supplierRepository) GetAll(ctx context.Context) ([]*models.Supplier, er
 
 func (r *supplierRepository) Update(ctx context.Context, supplier *models.Supplier) error {
 	const query = `
-		UPDATE suppliers
-		SET
-			name       = $1,
-			cnpj       = $2,
-			cpf        = $3,
-			status     = $4,
-			updated_at = NOW(),
-			version    = version + 1
-		WHERE
-			id      = $5 AND
-			version = $6
-		RETURNING id, name, cnpj, cpf, status, created_at, updated_at, version
-	`
+	UPDATE suppliers
+	SET
+		name        = $1,
+		cnpj        = $2,
+		cpf         = $3,
+		description = $4,
+		status      = $5,
+		updated_at  = NOW(),
+		version     = version + 1
+	WHERE id = $6 AND version = $7
+`
 
-	err := r.db.QueryRow(ctx, query,
+	result, err := r.db.Exec(ctx, query,
 		supplier.Name,
 		supplier.CNPJ,
 		supplier.CPF,
+		supplier.Description,
 		supplier.Status,
 		supplier.ID,
 		supplier.Version,
-	).Scan(
-		&supplier.ID,
-		&supplier.Name,
-		&supplier.CNPJ,
-		&supplier.CPF,
-		&supplier.Status,
-		&supplier.CreatedAt,
-		&supplier.UpdatedAt,
-		&supplier.Version,
 	)
-
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return errMsg.ErrVersionConflict
-		}
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
+	if result.RowsAffected() == 0 {
+		return errMsg.ErrVersionConflict
+	}
+
 	return nil
+
 }
 
 func (r *supplierRepository) Delete(ctx context.Context, id int64) error {

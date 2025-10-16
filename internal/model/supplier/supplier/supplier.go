@@ -9,14 +9,15 @@ import (
 )
 
 type Supplier struct {
-	ID        int64
-	Name      string
-	CNPJ      *string
-	CPF       *string
-	Version   int
-	Status    bool
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID          int64
+	Name        string
+	CNPJ        *string
+	CPF         *string
+	Description string
+	Version     int
+	Status      bool
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 func (s *Supplier) Validate() error {

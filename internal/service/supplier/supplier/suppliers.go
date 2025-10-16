@@ -16,7 +16,7 @@ type SupplierService interface {
 	GetByID(ctx context.Context, id int64) (*models.Supplier, error)
 	GetByName(ctx context.Context, name string) ([]*models.Supplier, error)
 	GetVersionByID(ctx context.Context, id int64) (int64, error)
-	Update(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error)
+	Update(ctx context.Context, supplier *models.Supplier) error
 	Delete(ctx context.Context, id int64) error
 	Disable(ctx context.Context, id int64) error
 	Enable(ctx context.Context, id int64) error
@@ -101,31 +101,36 @@ func (s *supplierService) GetVersionByID(ctx context.Context, id int64) (int64, 
 	return version, nil
 }
 
-func (s *supplierService) Update(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error) {
+func (s *supplierService) Update(ctx context.Context, supplier *models.Supplier) error {
 	if supplier.ID <= 0 {
-		return nil, errMsg.ErrZeroID
+		return errMsg.ErrZeroID
 	}
 
 	if err := supplier.Validate(); err != nil {
-		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
+		return fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 
 	if supplier.Version == 0 {
-		return nil, errMsg.ErrVersionConflict
+		return errMsg.ErrVersionConflict
 	}
 
-	if err := s.repo.Update(ctx, supplier); err != nil {
-		switch {
-		case errors.Is(err, errMsg.ErrVersionConflict):
-			return nil, errMsg.ErrVersionConflict
-		case errors.Is(err, errMsg.ErrNotFound):
-			return nil, errMsg.ErrNotFound
-		default:
-			return nil, fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+	err := s.repo.Update(ctx, supplier)
+	if err != nil {
+		if errors.Is(err, errMsg.ErrNotFound) {
+			exists, errCheck := s.repo.SupplierExists(ctx, supplier.ID)
+			if errCheck != nil {
+				return fmt.Errorf("%w: %v", errMsg.ErrGet, errCheck)
+			}
+
+			if !exists {
+				return errMsg.ErrNotFound
+			}
+			return errMsg.ErrVersionConflict
 		}
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
-	return supplier, nil
+	return nil
 }
 
 func (s *supplierService) Delete(ctx context.Context, id int64) error {

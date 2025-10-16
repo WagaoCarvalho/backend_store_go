@@ -9,6 +9,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -35,8 +36,8 @@ func NewClientRepository(db *pgxpool.Pool) ClientRepository {
 
 func (r *clientRepository) Create(ctx context.Context, client *models.Client) (*models.Client, error) {
 	const query = `
-		INSERT INTO clients (name, email, cpf, cnpj, status, version)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO clients (name, email, cpf, cnpj, description, status, version)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id, created_at, updated_at
 	`
 
@@ -45,11 +46,22 @@ func (r *clientRepository) Create(ctx context.Context, client *models.Client) (*
 		client.Email,
 		client.CPF,
 		client.CNPJ,
+		client.Description,
 		client.Status,
 		client.Version,
 	).Scan(&client.ID, &client.CreatedAt, &client.UpdatedAt)
 
 	if err != nil {
+
+		if pgErr, ok := err.(*pgconn.PgError); ok {
+			switch pgErr.Code {
+			case "23505":
+				return nil, errMsg.ErrDuplicate
+			case "23514":
+				return nil, errMsg.ErrInvalidData
+			}
+		}
+
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 
@@ -58,7 +70,7 @@ func (r *clientRepository) Create(ctx context.Context, client *models.Client) (*
 
 func (r *clientRepository) GetByID(ctx context.Context, id int64) (*models.Client, error) {
 	const query = `
-		SELECT id, name, email, cpf, cnpj, status, version, created_at, updated_at
+		SELECT id, name, email, cpf, cnpj, description, status, created_at, updated_at
 		FROM clients
 		WHERE id = $1
 	`
@@ -69,8 +81,8 @@ func (r *clientRepository) GetByID(ctx context.Context, id int64) (*models.Clien
 		&client.Email,
 		&client.CPF,
 		&client.CNPJ,
+		&client.Description,
 		&client.Status,
-		&client.Version,
 		&client.CreatedAt,
 		&client.UpdatedAt,
 	)
@@ -82,7 +94,7 @@ func (r *clientRepository) GetByID(ctx context.Context, id int64) (*models.Clien
 
 func (r *clientRepository) GetByName(ctx context.Context, name string) ([]*models.Client, error) {
 	const query = `
-		SELECT id, name, email, cpf, cnpj, status, version, created_at, updated_at
+		SELECT id, name, email, cpf, cnpj, description, status, created_at, updated_at
 		FROM clients
 		WHERE name ILIKE '%' || $1 || '%'
 	`
@@ -101,8 +113,8 @@ func (r *clientRepository) GetByName(ctx context.Context, name string) ([]*model
 			&c.Email,
 			&c.CPF,
 			&c.CNPJ,
+			&c.Description,
 			&c.Status,
-			&c.Version,
 			&c.CreatedAt,
 			&c.UpdatedAt,
 		); err != nil {
@@ -125,7 +137,7 @@ func (r *clientRepository) GetVersionByID(ctx context.Context, id int64) (int, e
 
 func (r *clientRepository) GetAll(ctx context.Context, limit, offset int) ([]*models.Client, error) {
 	const query = `
-		SELECT id, name, email, cpf, cnpj, status, version, created_at, updated_at
+		SELECT id, name, email, cpf, cnpj, description, status, created_at, updated_at
 		FROM clients
 		ORDER BY id
 		LIMIT $1 OFFSET $2
@@ -147,7 +159,6 @@ func (r *clientRepository) GetAll(ctx context.Context, limit, offset int) ([]*mo
 			&c.CPF,
 			&c.CNPJ,
 			&c.Status,
-			&c.Version,
 			&c.CreatedAt,
 			&c.UpdatedAt,
 		); err != nil {
@@ -166,8 +177,16 @@ func (r *clientRepository) GetAll(ctx context.Context, limit, offset int) ([]*mo
 func (r *clientRepository) Update(ctx context.Context, client *models.Client) error {
 	const query = `
 		UPDATE clients
-		SET name=$1, email=$2, cpf=$3, cnpj=$4, status=$5, version=version+1, updated_at=NOW()
-		WHERE id=$6 AND version=$7
+		SET 
+			name = $1,
+			email = $2,
+			cpf = $3,
+			cnpj = $4,
+			status = $5,
+			description = $6,
+			version = version + 1,
+			updated_at = NOW()
+		WHERE id = $7 AND version = $8
 		RETURNING version
 	`
 
@@ -177,19 +196,34 @@ func (r *clientRepository) Update(ctx context.Context, client *models.Client) er
 		client.CPF,
 		client.CNPJ,
 		client.Status,
+		client.Description,
 		client.ID,
 		client.Version,
 	).Scan(&client.Version)
 
 	if err != nil {
+		var pgErr *pgconn.PgError
+
 		switch {
 		case errors.Is(err, pgx.ErrNoRows), errors.Is(err, sql.ErrNoRows):
-			// não encontrou registro ou versão diferente
+			// Conflito de versão
 			return errMsg.ErrVersionConflict
+
+		case errors.As(err, &pgErr):
+			switch pgErr.Code {
+			case "23505":
+				return errMsg.ErrDuplicate
+			case "23514":
+				return errMsg.ErrInvalidData
+			default:
+				return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+			}
+
 		default:
 			return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 		}
 	}
+
 	return nil
 }
 

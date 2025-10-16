@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS sale_items (
     discount DECIMAL(10,2) DEFAULT 0.00 CHECK (discount >= 0),
     tax DECIMAL(10,2) DEFAULT 0.00 CHECK (tax >= 0),
     subtotal DECIMAL(12,2) NOT NULL CHECK (subtotal >= 0),
+    description TEXT,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
 );

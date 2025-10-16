@@ -426,29 +426,40 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 	product := dto.ToProductModel(productDTO)
 	product.ID = id
 
-	updatedProduct, err := h.service.Update(ctx, product)
+	err = h.service.Update(ctx, product)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
+		switch {
+		case errors.Is(err, errMsg.ErrInvalidData),
+			errors.Is(err, errMsg.ErrInvalidForeignKey),
+			errors.Is(err, errMsg.ErrZeroID):
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
+
+		case errors.Is(err, errMsg.ErrNotFound):
+			utils.ErrorResponse(w, err, http.StatusNotFound)
+			return
+
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			utils.ErrorResponse(w, err, http.StatusConflict)
+			return
+
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"product_id": id,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
 		}
-		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-			"product_id": id,
-		})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
 	}
 
-	updatedProductDTO := dto.ToProductDTO(updatedProduct)
-
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
-		"product_id": updatedProduct.ID,
+		"product_id": product.ID,
 	})
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Produto atualizado com sucesso",
-		Data:    updatedProductDTO,
+		Data:    dto.ToProductDTO(product),
 	})
 }
 

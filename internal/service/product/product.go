@@ -18,7 +18,7 @@ type ProductService interface {
 	GetByName(ctx context.Context, name string) ([]*models.Product, error)
 	GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error)
 	GetVersionByID(ctx context.Context, uid int64) (int64, error)
-	Update(ctx context.Context, product *models.Product) (*models.Product, error)
+	Update(ctx context.Context, product *models.Product) error
 	Delete(ctx context.Context, id int64) error
 
 	DisableProduct(ctx context.Context, uid int64) error
@@ -162,35 +162,36 @@ func (s *productService) EnableProduct(ctx context.Context, uid int64) error {
 	return nil
 }
 
-func (s *productService) Update(ctx context.Context, product *models.Product) (*models.Product, error) {
+func (s *productService) Update(ctx context.Context, product *models.Product) error {
 
 	if product.ID <= 0 {
-		return nil, errMsg.ErrZeroID
+		return errMsg.ErrZeroID
 	}
 	if err := product.Validate(); err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
-	// Validação de version para controle otimista
 	if product.Version <= 0 {
-		return nil, errMsg.ErrVersionConflict
+		return errMsg.ErrVersionConflict
 	}
 
-	updatedProduct, err := s.repo.Update(ctx, product)
+	err := s.repo.Update(ctx, product)
 	if err != nil {
-		switch {
-		case errors.Is(err, errMsg.ErrNotFound):
-			return nil, errMsg.ErrNotFound
+		if errors.Is(err, errMsg.ErrNotFound) {
+			exists, errCheck := s.repo.ProductExists(ctx, product.ID)
+			if errCheck != nil {
+				return fmt.Errorf("%w: %v", errMsg.ErrGet, errCheck)
+			}
 
-		case errors.Is(err, errMsg.ErrVersionConflict):
-			return nil, errMsg.ErrVersionConflict
-
-		default:
-			return nil, fmt.Errorf("%w", err)
+			if !exists {
+				return errMsg.ErrNotFound
+			}
+			return errMsg.ErrVersionConflict
 		}
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
-	return updatedProduct, nil
+	return nil
 }
 
 func (s *productService) Delete(ctx context.Context, id int64) error {
