@@ -43,7 +43,7 @@ func (r *supplierCategoryRelationRepo) Create(ctx context.Context, rel *models.S
 		case errMsgDb.IsDuplicateKey(err):
 			return nil, errMsg.ErrRelationExists
 		case errMsgDb.IsForeignKeyViolation(err):
-			return nil, errMsg.ErrInvalidForeignKey
+			return nil, errMsg.ErrDBInvalidForeignKey
 		default:
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 		}
@@ -65,7 +65,7 @@ func (r *supplierCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, 
 		case errMsgDb.IsDuplicateKey(err):
 			return nil, errMsg.ErrRelationExists
 		case errMsgDb.IsForeignKeyViolation(err):
-			return nil, errMsg.ErrInvalidForeignKey
+			return nil, errMsg.ErrDBInvalidForeignKey
 		default:
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 		}
@@ -162,7 +162,7 @@ func (r *supplierCategoryRelationRepo) Delete(ctx context.Context, supplierID, c
 	cmd, err := r.db.Exec(ctx, query, supplierID, categoryID)
 	if err != nil {
 		if errMsgDb.IsForeignKeyViolation(err) {
-			return errMsg.ErrInvalidForeignKey
+			return errMsg.ErrDBInvalidForeignKey
 		}
 		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
@@ -183,7 +183,7 @@ func (r *supplierCategoryRelationRepo) DeleteAllBySupplierID(ctx context.Context
 	_, err := r.db.Exec(ctx, query, supplierID)
 	if err != nil {
 		if errMsgDb.IsForeignKeyViolation(err) {
-			return errMsg.ErrInvalidForeignKey
+			return errMsg.ErrDBInvalidForeignKey
 		}
 		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}

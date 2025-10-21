@@ -309,7 +309,7 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
 
-		case errors.Is(err, errMsg.ErrInvalidForeignKey):
+		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
 			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"supplier_id": id,
 				"erro":        err.Error(),

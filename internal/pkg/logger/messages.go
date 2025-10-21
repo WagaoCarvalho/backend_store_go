@@ -66,6 +66,8 @@ const (
 	LogForeignKeyViolation = "violação de chave estrangeira"
 	LogForeignKeyHasExists = "relação já existe"
 
+	LogErrDuplicate = "erro já cadastrado"
+
 	// HasUserCategoryRelation
 	LogCheckInit     = "iniciando verificação de relação entre usuário e categoria"
 	LogCheckNotFound = "relação entre usuário e categoria não encontrada"

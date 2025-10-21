@@ -10,4 +10,6 @@ var (
 	ErrDBNewPool           = errors.New("erro ao criar novo pool de conexão")
 	ErrDuplicate           = errors.New("erro já cadastrado")
 	ErrDBPing              = errors.New("❌ banco de dados não iniciado")
+	ErrDBInvalidForeignKey = errors.New("chave estrangeira inválida")
+	ErrConflict            = errors.New("Conflito")
 )

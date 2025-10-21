@@ -41,7 +41,7 @@ func (r *userCategoryRelationRepositories) Create(ctx context.Context, relation 
 		case errMsgPg.IsDuplicateKey(err):
 			return nil, errMsg.ErrRelationExists
 		case errMsgPg.IsForeignKeyViolation(err):
-			return nil, errMsg.ErrInvalidForeignKey
+			return nil, errMsg.ErrDBInvalidForeignKey
 		default:
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 		}
@@ -62,7 +62,7 @@ func (r *userCategoryRelationRepositories) CreateTx(ctx context.Context, tx pgx.
 		case errMsgPg.IsDuplicateKey(err):
 			return nil, errMsg.ErrRelationExists
 		case errMsgPg.IsForeignKeyViolation(err):
-			return nil, errMsg.ErrInvalidForeignKey
+			return nil, errMsg.ErrDBInvalidForeignKey
 		default:
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 		}

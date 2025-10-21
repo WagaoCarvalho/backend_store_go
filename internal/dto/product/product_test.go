@@ -14,6 +14,7 @@ func TestToProductModel(t *testing.T) {
 	barcode := "1234567890123"
 	created := time.Now()
 	updated := created.Add(time.Hour)
+	maxStock := 20
 
 	dto := ProductDTO{
 		ID:                 &id,
@@ -25,7 +26,7 @@ func TestToProductModel(t *testing.T) {
 		SalePrice:          15.0,
 		StockQuantity:      100,
 		MinStock:           5,
-		MaxStock:           func() *int { v := 20; return &v }(),
+		MaxStock:           &maxStock,
 		Barcode:            &barcode,
 		Status:             true,
 		Version:            2,
@@ -39,7 +40,6 @@ func TestToProductModel(t *testing.T) {
 	model := ToProductModel(dto)
 
 	assert.Equal(t, int64(1), model.ID)
-	assert.NotNil(t, model.SupplierID)
 	assert.Equal(t, supplierID, *model.SupplierID)
 	assert.Equal(t, "Produto X", model.ProductName)
 	assert.Equal(t, "Fabricante Y", model.Manufacturer)
@@ -48,9 +48,7 @@ func TestToProductModel(t *testing.T) {
 	assert.Equal(t, 15.0, model.SalePrice)
 	assert.Equal(t, 100, model.StockQuantity)
 	assert.Equal(t, 5, model.MinStock)
-	assert.NotNil(t, model.MaxStock)
 	assert.Equal(t, 20, *model.MaxStock)
-	assert.NotNil(t, model.Barcode)
 	assert.Equal(t, barcode, *model.Barcode)
 	assert.True(t, model.Status)
 	assert.Equal(t, 2, model.Version)
@@ -102,18 +100,14 @@ func TestToProductDTO(t *testing.T) {
 	assert.Equal(t, 15.0, dto.SalePrice)
 	assert.Equal(t, 100, dto.StockQuantity)
 	assert.Equal(t, 5, dto.MinStock)
-	assert.NotNil(t, dto.MaxStock)
 	assert.Equal(t, 20, *dto.MaxStock)
-	assert.NotNil(t, dto.Barcode)
 	assert.Equal(t, barcode, *dto.Barcode)
 	assert.True(t, dto.Status)
 	assert.Equal(t, 2, dto.Version)
 	assert.True(t, dto.AllowDiscount)
 	assert.Equal(t, 5.0, dto.MinDiscountPercent)
 	assert.Equal(t, 20.0, dto.MaxDiscountPercent)
-	assert.NotNil(t, dto.CreatedAt)
 	assert.Equal(t, created, *dto.CreatedAt)
-	assert.NotNil(t, dto.UpdatedAt)
 	assert.Equal(t, updated, *dto.UpdatedAt)
 }
 
@@ -126,14 +120,14 @@ func TestToProductModel_NilValues(t *testing.T) {
 
 	model := ToProductModel(dto)
 
-	assert.Equal(t, int64(0), model.ID) // getOrDefault
+	assert.Equal(t, int64(0), model.ID)
 	assert.Nil(t, model.SupplierID)
 	assert.Nil(t, model.Barcode)
 }
 
-func TestToProductDTO_NilPointers(t *testing.T) {
+func TestToProductDTO_NilAndZeroValues(t *testing.T) {
 	model := &models.Product{
-		ID:         0,
+		ID:         0, // deve gerar ID nil no DTO
 		SupplierID: nil,
 		Barcode:    nil,
 		CreatedAt:  time.Time{},
@@ -142,10 +136,12 @@ func TestToProductDTO_NilPointers(t *testing.T) {
 
 	dto := ToProductDTO(model)
 
-	assert.NotNil(t, dto.ID)
-	assert.Equal(t, int64(0), *dto.ID)
+	// ID deve ser nil porque model.ID == 0
+	assert.Nil(t, dto.ID)
 	assert.Nil(t, dto.SupplierID)
 	assert.Nil(t, dto.Barcode)
+
+	// createdAt e updatedAt devem ser retornados como ponteiros válidos
 	assert.NotNil(t, dto.CreatedAt)
 	assert.Equal(t, model.CreatedAt, *dto.CreatedAt)
 	assert.NotNil(t, dto.UpdatedAt)

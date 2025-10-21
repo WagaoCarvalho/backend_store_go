@@ -42,7 +42,7 @@ func (h *SaleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	createdModel, err := h.service.Create(ctx, saleModel)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
-		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
+		if errors.Is(err, errMsg.ErrDBInvalidForeignKey) {
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
 		}

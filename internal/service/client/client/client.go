@@ -44,8 +44,8 @@ func (s *clientService) Create(ctx context.Context, client *models.Client) (*mod
 		case errors.Is(err, errMsg.ErrDuplicate):
 			return nil, errMsg.ErrDuplicate
 
-		case errors.Is(err, errMsg.ErrInvalidForeignKey):
-			return nil, errMsg.ErrInvalidForeignKey
+		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
+			return nil, errMsg.ErrDBInvalidForeignKey
 
 		default:
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)

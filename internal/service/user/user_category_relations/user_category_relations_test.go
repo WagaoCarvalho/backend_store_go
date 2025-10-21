@@ -98,13 +98,13 @@ func Test_Create(t *testing.T) {
 
 		mockRepo.
 			On("Create", mock.Anything, mock.Anything).
-			Return(nil, err_msg.ErrInvalidForeignKey)
+			Return(nil, err_msg.ErrDBInvalidForeignKey)
 
 		rel, wasCreated, err := service.Create(context.Background(), userID, categoryID)
 
 		assert.Nil(t, rel)
 		assert.False(t, wasCreated)
-		assert.ErrorIs(t, err, err_msg.ErrInvalidForeignKey)
+		assert.ErrorIs(t, err, err_msg.ErrDBInvalidForeignKey)
 		mockRepo.AssertExpectations(t)
 	})
 

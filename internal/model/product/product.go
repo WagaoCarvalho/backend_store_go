@@ -90,7 +90,6 @@ func (p *Product) Validate() error {
 	}
 
 	// --- Código de barras ---
-	// --- Código de barras ---
 	if p.Barcode != nil && !validators.IsBlank(*p.Barcode) && !barcodeRegex.MatchString(*p.Barcode) {
 		errs = append(errs, validators.ValidationError{
 			Field:   "barcode",

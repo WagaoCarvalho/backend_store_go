@@ -118,13 +118,13 @@ func Test_SupplierContactRelationServices_Create(t *testing.T) {
 
 		expected := &models.SupplierContactRelations{SupplierID: 1, ContactID: 2}
 
-		mockRepo.On("Create", ctx, expected).Return(nil, err_msg.ErrInvalidForeignKey)
+		mockRepo.On("Create", ctx, expected).Return(nil, err_msg.ErrDBInvalidForeignKey)
 
 		result, created, err := service.Create(ctx, 1, 2)
 
 		assert.Nil(t, result)
 		assert.False(t, created)
-		assert.ErrorIs(t, err, err_msg.ErrInvalidForeignKey)
+		assert.ErrorIs(t, err, err_msg.ErrDBInvalidForeignKey)
 		mockRepo.AssertExpectations(t)
 	})
 

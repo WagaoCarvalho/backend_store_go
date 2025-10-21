@@ -203,7 +203,7 @@ func TestAddressHandler_Create(t *testing.T) {
 		}
 
 		mockService.On("Create", mock.Anything, mock.Anything).
-			Return((*models.Address)(nil), errMsg.ErrInvalidForeignKey)
+			Return((*models.Address)(nil), errMsg.ErrDBInvalidForeignKey)
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer(body))
@@ -650,7 +650,7 @@ func TestAddressHandler_Update(t *testing.T) {
 
 		w := httptest.NewRecorder()
 
-		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrInvalidForeignKey)
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrDBInvalidForeignKey)
 
 		handler.Update(w, req)
 

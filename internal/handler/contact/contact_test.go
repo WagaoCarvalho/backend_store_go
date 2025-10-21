@@ -17,7 +17,6 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -136,7 +135,7 @@ func TestContactHandler_Create(t *testing.T) {
 		}
 		inputModel := dtoContact.ToContactModel(*inputDTO)
 
-		mockService.On("Create", mock.Anything, inputModel).Return((*models.Contact)(nil), errMsg.ErrInvalidForeignKey)
+		mockService.On("Create", mock.Anything, inputModel).Return((*models.Contact)(nil), errMsg.ErrDBInvalidForeignKey)
 
 		body, _ := json.Marshal(inputDTO)
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
@@ -149,6 +148,84 @@ func TestContactHandler_Create(t *testing.T) {
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro - InvalidData", func(t *testing.T) {
+		mockService := new(mockContact.MockContactService)
+		handler := NewContactHandler(mockService, logAdapter)
+
+		inputDTO := &dtoContact.ContactDTO{
+			ContactName: "",
+			Email:       "teste@email.com",
+		}
+
+		inputModel := dtoContact.ToContactModel(*inputDTO)
+
+		mockService.On("Create", mock.Anything, inputModel).Return(nil, errMsg.ErrInvalidData)
+
+		body, _ := json.Marshal(inputDTO)
+		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
+
+		handler.Create(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro - Duplicate", func(t *testing.T) {
+		mockService := new(mockContact.MockContactService)
+		handler := NewContactHandler(mockService, logAdapter)
+
+		inputDTO := &dtoContact.ContactDTO{
+			ContactName: "Contato Teste",
+			Email:       "teste@email.com",
+		}
+
+		inputModel := dtoContact.ToContactModel(*inputDTO)
+
+		mockService.On("Create", mock.Anything, inputModel).Return(nil, errMsg.ErrDuplicate)
+
+		body, _ := json.Marshal(inputDTO)
+		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
+
+		handler.Create(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusConflict, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro - NotFound", func(t *testing.T) {
+		mockService := new(mockContact.MockContactService)
+		handler := NewContactHandler(mockService, logAdapter)
+
+		inputDTO := &dtoContact.ContactDTO{
+			ContactName: "Contato Teste",
+			Email:       "teste@email.com",
+		}
+
+		inputModel := dtoContact.ToContactModel(*inputDTO)
+
+		mockService.On("Create", mock.Anything, inputModel).Return(nil, errMsg.ErrNotFound)
+
+		body, _ := json.Marshal(inputDTO)
+		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
+
+		handler.Create(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 		mockService.AssertExpectations(t)
 	})
 }
@@ -298,15 +375,14 @@ func TestContactHandler_Update(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	})
 
-	t.Run("ValidationError", func(t *testing.T) {
+	t.Run("ErrInvalidData", func(t *testing.T) {
 		mockService := new(mockContact.MockContactService)
 		handler := NewContactHandler(mockService, logger)
 
 		id := int64(1)
-		dto := dtoContact.ContactDTO{ID: &id, ContactName: ""} // Nome vazio para gerar erro de validação
+		dto := dtoContact.ContactDTO{ID: &id, ContactName: ""} // falha de validação
 		modelContact := dtoContact.ToContactModel(dto)
-		mockService.On("Update", mock.Anything, modelContact).
-			Return(&validators.ValidationError{Message: "campo obrigatório"})
+		mockService.On("Update", mock.Anything, modelContact).Return(errMsg.ErrInvalidData)
 
 		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -317,12 +393,48 @@ func TestContactHandler_Update(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("ServiceError", func(t *testing.T) {
+	t.Run("ErrDuplicate", func(t *testing.T) {
 		mockService := new(mockContact.MockContactService)
 		handler := NewContactHandler(mockService, logger)
 
 		id := int64(1)
-		dto := dtoContact.ContactDTO{ID: &id, ContactName: "Nome Erro"}
+		dto := dtoContact.ContactDTO{ID: &id, ContactName: "Nome Teste"}
+		modelContact := dtoContact.ToContactModel(dto)
+		mockService.On("Update", mock.Anything, modelContact).Return(errMsg.ErrDuplicate)
+
+		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+		assert.Equal(t, http.StatusConflict, w.Result().StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("ErrNotFound", func(t *testing.T) {
+		mockService := new(mockContact.MockContactService)
+		handler := NewContactHandler(mockService, logger)
+
+		id := int64(1)
+		dto := dtoContact.ContactDTO{ID: &id, ContactName: "Nome Teste"}
+		modelContact := dtoContact.ToContactModel(dto)
+		mockService.On("Update", mock.Anything, modelContact).Return(errMsg.ErrNotFound)
+
+		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+		assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("UnexpectedError", func(t *testing.T) {
+		mockService := new(mockContact.MockContactService)
+		handler := NewContactHandler(mockService, logger)
+
+		id := int64(1)
+		dto := dtoContact.ContactDTO{ID: &id, ContactName: "Nome Teste"}
 		modelContact := dtoContact.ToContactModel(dto)
 		mockService.On("Update", mock.Anything, modelContact).Return(fmt.Errorf("erro inesperado"))
 
@@ -331,29 +443,7 @@ func TestContactHandler_Update(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		handler.Update(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("ServiceReturnsErrID", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
-		handler := NewContactHandler(mockService, logger)
-
-		dto := dtoContact.ContactDTO{
-			ContactName: "Nome Teste",
-			Email:       "teste@email.com",
-		}
-
-		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		w := httptest.NewRecorder()
-
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(c *models.Contact) bool {
-			return c != nil && c.ID == 1
-		})).Return(errMsg.ErrZeroID)
-
-		handler.Update(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+		assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 		mockService.AssertExpectations(t)
 	})
 }

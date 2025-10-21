@@ -119,14 +119,14 @@ func Test_UserContactRelationServices_Create(t *testing.T) {
 
 		input := &models.UserContactRelations{UserID: 1, ContactID: 2}
 
-		mockRepo.On("Create", mock.Anything, input).Return(nil, err_msg.ErrInvalidForeignKey)
+		mockRepo.On("Create", mock.Anything, input).Return(nil, err_msg.ErrDBInvalidForeignKey)
 
 		result, wasCreated, err := service.Create(context.Background(), 1, 2)
 
 		assert.Error(t, err)
 		assert.False(t, wasCreated)
 		assert.Nil(t, result)
-		assert.EqualError(t, err, err_msg.ErrInvalidForeignKey.Error())
+		assert.EqualError(t, err, err_msg.ErrDBInvalidForeignKey.Error())
 		mockRepo.AssertExpectations(t)
 	})
 

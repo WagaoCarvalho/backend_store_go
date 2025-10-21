@@ -33,6 +33,4 @@ var (
 	ErrRelationCheck  = errors.New("erro ao verificar relação")
 
 	ErrInvalidData = errors.New("erro na validação dos dados")
-
-	ErrInvalidForeignKey = errors.New("chave estrangeira inválida")
 )

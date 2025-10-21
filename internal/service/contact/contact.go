@@ -28,13 +28,21 @@ func NewContactService(contactRepo repo.ContactRepository) ContactService {
 }
 
 func (s *contactService) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
+
 	if err := contact.Validate(); err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
 	createdContact, err := s.contactRepo.Create(ctx, contact)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			return nil, errMsg.ErrNotFound
+		case errors.Is(err, errMsg.ErrDuplicate):
+			return nil, errMsg.ErrDuplicate
+		default:
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
+		}
 	}
 
 	return createdContact, nil
@@ -57,15 +65,24 @@ func (s *contactService) GetByID(ctx context.Context, id int64) (*models.Contact
 }
 
 func (s *contactService) Update(ctx context.Context, contact *models.Contact) error {
+
 	if contact.ID <= 0 {
 		return errMsg.ErrZeroID
 	}
+
 	if err := contact.Validate(); err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
 	if err := s.contactRepo.Update(ctx, contact); err != nil {
-		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			return errMsg.ErrNotFound
+		case errors.Is(err, errMsg.ErrDuplicate):
+			return errMsg.ErrDuplicate
+		default:
+			return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+		}
 	}
 
 	return nil

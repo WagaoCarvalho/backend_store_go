@@ -42,17 +42,28 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	createdContact, err := h.service.Create(ctx, contactModel)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
-			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
-				"erro": err.Error(),
-			})
+		switch {
+		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
+			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{"erro": err.Error()})
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
+		case errors.Is(err, errMsg.ErrInvalidData):
+			h.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{"erro": err.Error()})
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+		case errors.Is(err, errMsg.ErrDuplicate):
+			h.logger.Warn(ctx, ref+logger.LogErrDuplicate, map[string]any{"erro": err.Error()})
+			utils.ErrorResponse(w, err, http.StatusConflict)
+			return
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"erro": err.Error()})
+			utils.ErrorResponse(w, err, http.StatusNotFound)
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
 		}
-
-		h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
 	}
 
 	createdDTO := dtoContact.ToContactDTO(createdContact)
@@ -134,10 +145,23 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 	contactModel.ID = id
 
 	if err := h.service.Update(ctx, contactModel); err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-			"contact_id": id,
-		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		var status int
+		switch {
+		case errors.Is(err, errMsg.ErrZeroID), errors.Is(err, errMsg.ErrInvalidData):
+			status = http.StatusBadRequest
+			h.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{"erro": err.Error()})
+		case errors.Is(err, errMsg.ErrNotFound):
+			status = http.StatusNotFound
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"erro": err.Error()})
+		case errors.Is(err, errMsg.ErrDuplicate):
+			status = http.StatusConflict
+			h.logger.Warn(ctx, ref+logger.LogErrDuplicate, map[string]any{"erro": err.Error()})
+		default:
+			status = http.StatusInternalServerError
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{"contact_id": id})
+		}
+
+		utils.ErrorResponse(w, err, status)
 		return
 	}
 

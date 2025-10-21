@@ -16,28 +16,7 @@ CREATE TABLE IF NOT EXISTS addresses (
 
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
-
-    -- Garante que apenas um tipo de entidade (user, client, supplier) possua endereço
-    CONSTRAINT chk_only_one_entity CHECK (
-        (user_id IS NOT NULL)::int +
-        (client_id IS NOT NULL)::int +
-        (supplier_id IS NOT NULL)::int = 1
-    )
 );
 
--- Índices úteis para buscas por localização
 CREATE INDEX idx_addresses_city_state ON addresses (city, state);
 CREATE INDEX idx_addresses_postal_code ON addresses (postal_code);
-
--- Restrições únicas por entidade (evita duplicidade de endereço)
-CREATE UNIQUE INDEX idx_addresses_client_unique 
-    ON addresses (client_id, street, street_number, postal_code)
-    WHERE client_id IS NOT NULL;
-
-CREATE UNIQUE INDEX idx_addresses_user_unique 
-    ON addresses (user_id, street, street_number, postal_code)
-    WHERE user_id IS NOT NULL;
-
-CREATE UNIQUE INDEX idx_addresses_supplier_unique 
-    ON addresses (supplier_id, street, street_number, postal_code)
-    WHERE supplier_id IS NOT NULL;

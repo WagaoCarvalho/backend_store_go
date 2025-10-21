@@ -115,7 +115,7 @@ func TestProductHandler_Create(t *testing.T) {
 
 		mockService.
 			On("Create", mock.Anything, mock.Anything).
-			Return((*models.Product)(nil), errMsg.ErrInvalidForeignKey).
+			Return((*models.Product)(nil), errMsg.ErrDBInvalidForeignKey).
 			Once()
 
 		body, _ := json.Marshal(input)
@@ -954,7 +954,7 @@ func TestProductHandler_Update(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 
-		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrInvalidForeignKey).Once()
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrDBInvalidForeignKey).Once()
 
 		handler.Update(w, req)
 

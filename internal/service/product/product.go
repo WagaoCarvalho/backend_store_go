@@ -35,10 +35,10 @@ type ProductService interface {
 }
 
 type productService struct {
-	repo repo.ProductRepository
+	repo repo.ProductRepo
 }
 
-func NewProductService(repo repo.ProductRepository) ProductService {
+func NewProductService(repo repo.ProductRepo) ProductService {
 	return &productService{
 		repo: repo,
 	}

@@ -93,7 +93,7 @@ func TestSaleHandler_Create(t *testing.T) {
 		saleModel := dtoSale.ToSaleModel(saleDTO)
 
 		// mock retorna erro de foreign key
-		mockService.On("Create", mock.Anything, saleModel).Return(nil, errMsg.ErrInvalidForeignKey)
+		mockService.On("Create", mock.Anything, saleModel).Return(nil, errMsg.ErrDBInvalidForeignKey)
 
 		h.Create(w, req)
 
@@ -101,7 +101,7 @@ func TestSaleHandler_Create(t *testing.T) {
 
 		var resp map[string]interface{}
 		_ = json.Unmarshal(w.Body.Bytes(), &resp)
-		assert.Equal(t, errMsg.ErrInvalidForeignKey.Error(), resp["message"])
+		assert.Equal(t, errMsg.ErrDBInvalidForeignKey.Error(), resp["message"])
 		mockService.AssertExpectations(t)
 	})
 

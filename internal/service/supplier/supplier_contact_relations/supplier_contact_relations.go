@@ -58,8 +58,8 @@ func (s *supplierContactRelationServices) Create(ctx context.Context, supplierID
 
 			return nil, false, err_msg.ErrRelationExists
 
-		case errors.Is(err, err_msg.ErrInvalidForeignKey):
-			return nil, false, err_msg.ErrInvalidForeignKey
+		case errors.Is(err, err_msg.ErrDBInvalidForeignKey):
+			return nil, false, err_msg.ErrDBInvalidForeignKey
 
 		default:
 			return nil, false, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)

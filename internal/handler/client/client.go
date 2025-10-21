@@ -45,18 +45,18 @@ func (h *ClientHandler) Create(w http.ResponseWriter, r *http.Request) {
 	createdModel, err := h.service.Create(ctx, clientModel)
 	if err != nil {
 		switch {
-		case errors.Is(err, errMsg.ErrInvalidForeignKey):
+		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
 			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"erro": err.Error(),
 			})
-			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			utils.ErrorResponse(w, errMsg.ErrDBInvalidForeignKey, http.StatusBadRequest)
 			return
 
 		case errors.Is(err, errMsg.ErrDuplicate):
 			h.logger.Warn(ctx, ref+"Cliente duplicado", map[string]any{
 				"erro": err.Error(),
 			})
-			utils.ErrorResponse(w, err, http.StatusConflict)
+			utils.ErrorResponse(w, errMsg.ErrDuplicate, http.StatusConflict)
 			return
 
 		default:
@@ -252,7 +252,6 @@ func (h *ClientHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
 
-	// Extrai ID da URL
 	uid, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
@@ -262,7 +261,6 @@ func (h *ClientHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Faz parse do corpo
 	var clientDTO dto.ClientDTO
 	if err := utils.FromJSON(r.Body, &clientDTO); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
@@ -272,11 +270,9 @@ func (h *ClientHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Converte para model
 	clientModel := dto.ToClientModel(clientDTO)
-	clientModel.ID = uid // garante que o ID do path seja usado
+	clientModel.ID = uid
 
-	// Chama o serviço
 	err = h.service.Update(ctx, clientModel)
 	if err != nil {
 		switch {
@@ -320,7 +316,8 @@ func (h *ClientHandler) Update(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Sucesso
+	updatedDTO := dto.ToClientDTO(clientModel)
+
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
 		"client_id": uid,
 	})
@@ -328,7 +325,7 @@ func (h *ClientHandler) Update(w http.ResponseWriter, r *http.Request) {
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Cliente atualizado com sucesso",
-		Data:    clientDTO, // retorna o DTO enviado
+		Data:    updatedDTO,
 	})
 }
 
@@ -338,7 +335,6 @@ func (h *ClientHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{})
 
-	// Obtém o ID do cliente da URL
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
@@ -348,7 +344,6 @@ func (h *ClientHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Chama o serviço para deletar o cliente
 	err = h.service.Delete(ctx, id)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{

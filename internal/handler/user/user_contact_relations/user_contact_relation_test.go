@@ -120,7 +120,7 @@ func TestUserContactRelationHandler_Create(t *testing.T) {
 		}
 
 		mockService.On("Create", mock.Anything, int64(1), int64(99)).
-			Return(nil, false, errMsg.ErrInvalidForeignKey).Once()
+			Return(nil, false, errMsg.ErrDBInvalidForeignKey).Once()
 
 		body, _ := json.Marshal(relationDTO)
 		req := httptest.NewRequest(http.MethodPost, "/user-contact-relations", bytes.NewBuffer(body))

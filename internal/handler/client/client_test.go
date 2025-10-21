@@ -91,7 +91,7 @@ func TestClientHandler_Create(t *testing.T) {
 		inputDTO := &dto.ClientDTO{Name: "Cliente FK", Email: &email}
 
 		mockService.On("Create", mock.Anything, mock.Anything).
-			Return((*models.Client)(nil), errMsg.ErrInvalidForeignKey)
+			Return((*models.Client)(nil), errMsg.ErrDBInvalidForeignKey)
 
 		body, _ := json.Marshal(inputDTO)
 		req := httptest.NewRequest(http.MethodPost, "/clients", bytes.NewBuffer(body))

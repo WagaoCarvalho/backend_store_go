@@ -42,7 +42,7 @@ func (h *SupplierContactRelationHandler) Create(w http.ResponseWriter, r *http.R
 
 	created, wasCreated, err := h.service.Create(ctx, modelRelation.SupplierID, modelRelation.ContactID)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
+		if errors.Is(err, errMsg.ErrDBInvalidForeignKey) {
 			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"supplier_id": modelRelation.SupplierID,
 				"contact_id":  modelRelation.ContactID,

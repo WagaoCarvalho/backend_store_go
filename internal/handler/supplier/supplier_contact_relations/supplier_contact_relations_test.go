@@ -136,7 +136,7 @@ func TestSupplierContactRelationHandler_Create(t *testing.T) {
 		}
 
 		mockService.On("Create", mock.Anything, int64(1), int64(2)).
-			Return(nil, false, errMsg.ErrInvalidForeignKey).Once()
+			Return(nil, false, errMsg.ErrDBInvalidForeignKey).Once()
 
 		body, _ := json.Marshal(relationDTO)
 		req := httptest.NewRequest(http.MethodPost, "/supplier-contact-relations", bytes.NewBuffer(body))

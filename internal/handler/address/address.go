@@ -45,7 +45,7 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 	createdModel, err := h.service.Create(ctx, addressModel)
 	if err != nil {
 		switch {
-		case errors.Is(err, errMsg.ErrInvalidForeignKey):
+		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
 			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"erro": err.Error(),
 			})
@@ -265,7 +265,7 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
+		if errors.Is(err, errMsg.ErrDBInvalidForeignKey) {
 			h.logger.Warn(ctx, ref+"Invalid Foreign Key", map[string]any{
 				"erro": err.Error(),
 				"id":   id,

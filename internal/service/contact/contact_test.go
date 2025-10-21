@@ -28,7 +28,7 @@ func TestContactService_Create(t *testing.T) {
 			return m.ContactName == contact.ContactName &&
 				m.Email == contact.Email &&
 				m.Phone == contact.Phone
-		})).Return(contact, nil)
+		})).Return(contact, nil).Once()
 
 		createdContact, err := service.Create(context.Background(), contact)
 
@@ -65,7 +65,11 @@ func TestContactService_Create(t *testing.T) {
 		}
 
 		expectedErr := errors.New("erro no banco")
-		mockRepo.On("Create", mock.Anything, mock.Anything).Return((*model.Contact)(nil), expectedErr)
+		mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(m *model.Contact) bool {
+			return m.ContactName == contact.ContactName &&
+				m.Email == contact.Email &&
+				m.Phone == contact.Phone
+		})).Return((*model.Contact)(nil), expectedErr).Once()
 
 		createdContact, err := service.Create(context.Background(), contact)
 
@@ -75,12 +79,50 @@ func TestContactService_Create(t *testing.T) {
 		assert.Contains(t, err.Error(), expectedErr.Error())
 		mockRepo.AssertExpectations(t)
 	})
+
+	t.Run("erro - não encontrado", func(t *testing.T) {
+		mockRepo := new(mockContact.MockContactRepository)
+		service := NewContactService(mockRepo)
+
+		contact := &model.Contact{
+			ContactName: "Contato Teste",
+			Email:       "teste@email.com",
+		}
+
+		mockRepo.On("Create", mock.Anything, mock.Anything).
+			Return((*model.Contact)(nil), errMsg.ErrNotFound).Once()
+
+		createdContact, err := service.Create(context.Background(), contact)
+
+		assert.Nil(t, createdContact)
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro - duplicado", func(t *testing.T) {
+		mockRepo := new(mockContact.MockContactRepository)
+		service := NewContactService(mockRepo)
+
+		contact := &model.Contact{
+			ContactName: "Contato Teste",
+			Email:       "teste@email.com",
+		}
+
+		mockRepo.On("Create", mock.Anything, mock.Anything).
+			Return((*model.Contact)(nil), errMsg.ErrDuplicate).Once()
+
+		createdContact, err := service.Create(context.Background(), contact)
+
+		assert.Nil(t, createdContact)
+		assert.ErrorIs(t, err, errMsg.ErrDuplicate)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
 func TestContactService_GetByID(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockRepo := new(mockContact.MockContactRepository)
-		service := NewContactService(mockRepo) // apenas contact
+		service := NewContactService(mockRepo)
 
 		expectedContact := &model.Contact{
 			ID:          1,
@@ -158,7 +200,7 @@ func TestContactService_Update(t *testing.T) {
 			Phone:       "1234567898",
 		}
 
-		mockRepo.On("Update", mock.Anything, contact).Return(nil)
+		mockRepo.On("Update", mock.Anything, contact).Return(nil).Once()
 
 		err := service.Update(context.Background(), contact)
 
@@ -177,7 +219,6 @@ func TestContactService_Update(t *testing.T) {
 
 		err := service.Update(context.Background(), contact)
 
-		assert.Error(t, err)
 		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepo.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
 	})
@@ -188,12 +229,10 @@ func TestContactService_Update(t *testing.T) {
 
 		contact := &model.Contact{
 			ID: 1,
-			// Campos obrigatórios ausentes para falhar na validação
 		}
 
 		err := service.Update(context.Background(), contact)
 
-		assert.Error(t, err)
 		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
 		mockRepo.AssertNotCalled(t, "Update", mock.Anything, mock.Anything)
 	})
@@ -209,13 +248,48 @@ func TestContactService_Update(t *testing.T) {
 		}
 
 		expectedErr := errors.New("erro no banco")
-		mockRepo.On("Update", mock.Anything, contact).Return(expectedErr)
+		mockRepo.On("Update", mock.Anything, contact).Return(expectedErr).Once()
 
 		err := service.Update(context.Background(), contact)
 
-		assert.Error(t, err)
 		assert.ErrorIs(t, err, errMsg.ErrUpdate)
 		assert.Contains(t, err.Error(), expectedErr.Error())
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro - contato não encontrado", func(t *testing.T) {
+		mockRepo := new(mockContact.MockContactRepository)
+		service := NewContactService(mockRepo)
+
+		contact := &model.Contact{
+			ID:          1,
+			ContactName: "Contato Teste",
+			Email:       "teste@email.com",
+		}
+
+		mockRepo.On("Update", mock.Anything, contact).Return(errMsg.ErrNotFound).Once()
+
+		err := service.Update(context.Background(), contact)
+
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro - duplicado", func(t *testing.T) {
+		mockRepo := new(mockContact.MockContactRepository)
+		service := NewContactService(mockRepo)
+
+		contact := &model.Contact{
+			ID:          1,
+			ContactName: "Contato Teste",
+			Email:       "teste@email.com",
+		}
+
+		mockRepo.On("Update", mock.Anything, contact).Return(errMsg.ErrDuplicate).Once()
+
+		err := service.Update(context.Background(), contact)
+
+		assert.ErrorIs(t, err, errMsg.ErrDuplicate)
 		mockRepo.AssertExpectations(t)
 	})
 }

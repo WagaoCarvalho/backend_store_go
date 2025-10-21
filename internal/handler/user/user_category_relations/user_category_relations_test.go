@@ -117,7 +117,7 @@ func TestUserCategoryRelationHandler_Create(t *testing.T) {
 
 		mockService.
 			On("Create", mock.Anything, int64(99), int64(88)).
-			Return(modelRel, false, errMsg.ErrInvalidForeignKey).Once()
+			Return(modelRel, false, errMsg.ErrDBInvalidForeignKey).Once()
 
 		body, _ := json.Marshal(dtoRel)
 		req := httptest.NewRequest(http.MethodPost, "/relations", bytes.NewBuffer(body))
@@ -177,7 +177,7 @@ func TestUserCategoryRelationHandler_Create_ForeignKeyInvalid(t *testing.T) {
 
 	mockService.
 		On("Create", mock.Anything, int64(1), int64(999)).
-		Return(nil, false, errMsg.ErrInvalidForeignKey)
+		Return(nil, false, errMsg.ErrDBInvalidForeignKey)
 
 	req := httptest.NewRequest(http.MethodPost, "/relations", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -186,7 +186,7 @@ func TestUserCategoryRelationHandler_Create_ForeignKeyInvalid(t *testing.T) {
 	handler.Create(rec, req)
 
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
-	assert.Contains(t, rec.Body.String(), errMsg.ErrInvalidForeignKey.Error())
+	assert.Contains(t, rec.Body.String(), errMsg.ErrDBInvalidForeignKey.Error())
 	mockService.AssertExpectations(t)
 }
 

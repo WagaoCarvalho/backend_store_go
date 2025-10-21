@@ -56,12 +56,12 @@ func TestClientService_Create(t *testing.T) {
 			CNPJ:  utils.StrToPtr("12345678000199"),
 		}
 
-		mockRepo.On("Create", mock.Anything, client).Return(nil, errMsg.ErrInvalidForeignKey).Once()
+		mockRepo.On("Create", mock.Anything, client).Return(nil, errMsg.ErrDBInvalidForeignKey).Once()
 
 		result, err := service.Create(context.Background(), client)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrInvalidForeignKey)
+		assert.ErrorIs(t, err, errMsg.ErrDBInvalidForeignKey)
 		mockRepo.AssertExpectations(t)
 	})
 

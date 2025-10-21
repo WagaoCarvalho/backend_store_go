@@ -540,7 +540,7 @@ func TestSupplierHandler_Update(t *testing.T) {
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == supplierID
-		})).Return(errMsg.ErrInvalidForeignKey).Once()
+		})).Return(errMsg.ErrDBInvalidForeignKey).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})

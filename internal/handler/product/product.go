@@ -45,7 +45,7 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	createdProduct, err := h.service.Create(r.Context(), product)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrInvalidForeignKey) {
+		if errors.Is(err, errMsg.ErrDBInvalidForeignKey) {
 			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
 				"erro": err.Error(),
 			})
@@ -430,7 +430,7 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, errMsg.ErrInvalidData),
-			errors.Is(err, errMsg.ErrInvalidForeignKey),
+			errors.Is(err, errMsg.ErrDBInvalidForeignKey),
 			errors.Is(err, errMsg.ErrZeroID):
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return

@@ -57,7 +57,7 @@ func (r *saleRepository) Create(ctx context.Context, sale *models.Sale) (*models
 
 	if err != nil {
 		if errMsgPg.IsForeignKeyViolation(err) {
-			return nil, errMsg.ErrInvalidForeignKey
+			return nil, errMsg.ErrDBInvalidForeignKey
 		}
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
@@ -88,7 +88,7 @@ func (r *saleRepository) CreateTx(ctx context.Context, tx pgx.Tx, sale *models.S
 
 	if err != nil {
 		if errMsgPg.IsForeignKeyViolation(err) {
-			return nil, errMsg.ErrInvalidForeignKey
+			return nil, errMsg.ErrDBInvalidForeignKey
 		}
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
@@ -231,7 +231,7 @@ func (r *saleRepository) Update(ctx context.Context, sale *models.Sale) error {
 		}
 
 		if errMsgPg.IsForeignKeyViolation(err) {
-			return errMsg.ErrInvalidForeignKey
+			return errMsg.ErrDBInvalidForeignKey
 		}
 
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)

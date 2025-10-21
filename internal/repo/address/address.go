@@ -61,10 +61,7 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 
 	if err != nil {
 		if errMsgPg.IsForeignKeyViolation(err) {
-			return nil, errMsg.ErrInvalidForeignKey
-		}
-		if errMsgPg.IsUniqueViolation(err) {
-			return nil, fmt.Errorf("address: %w", errMsg.ErrDuplicate)
+			return nil, errMsg.ErrDBInvalidForeignKey
 		}
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
@@ -99,10 +96,7 @@ func (r *addressRepository) CreateTx(ctx context.Context, tx pgx.Tx, address *mo
 
 	if err != nil {
 		if errMsgPg.IsForeignKeyViolation(err) {
-			return nil, errMsg.ErrInvalidForeignKey
-		}
-		if errMsgPg.IsUniqueViolation(err) {
-			return nil, fmt.Errorf("address: %w", errMsg.ErrDuplicate)
+			return nil, errMsg.ErrDBInvalidForeignKey
 		}
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
@@ -317,7 +311,7 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 			return errMsg.ErrNotFound
 		}
 		if errMsgPg.IsForeignKeyViolation(err) {
-			return errMsg.ErrInvalidForeignKey
+			return errMsg.ErrDBInvalidForeignKey
 		}
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}

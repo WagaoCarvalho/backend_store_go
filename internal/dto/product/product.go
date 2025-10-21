@@ -58,8 +58,18 @@ func ToProductModel(dto ProductDTO) *models.Product {
 }
 
 func ToProductDTO(model *models.Product) ProductDTO {
+	var idPtr *int64
+	if model.ID != 0 {
+		idPtr = &model.ID
+	}
+
+	var createdAtPtr *time.Time
+	var updatedAtPtr *time.Time
+	createdAtPtr = &model.CreatedAt
+	updatedAtPtr = &model.UpdatedAt
+
 	return ProductDTO{
-		ID:                 &model.ID,
+		ID:                 idPtr,
 		SupplierID:         model.SupplierID,
 		ProductName:        model.ProductName,
 		Manufacturer:       model.Manufacturer,
@@ -75,8 +85,8 @@ func ToProductDTO(model *models.Product) ProductDTO {
 		AllowDiscount:      model.AllowDiscount,
 		MinDiscountPercent: model.MinDiscountPercent,
 		MaxDiscountPercent: model.MaxDiscountPercent,
-		CreatedAt:          &model.CreatedAt,
-		UpdatedAt:          &model.UpdatedAt,
+		CreatedAt:          createdAtPtr,
+		UpdatedAt:          updatedAtPtr,
 	}
 }
 
