@@ -39,7 +39,6 @@ type ProductStatus interface {
 	DisableProduct(ctx context.Context, uid int64) error
 }
 
-// Composição da interface pública (opcional).
 type ProductRepo interface {
 	ProductReader
 	ProductWriter

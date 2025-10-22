@@ -14,6 +14,7 @@ include infra/make/migrate_suppliers.mk
 include infra/make/migrate_addresses.mk
 include infra/make/migrate_contacts.mk
 include infra/make/migrate_products.mk
+include infra/make/migrate_order_services.mk
 include infra/make/migrate_sale.mk
 include infra/make/migrate_sale_items.mk
 

@@ -5,7 +5,6 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-// Helpers para reuso do scan entre QueryRow e Rows.
 func scanProductRow(row pgx.Row, p *models.Product) error {
 	return row.Scan(
 		&p.ID,
@@ -30,7 +29,6 @@ func scanProductRow(row pgx.Row, p *models.Product) error {
 }
 
 func scanProductRowLimited(row pgx.Row, p *models.Product) error {
-	// usado para queries com fewer columns (ex: listagens)
 	return row.Scan(
 		&p.ID,
 		&p.SupplierID,
