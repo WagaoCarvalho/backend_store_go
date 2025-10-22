@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 

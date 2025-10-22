@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product/product"
 )

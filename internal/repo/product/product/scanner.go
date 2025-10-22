@@ -1,7 +1,7 @@
 package repo
 
 import (
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 	"github.com/jackc/pgx/v5"
 )
 

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 	"github.com/stretchr/testify/assert"
 )
 

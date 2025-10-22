@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	mock_product "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/product"
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )

@@ -19,7 +19,7 @@ import (
 
 	mockProduct "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/product"
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/product"
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
