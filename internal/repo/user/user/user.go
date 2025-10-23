@@ -12,7 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type UserRepository interface {
+type User interface {
 	Create(ctx context.Context, user *models.User) (*models.User, error)
 	GetAll(ctx context.Context) ([]*models.User, error)
 	GetByID(ctx context.Context, id int64) (*models.User, error)
@@ -26,17 +26,17 @@ type UserRepository interface {
 	UserExists(ctx context.Context, userID int64) (bool, error)
 }
 
-type userRepository struct {
+type user struct {
 	db *pgxpool.Pool
 }
 
-func NewUserRepository(db *pgxpool.Pool) UserRepository {
-	return &userRepository{
+func NewUser(db *pgxpool.Pool) User {
+	return &user{
 		db: db,
 	}
 }
 
-func (r *userRepository) Create(ctx context.Context, user *models.User) (*models.User, error) {
+func (r *user) Create(ctx context.Context, user *models.User) (*models.User, error) {
 	const query = `
 		INSERT INTO users (
 			username,
@@ -70,7 +70,7 @@ func (r *userRepository) Create(ctx context.Context, user *models.User) (*models
 	return user, nil
 }
 
-func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
+func (r *user) GetAll(ctx context.Context) ([]*models.User, error) {
 	const query = `
 		SELECT 
 			id,
@@ -113,7 +113,7 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*models.User, error) {
 	return users, nil
 }
 
-func (r *userRepository) GetByID(ctx context.Context, id int64) (*models.User, error) {
+func (r *user) GetByID(ctx context.Context, id int64) (*models.User, error) {
 	const query = `
 		SELECT 
 			id,
@@ -148,7 +148,7 @@ func (r *userRepository) GetByID(ctx context.Context, id int64) (*models.User, e
 	return user, nil
 }
 
-func (r *userRepository) GetVersionByID(ctx context.Context, id int64) (int64, error) {
+func (r *user) GetVersionByID(ctx context.Context, id int64) (int64, error) {
 	const query = `SELECT version FROM users WHERE id = $1`
 
 	var version int64
@@ -163,7 +163,7 @@ func (r *userRepository) GetVersionByID(ctx context.Context, id int64) (int64, e
 	return version, nil
 }
 
-func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+func (r *user) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	const query = `
 		SELECT id, username, email, password_hash, status, created_at, updated_at
 		FROM users
@@ -191,7 +191,7 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.
 	return user, nil
 }
 
-func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.User, error) {
+func (r *user) GetByName(ctx context.Context, name string) ([]*models.User, error) {
 	const query = `
 		SELECT 
 			id,
@@ -240,7 +240,7 @@ func (r *userRepository) GetByName(ctx context.Context, name string) ([]*models.
 	return users, nil
 }
 
-func (r *userRepository) Update(ctx context.Context, user *models.User) (*models.User, error) {
+func (r *user) Update(ctx context.Context, user *models.User) (*models.User, error) {
 	const query = `
 		UPDATE users
 		SET 
@@ -273,7 +273,7 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) (*models
 	return user, nil
 }
 
-func (r *userRepository) Disable(ctx context.Context, uid int64) error {
+func (r *user) Disable(ctx context.Context, uid int64) error {
 	const query = `
 		UPDATE users
 		SET status = FALSE, updated_at = NOW(), version = version + 1
@@ -294,7 +294,7 @@ func (r *userRepository) Disable(ctx context.Context, uid int64) error {
 	return nil
 }
 
-func (r *userRepository) Enable(ctx context.Context, uid int64) error {
+func (r *user) Enable(ctx context.Context, uid int64) error {
 	const query = `
 		UPDATE users
 		SET status = TRUE, updated_at = NOW(), version = version + 1
@@ -315,7 +315,7 @@ func (r *userRepository) Enable(ctx context.Context, uid int64) error {
 	return nil
 }
 
-func (r *userRepository) Delete(ctx context.Context, uid int64) error {
+func (r *user) Delete(ctx context.Context, uid int64) error {
 	const query = `DELETE FROM users WHERE id = $1`
 
 	result, err := r.db.Exec(ctx, query, uid)
@@ -330,7 +330,7 @@ func (r *userRepository) Delete(ctx context.Context, uid int64) error {
 	return nil
 }
 
-func (r *userRepository) UserExists(ctx context.Context, userID int64) (bool, error) {
+func (r *user) UserExists(ctx context.Context, userID int64) (bool, error) {
 	const query = `
 		SELECT EXISTS (
 			SELECT 1

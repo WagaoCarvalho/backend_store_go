@@ -13,19 +13,19 @@ import (
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user"
 )
 
-type UserHandler struct {
-	service service.UserService
+type User struct {
+	service service.User
 	logger  *logger.LogAdapter
 }
 
-func NewUserHandler(service service.UserService, logger *logger.LogAdapter) *UserHandler {
-	return &UserHandler{
+func NewUser(service service.User, logger *logger.LogAdapter) *User {
+	return &User{
 		service: service,
 		logger:  logger,
 	}
 }
 
-func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *User) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - Create] "
 	ctx := r.Context()
 
@@ -77,7 +77,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+func (h *User) GetAll(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - GetAll] "
 	ctx := r.Context()
 
@@ -103,7 +103,7 @@ func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *User) GetByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - GetByID] "
 	ctx := r.Context()
 
@@ -151,7 +151,7 @@ func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
+func (h *User) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - GetVersionByID] "
 	ctx := r.Context()
 
@@ -199,7 +199,7 @@ func (h *UserHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) GetByEmail(w http.ResponseWriter, r *http.Request) {
+func (h *User) GetByEmail(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - GetByEmail] "
 	ctx := r.Context()
 
@@ -241,7 +241,7 @@ func (h *UserHandler) GetByEmail(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) GetByName(w http.ResponseWriter, r *http.Request) {
+func (h *User) GetByName(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - GetByName] "
 	ctx := r.Context()
 
@@ -282,7 +282,7 @@ func (h *UserHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *User) Update(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - Update] "
 	ctx := r.Context()
 
@@ -355,7 +355,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) Disable(w http.ResponseWriter, r *http.Request) {
+func (h *User) Disable(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - Disable] "
 	ctx := r.Context()
 
@@ -432,7 +432,7 @@ func (h *UserHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *UserHandler) Enable(w http.ResponseWriter, r *http.Request) {
+func (h *User) Enable(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - Enable] "
 	ctx := r.Context()
 
@@ -509,7 +509,7 @@ func (h *UserHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *User) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - Delete] "
 	ctx := r.Context()
 

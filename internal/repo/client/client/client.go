@@ -13,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type ClientRepository interface {
+type Client interface {
 	Create(ctx context.Context, client *models.Client) (*models.Client, error)
 	GetByID(ctx context.Context, id int64) (*models.Client, error)
 	GetByName(ctx context.Context, name string) ([]*models.Client, error)
@@ -26,15 +26,15 @@ type ClientRepository interface {
 	ClientExists(ctx context.Context, clientID int64) (bool, error)
 }
 
-type clientRepository struct {
+type client struct {
 	db *pgxpool.Pool
 }
 
-func NewClientRepository(db *pgxpool.Pool) ClientRepository {
-	return &clientRepository{db: db}
+func NewClient(db *pgxpool.Pool) Client {
+	return &client{db: db}
 }
 
-func (r *clientRepository) Create(ctx context.Context, client *models.Client) (*models.Client, error) {
+func (r *client) Create(ctx context.Context, client *models.Client) (*models.Client, error) {
 	const query = `
 		INSERT INTO clients (name, email, cpf, cnpj, description, status, version)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -68,7 +68,7 @@ func (r *clientRepository) Create(ctx context.Context, client *models.Client) (*
 	return client, nil
 }
 
-func (r *clientRepository) GetByID(ctx context.Context, id int64) (*models.Client, error) {
+func (r *client) GetByID(ctx context.Context, id int64) (*models.Client, error) {
 	const query = `
 		SELECT id, name, email, cpf, cnpj, description, status, created_at, updated_at
 		FROM clients
@@ -92,7 +92,7 @@ func (r *clientRepository) GetByID(ctx context.Context, id int64) (*models.Clien
 	return client, nil
 }
 
-func (r *clientRepository) GetByName(ctx context.Context, name string) ([]*models.Client, error) {
+func (r *client) GetByName(ctx context.Context, name string) ([]*models.Client, error) {
 	const query = `
 		SELECT id, name, email, cpf, cnpj, description, status, created_at, updated_at
 		FROM clients
@@ -125,7 +125,7 @@ func (r *clientRepository) GetByName(ctx context.Context, name string) ([]*model
 	return clients, nil
 }
 
-func (r *clientRepository) GetVersionByID(ctx context.Context, id int64) (int, error) {
+func (r *client) GetVersionByID(ctx context.Context, id int64) (int, error) {
 	const query = `SELECT version FROM clients WHERE id = $1`
 	var version int
 	err := r.db.QueryRow(ctx, query, id).Scan(&version)
@@ -135,7 +135,7 @@ func (r *clientRepository) GetVersionByID(ctx context.Context, id int64) (int, e
 	return version, nil
 }
 
-func (r *clientRepository) GetAll(ctx context.Context, limit, offset int) ([]*models.Client, error) {
+func (r *client) GetAll(ctx context.Context, limit, offset int) ([]*models.Client, error) {
 	const query = `
 		SELECT id, name, email, cpf, cnpj, description, status, created_at, updated_at
 		FROM clients
@@ -174,7 +174,7 @@ func (r *clientRepository) GetAll(ctx context.Context, limit, offset int) ([]*mo
 	return clients, nil
 }
 
-func (r *clientRepository) Update(ctx context.Context, client *models.Client) error {
+func (r *client) Update(ctx context.Context, client *models.Client) error {
 	const query = `
 		UPDATE clients
 		SET 
@@ -227,7 +227,7 @@ func (r *clientRepository) Update(ctx context.Context, client *models.Client) er
 	return nil
 }
 
-func (r *clientRepository) Delete(ctx context.Context, id int64) error {
+func (r *client) Delete(ctx context.Context, id int64) error {
 	const query = `DELETE FROM clients WHERE id = $1`
 	_, err := r.db.Exec(ctx, query, id)
 	if err != nil {
@@ -236,7 +236,7 @@ func (r *clientRepository) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *clientRepository) Disable(ctx context.Context, id int64) error {
+func (r *client) Disable(ctx context.Context, id int64) error {
 	const query = `UPDATE clients SET status=false, updated_at=NOW() WHERE id=$1`
 	_, err := r.db.Exec(ctx, query, id)
 	if err != nil {
@@ -245,7 +245,7 @@ func (r *clientRepository) Disable(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *clientRepository) Enable(ctx context.Context, id int64) error {
+func (r *client) Enable(ctx context.Context, id int64) error {
 	const query = `UPDATE clients SET status=true, updated_at=NOW() WHERE id=$1`
 	_, err := r.db.Exec(ctx, query, id)
 	if err != nil {
@@ -254,7 +254,7 @@ func (r *clientRepository) Enable(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *clientRepository) ClientExists(ctx context.Context, clientID int64) (bool, error) {
+func (r *client) ClientExists(ctx context.Context, clientID int64) (bool, error) {
 	const query = `SELECT EXISTS(SELECT 1 FROM clients WHERE id=$1)`
 	var exists bool
 	err := r.db.QueryRow(ctx, query, clientID).Scan(&exists)

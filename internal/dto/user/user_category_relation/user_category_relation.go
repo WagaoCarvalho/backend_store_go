@@ -3,7 +3,7 @@ package dto
 import (
 	"time"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relation"
 )
 
 type UserCategoryRelationsDTO struct {
@@ -12,15 +12,15 @@ type UserCategoryRelationsDTO struct {
 	CreatedAt  string `json:"created_at,omitempty"`
 }
 
-func ToUserCategoryRelationsModel(dto UserCategoryRelationsDTO) *models.UserCategoryRelations {
-	return &models.UserCategoryRelations{
+func ToUserCategoryRelationsModel(dto UserCategoryRelationsDTO) *models.UserCategoryRelation {
+	return &models.UserCategoryRelation{
 		UserID:     dto.UserID,
 		CategoryID: dto.CategoryID,
 		CreatedAt:  time.Now(),
 	}
 }
 
-func ToUserCategoryRelationsDTO(m *models.UserCategoryRelations) UserCategoryRelationsDTO {
+func ToUserCategoryRelationsDTO(m *models.UserCategoryRelation) UserCategoryRelationsDTO {
 	if m == nil {
 		return UserCategoryRelationsDTO{}
 	}

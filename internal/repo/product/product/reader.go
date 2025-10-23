@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *productRepository) GetAll(ctx context.Context, limit, offset int) ([]*models.Product, error) {
+func (r *product) GetAll(ctx context.Context, limit, offset int) ([]*models.Product, error) {
 	const query = `
 	SELECT id, supplier_id, product_name, manufacturer, product_description,
 		cost_price, sale_price, stock_quantity, barcode,
@@ -43,7 +43,7 @@ func (r *productRepository) GetAll(ctx context.Context, limit, offset int) ([]*m
 	return products, nil
 }
 
-func (r *productRepository) GetByID(ctx context.Context, id int64) (*models.Product, error) {
+func (r *product) GetByID(ctx context.Context, id int64) (*models.Product, error) {
 	const query = `
 	SELECT id,
 	       supplier_id,
@@ -77,7 +77,7 @@ func (r *productRepository) GetByID(ctx context.Context, id int64) (*models.Prod
 	return &p, nil
 }
 
-func (r *productRepository) GetByName(ctx context.Context, name string) ([]*models.Product, error) {
+func (r *product) GetByName(ctx context.Context, name string) ([]*models.Product, error) {
 	const query = `
 	SELECT id,
 	       supplier_id,
@@ -123,7 +123,7 @@ func (r *productRepository) GetByName(ctx context.Context, name string) ([]*mode
 	return products, nil
 }
 
-func (r *productRepository) GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error) {
+func (r *product) GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error) {
 	const query = `
 	SELECT id,
 	       supplier_id,
@@ -169,7 +169,7 @@ func (r *productRepository) GetByManufacturer(ctx context.Context, manufacturer 
 	return products, nil
 }
 
-func (r *productRepository) GetVersionByID(ctx context.Context, id int64) (int64, error) {
+func (r *product) GetVersionByID(ctx context.Context, id int64) (int64, error) {
 	const query = `SELECT version FROM products WHERE id = $1`
 
 	var version int64
@@ -184,7 +184,7 @@ func (r *productRepository) GetVersionByID(ctx context.Context, id int64) (int64
 	return version, nil
 }
 
-func (r *productRepository) ProductExists(ctx context.Context, productID int64) (bool, error) {
+func (r *product) ProductExists(ctx context.Context, productID int64) (bool, error) {
 	const query = `SELECT EXISTS(SELECT 1 FROM products WHERE id=$1)`
 	var exists bool
 	err := r.db.QueryRow(ctx, query, productID).Scan(&exists)

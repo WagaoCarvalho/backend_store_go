@@ -8,11 +8,11 @@ type LoginCredentialsDTO struct {
 	Password string `json:"password"`
 }
 
-func (dto *LoginCredentialsDTO) ToModel() *models.LoginCredentials {
+func (dto *LoginCredentialsDTO) ToModel() *models.LoginCredential {
 	if dto == nil {
 		return nil
 	}
-	return &models.LoginCredentials{
+	return &models.LoginCredential{
 		Email:    dto.Email,
 		Password: dto.Password,
 	}

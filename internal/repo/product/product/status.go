@@ -8,7 +8,7 @@ import (
 )
 
 // EnableProduct ativa um produto, alterando o campo `status` para TRUE.
-func (r *productRepository) EnableProduct(ctx context.Context, uid int64) error {
+func (r *product) EnableProduct(ctx context.Context, uid int64) error {
 	const query = `
 		UPDATE products
 		SET status = TRUE, updated_at = NOW()
@@ -28,7 +28,7 @@ func (r *productRepository) EnableProduct(ctx context.Context, uid int64) error 
 }
 
 // DisableProduct desativa um produto, alterando o campo `status` para FALSE.
-func (r *productRepository) DisableProduct(ctx context.Context, uid int64) error {
+func (r *product) DisableProduct(ctx context.Context, uid int64) error {
 	const query = `
 		UPDATE products
 		SET status = FALSE, updated_at = NOW()

@@ -12,37 +12,37 @@ import (
 func TestLoginCredentials_Validate(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    LoginCredentials
+		input    LoginCredential
 		wantErr  bool
 		errField string
 	}{
 		{
 			name:     "email em branco",
-			input:    LoginCredentials{Email: "", Password: "Senha123!"},
+			input:    LoginCredential{Email: "", Password: "Senha123!"},
 			wantErr:  true,
 			errField: "email",
 		},
 		{
 			name:     "email inválido",
-			input:    LoginCredentials{Email: "invalido.com", Password: "Senha123!"},
+			input:    LoginCredential{Email: "invalido.com", Password: "Senha123!"},
 			wantErr:  true,
 			errField: "email",
 		},
 		{
 			name:     "email muito longo",
-			input:    LoginCredentials{Email: generateLongString(101) + "@example.com", Password: "Senha123!"},
+			input:    LoginCredential{Email: generateLongString(101) + "@example.com", Password: "Senha123!"},
 			wantErr:  true,
 			errField: "email",
 		},
 		{
 			name:     "senha em branco",
-			input:    LoginCredentials{Email: "user@example.com", Password: ""},
+			input:    LoginCredential{Email: "user@example.com", Password: ""},
 			wantErr:  true,
 			errField: "password",
 		},
 		{
 			name:    "credenciais válidas",
-			input:   LoginCredentials{Email: "user@example.com", Password: "Senha123!"},
+			input:   LoginCredential{Email: "user@example.com", Password: "Senha123!"},
 			wantErr: false,
 		},
 	}

@@ -21,8 +21,8 @@ func RegisterSupplierRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repoSupplier := repo.NewSupplierRepository(db)
-	supplierService := service.NewSupplierService(repoSupplier)
+	repoSupplier := repo.NewSupplier(db)
+	supplierService := service.NewSupplier(repoSupplier)
 	handler := handler.NewSupplierHandler(supplierService, log)
 
 	// Config JWT

@@ -10,7 +10,7 @@ import (
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/client/client"
 )
 
-type ClientService interface {
+type Client interface {
 	Create(ctx context.Context, client *models.Client) (*models.Client, error)
 	GetByID(ctx context.Context, id int64) (*models.Client, error)
 	GetByName(ctx context.Context, name string) ([]*models.Client, error)
@@ -23,17 +23,17 @@ type ClientService interface {
 	ClientExists(ctx context.Context, clientID int64) (bool, error)
 }
 
-type clientService struct {
-	repo repo.ClientRepository
+type client struct {
+	repo repo.Client
 }
 
-func NewClientService(repo repo.ClientRepository) ClientService {
-	return &clientService{
+func NewClient(repo repo.Client) Client {
+	return &client{
 		repo: repo,
 	}
 }
 
-func (s *clientService) Create(ctx context.Context, client *models.Client) (*models.Client, error) {
+func (s *client) Create(ctx context.Context, client *models.Client) (*models.Client, error) {
 	if err := client.Validate(); err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
@@ -55,7 +55,7 @@ func (s *clientService) Create(ctx context.Context, client *models.Client) (*mod
 	return created, nil
 }
 
-func (s *clientService) GetByID(ctx context.Context, id int64) (*models.Client, error) {
+func (s *client) GetByID(ctx context.Context, id int64) (*models.Client, error) {
 	if id <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -67,7 +67,7 @@ func (s *clientService) GetByID(ctx context.Context, id int64) (*models.Client, 
 	return client, nil
 }
 
-func (s *clientService) GetByName(ctx context.Context, name string) ([]*models.Client, error) {
+func (s *client) GetByName(ctx context.Context, name string) ([]*models.Client, error) {
 	if name == "" {
 		return nil, errMsg.ErrInvalidData
 	}
@@ -79,7 +79,7 @@ func (s *clientService) GetByName(ctx context.Context, name string) ([]*models.C
 	return clients, nil
 }
 
-func (s *clientService) GetVersionByID(ctx context.Context, id int64) (int, error) {
+func (s *client) GetVersionByID(ctx context.Context, id int64) (int, error) {
 	if id <= 0 {
 		return 0, errMsg.ErrZeroID
 	}
@@ -91,7 +91,7 @@ func (s *clientService) GetVersionByID(ctx context.Context, id int64) (int, erro
 	return version, nil
 }
 
-func (s *clientService) GetAll(ctx context.Context, limit, offset int) ([]*models.Client, error) {
+func (s *client) GetAll(ctx context.Context, limit, offset int) ([]*models.Client, error) {
 	clients, err := s.repo.GetAll(ctx, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
@@ -99,7 +99,7 @@ func (s *clientService) GetAll(ctx context.Context, limit, offset int) ([]*model
 	return clients, nil
 }
 
-func (s *clientService) Update(ctx context.Context, client *models.Client) error {
+func (s *client) Update(ctx context.Context, client *models.Client) error {
 	if client.ID <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -124,7 +124,7 @@ func (s *clientService) Update(ctx context.Context, client *models.Client) error
 	return nil
 }
 
-func (s *clientService) Delete(ctx context.Context, id int64) error {
+func (s *client) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -135,7 +135,7 @@ func (s *clientService) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *clientService) Disable(ctx context.Context, id int64) error {
+func (s *client) Disable(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -146,7 +146,7 @@ func (s *clientService) Disable(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *clientService) Enable(ctx context.Context, id int64) error {
+func (s *client) Enable(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -157,7 +157,7 @@ func (s *clientService) Enable(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *clientService) ClientExists(ctx context.Context, clientID int64) (bool, error) {
+func (s *client) ClientExists(ctx context.Context, clientID int64) (bool, error) {
 	if clientID <= 0 {
 		return false, errMsg.ErrZeroID
 	}

@@ -3,11 +3,10 @@ package repositories
 import (
 	"context"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category"
 	"github.com/stretchr/testify/mock"
 )
 
-// Mock repository
 type MockSupplierCategoryRepo struct {
 	mock.Mock
 }

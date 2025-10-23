@@ -13,11 +13,11 @@ import (
 )
 
 type SaleHandler struct {
-	service service.SaleService
+	service service.Sale
 	logger  *logger.LogAdapter
 }
 
-func NewSaleHandler(service service.SaleService, logger *logger.LogAdapter) *SaleHandler {
+func NewSaleHandler(service service.Sale, logger *logger.LogAdapter) *SaleHandler {
 	return &SaleHandler{
 		service: service,
 		logger:  logger,

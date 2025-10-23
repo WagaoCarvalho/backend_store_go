@@ -7,22 +7,22 @@ import (
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/supplier_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_full_services"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_full"
 )
 
-type SupplierHandler struct {
-	service service.SupplierFullService
+type Supplier struct {
+	service service.SupplierFull
 	logger  *logger.LogAdapter
 }
 
-func NewSupplierFullHandler(service service.SupplierFullService, logger *logger.LogAdapter) *SupplierHandler {
-	return &SupplierHandler{
+func NewSupplierFull(service service.SupplierFull, logger *logger.LogAdapter) *Supplier {
+	return &Supplier{
 		service: service,
 		logger:  logger,
 	}
 }
 
-func (h *SupplierHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
+func (h *Supplier) CreateFull(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierHandler - CreateFull] "
 	ctx := r.Context()
 

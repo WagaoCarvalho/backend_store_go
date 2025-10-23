@@ -5,7 +5,7 @@ import (
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
-type LoginCredentials struct {
+type LoginCredential struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
@@ -17,7 +17,7 @@ type AuthResponse struct {
 	TokenType string
 }
 
-func (c *LoginCredentials) Validate() error {
+func (c *LoginCredential) Validate() error {
 	var errs validators.ValidationErrors
 
 	// Email

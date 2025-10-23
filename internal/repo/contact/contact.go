@@ -14,7 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type ContactRepository interface {
+type Contact interface {
 	Create(ctx context.Context, contact *models.Contact) (*models.Contact, error)
 	CreateTx(ctx context.Context, tx pgx.Tx, contact *models.Contact) (*models.Contact, error)
 	GetByID(ctx context.Context, id int64) (*models.Contact, error)
@@ -22,15 +22,15 @@ type ContactRepository interface {
 	Delete(ctx context.Context, id int64) error
 }
 
-type contactRepository struct {
+type contact struct {
 	db *pgxpool.Pool
 }
 
-func NewContactRepository(db *pgxpool.Pool) ContactRepository {
-	return &contactRepository{db: db}
+func NewContact(db *pgxpool.Pool) Contact {
+	return &contact{db: db}
 }
 
-func (r *contactRepository) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
+func (r *contact) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
 	const query = `
         INSERT INTO contacts (
             contact_name, contact_description,
@@ -72,7 +72,7 @@ func (r *contactRepository) Create(ctx context.Context, contact *models.Contact)
 	return contact, nil
 }
 
-func (r *contactRepository) CreateTx(ctx context.Context, tx pgx.Tx, contact *models.Contact) (*models.Contact, error) {
+func (r *contact) CreateTx(ctx context.Context, tx pgx.Tx, contact *models.Contact) (*models.Contact, error) {
 	const query = `
 		INSERT INTO contacts (
 			contact_name, contact_description,
@@ -97,7 +97,7 @@ func (r *contactRepository) CreateTx(ctx context.Context, tx pgx.Tx, contact *mo
 	return contact, nil
 }
 
-func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
+func (r *contact) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
 	const query = `
 		SELECT 
 			id, contact_name, contact_description,
@@ -129,7 +129,7 @@ func (r *contactRepository) GetByID(ctx context.Context, id int64) (*models.Cont
 	return &contact, nil
 }
 
-func (r *contactRepository) Update(ctx context.Context, contact *models.Contact) error {
+func (r *contact) Update(ctx context.Context, contact *models.Contact) error {
 	const query = `
 		UPDATE contacts
 		SET contact_name = $1,
@@ -179,7 +179,7 @@ func (r *contactRepository) Update(ctx context.Context, contact *models.Contact)
 	return nil
 }
 
-func (r *contactRepository) Delete(ctx context.Context, id int64) error {
+func (r *contact) Delete(ctx context.Context, id int64) error {
 	const query = `DELETE FROM contacts WHERE id = $1 RETURNING id`
 
 	var deletedID int64

@@ -8,7 +8,7 @@ import (
 	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelsSupplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
-	modelsSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	modelsSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category"
 	modelsSupplierFull "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
 )
 

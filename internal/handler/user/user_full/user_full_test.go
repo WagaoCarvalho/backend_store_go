@@ -17,7 +17,7 @@ import (
 	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelUser "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
-	modelCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
+	modelCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category"
 	modelUserFull "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"

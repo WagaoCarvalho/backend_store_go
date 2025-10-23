@@ -3,7 +3,7 @@ package dto
 import (
 	"time"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_contact_relations"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_contact_relation"
 )
 
 type UserContactRelationDTO struct {
@@ -12,15 +12,15 @@ type UserContactRelationDTO struct {
 	CreatedAt string `json:"created_at,omitempty"`
 }
 
-func ToContactRelationModel(dto UserContactRelationDTO) *models.UserContactRelations {
-	return &models.UserContactRelations{
+func ToContactRelationModel(dto UserContactRelationDTO) *models.UserContactRelation {
+	return &models.UserContactRelation{
 		ContactID: dto.ContactID,
 		UserID:    dto.UserID,
 		CreatedAt: time.Now(),
 	}
 }
 
-func ToContactRelationDTO(m *models.UserContactRelations) UserContactRelationDTO {
+func ToContactRelationDTO(m *models.UserContactRelation) UserContactRelationDTO {
 	if m == nil {
 		return UserContactRelationDTO{}
 	}
@@ -32,7 +32,7 @@ func ToContactRelationDTO(m *models.UserContactRelations) UserContactRelationDTO
 	}
 }
 
-func ToUserContactRelationsDTOs(models []*models.UserContactRelations) []UserContactRelationDTO {
+func ToUserContactRelationsDTOs(models []*models.UserContactRelation) []UserContactRelationDTO {
 	if len(models) == 0 {
 		return []UserContactRelationDTO{}
 	}

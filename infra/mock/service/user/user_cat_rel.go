@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	user_category_relations "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
+	user_category_relations "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relation"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -11,11 +11,11 @@ type MockUserCategoryRelationService struct {
 	mock.Mock
 }
 
-func (m *MockUserCategoryRelationService) Create(ctx context.Context, userID, categoryID int64) (*user_category_relations.UserCategoryRelations, bool, error) {
+func (m *MockUserCategoryRelationService) Create(ctx context.Context, userID, categoryID int64) (*user_category_relations.UserCategoryRelation, bool, error) {
 	args := m.Called(ctx, userID, categoryID)
 
-	var relation *user_category_relations.UserCategoryRelations
-	if rel, ok := args.Get(0).(*user_category_relations.UserCategoryRelations); ok {
+	var relation *user_category_relations.UserCategoryRelation
+	if rel, ok := args.Get(0).(*user_category_relations.UserCategoryRelation); ok {
 		relation = rel
 	}
 
@@ -27,9 +27,9 @@ func (m *MockUserCategoryRelationService) Create(ctx context.Context, userID, ca
 	return relation, created, args.Error(2)
 }
 
-func (m *MockUserCategoryRelationService) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*user_category_relations.UserCategoryRelations, error) {
+func (m *MockUserCategoryRelationService) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*user_category_relations.UserCategoryRelation, error) {
 	args := m.Called(ctx, userID)
-	if rels, ok := args.Get(0).([]*user_category_relations.UserCategoryRelations); ok {
+	if rels, ok := args.Get(0).([]*user_category_relations.UserCategoryRelation); ok {
 		return rels, args.Error(1)
 	}
 	return nil, args.Error(1)
@@ -43,9 +43,9 @@ func (m *MockUserCategoryRelationService) HasUserCategoryRelation(ctx context.Co
 	return false, args.Error(1)
 }
 
-func (m *MockUserCategoryRelationService) Update(ctx context.Context, relation *user_category_relations.UserCategoryRelations) (*user_category_relations.UserCategoryRelations, error) {
+func (m *MockUserCategoryRelationService) Update(ctx context.Context, relation *user_category_relations.UserCategoryRelation) (*user_category_relations.UserCategoryRelation, error) {
 	args := m.Called(ctx, relation)
-	if updated, ok := args.Get(0).(*user_category_relations.UserCategoryRelations); ok {
+	if updated, ok := args.Get(0).(*user_category_relations.UserCategoryRelation); ok {
 		return updated, args.Error(1)
 	}
 	return nil, args.Error(1)

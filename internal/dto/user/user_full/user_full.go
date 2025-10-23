@@ -8,7 +8,7 @@ import (
 	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelsUser "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
-	modelsUserCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
+	modelsUserCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category"
 	modelsUserFull "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_full"
 )
 

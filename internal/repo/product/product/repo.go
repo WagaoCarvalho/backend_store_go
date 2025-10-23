@@ -5,14 +5,14 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type productRepository struct {
+type product struct {
 	db repo.DBExecutor
 }
 
-func NewProductRepositoryFromPool(pool *pgxpool.Pool) ProductRepo {
-	return &productRepository{db: pool}
+func NewProductFromPool(pool *pgxpool.Pool) ProductRepo {
+	return &product{db: pool}
 }
 
-func NewProductRepository(db repo.DBExecutor) ProductRepo {
-	return &productRepository{db: db}
+func NewProduct(db repo.DBExecutor) ProductRepo {
+	return &product{db: db}
 }

@@ -20,12 +20,12 @@ type TokenGenerator interface {
 }
 
 type loginService struct {
-	userRepo   repo.UserRepository
+	userRepo   repo.User
 	jwtManager TokenGenerator
 	hasher     pass.PasswordHasher
 }
 
-func NewLoginService(repo repo.UserRepository, jwt TokenGenerator, hasher pass.PasswordHasher) LoginService {
+func NewLoginService(repo repo.User, jwt TokenGenerator, hasher pass.PasswordHasher) LoginService {
 	return &loginService{
 		userRepo:   repo,
 		jwtManager: jwt,
@@ -35,7 +35,7 @@ func NewLoginService(repo repo.UserRepository, jwt TokenGenerator, hasher pass.P
 
 func (s *loginService) Login(ctx context.Context, email, password string) (*models.AuthResponse, error) {
 	// Construir struct de credenciais
-	creds := &models.LoginCredentials{
+	creds := &models.LoginCredential{
 		Email:    email,
 		Password: password,
 	}

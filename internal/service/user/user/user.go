@@ -13,7 +13,7 @@ import (
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 )
 
-type UserService interface {
+type User interface {
 	Create(ctx context.Context, user *models.User) (*models.User, error)
 	GetAll(ctx context.Context) ([]*models.User, error)
 	GetByID(ctx context.Context, uid int64) (*models.User, error)
@@ -26,19 +26,19 @@ type UserService interface {
 	Update(ctx context.Context, user *models.User) (*models.User, error)
 }
 
-type userService struct {
-	repoUser repo.UserRepository
+type user struct {
+	repoUser repo.User
 	hasher   auth.PasswordHasher
 }
 
-func NewUserService(repoUser repo.UserRepository, hasher auth.PasswordHasher) UserService {
-	return &userService{
+func NewUser(repoUser repo.User, hasher auth.PasswordHasher) User {
+	return &user{
 		repoUser: repoUser,
 		hasher:   hasher,
 	}
 }
 
-func (s *userService) Create(ctx context.Context, user *models.User) (*models.User, error) {
+func (s *user) Create(ctx context.Context, user *models.User) (*models.User, error) {
 	if err := user.Validate(); err != nil {
 		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
@@ -61,7 +61,7 @@ func (s *userService) Create(ctx context.Context, user *models.User) (*models.Us
 	return createdUser, nil
 }
 
-func (s *userService) GetAll(ctx context.Context) ([]*models.User, error) {
+func (s *user) GetAll(ctx context.Context) ([]*models.User, error) {
 	users, err := s.repoUser.GetAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
@@ -70,7 +70,7 @@ func (s *userService) GetAll(ctx context.Context) ([]*models.User, error) {
 	return users, nil
 }
 
-func (s *userService) GetByID(ctx context.Context, uid int64) (*models.User, error) {
+func (s *user) GetByID(ctx context.Context, uid int64) (*models.User, error) {
 	if uid <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -83,7 +83,7 @@ func (s *userService) GetByID(ctx context.Context, uid int64) (*models.User, err
 	return user, nil
 }
 
-func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, error) {
+func (s *user) GetVersionByID(ctx context.Context, uid int64) (int64, error) {
 
 	if uid <= 0 {
 		return 0, errMsg.ErrZeroID
@@ -99,7 +99,7 @@ func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, err
 	return version, nil
 }
 
-func (s *userService) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+func (s *user) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	if strings.TrimSpace(email) == "" {
 		return nil, errors.New("email inválido")
 	}
@@ -111,7 +111,7 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*models.Use
 	return user, nil
 }
 
-func (s *userService) GetByName(ctx context.Context, name string) ([]*models.User, error) {
+func (s *user) GetByName(ctx context.Context, name string) ([]*models.User, error) {
 	if strings.TrimSpace(name) == "" {
 		return nil, errors.New("nome inválido")
 	}
@@ -122,7 +122,7 @@ func (s *userService) GetByName(ctx context.Context, name string) ([]*models.Use
 	return users, nil
 }
 
-func (s *userService) Update(ctx context.Context, user *models.User) (*models.User, error) {
+func (s *user) Update(ctx context.Context, user *models.User) (*models.User, error) {
 	if !val_contact.IsValidEmail(user.Email) {
 		return nil, errMsg.ErrInvalidData
 	}
@@ -146,14 +146,14 @@ func (s *userService) Update(ctx context.Context, user *models.User) (*models.Us
 	return updatedUser, nil
 }
 
-func (s *userService) Disable(ctx context.Context, uid int64) error {
+func (s *user) Disable(ctx context.Context, uid int64) error {
 	if uid <= 0 {
 		return errMsg.ErrZeroID
 	}
 	return s.repoUser.Disable(ctx, uid)
 }
 
-func (s *userService) Enable(ctx context.Context, uid int64) error {
+func (s *user) Enable(ctx context.Context, uid int64) error {
 	if uid <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -164,7 +164,7 @@ func (s *userService) Enable(ctx context.Context, uid int64) error {
 	return err
 }
 
-func (s *userService) Delete(ctx context.Context, uid int64) error {
+func (s *user) Delete(ctx context.Context, uid int64) error {
 
 	if uid <= 0 {
 		return errMsg.ErrZeroID

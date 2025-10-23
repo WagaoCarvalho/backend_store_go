@@ -17,7 +17,7 @@ import (
 	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelSupplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
-	modelCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	modelCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category"
 	modelSupplier_full "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -31,7 +31,7 @@ func TestSupplierHandler_CreateFull(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
-	handler := NewSupplierFullHandler(mockService, logger)
+	handler := NewSupplierFull(mockService, logger)
 	cnpj := "00.000.000/0000-00"
 
 	t.Run("Sucesso ao criar fornecedor completo", func(t *testing.T) {

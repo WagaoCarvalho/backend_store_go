@@ -11,19 +11,19 @@ import (
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/contact"
 )
 
-type ContactHandler struct {
-	service service.ContactService
+type Contact struct {
+	service service.Contact
 	logger  *logger.LogAdapter
 }
 
-func NewContactHandler(service service.ContactService, logger *logger.LogAdapter) *ContactHandler {
-	return &ContactHandler{
+func NewContact(service service.Contact, logger *logger.LogAdapter) *Contact {
+	return &Contact{
 		service: service,
 		logger:  logger,
 	}
 }
 
-func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *Contact) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ContactHandler - Create] "
 	ctx := r.Context()
 
@@ -79,7 +79,7 @@ func (h *ContactHandler) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *ContactHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *Contact) GetByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ContactHandler - GetByID] "
 	ctx := r.Context()
 
@@ -117,7 +117,7 @@ func (h *ContactHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *Contact) Update(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ContactHandler - Update] "
 	ctx := r.Context()
 
@@ -177,7 +177,7 @@ func (h *ContactHandler) Update(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *ContactHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *Contact) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ContactHandler - Delete] "
 	ctx := r.Context()
 

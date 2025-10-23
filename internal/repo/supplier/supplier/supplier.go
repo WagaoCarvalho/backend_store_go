@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type SupplierRepository interface {
+type Supplier interface {
 	Create(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error)
 	GetByID(ctx context.Context, id int64) (*models.Supplier, error)
 	GetByName(ctx context.Context, name string) ([]*models.Supplier, error)
@@ -24,15 +24,15 @@ type SupplierRepository interface {
 	SupplierExists(ctx context.Context, supplierID int64) (bool, error)
 }
 
-type supplierRepository struct {
+type supplier struct {
 	db *pgxpool.Pool
 }
 
-func NewSupplierRepository(db *pgxpool.Pool) SupplierRepository {
-	return &supplierRepository{db: db}
+func NewSupplier(db *pgxpool.Pool) Supplier {
+	return &supplier{db: db}
 }
 
-func (r *supplierRepository) Create(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error) {
+func (r *supplier) Create(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error) {
 	const query = `
 		INSERT INTO suppliers (name, cnpj, cpf, description, status)
 		VALUES ($1, $2, $3, $4, $5)
@@ -54,7 +54,7 @@ func (r *supplierRepository) Create(ctx context.Context, supplier *models.Suppli
 	return supplier, nil
 }
 
-func (r *supplierRepository) GetByID(ctx context.Context, id int64) (*models.Supplier, error) {
+func (r *supplier) GetByID(ctx context.Context, id int64) (*models.Supplier, error) {
 	const query = `
 		SELECT id, name, cnpj, cpf, status, description, created_at, updated_at
 		FROM suppliers
@@ -83,7 +83,7 @@ func (r *supplierRepository) GetByID(ctx context.Context, id int64) (*models.Sup
 	return &supplier, nil
 }
 
-func (r *supplierRepository) GetByName(ctx context.Context, name string) ([]*models.Supplier, error) {
+func (r *supplier) GetByName(ctx context.Context, name string) ([]*models.Supplier, error) {
 	const query = `
 		SELECT id, name, cnpj, cpf, description, status, created_at, updated_at
 		FROM suppliers
@@ -126,7 +126,7 @@ func (r *supplierRepository) GetByName(ctx context.Context, name string) ([]*mod
 	return suppliers, nil
 }
 
-func (r *supplierRepository) GetAll(ctx context.Context) ([]*models.Supplier, error) {
+func (r *supplier) GetAll(ctx context.Context) ([]*models.Supplier, error) {
 	const query = `
 		SELECT id, name, cnpj, cpf, description, status, created_at, updated_at
 		FROM suppliers
@@ -168,7 +168,7 @@ func (r *supplierRepository) GetAll(ctx context.Context) ([]*models.Supplier, er
 	return suppliers, nil
 }
 
-func (r *supplierRepository) Update(ctx context.Context, supplier *models.Supplier) error {
+func (r *supplier) Update(ctx context.Context, supplier *models.Supplier) error {
 	const query = `
 	UPDATE suppliers
 	SET
@@ -203,7 +203,7 @@ func (r *supplierRepository) Update(ctx context.Context, supplier *models.Suppli
 
 }
 
-func (r *supplierRepository) Delete(ctx context.Context, id int64) error {
+func (r *supplier) Delete(ctx context.Context, id int64) error {
 	const query = `DELETE FROM suppliers WHERE id = $1`
 
 	cmdTag, err := r.db.Exec(ctx, query, id)
@@ -218,7 +218,7 @@ func (r *supplierRepository) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *supplierRepository) Disable(ctx context.Context, id int64) error {
+func (r *supplier) Disable(ctx context.Context, id int64) error {
 	const query = `
 		UPDATE suppliers
 		SET status = false,
@@ -238,7 +238,7 @@ func (r *supplierRepository) Disable(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *supplierRepository) Enable(ctx context.Context, id int64) error {
+func (r *supplier) Enable(ctx context.Context, id int64) error {
 	const query = `
 		UPDATE suppliers
 		SET status = true,
@@ -258,7 +258,7 @@ func (r *supplierRepository) Enable(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *supplierRepository) GetVersionByID(ctx context.Context, id int64) (int64, error) {
+func (r *supplier) GetVersionByID(ctx context.Context, id int64) (int64, error) {
 	const query = `
 		SELECT version
 		FROM suppliers
@@ -277,7 +277,7 @@ func (r *supplierRepository) GetVersionByID(ctx context.Context, id int64) (int6
 	return version, nil
 }
 
-func (r *supplierRepository) SupplierExists(ctx context.Context, supplierID int64) (bool, error) {
+func (r *supplier) SupplierExists(ctx context.Context, supplierID int64) (bool, error) {
 	const query = `
 		SELECT EXISTS (
 			SELECT 1

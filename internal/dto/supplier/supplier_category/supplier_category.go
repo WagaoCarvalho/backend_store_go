@@ -3,7 +3,7 @@ package dto
 import (
 	"time"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category"
 )
 
 type SupplierCategoryDTO struct {

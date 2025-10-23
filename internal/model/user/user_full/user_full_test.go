@@ -8,7 +8,7 @@ import (
 	modelsAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	modelsContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelsUser "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
-	modelsUserCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
+	modelsUserCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category"
 )
 
 func TestUserFull_Validate(t *testing.T) {

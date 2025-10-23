@@ -24,12 +24,12 @@ func RegisterAddressRoutes(
 	log *logger.LogAdapter,
 	blacklist jwtMiddlewares.TokenBlacklist,
 ) {
-	repoAddress := repoAddress.NewAddressRepository(db)
-	repoClient := repoClient.NewClientRepository(db)
-	repoUser := repoUser.NewUserRepository(db)
-	repoSupplier := repoSupplier.NewSupplierRepository(db)
-	service := service.NewAddressService(repoAddress, repoClient, repoUser, repoSupplier)
-	handler := handler.NewAddressHandler(service, log)
+	repoAddress := repoAddress.NewAddress(db)
+	repoClient := repoClient.NewClient(db)
+	repoUser := repoUser.NewUser(db)
+	repoSupplier := repoSupplier.NewSupplier(db)
+	service := service.NewAddress(repoAddress, repoClient, repoUser, repoSupplier)
+	handler := handler.NewAddress(service, log)
 
 	jwtCfg := config.LoadJwtConfig()
 

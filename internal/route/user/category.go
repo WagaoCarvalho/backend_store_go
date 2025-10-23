@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
-	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user_categories"
+	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user_category"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_categories"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_category"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -20,9 +20,9 @@ func RegisterUserCategoryRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	userCategoryRepo := repo.NewUserCategoryRepository(db)
-	userCategoryService := service.NewUserCategoryService(userCategoryRepo)
-	userCategoryHandler := handler.NewUserCategoryHandler(userCategoryService, log)
+	userCategoryRepo := repo.NewUserCategory(db)
+	userCategoryService := service.NewUserCategory(userCategoryRepo)
+	userCategoryHandler := handler.NewUserCategory(userCategoryService, log)
 
 	// Carregar config JWT
 	jwtCfg := config.LoadJwtConfig()

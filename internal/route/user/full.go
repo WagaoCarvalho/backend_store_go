@@ -11,10 +11,10 @@ import (
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
 	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
 	repoContact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
-	repoUserCatRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
-	repoUserContactRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_contact_relations"
-	repoUser "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_full_repositories"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_full_services"
+	repoUserCatRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relation"
+	repoUserContactRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_contact_relation"
+	repoUser "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_full"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_full"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -26,14 +26,14 @@ func RegisterUserFullRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repoUser := repoUser.NewUserRepository(db)
-	repoAddress := repoAddress.NewAddressRepository(db)
-	repoContact := repoContact.NewContactRepository(db)
-	repoUserCatRel := repoUserCatRel.NewUserCategoryRelationRepositories(db)
-	repoUserContactRel := repoUserContactRel.NewUserContactRelationRepositories(db)
+	repoUser := repoUser.NewUser(db)
+	repoAddress := repoAddress.NewAddress(db)
+	repoContact := repoContact.NewContact(db)
+	repoUserCatRel := repoUserCatRel.NewUserCategoryRelation(db)
+	repoUserContactRel := repoUserContactRel.NewUserContactRelation(db)
 	hasher := auth.BcryptHasher{}
 
-	userService := service.NewUserFullService(repoUser, repoAddress, repoContact, repoUserCatRel, repoUserContactRel, hasher)
+	userService := service.NewUserFull(repoUser, repoAddress, repoContact, repoUserCatRel, repoUserContactRel, hasher)
 	handler := handlers.NewUserFullHandler(userService, log)
 
 	// Config JWT

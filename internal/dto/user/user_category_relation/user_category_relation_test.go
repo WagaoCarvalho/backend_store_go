@@ -4,14 +4,14 @@ import (
 	"testing"
 	"time"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relation"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUserCategoryRelationsDTO(t *testing.T) {
 	// Modelo de teste
 	createdAt := time.Now()
-	model := &models.UserCategoryRelations{
+	model := &models.UserCategoryRelation{
 		UserID:     1,
 		CategoryID: 10,
 		CreatedAt:  createdAt,

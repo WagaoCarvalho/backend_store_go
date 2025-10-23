@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
-	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user_contact_relations"
+	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user_contact_relation"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_contact_relations"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_contact_relations"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_contact_relation"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_contact_relation"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -20,9 +20,9 @@ func RegisterUserContactRelationRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	relationRepo := repo.NewUserContactRelationRepositories(db)
-	relationService := service.NewUserContactRelationServices(relationRepo)
-	relationHandler := handler.NewUserContactRelationHandler(relationService, log)
+	relationRepo := repo.NewUserContactRelation(db)
+	relationService := service.NewUserContactRelation(relationRepo)
+	relationHandler := handler.NewUserContactRelation(relationService, log)
 
 	// Carregar config JWT
 	jwtCfg := config.LoadJwtConfig()

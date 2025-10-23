@@ -1,0 +1,901 @@
+package handler
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"strconv"
+
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/product/product"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/product/product"
+	"github.com/gorilla/mux"
+)
+
+type Product struct {
+	service service.Product
+	logger  *logger.LogAdapter
+}
+
+func NewProduct(service service.Product, logger *logger.LogAdapter) *Product {
+	return &Product{
+		service: service,
+		logger:  logger,
+	}
+}
+
+func (h *Product) Create(w http.ResponseWriter, r *http.Request) {
+	const ref = "[ProductHandler - Create] "
+
+	h.logger.Info(r.Context(), ref+logger.LogCreateInit, nil)
+
+	var productDTO dto.ProductDTO
+	if err := utils.FromJSON(r.Body, &productDTO); err != nil {
+		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
+		return
+	}
+
+	product := dto.ToProductModel(productDTO)
+
+	createdProduct, err := h.service.Create(r.Context(), product)
+	if err != nil {
+		if errors.Is(err, errMsg.ErrDBInvalidForeignKey) {
+			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
+				"erro": err.Error(),
+			})
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		h.logger.Error(r.Context(), err, ref+logger.LogCreateError, nil)
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	createdProductDTO := dto.ToProductDTO(createdProduct)
+
+	h.logger.Info(r.Context(), ref+logger.LogCreateSuccess, map[string]any{
+		"product_id": createdProduct.ID,
+	})
+
+	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
+		Status:  http.StatusCreated,
+		Message: "Produto criado com sucesso",
+		Data:    createdProductDTO,
+	})
+}
+
+func (h *Product) GetAll(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	const ref = "[productHandler - GetAll] "
+
+	limit := 10
+	offset := 0
+
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	if o := r.URL.Query().Get("offset"); o != "" {
+		if parsed, err := strconv.Atoi(o); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
+		"limit":  limit,
+		"offset": offset,
+	})
+
+	products, err := h.service.GetAll(ctx, limit, offset)
+	if err != nil {
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"limit":  limit,
+			"offset": offset,
+		})
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"total_encontrados": len(products),
+	})
+
+	productDTOs := dto.ToProductDTOs(products)
+
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Produtos listados com sucesso",
+		Data:    productDTOs,
+	})
+}
+
+func (h *Product) GetByID(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - GetByID] "
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
+
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	product, err := h.service.GetByID(ctx, id)
+	if err != nil {
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"product_id": id,
+		})
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	productDTO := dto.ToProductDTO(product)
+
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"product_id": product.ID,
+	})
+
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Produto recuperado com sucesso",
+		Data:    productDTO,
+	})
+}
+
+func (h *Product) GetByName(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - GetByName] "
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
+
+	name, err := utils.GetStringParam(r, "name")
+	if err != nil || name == "" {
+		h.logger.Warn(ctx, ref+logger.LogQueryError, map[string]any{
+			"param": "name",
+			"erro":  err,
+		})
+		utils.ErrorResponse(w, errors.New("parâmetro 'name' é obrigatório"), http.StatusBadRequest)
+		return
+	}
+
+	products, err := h.service.GetByName(ctx, name)
+	if err != nil {
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"name": name,
+		})
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	prouctDTOs := dto.ToProductDTOs(products)
+
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"name":         name,
+		"result_count": len(products),
+	})
+
+	message := "Produtos encontrados"
+	if len(prouctDTOs) == 0 {
+		message = "Nenhum produto encontrado"
+	}
+
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: message,
+		Data:    prouctDTOs,
+	})
+}
+
+func (h *Product) GetByManufacturer(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - GetByManufacturer] "
+	ctx := r.Context()
+
+	vars := mux.Vars(r)
+	manufacturer := vars["manufacturer"]
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
+		"manufacturer": manufacturer,
+	})
+
+	if manufacturer == "" {
+		h.logger.Warn(ctx, ref+"manufacturer path param ausente", map[string]any{})
+		utils.ErrorResponse(w, errors.New("parâmetro 'manufacturer' é obrigatório"), http.StatusBadRequest)
+		return
+	}
+
+	products, err := h.service.GetByManufacturer(ctx, manufacturer)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if errors.Is(err, errMsg.ErrNotFound) {
+			status = http.StatusNotFound
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"manufacturer": manufacturer,
+			})
+		} else {
+			h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+				"manufacturer": manufacturer,
+				"status":       status,
+			})
+		}
+		utils.ErrorResponse(w, err, status)
+		return
+	}
+
+	// converte para DTO
+	productDTOs := dto.ToProductDTOs(products)
+
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"manufacturer": manufacturer,
+		"count":        len(productDTOs),
+	})
+
+	message := "Produtos encontrados"
+	if len(productDTOs) == 0 {
+		message = "Nenhum produto encontrado"
+	}
+
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: message,
+		Data:    productDTOs,
+	})
+}
+
+func (h *Product) GetVersionByID(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - GetVersionByID] "
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
+
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	version, err := h.service.GetVersionByID(ctx, uid)
+	if err != nil {
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			"product_id": uid,
+		})
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
+		"product_id": uid,
+		"version":    version,
+	})
+
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Versão do produto recuperada com sucesso",
+		Data: map[string]any{
+			"product_id": uid,
+			"version":    version,
+		},
+	})
+}
+
+func (h *Product) DisableProduct(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - Disable] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.DisableProduct(ctx, uid)
+	if err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
+			return
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id": uid,
+	})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Product) EnableProduct(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - Enable] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.EnableProduct(ctx, uid)
+	if err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
+			return
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id": uid,
+	})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Product) Update(w http.ResponseWriter, r *http.Request) {
+	const ref = "[ProductHandler - Update] "
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	var productDTO dto.ProductDTO
+	if err := utils.FromJSON(r.Body, &productDTO); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
+		return
+	}
+
+	product := dto.ToProductModel(productDTO)
+	product.ID = id
+
+	err = h.service.Update(ctx, product)
+	if err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrInvalidData),
+			errors.Is(err, errMsg.ErrDBInvalidForeignKey),
+			errors.Is(err, errMsg.ErrZeroID):
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+
+		case errors.Is(err, errMsg.ErrNotFound):
+			utils.ErrorResponse(w, err, http.StatusNotFound)
+			return
+
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			utils.ErrorResponse(w, err, http.StatusConflict)
+			return
+
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"product_id": id,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id": product.ID,
+	})
+
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Produto atualizado com sucesso",
+		Data:    dto.ToProductDTO(product),
+	})
+}
+
+func (h *Product) Delete(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - Delete] "
+	ctx := r.Context()
+
+	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{})
+
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.Delete(ctx, id)
+	if err != nil {
+		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
+			"product_id": id,
+		})
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
+		"product_id": id,
+	})
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Product) UpdateStock(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - UpdateStock] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	var payload struct {
+		Quantity int `json:"quantity"`
+	}
+
+	if err := utils.FromJSON(r.Body, &payload); err != nil {
+		h.logger.Warn(ctx, ref+"erro ao decodificar payload", map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("payload inválido"), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.UpdateStock(ctx, uid, payload.Quantity)
+	if err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
+			return
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id": uid,
+		"quantity":   payload.Quantity,
+	})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Product) IncreaseStock(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - IncreaseStock] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	var payload struct {
+		Amount int `json:"stock_quantity"`
+	}
+
+	if err := utils.FromJSON(r.Body, &payload); err != nil {
+		h.logger.Warn(ctx, ref+"erro ao decodificar payload", map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("payload inválido"), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.IncreaseStock(ctx, uid, payload.Amount)
+	if err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
+			return
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id":     uid,
+		"stock_quantity": payload.Amount,
+	})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Product) DecreaseStock(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - DecreaseStock] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	var payload struct {
+		Amount int `json:"stock_quantity"`
+	}
+
+	if err := utils.FromJSON(r.Body, &payload); err != nil {
+		h.logger.Warn(ctx, ref+"erro ao decodificar payload", map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("payload inválido"), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.DecreaseStock(ctx, uid, payload.Amount)
+	if err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
+			return
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id":     uid,
+		"stock_quantity": payload.Amount,
+	})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Product) GetStock(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - GetStock] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodGet {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+"iniciando", nil)
+
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	stock, err := h.service.GetStock(ctx, uid)
+	if err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
+			return
+		default:
+			h.logger.Error(ctx, err, ref+"erro inesperado", map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	resp := map[string]any{
+		"product_id":     uid,
+		"stock_quantity": stock,
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, resp)
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Produtos listados com sucesso",
+		Data:    resp,
+	})
+}
+
+func (h *Product) EnableDiscount(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - EnableDiscount] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.EnableDiscount(ctx, uid)
+	if err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id": uid,
+	})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Product) DisableDiscount(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - DisableDiscount] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.DisableDiscount(ctx, uid)
+	if err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id": uid,
+	})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Product) ApplyDiscount(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - ApplyDiscount] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+
+	uid, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	var payload struct {
+		Percent float64 `json:"percent"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		h.logger.Warn(ctx, ref+"payload inválido", map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("payload inválido"), http.StatusBadRequest)
+		return
+	}
+
+	product, err := h.service.ApplyDiscount(ctx, uid, payload.Percent)
+	if err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"product_id": uid,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"product_id": uid,
+		"percent":    payload.Percent,
+	})
+
+	utils.ToJSON(w, http.StatusOK, product)
+}

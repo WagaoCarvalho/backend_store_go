@@ -14,11 +14,11 @@ import (
 )
 
 type SupplierHandler struct {
-	service service.SupplierService
+	service service.Supplier
 	logger  *logger.LogAdapter
 }
 
-func NewSupplierHandler(service service.SupplierService, logger *logger.LogAdapter) *SupplierHandler {
+func NewSupplierHandler(service service.Supplier, logger *logger.LogAdapter) *SupplierHandler {
 	return &SupplierHandler{
 		service: service,
 		logger:  logger,

@@ -7,15 +7,15 @@ import (
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_full_services"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_full"
 )
 
 type UserHandler struct {
-	service service.UserFullService
+	service service.UserFull
 	logger  *logger.LogAdapter
 }
 
-func NewUserFullHandler(service service.UserFullService, logger *logger.LogAdapter) *UserHandler {
+func NewUserFullHandler(service service.UserFull, logger *logger.LogAdapter) *UserHandler {
 	return &UserHandler{
 		service: service,
 		logger:  logger,

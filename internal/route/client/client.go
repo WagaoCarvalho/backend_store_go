@@ -8,7 +8,7 @@ import (
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwtMiddlewares "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
-	repoClient "github.com/WagaoCarvalho/backend_store_go/internal/repo/client/client"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/client/client"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/client/client"
 
 	"github.com/gorilla/mux"
@@ -21,9 +21,9 @@ func RegisterClientRoutes(
 	log *logger.LogAdapter,
 	blacklist jwtMiddlewares.TokenBlacklist,
 ) {
-	repoClient := repoClient.NewClientRepository(db)
-	service := service.NewClientService(repoClient)
-	handler := handler.NewClientHandler(service, log)
+	repo := repo.NewClient(db)
+	service := service.NewClient(repo)
+	handler := handler.NewClient(service, log)
 
 	jwtCfg := config.LoadJwtConfig()
 

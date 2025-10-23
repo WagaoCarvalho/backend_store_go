@@ -27,10 +27,10 @@ func (m *MockHasher) Compare(_, _ string) error {
 }
 
 func TestUserService_Create(t *testing.T) {
-	setup := func() (*mockUser.MockUserRepository, *MockHasher, UserService) {
+	setup := func() (*mockUser.MockUserRepository, *MockHasher, User) {
 		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
-		userService := NewUserService(mockUserRepo, mockHasher)
+		userService := NewUser(mockUserRepo, mockHasher)
 		return mockUserRepo, mockHasher, userService
 	}
 
@@ -152,12 +152,12 @@ func TestUserService_GetAll(t *testing.T) {
 	setup := func() (
 		*mockUser.MockUserRepository,
 		*MockHasher,
-		UserService,
+		User,
 	) {
 		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
-		userService := NewUserService(
+		userService := NewUser(
 			mockUserRepo,
 			mockHasher,
 		)
@@ -200,12 +200,12 @@ func TestUserService_GetByID(t *testing.T) {
 	setup := func() (
 		*mockUser.MockUserRepository,
 		*MockHasher,
-		UserService,
+		User,
 	) {
 		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
-		userService := NewUserService(
+		userService := NewUser(
 			mockUserRepo,
 
 			mockHasher,
@@ -263,12 +263,12 @@ func TestUserService_GetVersionByID(t *testing.T) {
 	setup := func() (
 		*mockUser.MockUserRepository,
 		*MockHasher,
-		UserService,
+		User,
 	) {
 		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
-		userService := NewUserService(
+		userService := NewUser(
 			mockUserRepo,
 
 			mockHasher,
@@ -334,12 +334,12 @@ func TestUserService_GetByEmail(t *testing.T) {
 	setup := func() (
 		*mockUser.MockUserRepository,
 		*MockHasher,
-		UserService,
+		User,
 	) {
 		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
-		userService := NewUserService(
+		userService := NewUser(
 			mockUserRepo,
 
 			mockHasher,
@@ -397,12 +397,12 @@ func TestUserService_GetByName(t *testing.T) {
 	setup := func() (
 		*mockUser.MockUserRepository,
 		*MockHasher,
-		UserService,
+		User,
 	) {
 		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
-		userService := NewUserService(
+		userService := NewUser(
 			mockUserRepo,
 
 			mockHasher,
@@ -468,12 +468,12 @@ func TestUserService_Update(t *testing.T) {
 	setup := func() (
 		*mockUser.MockUserRepository,
 		*MockHasher,
-		UserService,
+		User,
 	) {
 		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
-		userService := NewUserService(
+		userService := NewUser(
 			mockUserRepo,
 
 			mockHasher,
@@ -598,12 +598,12 @@ func TestUserService_Disable(t *testing.T) {
 	setup := func() (
 		*mockUser.MockUserRepository,
 		*MockHasher,
-		UserService,
+		User,
 	) {
 		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
-		userService := NewUserService(
+		userService := NewUser(
 			mockUserRepo,
 
 			mockHasher,
@@ -650,12 +650,12 @@ func TestUserService_Enable(t *testing.T) {
 	setup := func() (
 		*mockUser.MockUserRepository,
 		*MockHasher,
-		UserService,
+		User,
 	) {
 		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
-		userService := NewUserService(
+		userService := NewUser(
 			mockUserRepo,
 
 			mockHasher,
@@ -715,12 +715,12 @@ func TestUserService_Delete(t *testing.T) {
 	setup := func() (
 		*mockUser.MockUserRepository,
 		*MockHasher,
-		UserService,
+		User,
 	) {
 		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
-		userService := NewUserService(
+		userService := NewUser(
 			mockUserRepo,
 
 			mockHasher,

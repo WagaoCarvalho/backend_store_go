@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
-	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user_category_relations"
+	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user_category_relation"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relations"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_category_relations"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user_category_relation"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user_category_relation"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -20,9 +20,9 @@ func RegisterUserCategoryRelationRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	relationRepo := repo.NewUserCategoryRelationRepositories(db)
-	relationService := service.NewUserCategoryRelationServices(relationRepo)
-	relationHandler := handler.NewUserCategoryRelationHandler(relationService, log)
+	relationRepo := repo.NewUserCategoryRelation(db)
+	relationService := service.NewUserCategoryRelation(relationRepo)
+	relationHandler := handler.NewUserCategoryRelation(relationService, log)
 
 	// Carregar config JWT
 	jwtCfg := config.LoadJwtConfig()

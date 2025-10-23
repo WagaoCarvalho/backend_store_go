@@ -13,7 +13,7 @@ import (
 	repoUser "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 )
 
-type AddressService interface {
+type Address interface {
 	Create(ctx context.Context, address *models.Address) (*models.Address, error)
 	GetByID(ctx context.Context, id int64) (*models.Address, error)
 	GetByUserID(ctx context.Context, clientID int64) ([]*models.Address, error)
@@ -25,20 +25,20 @@ type AddressService interface {
 	Enable(ctx context.Context, uid int64) error
 }
 
-type addressService struct {
-	repoAddress  repoAddress.AddressRepository
-	repoClient   repoClient.ClientRepository
-	repoUser     repoUser.UserRepository
-	repoSupplier repoSupplier.SupplierRepository
+type address struct {
+	repoAddress  repoAddress.Address
+	repoClient   repoClient.Client
+	repoUser     repoUser.User
+	repoSupplier repoSupplier.Supplier
 }
 
-func NewAddressService(
-	repoAddress repoAddress.AddressRepository,
-	repoClient repoClient.ClientRepository,
-	repoUser repoUser.UserRepository,
-	repoSupplier repoSupplier.SupplierRepository,
-) AddressService {
-	return &addressService{
+func NewAddress(
+	repoAddress repoAddress.Address,
+	repoClient repoClient.Client,
+	repoUser repoUser.User,
+	repoSupplier repoSupplier.Supplier,
+) Address {
+	return &address{
 		repoAddress:  repoAddress,
 		repoClient:   repoClient,
 		repoUser:     repoUser,
@@ -46,7 +46,7 @@ func NewAddressService(
 	}
 }
 
-func (s *addressService) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
+func (s *address) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
 
 	if err := address.Validate(); err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
@@ -60,7 +60,7 @@ func (s *addressService) Create(ctx context.Context, address *models.Address) (*
 	return createdAddress, nil
 }
 
-func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address, error) {
+func (s *address) GetByID(ctx context.Context, id int64) (*models.Address, error) {
 	if id <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -76,7 +76,7 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address
 	return addressModel, nil
 }
 
-func (s *addressService) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
+func (s *address) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
 	if userID <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -99,7 +99,7 @@ func (s *addressService) GetByUserID(ctx context.Context, userID int64) ([]*mode
 	return addresses, nil
 }
 
-func (s *addressService) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
+func (s *address) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
 	if clientID <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -122,7 +122,7 @@ func (s *addressService) GetByClientID(ctx context.Context, clientID int64) ([]*
 	return addresses, nil
 }
 
-func (s *addressService) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
+func (s *address) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
 	if supplierID <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -145,7 +145,7 @@ func (s *addressService) GetBySupplierID(ctx context.Context, supplierID int64) 
 	return addresses, nil
 }
 
-func (s *addressService) Update(ctx context.Context, address *models.Address) error {
+func (s *address) Update(ctx context.Context, address *models.Address) error {
 	if address.ID <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -160,7 +160,7 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 	return nil
 }
 
-func (s *addressService) Delete(ctx context.Context, id int64) error {
+func (s *address) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -180,7 +180,7 @@ func (s *addressService) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *addressService) Disable(ctx context.Context, id int64) error {
+func (s *address) Disable(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -192,7 +192,7 @@ func (s *addressService) Disable(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *addressService) Enable(ctx context.Context, id int64) error {
+func (s *address) Enable(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}

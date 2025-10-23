@@ -10,7 +10,7 @@ import (
 	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelSupplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
-	modelSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	modelSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category"
 	modelSupplierFull "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/stretchr/testify/assert"

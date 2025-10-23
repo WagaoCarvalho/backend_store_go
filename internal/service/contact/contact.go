@@ -10,24 +10,24 @@ import (
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 )
 
-type ContactService interface {
+type Contact interface {
 	Create(ctx context.Context, contact *models.Contact) (*models.Contact, error)
 	GetByID(ctx context.Context, id int64) (*models.Contact, error)
 	Update(ctx context.Context, contact *models.Contact) error
 	Delete(ctx context.Context, id int64) error
 }
 
-type contactService struct {
-	contactRepo repo.ContactRepository
+type contact struct {
+	contactRepo repo.Contact
 }
 
-func NewContactService(contactRepo repo.ContactRepository) ContactService {
-	return &contactService{
+func NewContact(contactRepo repo.Contact) Contact {
+	return &contact{
 		contactRepo: contactRepo,
 	}
 }
 
-func (s *contactService) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
+func (s *contact) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
 
 	if err := contact.Validate(); err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
@@ -48,7 +48,7 @@ func (s *contactService) Create(ctx context.Context, contact *models.Contact) (*
 	return createdContact, nil
 }
 
-func (s *contactService) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
+func (s *contact) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
 	if id <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -64,7 +64,7 @@ func (s *contactService) GetByID(ctx context.Context, id int64) (*models.Contact
 	return contact, nil
 }
 
-func (s *contactService) Update(ctx context.Context, contact *models.Contact) error {
+func (s *contact) Update(ctx context.Context, contact *models.Contact) error {
 
 	if contact.ID <= 0 {
 		return errMsg.ErrZeroID
@@ -88,7 +88,7 @@ func (s *contactService) Update(ctx context.Context, contact *models.Contact) er
 	return nil
 }
 
-func (s *contactService) Delete(ctx context.Context, id int64) error {
+func (s *contact) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}

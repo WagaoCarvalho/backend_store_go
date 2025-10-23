@@ -13,19 +13,19 @@ import (
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/address"
 )
 
-type AddressHandler struct {
-	service service.AddressService
+type Address struct {
+	service service.Address
 	logger  *logger.LogAdapter
 }
 
-func NewAddressHandler(service service.AddressService, logger *logger.LogAdapter) *AddressHandler {
-	return &AddressHandler{
+func NewAddress(service service.Address, logger *logger.LogAdapter) *Address {
+	return &Address{
 		service: service,
 		logger:  logger,
 	}
 }
 
-func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *Address) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[AddressHandler - Create] "
 	ctx := r.Context()
 
@@ -79,7 +79,7 @@ func (h *AddressHandler) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *Address) GetByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[addressHandler - GetByID] "
 	ctx := r.Context()
 
@@ -116,7 +116,7 @@ func (h *AddressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
+func (h *Address) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[addressHandler - GetByUserID] "
 	ctx := r.Context()
 
@@ -156,7 +156,7 @@ func (h *AddressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
+func (h *Address) GetByClientID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[addressHandler - GetByClientID] "
 	ctx := r.Context()
 
@@ -190,7 +190,7 @@ func (h *AddressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
+func (h *Address) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[addressHandler - GetBySupplierID] "
 	ctx := r.Context()
 
@@ -224,7 +224,7 @@ func (h *AddressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request)
 	})
 }
 
-func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *Address) Update(w http.ResponseWriter, r *http.Request) {
 	const ref = "[AddressHandler - Update] "
 	ctx := r.Context()
 
@@ -290,7 +290,7 @@ func (h *AddressHandler) Update(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *AddressHandler) Enable(w http.ResponseWriter, r *http.Request) {
+func (h *Address) Enable(w http.ResponseWriter, r *http.Request) {
 	const ref = "[AddressHandler - Enable] "
 	ctx := r.Context()
 
@@ -341,7 +341,7 @@ func (h *AddressHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *AddressHandler) Disable(w http.ResponseWriter, r *http.Request) {
+func (h *Address) Disable(w http.ResponseWriter, r *http.Request) {
 	const ref = "[AddressHandler - Disable] "
 	ctx := r.Context()
 
@@ -392,7 +392,7 @@ func (h *AddressHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *AddressHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *Address) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[AddressHandler - Delete] "
 
 	id, err := utils.GetIDParam(r, "id")

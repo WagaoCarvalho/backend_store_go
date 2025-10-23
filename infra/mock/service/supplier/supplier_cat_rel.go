@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relations"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category_relation"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -11,34 +11,34 @@ type MockSupplierCategoryRelationService struct {
 	mock.Mock
 }
 
-func (m *MockSupplierCategoryRelationService) Create(ctx context.Context, supplierID, categoryID int64) (*models.SupplierCategoryRelations, bool, error) {
+func (m *MockSupplierCategoryRelationService) Create(ctx context.Context, supplierID, categoryID int64) (*models.SupplierCategoryRelation, bool, error) {
 	args := m.Called(ctx, supplierID, categoryID)
 
-	var rel *models.SupplierCategoryRelations
+	var rel *models.SupplierCategoryRelation
 	if tmp := args.Get(0); tmp != nil {
-		rel = tmp.(*models.SupplierCategoryRelations)
+		rel = tmp.(*models.SupplierCategoryRelation)
 	}
 
 	return rel, args.Bool(1), args.Error(2)
 }
 
-func (m *MockSupplierCategoryRelationService) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelations, error) {
+func (m *MockSupplierCategoryRelationService) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelation, error) {
 	args := m.Called(ctx, supplierID)
 
-	var rels []*models.SupplierCategoryRelations
+	var rels []*models.SupplierCategoryRelation
 	if tmp := args.Get(0); tmp != nil {
-		rels = tmp.([]*models.SupplierCategoryRelations)
+		rels = tmp.([]*models.SupplierCategoryRelation)
 	}
 
 	return rels, args.Error(1)
 }
 
-func (m *MockSupplierCategoryRelationService) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelations, error) {
+func (m *MockSupplierCategoryRelationService) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelation, error) {
 	args := m.Called(ctx, categoryID)
 
-	var rels []*models.SupplierCategoryRelations
+	var rels []*models.SupplierCategoryRelation
 	if tmp := args.Get(0); tmp != nil {
-		rels = tmp.([]*models.SupplierCategoryRelations)
+		rels = tmp.([]*models.SupplierCategoryRelation)
 	}
 
 	return rels, args.Error(1)

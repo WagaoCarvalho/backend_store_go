@@ -6,7 +6,7 @@ import (
 	modelsAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	modelsContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelsSupplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
-	modelsSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_categories"
+	modelsSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier_category"
 	"github.com/stretchr/testify/assert"
 )
 

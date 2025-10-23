@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
-	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/product"
+	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/product/product"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product/product"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/product"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/product/product"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -21,10 +21,9 @@ func RegisterProductRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repoProduct := repo.NewProductRepository(db)
-
-	productService := service.NewProductService(repoProduct)
-	handler := handler.NewProductHandler(productService, log)
+	repo := repo.NewProduct(db)
+	productService := service.NewProduct(repo)
+	handler := handler.NewProduct(productService, log)
 
 	// Config JWT
 	jwtCfg := config.LoadJwtConfig()

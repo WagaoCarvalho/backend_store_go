@@ -22,11 +22,11 @@ func RegisterUserRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repoUser := repo.NewUserRepository(db)
+	repoUser := repo.NewUser(db)
 	hasher := auth.BcryptHasher{}
 
-	userService := service.NewUserService(repoUser, hasher)
-	handler := handler.NewUserHandler(userService, log)
+	userService := service.NewUser(repoUser, hasher)
+	handler := handler.NewUser(userService, log)
 
 	// Rota pública
 	r.HandleFunc("/user", handler.Create).Methods(http.MethodPost)

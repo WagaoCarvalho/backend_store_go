@@ -33,7 +33,6 @@ var barcodeRegex = regexp.MustCompile(`^[0-9]{8,14}$`)
 func (p *Product) Validate() error {
 	var errs validators.ValidationErrors
 
-	// --- Nome ---
 	if validators.IsBlank(p.ProductName) {
 		errs = append(errs, validators.ValidationError{
 			Field:   "product_name",
@@ -41,7 +40,6 @@ func (p *Product) Validate() error {
 		})
 	}
 
-	// --- Fabricante ---
 	if validators.IsBlank(p.Manufacturer) {
 		errs = append(errs, validators.ValidationError{
 			Field:   "manufacturer",
@@ -49,7 +47,6 @@ func (p *Product) Validate() error {
 		})
 	}
 
-	// --- Preços ---
 	if p.CostPrice < 0 {
 		errs = append(errs, validators.ValidationError{
 			Field:   "cost_price",
@@ -69,7 +66,6 @@ func (p *Product) Validate() error {
 		})
 	}
 
-	// --- Estoque ---
 	if p.StockQuantity < 0 {
 		errs = append(errs, validators.ValidationError{
 			Field:   "stock_quantity",
@@ -89,7 +85,6 @@ func (p *Product) Validate() error {
 		})
 	}
 
-	// --- Código de barras ---
 	if p.Barcode != nil && !validators.IsBlank(*p.Barcode) && !barcodeRegex.MatchString(*p.Barcode) {
 		errs = append(errs, validators.ValidationError{
 			Field:   "barcode",
@@ -97,7 +92,6 @@ func (p *Product) Validate() error {
 		})
 	}
 
-	// --- Fornecedor ---
 	if p.SupplierID == nil {
 		errs = append(errs, validators.ValidationError{
 			Field:   "supplier_id",
@@ -105,7 +99,6 @@ func (p *Product) Validate() error {
 		})
 	}
 
-	// --- Status ---
 	if !p.Status {
 		errs = append(errs, validators.ValidationError{
 			Field:   "status",
@@ -113,7 +106,6 @@ func (p *Product) Validate() error {
 		})
 	}
 
-	// --- Descontos ---
 	if p.AllowDiscount {
 		if p.MinDiscountPercent < 0 || p.MaxDiscountPercent < 0 {
 			errs = append(errs, validators.ValidationError{

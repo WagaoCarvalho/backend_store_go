@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
-	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/supplier/supplier_categories"
+	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/supplier/supplier_category"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_categories"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_categories"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_category"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_category"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -20,9 +20,9 @@ func RegisterSupplierCategoryRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	supplierCategoryRepo := repo.NewSupplierCategoryRepository(db)
-	supplierCategoryService := service.NewSupplierCategoryService(supplierCategoryRepo)
-	supplierCategoryHandler := handler.NewSupplierCategoryHandler(supplierCategoryService, log)
+	supplierCategoryRepo := repo.NewSupplierCategory(db)
+	supplierCategoryService := service.NewSupplierCategory(supplierCategoryRepo)
+	supplierCategoryHandler := handler.NewSupplierCategory(supplierCategoryService, log)
 
 	// Carregar config JWT
 	jwtCfg := config.LoadJwtConfig()

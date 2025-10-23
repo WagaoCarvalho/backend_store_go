@@ -13,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type AddressRepository interface {
+type Address interface {
 	Create(ctx context.Context, address *models.Address) (*models.Address, error)
 	CreateTx(ctx context.Context, tx pgx.Tx, address *models.Address) (*models.Address, error)
 	GetByID(ctx context.Context, id int64) (*models.Address, error)
@@ -26,15 +26,15 @@ type AddressRepository interface {
 	Enable(ctx context.Context, uid int64) error
 }
 
-type addressRepository struct {
+type address struct {
 	db *pgxpool.Pool
 }
 
-func NewAddressRepository(db *pgxpool.Pool) AddressRepository {
-	return &addressRepository{db: db}
+func NewAddress(db *pgxpool.Pool) Address {
+	return &address{db: db}
 }
 
-func (r *addressRepository) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
+func (r *address) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
 	const query = `
 		INSERT INTO addresses (
 			user_id, client_id, supplier_id,
@@ -69,7 +69,7 @@ func (r *addressRepository) Create(ctx context.Context, address *models.Address)
 	return address, nil
 }
 
-func (r *addressRepository) CreateTx(ctx context.Context, tx pgx.Tx, address *models.Address) (*models.Address, error) {
+func (r *address) CreateTx(ctx context.Context, tx pgx.Tx, address *models.Address) (*models.Address, error) {
 	const query = `
 		INSERT INTO addresses (
 			user_id, client_id, supplier_id,
@@ -104,7 +104,7 @@ func (r *addressRepository) CreateTx(ctx context.Context, tx pgx.Tx, address *mo
 	return address, nil
 }
 
-func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Address, error) {
+func (r *address) GetByID(ctx context.Context, id int64) (*models.Address, error) {
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -142,7 +142,7 @@ func (r *addressRepository) GetByID(ctx context.Context, id int64) (*models.Addr
 	return &address, nil
 }
 
-func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
+func (r *address) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -185,7 +185,7 @@ func (r *addressRepository) GetByUserID(ctx context.Context, userID int64) ([]*m
 	return addresses, nil
 }
 
-func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
+func (r *address) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -228,7 +228,7 @@ func (r *addressRepository) GetByClientID(ctx context.Context, clientID int64) (
 	return addresses, nil
 }
 
-func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
+func (r *address) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -271,7 +271,7 @@ func (r *addressRepository) GetBySupplierID(ctx context.Context, supplierID int6
 	return addresses, nil
 }
 
-func (r *addressRepository) Update(ctx context.Context, address *models.Address) error {
+func (r *address) Update(ctx context.Context, address *models.Address) error {
 	const query = `
 		UPDATE addresses
 		SET 
@@ -319,7 +319,7 @@ func (r *addressRepository) Update(ctx context.Context, address *models.Address)
 	return nil
 }
 
-func (r *addressRepository) Delete(ctx context.Context, id int64) error {
+func (r *address) Delete(ctx context.Context, id int64) error {
 	const query = `
 		DELETE FROM addresses 
 		WHERE id = $1
@@ -337,7 +337,7 @@ func (r *addressRepository) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *addressRepository) Disable(ctx context.Context, aid int64) error {
+func (r *address) Disable(ctx context.Context, aid int64) error {
 	const query = `
 		UPDATE addresses
 		SET is_active = FALSE, updated_at = NOW()
@@ -357,7 +357,7 @@ func (r *addressRepository) Disable(ctx context.Context, aid int64) error {
 	return nil
 }
 
-func (r *addressRepository) Enable(ctx context.Context, aid int64) error {
+func (r *address) Enable(ctx context.Context, aid int64) error {
 	const query = `
 		UPDATE addresses
 		SET is_active = TRUE, updated_at = NOW()

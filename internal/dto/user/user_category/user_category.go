@@ -3,7 +3,7 @@ package dto
 import (
 	"time"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_categories"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category"
 )
 
 type UserCategoryDTO struct {

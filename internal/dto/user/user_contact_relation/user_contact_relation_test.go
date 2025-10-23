@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_contact_relations"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_contact_relation"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +23,7 @@ func TestToContactRelationModel(t *testing.T) {
 
 func TestToContactRelationDTO(t *testing.T) {
 	now := time.Now()
-	model := &models.UserContactRelations{
+	model := &models.UserContactRelation{
 		ContactID: 1,
 		UserID:    2,
 		CreatedAt: now,
@@ -37,7 +37,7 @@ func TestToContactRelationDTO(t *testing.T) {
 }
 
 func TestToContactRelationDTO_NilModel(t *testing.T) {
-	var model *models.UserContactRelations
+	var model *models.UserContactRelation
 	dto := ToContactRelationDTO(model)
 
 	assert.Equal(t, UserContactRelationDTO{}, dto)

@@ -13,19 +13,19 @@ import (
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/client/client"
 )
 
-type ClientHandler struct {
-	service service.ClientService
+type Client struct {
+	service service.Client
 	logger  *logger.LogAdapter
 }
 
-func NewClientHandler(service service.ClientService, logger *logger.LogAdapter) *ClientHandler {
-	return &ClientHandler{
+func NewClient(service service.Client, logger *logger.LogAdapter) *Client {
+	return &Client{
 		service: service,
 		logger:  logger,
 	}
 }
 
-func (h *ClientHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *Client) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ClientHandler - Create] "
 	ctx := r.Context()
 
@@ -79,7 +79,7 @@ func (h *ClientHandler) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *ClientHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *Client) GetByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ClientHandler - GetByID] "
 	ctx := r.Context()
 
@@ -116,7 +116,7 @@ func (h *ClientHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *ClientHandler) GetByName(w http.ResponseWriter, r *http.Request) {
+func (h *Client) GetByName(w http.ResponseWriter, r *http.Request) {
 	const ref = "[clientHandler - GetByName] "
 	ctx := r.Context()
 
@@ -160,7 +160,7 @@ func (h *ClientHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *ClientHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
+func (h *Client) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[clientHandler - GetVersionByID] "
 	ctx := r.Context()
 
@@ -199,7 +199,7 @@ func (h *ClientHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *ClientHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+func (h *Client) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	const ref = "[clientHandler - GetAll] "
 
@@ -246,7 +246,7 @@ func (h *ClientHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *ClientHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *Client) Update(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ClientHandler - Update] "
 	ctx := r.Context()
 
@@ -329,7 +329,7 @@ func (h *ClientHandler) Update(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *ClientHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *Client) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[clientHandler - Delete] "
 	ctx := r.Context()
 
@@ -360,7 +360,7 @@ func (h *ClientHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *ClientHandler) Disable(w http.ResponseWriter, r *http.Request) {
+func (h *Client) Disable(w http.ResponseWriter, r *http.Request) {
 	const ref = "[clientHandler - Disable] "
 	ctx := r.Context()
 
@@ -413,7 +413,7 @@ func (h *ClientHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *ClientHandler) Enable(w http.ResponseWriter, r *http.Request) {
+func (h *Client) Enable(w http.ResponseWriter, r *http.Request) {
 	const ref = "[clientHandler - Enable] "
 	ctx := r.Context()
 
@@ -466,7 +466,7 @@ func (h *ClientHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *ClientHandler) ClientExists(w http.ResponseWriter, r *http.Request) {
+func (h *Client) ClientExists(w http.ResponseWriter, r *http.Request) {
 	const ref = "[clientHandler - ClientExists] "
 	ctx := r.Context()
 

@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_contact_relations"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_contact_relation"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -11,20 +11,20 @@ type MockUserContactRelationService struct {
 	mock.Mock
 }
 
-func (m *MockUserContactRelationService) Create(ctx context.Context, userID, contactID int64) (*models.UserContactRelations, bool, error) {
+func (m *MockUserContactRelationService) Create(ctx context.Context, userID, contactID int64) (*models.UserContactRelation, bool, error) {
 	args := m.Called(ctx, userID, contactID)
-	var result *models.UserContactRelations
+	var result *models.UserContactRelation
 	if args.Get(0) != nil {
-		result = args.Get(0).(*models.UserContactRelations)
+		result = args.Get(0).(*models.UserContactRelation)
 	}
 	return result, args.Bool(1), args.Error(2)
 }
 
-func (m *MockUserContactRelationService) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserContactRelations, error) {
+func (m *MockUserContactRelationService) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserContactRelation, error) {
 	args := m.Called(ctx, userID)
-	var result []*models.UserContactRelations
+	var result []*models.UserContactRelation
 	if args.Get(0) != nil {
-		result = args.Get(0).([]*models.UserContactRelations)
+		result = args.Get(0).([]*models.UserContactRelation)
 	}
 	return result, args.Error(1)
 }

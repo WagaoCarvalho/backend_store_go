@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	model "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client_contact_relations"
+	model "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client_contact_relation"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +23,7 @@ func TestToClientContactRelationModel(t *testing.T) {
 
 func TestToClientContactRelationDTO(t *testing.T) {
 	now := time.Now()
-	modelObj := &model.ClientContactRelations{
+	modelObj := &model.ClientContactRelation{
 		ContactID: 1,
 		ClientID:  2,
 		CreatedAt: now,

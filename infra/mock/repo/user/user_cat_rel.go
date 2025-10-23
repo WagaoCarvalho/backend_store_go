@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relations"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user_category_relation"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/mock"
 )
@@ -12,27 +12,27 @@ type MockUserCategoryRelationRepo struct {
 	mock.Mock
 }
 
-func (m *MockUserCategoryRelationRepo) Create(ctx context.Context, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
+func (m *MockUserCategoryRelationRepo) Create(ctx context.Context, relation *models.UserCategoryRelation) (*models.UserCategoryRelation, error) {
 	args := m.Called(ctx, relation)
 	result := args.Get(0)
 	if result == nil {
 		return nil, args.Error(1)
 	}
-	return result.(*models.UserCategoryRelations), args.Error(1)
+	return result.(*models.UserCategoryRelation), args.Error(1)
 }
 
-func (m *MockUserCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, relation *models.UserCategoryRelations) (*models.UserCategoryRelations, error) {
+func (m *MockUserCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, relation *models.UserCategoryRelation) (*models.UserCategoryRelation, error) {
 	args := m.Called(ctx, tx, relation) // <-- aqui passa os 3 argumentos
 	result := args.Get(0)
 	if result == nil {
 		return nil, args.Error(1)
 	}
-	return result.(*models.UserCategoryRelations), args.Error(1)
+	return result.(*models.UserCategoryRelation), args.Error(1)
 }
 
-func (m *MockUserCategoryRelationRepo) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelations, error) {
+func (m *MockUserCategoryRelationRepo) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelation, error) {
 	args := m.Called(ctx, userID)
-	return args.Get(0).([]*models.UserCategoryRelations), args.Error(1)
+	return args.Get(0).([]*models.UserCategoryRelation), args.Error(1)
 }
 
 func (m *MockUserCategoryRelationRepo) HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error) {

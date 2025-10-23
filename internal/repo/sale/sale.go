@@ -14,7 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type SaleRepository interface {
+type Sale interface {
 	Create(ctx context.Context, sale *models.Sale) (*models.Sale, error)
 	CreateTx(ctx context.Context, tx pgx.Tx, sale *models.Sale) (*models.Sale, error)
 	GetByID(ctx context.Context, id int64) (*models.Sale, error)
@@ -26,15 +26,15 @@ type SaleRepository interface {
 	Delete(ctx context.Context, id int64) error
 }
 
-type saleRepository struct {
+type sale struct {
 	db *pgxpool.Pool
 }
 
-func NewSaleRepository(db *pgxpool.Pool) SaleRepository {
-	return &saleRepository{db: db}
+func NewSale(db *pgxpool.Pool) Sale {
+	return &sale{db: db}
 }
 
-func (r *saleRepository) Create(ctx context.Context, sale *models.Sale) (*models.Sale, error) {
+func (r *sale) Create(ctx context.Context, sale *models.Sale) (*models.Sale, error) {
 	const query = `
 		INSERT INTO sales (
 			client_id, user_id, sale_date, total_amount, total_discount,
@@ -65,7 +65,7 @@ func (r *saleRepository) Create(ctx context.Context, sale *models.Sale) (*models
 	return sale, nil
 }
 
-func (r *saleRepository) CreateTx(ctx context.Context, tx pgx.Tx, sale *models.Sale) (*models.Sale, error) {
+func (r *sale) CreateTx(ctx context.Context, tx pgx.Tx, sale *models.Sale) (*models.Sale, error) {
 	const query = `
 		INSERT INTO sales (
 			client_id, user_id, sale_date, total_amount, total_discount,
@@ -96,7 +96,7 @@ func (r *saleRepository) CreateTx(ctx context.Context, tx pgx.Tx, sale *models.S
 	return sale, nil
 }
 
-func (r *saleRepository) GetByID(ctx context.Context, id int64) (*models.Sale, error) {
+func (r *sale) GetByID(ctx context.Context, id int64) (*models.Sale, error) {
 	const query = `
 		SELECT 
 			id, client_id, user_id, sale_date, total_amount, total_discount,
@@ -131,19 +131,19 @@ func (r *saleRepository) GetByID(ctx context.Context, id int64) (*models.Sale, e
 	return &sale, nil
 }
 
-func (r *saleRepository) GetByClientID(ctx context.Context, clientID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
+func (r *sale) GetByClientID(ctx context.Context, clientID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	return r.listByField(ctx, "client_id", clientID, limit, offset, orderBy, orderDir)
 }
 
-func (r *saleRepository) GetByUserID(ctx context.Context, userID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
+func (r *sale) GetByUserID(ctx context.Context, userID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	return r.listByField(ctx, "user_id", userID, limit, offset, orderBy, orderDir)
 }
 
-func (r *saleRepository) GetByStatus(ctx context.Context, status string, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
+func (r *sale) GetByStatus(ctx context.Context, status string, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	return r.listByField(ctx, "status", status, limit, offset, orderBy, orderDir)
 }
 
-func (r *saleRepository) GetByDateRange(ctx context.Context, start, end time.Time, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
+func (r *sale) GetByDateRange(ctx context.Context, start, end time.Time, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	query := fmt.Sprintf(`
 		SELECT 
 			id, client_id, user_id, sale_date, total_amount, total_discount,
@@ -185,7 +185,7 @@ func (r *saleRepository) GetByDateRange(ctx context.Context, start, end time.Tim
 	return sales, nil
 }
 
-func (r *saleRepository) Update(ctx context.Context, sale *models.Sale) error {
+func (r *sale) Update(ctx context.Context, sale *models.Sale) error {
 	const query = `
 		UPDATE sales
 		SET 
@@ -240,7 +240,7 @@ func (r *saleRepository) Update(ctx context.Context, sale *models.Sale) error {
 	return nil
 }
 
-func (r *saleRepository) Delete(ctx context.Context, id int64) error {
+func (r *sale) Delete(ctx context.Context, id int64) error {
 	const query = `
 		DELETE FROM sales 
 		WHERE id = $1
@@ -260,7 +260,7 @@ func (r *saleRepository) Delete(ctx context.Context, id int64) error {
 
 // --- Helpers ---
 // Reuso para consultas com WHERE <field> = $1
-func (r *saleRepository) listByField(ctx context.Context, field string, value interface{}, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
+func (r *sale) listByField(ctx context.Context, field string, value interface{}, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	query := fmt.Sprintf(`
 		SELECT 
 			id, client_id, user_id, sale_date, total_amount, total_discount,

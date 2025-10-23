@@ -21,8 +21,8 @@ func RegisterSaleRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
-	repoSale := repo.NewSaleRepository(db)
-	saleService := service.NewSaleService(repoSale)
+	repoSale := repo.NewSale(db)
+	saleService := service.NewSale(repoSale)
 	handler := handler.NewSaleHandler(saleService, log)
 
 	// Config JWT
