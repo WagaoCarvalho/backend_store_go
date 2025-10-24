@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
-	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/supplier/supplier_contact_relation"
+	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/supplier/contact_relation"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier_contact_relation"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_contact_relation"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/contact_relation"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/contact_relation"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
