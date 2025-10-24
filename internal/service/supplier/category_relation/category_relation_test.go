@@ -11,7 +11,7 @@ import (
 	mockSupplierCatRel "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/category_relation"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier_category_relation"
+	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/category_relation"
 )
 
 func TestSupplierCategoryRelationService_Create(t *testing.T) {

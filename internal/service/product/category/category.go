@@ -7,7 +7,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/category"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product/product_category"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product/category"
 )
 
 type ProductCategoryService interface {
