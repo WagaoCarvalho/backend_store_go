@@ -62,15 +62,10 @@ func (m *MockUserRepository) GetByName(ctx context.Context, name string) ([]*mod
 	return nil, args.Error(1)
 }
 
-func (m *MockUserRepository) Update(ctx context.Context, user *models.User) (*models.User, error) {
+func (m *MockUserRepository) Update(ctx context.Context, user *models.User) error {
 	args := m.Called(ctx, user)
 
-	var usr *models.User
-	if val := args.Get(0); val != nil {
-		usr = val.(*models.User)
-	}
-
-	return usr, args.Error(1)
+	return args.Error(0)
 }
 
 func (m *MockUserRepository) Disable(ctx context.Context, id int64) error {

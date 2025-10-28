@@ -19,7 +19,7 @@ type User interface {
 	GetVersionByID(ctx context.Context, id int64) (int64, error)
 	GetByEmail(ctx context.Context, email string) (*models.User, error)
 	GetByName(ctx context.Context, name string) ([]*models.User, error)
-	Update(ctx context.Context, user *models.User) (*models.User, error)
+	Update(ctx context.Context, user *models.User) error
 	Disable(ctx context.Context, uid int64) error
 	Enable(ctx context.Context, uid int64) error
 	Delete(ctx context.Context, id int64) error
@@ -240,7 +240,7 @@ func (r *user) GetByName(ctx context.Context, name string) ([]*models.User, erro
 	return users, nil
 }
 
-func (r *user) Update(ctx context.Context, user *models.User) (*models.User, error) {
+func (r *user) Update(ctx context.Context, user *models.User) error {
 	const query = `
 		UPDATE users
 		SET 
@@ -265,12 +265,12 @@ func (r *user) Update(ctx context.Context, user *models.User) (*models.User, err
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, errMsg.ErrVersionConflict
+			return errMsg.ErrVersionConflict
 		}
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
-	return user, nil
+	return nil
 }
 
 func (r *user) Disable(ctx context.Context, uid int64) error {

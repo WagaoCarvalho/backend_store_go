@@ -10,7 +10,7 @@ import (
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product/category"
 )
 
-type ProductCategoryService interface {
+type ProductCategory interface {
 	GetAll(ctx context.Context) ([]*models.ProductCategory, error)
 	GetByID(ctx context.Context, id int64) (*models.ProductCategory, error)
 	Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error)
@@ -18,17 +18,17 @@ type ProductCategoryService interface {
 	Delete(ctx context.Context, id int64) error
 }
 
-type productCategoryService struct {
-	repo repo.ProductCategoryRepository
+type productCategory struct {
+	repo repo.ProductCategory
 }
 
-func NewProductCategoryService(repo repo.ProductCategoryRepository) ProductCategoryService {
-	return &productCategoryService{
+func NewProductCategory(repo repo.ProductCategory) ProductCategory {
+	return &productCategory{
 		repo: repo,
 	}
 }
 
-func (s *productCategoryService) Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error) {
+func (s *productCategory) Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error) {
 	if err := category.Validate(); err != nil {
 		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
@@ -41,7 +41,7 @@ func (s *productCategoryService) Create(ctx context.Context, category *models.Pr
 	return createdCategory, nil
 }
 
-func (s *productCategoryService) GetAll(ctx context.Context) ([]*models.ProductCategory, error) {
+func (s *productCategory) GetAll(ctx context.Context) ([]*models.ProductCategory, error) {
 	categories, err := s.repo.GetAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
@@ -50,7 +50,7 @@ func (s *productCategoryService) GetAll(ctx context.Context) ([]*models.ProductC
 	return categories, nil
 }
 
-func (s *productCategoryService) GetByID(ctx context.Context, id int64) (*models.ProductCategory, error) {
+func (s *productCategory) GetByID(ctx context.Context, id int64) (*models.ProductCategory, error) {
 	if id <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -66,7 +66,7 @@ func (s *productCategoryService) GetByID(ctx context.Context, id int64) (*models
 	return category, nil
 }
 
-func (s *productCategoryService) Update(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error) {
+func (s *productCategory) Update(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error) {
 	if category.ID <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -89,7 +89,7 @@ func (s *productCategoryService) Update(ctx context.Context, category *models.Pr
 	return category, nil
 }
 
-func (s *productCategoryService) Delete(ctx context.Context, id int64) error {
+func (s *productCategory) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}

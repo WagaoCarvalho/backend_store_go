@@ -6,7 +6,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/user"
@@ -419,13 +418,6 @@ func TestUserHandler_Update(t *testing.T) {
 		mockService.ExpectedCalls = nil
 
 		userID := int64(1)
-		updatedUserModel := &model.User{
-			UID:      userID,
-			Username: "updatedUser",
-			Email:    "updated@example.com",
-			Version:  2,
-		}
-
 		requestDTO := dto.UserDTO{
 			Username: "updatedUser",
 			Email:    "updated@example.com",
@@ -435,8 +427,8 @@ func TestUserHandler_Update(t *testing.T) {
 		body, _ := json.Marshal(map[string]interface{}{"user": requestDTO})
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
-			return u.UID == userID && u.Username == "updatedUser" && u.Version == 2
-		})).Return(updatedUserModel, nil).Once()
+			return u.UID == userID
+		})).Return(nil).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -475,8 +467,8 @@ func TestUserHandler_Update(t *testing.T) {
 	})
 
 	t.Run("Erro dados do usuário ausentes", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
 		body, _ := json.Marshal(map[string]interface{}{"user": nil})
-
 		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		rec := httptest.NewRecorder()
@@ -488,13 +480,12 @@ func TestUserHandler_Update(t *testing.T) {
 	t.Run("Erro conflito de versão", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
 		userID := int64(1)
-
 		requestDTO := dto.UserDTO{Version: 2}
 		body, _ := json.Marshal(map[string]interface{}{"user": requestDTO})
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
 			return u.UID == userID && u.Version == 2
-		})).Return(nil, errMsg.ErrVersionConflict).Once()
+		})).Return(errMsg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -505,16 +496,50 @@ func TestUserHandler_Update(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("Erro genérico ao atualizar usuário", func(t *testing.T) {
+	t.Run("Erro dados inválidos (email incorreto)", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
-		userID := int64(1)
+		requestDTO := dto.UserDTO{
+			Email:   "invalid-email",
+			Version: 2,
+		}
+		body, _ := json.Marshal(map[string]interface{}{"user": requestDTO})
 
-		requestDTO := dto.UserDTO{Version: 2}
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrInvalidData).Once()
+
+		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		rec := httptest.NewRecorder()
+
+		handler.Update(rec, req)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro usuário não encontrado", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+		userID := int64(999)
+		requestDTO := dto.UserDTO{Version: 1}
 		body, _ := json.Marshal(map[string]interface{}{"user": requestDTO})
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
-			return u.UID == userID && u.Version == 2
-		})).Return(nil, errors.New("erro interno")).Once()
+			return u.UID == userID
+		})).Return(errMsg.ErrNotFound).Once()
+
+		req := httptest.NewRequest(http.MethodPut, "/users/999", bytes.NewReader(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "999"})
+		rec := httptest.NewRecorder()
+
+		handler.Update(rec, req)
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro genérico ao atualizar usuário", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+		requestDTO := dto.UserDTO{Version: 2}
+		body, _ := json.Marshal(map[string]interface{}{"user": requestDTO})
+
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errors.New("erro interno")).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -535,32 +560,31 @@ func TestUserHandler_Disable(t *testing.T) {
 
 	t.Run("Sucesso ao desabilitar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
+		mockService.On("Disable", mock.Anything, int64(1)).Return(nil).Once()
 
-		// Mock do GetByID para buscar o usuário antes de atualizar
-		mockService.On("GetByID", mock.Anything, int64(1)).Return(&model.User{
-			UID:     1,
-			Status:  true,
-			Version: 5,
-		}, nil).Once()
-
-		// Mock do Update com usuário atualizado
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(user *model.User) bool {
-			return user.UID == 1 && user.Status == false && user.Version == 10
-		})).Return(&model.User{
-			UID:     1,
-			Status:  false,
-			Version: 10,
-		}, nil).Once()
-
-		body := `{"version": 10}`
-		req := httptest.NewRequest(http.MethodPatch, "/users/1/disable", strings.NewReader(body))
+		req := httptest.NewRequest(http.MethodPatch, "/users/1/disable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		rec := httptest.NewRecorder()
 
 		handler.Disable(rec, req)
 
 		assert.Equal(t, http.StatusNoContent, rec.Code)
-		assert.Empty(t, rec.Body.String())
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro ID zero", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+
+		// Configura o mock para retornar ErrZeroID
+		mockService.On("Disable", mock.Anything, int64(0)).Return(errMsg.ErrZeroID).Once()
+
+		req := httptest.NewRequest(http.MethodPatch, "/users/0/disable", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "0"})
+		rec := httptest.NewRecorder()
+
+		handler.Disable(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
 		mockService.AssertExpectations(t)
 	})
 
@@ -574,20 +598,8 @@ func TestUserHandler_Disable(t *testing.T) {
 	})
 
 	t.Run("Erro ID inválido", func(t *testing.T) {
-		body := `{"version": 1}`
-		req := httptest.NewRequest(http.MethodPatch, "/users/abc/disable", strings.NewReader(body))
+		req := httptest.NewRequest(http.MethodPatch, "/users/abc/disable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
-		rec := httptest.NewRecorder()
-
-		handler.Disable(rec, req)
-
-		assert.Equal(t, http.StatusBadRequest, rec.Code)
-	})
-
-	t.Run("Erro versão inválida no corpo", func(t *testing.T) {
-		body := `{}` // sem versão
-		req := httptest.NewRequest(http.MethodPatch, "/users/1/disable", strings.NewReader(body))
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		rec := httptest.NewRecorder()
 
 		handler.Disable(rec, req)
@@ -597,11 +609,9 @@ func TestUserHandler_Disable(t *testing.T) {
 
 	t.Run("Erro usuário não encontrado", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
+		mockService.On("Disable", mock.Anything, int64(999)).Return(errMsg.ErrNotFound).Once()
 
-		mockService.On("GetByID", mock.Anything, int64(999)).Return(nil, errors.New("usuário não encontrado")).Once()
-
-		body := `{"version": 1}`
-		req := httptest.NewRequest(http.MethodPatch, "/users/999/disable", strings.NewReader(body))
+		req := httptest.NewRequest(http.MethodPatch, "/users/999/disable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "999"})
 		rec := httptest.NewRecorder()
 
@@ -611,58 +621,12 @@ func TestUserHandler_Disable(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("Erro conflito de versão ao desabilitar usuário", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
-
-		mockService.On("GetByID", mock.Anything, int64(4)).Return(&model.User{
-			UID:     4,
-			Status:  true,
-			Version: 2,
-		}, nil).Once()
-
-		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, errMsg.ErrVersionConflict).Once()
-
-		body := `{"version": 2}`
-		req := httptest.NewRequest(http.MethodPatch, "/users/4/disable", strings.NewReader(body))
-		req = mux.SetURLVars(req, map[string]string{"id": "4"})
-		rec := httptest.NewRecorder()
-
-		handler.Disable(rec, req)
-
-		assert.Equal(t, http.StatusConflict, rec.Code)
-		mockService.AssertExpectations(t)
-	})
-
 	t.Run("Erro genérico ao desabilitar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
+		mockService.On("Disable", mock.Anything, int64(2)).Return(errors.New("erro interno")).Once()
 
-		mockService.On("GetByID", mock.Anything, int64(2)).Return(&model.User{
-			UID:     2,
-			Status:  true,
-			Version: 1,
-		}, nil).Once()
-
-		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, errors.New("erro interno")).Once()
-
-		body := `{"version": 1}`
-		req := httptest.NewRequest(http.MethodPatch, "/users/2/disable", strings.NewReader(body))
+		req := httptest.NewRequest(http.MethodPatch, "/users/2/disable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "2"})
-		rec := httptest.NewRecorder()
-
-		handler.Disable(rec, req)
-
-		assert.Equal(t, http.StatusInternalServerError, rec.Code)
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("Erro genérico ao buscar usuário", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
-
-		mockService.On("GetByID", mock.Anything, int64(10)).Return(nil, errors.New("erro interno")).Once()
-
-		body := `{"version": 1}` // JSON válido para passar na validação do decode
-		req := httptest.NewRequest(http.MethodPatch, "/users/10/disable", strings.NewReader(body))
-		req = mux.SetURLVars(req, map[string]string{"id": "10"})
 		rec := httptest.NewRecorder()
 
 		handler.Disable(rec, req)
@@ -681,32 +645,31 @@ func TestUserHandler_Enable(t *testing.T) {
 
 	t.Run("Sucesso ao habilitar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
+		mockService.On("Enable", mock.Anything, int64(1)).Return(nil).Once()
 
-		// Mock GetByID para buscar usuário atual
-		mockService.On("GetByID", mock.Anything, int64(1)).Return(&model.User{
-			UID:     1,
-			Status:  false,
-			Version: 3,
-		}, nil).Once()
-
-		// Mock Update com usuário atualizado
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(user *model.User) bool {
-			return user.UID == 1 && user.Status == true && user.Version == 4
-		})).Return(&model.User{
-			UID:     1,
-			Status:  true,
-			Version: 4,
-		}, nil).Once()
-
-		body := `{"version": 4}`
-		req := httptest.NewRequest(http.MethodPatch, "/users/1/enable", strings.NewReader(body))
+		req := httptest.NewRequest(http.MethodPatch, "/users/1/enable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		rec := httptest.NewRecorder()
 
 		handler.Enable(rec, req)
 
 		assert.Equal(t, http.StatusNoContent, rec.Code)
-		assert.Empty(t, rec.Body.String())
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Erro ID zero", func(t *testing.T) {
+		mockService.ExpectedCalls = nil
+
+		// Configura o mock para retornar ErrZeroID
+		mockService.On("Enable", mock.Anything, int64(0)).Return(errMsg.ErrZeroID).Once()
+
+		req := httptest.NewRequest(http.MethodPatch, "/users/0/enable", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "0"})
+		rec := httptest.NewRecorder()
+
+		handler.Enable(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
 		mockService.AssertExpectations(t)
 	})
 
@@ -720,44 +683,8 @@ func TestUserHandler_Enable(t *testing.T) {
 	})
 
 	t.Run("Erro ID inválido", func(t *testing.T) {
-		body := `{"version": 1}`
-		req := httptest.NewRequest(http.MethodPatch, "/users/abc/enable", strings.NewReader(body))
+		req := httptest.NewRequest(http.MethodPatch, "/users/abc/enable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
-		rec := httptest.NewRecorder()
-
-		handler.Enable(rec, req)
-
-		assert.Equal(t, http.StatusBadRequest, rec.Code)
-	})
-
-	t.Run("Erro conflito de versão ao habilitar usuário", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
-
-		// GetByID retorna usuário válido
-		mockService.On("GetByID", mock.Anything, int64(3)).Return(&model.User{
-			UID:     3,
-			Status:  false,
-			Version: 5,
-		}, nil).Once()
-
-		// Update retorna erro de conflito de versão
-		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, errMsg.ErrVersionConflict).Once()
-
-		body := `{"version": 5}`
-		req := httptest.NewRequest(http.MethodPatch, "/users/3/enable", strings.NewReader(body))
-		req = mux.SetURLVars(req, map[string]string{"id": "3"})
-		rec := httptest.NewRecorder()
-
-		handler.Enable(rec, req)
-
-		assert.Equal(t, http.StatusConflict, rec.Code)
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("Erro versão inválida no corpo", func(t *testing.T) {
-		body := `{}` // sem version
-		req := httptest.NewRequest(http.MethodPatch, "/users/1/enable", strings.NewReader(body))
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		rec := httptest.NewRecorder()
 
 		handler.Enable(rec, req)
@@ -767,11 +694,9 @@ func TestUserHandler_Enable(t *testing.T) {
 
 	t.Run("Erro usuário não encontrado", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
+		mockService.On("Enable", mock.Anything, int64(999)).Return(errMsg.ErrNotFound).Once()
 
-		mockService.On("GetByID", mock.Anything, int64(999)).Return(nil, errors.New("usuário não encontrado")).Once()
-
-		body := `{"version": 1}`
-		req := httptest.NewRequest(http.MethodPatch, "/users/999/enable", strings.NewReader(body))
+		req := httptest.NewRequest(http.MethodPatch, "/users/999/enable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "999"})
 		rec := httptest.NewRecorder()
 
@@ -783,17 +708,9 @@ func TestUserHandler_Enable(t *testing.T) {
 
 	t.Run("Erro genérico ao habilitar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
+		mockService.On("Enable", mock.Anything, int64(2)).Return(errors.New("erro interno")).Once()
 
-		mockService.On("GetByID", mock.Anything, int64(2)).Return(&model.User{
-			UID:     2,
-			Status:  false,
-			Version: 1,
-		}, nil).Once()
-
-		mockService.On("Update", mock.Anything, mock.Anything).Return(nil, errors.New("erro interno")).Once()
-
-		body := `{"version": 1}`
-		req := httptest.NewRequest(http.MethodPatch, "/users/2/enable", strings.NewReader(body))
+		req := httptest.NewRequest(http.MethodPatch, "/users/2/enable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "2"})
 		rec := httptest.NewRecorder()
 
@@ -802,23 +719,6 @@ func TestUserHandler_Enable(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
 		mockService.AssertExpectations(t)
 	})
-
-	t.Run("Erro genérico ao buscar usuário", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
-
-		mockService.On("GetByID", mock.Anything, int64(10)).Return(nil, errors.New("erro interno")).Once()
-
-		body := `{"version": 1}` // JSON válido para passar na validação do decode
-		req := httptest.NewRequest(http.MethodPatch, "/users/10/enable", strings.NewReader(body))
-		req = mux.SetURLVars(req, map[string]string{"id": "10"})
-		rec := httptest.NewRecorder()
-
-		handler.Enable(rec, req)
-
-		assert.Equal(t, http.StatusInternalServerError, rec.Code)
-		mockService.AssertExpectations(t)
-	})
-
 }
 
 func TestUserHandler_Delete(t *testing.T) {

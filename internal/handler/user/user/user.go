@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -294,64 +293,60 @@ func (h *User) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{})
-
-	var requestData struct {
-		User *dto.UserDTO `json:"user"`
-	}
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
-			"erro": err.Error(),
-		})
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
 		return
 	}
 
+	var requestData struct {
+		User *dto.UserDTO `json:"user"`
+	}
 	if err := utils.FromJSON(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
-			"erro": err.Error(),
-		})
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
 		return
 	}
 
 	if requestData.User == nil {
-		h.logger.Warn(ctx, ref+logger.LogMissingBodyData, map[string]any{})
+		h.logger.Warn(ctx, ref+logger.LogMissingBodyData, nil)
 		utils.ErrorResponse(w, fmt.Errorf("dados do usuário são obrigatórios"), http.StatusBadRequest)
 		return
 	}
 
+	// Converte DTO para model
 	userModel := dto.ToUserModel(*requestData.User)
 	userModel.UID = id
 
-	updatedUser, err := h.service.Update(ctx, userModel)
-	if err != nil {
-		if errors.Is(err, errMsg.ErrVersionConflict) {
-			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
-				"user_id": id,
-			})
+	// Valida e atualiza via service
+	if err := h.service.Update(ctx, userModel); err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{"user_id": id})
 			utils.ErrorResponse(w, err, http.StatusConflict)
 			return
+		case errors.Is(err, errMsg.ErrInvalidData):
+			h.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{"user_id": id, "erro": err.Error()})
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"user_id": id})
+			utils.ErrorResponse(w, err, http.StatusNotFound)
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{"user_id": id})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			return
 		}
-		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-			"user_id": id,
-		})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
-		"user_id": updatedUser.UID,
-	})
-
-	updatedDTO := dto.ToUserDTO(updatedUser)
-
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{"user_id": id})
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Usuário atualizado com sucesso",
-		Data:    updatedDTO,
 	})
 }
 
@@ -367,65 +362,45 @@ func (h *User) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+	h.logger.Info(ctx, ref+logger.LogDisableInit, nil)
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		utils.ErrorResponse(w, errMsg.ErrZeroID, http.StatusBadRequest)
 		return
 	}
 
-	var payload struct {
-		Version int `json:"version"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Version <= 0 {
-		h.logger.Warn(ctx, ref+"versão inválida", map[string]any{
-			"erro": err,
-		})
-		utils.ErrorResponse(w, fmt.Errorf("versão inválida"), http.StatusBadRequest)
-		return
-	}
-
-	user, err := h.service.GetByID(ctx, id)
+	// Chama diretamente o service
+	err = h.service.Disable(ctx, id)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err.Error() == "usuário não encontrado" {
-			status = http.StatusNotFound
+		switch {
+		case errors.Is(err, errMsg.ErrZeroID):
+			h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+				"user_id": id,
+			})
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+
+		case errors.Is(err, errMsg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id": id,
 			})
-		} else {
-			h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			utils.ErrorResponse(w, err, http.StatusNotFound)
+			return
+
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogDisableError, map[string]any{
 				"user_id": id,
 			})
-		}
-		utils.ErrorResponse(w, err, status)
-		return
-	}
-
-	user.Status = false
-	user.Version = payload.Version
-
-	_, err = h.service.Update(ctx, user)
-	if err != nil {
-		if errors.Is(err, errMsg.ErrVersionConflict) {
-			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
-				"user_id": id,
-			})
-			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
 			return
 		}
-		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-			"user_id": id,
-		})
-		utils.ErrorResponse(w, fmt.Errorf("erro ao desabilitar usuário: %w", err), http.StatusInternalServerError)
-		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+	h.logger.Info(ctx, ref+logger.LogDisableSuccess, map[string]any{
 		"user_id": id,
 	})
 
@@ -444,65 +419,44 @@ func (h *User) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
+	h.logger.Info(ctx, ref+logger.LogEnableInit, nil)
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		utils.ErrorResponse(w, errMsg.ErrZeroID, http.StatusBadRequest)
 		return
 	}
 
-	var payload struct {
-		Version int `json:"version"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Version <= 0 {
-		h.logger.Warn(ctx, ref+"versão inválida", map[string]any{
-			"erro": err,
-		})
-		utils.ErrorResponse(w, fmt.Errorf("versão inválida"), http.StatusBadRequest)
-		return
-	}
-
-	user, err := h.service.GetByID(ctx, id)
+	err = h.service.Enable(ctx, id)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err.Error() == "usuário não encontrado" {
-			status = http.StatusNotFound
+		switch {
+		case errors.Is(err, errMsg.ErrZeroID):
+			h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+				"user_id": id,
+			})
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+
+		case errors.Is(err, errMsg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"user_id": id,
 			})
-		} else {
-			h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			utils.ErrorResponse(w, err, http.StatusNotFound)
+			return
+
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogEnableError, map[string]any{
 				"user_id": id,
 			})
-		}
-		utils.ErrorResponse(w, err, status)
-		return
-	}
-
-	user.Status = true
-	user.Version = payload.Version
-
-	_, err = h.service.Update(ctx, user)
-	if err != nil {
-		if errors.Is(err, errMsg.ErrVersionConflict) {
-			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
-				"user_id": id,
-			})
-			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
 			return
 		}
-		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-			"user_id": id,
-		})
-		utils.ErrorResponse(w, fmt.Errorf("erro ao habilitar usuário: %w", err), http.StatusInternalServerError)
-		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+	h.logger.Info(ctx, ref+logger.LogEnableSuccess, map[string]any{
 		"user_id": id,
 	})
 

@@ -464,7 +464,6 @@ func TestUserService_GetByName(t *testing.T) {
 }
 
 func TestUserService_Update(t *testing.T) {
-
 	setup := func() (
 		*mockUser.MockUserRepository,
 		*MockHasher,
@@ -475,7 +474,6 @@ func TestUserService_Update(t *testing.T) {
 
 		userService := NewUser(
 			mockUserRepo,
-
 			mockHasher,
 		)
 
@@ -491,10 +489,9 @@ func TestUserService_Update(t *testing.T) {
 			Version: 1,
 		}
 
-		updatedUser, err := service.Update(context.Background(), user)
+		err := service.Update(context.Background(), user)
 
 		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
-		assert.Nil(t, updatedUser)
 	})
 
 	t.Run("Deve retornar erro ao atualizar com versão inválida", func(t *testing.T) {
@@ -506,10 +503,9 @@ func TestUserService_Update(t *testing.T) {
 			Version: 0,
 		}
 
-		updatedUser, err := service.Update(context.Background(), user)
+		err := service.Update(context.Background(), user)
 
 		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
-		assert.Nil(t, updatedUser)
 	})
 
 	t.Run("Deve retornar erro de usuário não encontrado", func(t *testing.T) {
@@ -521,12 +517,11 @@ func TestUserService_Update(t *testing.T) {
 			Version: 1,
 		}
 
-		mockRepo.On("Update", mock.Anything, user).Return(nil, errMsg.ErrNotFound)
+		mockRepo.On("Update", mock.Anything, user).Return(errMsg.ErrNotFound)
 
-		updatedUser, err := service.Update(context.Background(), user)
+		err := service.Update(context.Background(), user)
 
 		assert.ErrorIs(t, err, errMsg.ErrNotFound)
-		assert.Nil(t, updatedUser)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -539,12 +534,11 @@ func TestUserService_Update(t *testing.T) {
 			Version: 2,
 		}
 
-		mockRepo.On("Update", mock.Anything, user).Return(nil, errMsg.ErrVersionConflict)
+		mockRepo.On("Update", mock.Anything, user).Return(errMsg.ErrVersionConflict)
 
-		updatedUser, err := service.Update(context.Background(), user)
+		err := service.Update(context.Background(), user)
 
 		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
-		assert.Nil(t, updatedUser)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -557,12 +551,11 @@ func TestUserService_Update(t *testing.T) {
 			Version: 1,
 		}
 
-		mockRepo.On("Update", mock.Anything, user).Return(nil, fmt.Errorf("erro interno"))
+		mockRepo.On("Update", mock.Anything, user).Return(fmt.Errorf("erro interno"))
 
-		updatedUser, err := service.Update(context.Background(), user)
+		err := service.Update(context.Background(), user)
 
 		assert.ErrorContains(t, err, "erro ao atualizar")
-		assert.Nil(t, updatedUser)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -576,19 +569,11 @@ func TestUserService_Update(t *testing.T) {
 			Version:  1,
 		}
 
-		expected := &modelUser.User{
-			UID:      1,
-			Username: "usuario",
-			Email:    "user@example.com",
-			Version:  2,
-		}
+		mockRepo.On("Update", mock.Anything, user).Return(nil)
 
-		mockRepo.On("Update", mock.Anything, user).Return(expected, nil)
-
-		updatedUser, err := service.Update(context.Background(), user)
+		err := service.Update(context.Background(), user)
 
 		assert.NoError(t, err)
-		assert.Equal(t, expected, updatedUser)
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -603,11 +588,7 @@ func TestUserService_Disable(t *testing.T) {
 		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
-		userService := NewUser(
-			mockUserRepo,
-
-			mockHasher,
-		)
+		userService := NewUser(mockUserRepo, mockHasher)
 
 		return mockUserRepo, mockHasher, userService
 	}
@@ -620,9 +601,40 @@ func TestUserService_Disable(t *testing.T) {
 		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 	})
 
-	t.Run("Deve desativar usuário com sucesso", func(t *testing.T) {
+	t.Run("falha: usuário não encontrado", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
+		mockRepo.On("GetByID", mock.Anything, int64(1)).
+			Return(nil, errMsg.ErrNotFound).Once()
+
+		err := service.Disable(context.Background(), 1)
+
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("sucesso: usuário já desativado (não deve chamar Disable)", func(t *testing.T) {
+		mockRepo, _, service := setup()
+
+		user := &modelUser.User{UID: 1, Status: false}
+
+		mockRepo.On("GetByID", mock.Anything, int64(1)).
+			Return(user, nil).Once()
+
+		err := service.Disable(context.Background(), 1)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+		mockRepo.AssertNotCalled(t, "Disable", mock.Anything, int64(1))
+	})
+
+	t.Run("sucesso: desativa usuário com sucesso", func(t *testing.T) {
+		mockRepo, _, service := setup()
+
+		user := &modelUser.User{UID: 1, Status: true}
+
+		mockRepo.On("GetByID", mock.Anything, int64(1)).
+			Return(user, nil).Once()
 		mockRepo.On("Disable", mock.Anything, int64(1)).
 			Return(nil).Once()
 
@@ -632,15 +644,31 @@ func TestUserService_Disable(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("Deve retornar erro ao desativar usuário", func(t *testing.T) {
+	t.Run("falha: erro inesperado ao buscar usuário", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
-		mockRepo.On("Disable", mock.Anything, int64(2)).
-			Return(fmt.Errorf("erro ao desabilitar")).Once()
+		mockRepo.On("GetByID", mock.Anything, int64(1)).
+			Return(nil, fmt.Errorf("erro no banco")).Once()
 
-		err := service.Disable(context.Background(), 2)
+		err := service.Disable(context.Background(), 1)
 
-		assert.ErrorContains(t, err, "erro ao desabilitar")
+		assert.ErrorContains(t, err, "erro ao buscar")
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha: erro ao desativar usuário", func(t *testing.T) {
+		mockRepo, _, service := setup()
+
+		user := &modelUser.User{UID: 1, Status: true}
+
+		mockRepo.On("GetByID", mock.Anything, int64(1)).
+			Return(user, nil).Once()
+		mockRepo.On("Disable", mock.Anything, int64(1)).
+			Return(fmt.Errorf("erro ao desativar")).Once()
+
+		err := service.Disable(context.Background(), 1)
+
+		assert.ErrorContains(t, err, "erro ao desativar")
 		mockRepo.AssertExpectations(t)
 	})
 }
@@ -655,11 +683,7 @@ func TestUserService_Enable(t *testing.T) {
 		mockUserRepo := new(mockUser.MockUserRepository)
 		mockHasher := new(MockHasher)
 
-		userService := NewUser(
-			mockUserRepo,
-
-			mockHasher,
-		)
+		userService := NewUser(mockUserRepo, mockHasher)
 
 		return mockUserRepo, mockHasher, userService
 	}
@@ -672,9 +696,40 @@ func TestUserService_Enable(t *testing.T) {
 		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 	})
 
-	t.Run("Deve ativar usuário com sucesso", func(t *testing.T) {
+	t.Run("falha: usuário não encontrado", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
+		mockRepo.On("GetByID", mock.Anything, int64(99)).
+			Return(nil, errMsg.ErrNotFound).Once()
+
+		err := service.Enable(context.Background(), 99)
+
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("sucesso: usuário já ativo (não deve chamar Enable)", func(t *testing.T) {
+		mockRepo, _, service := setup()
+
+		user := &modelUser.User{UID: 1, Status: true}
+
+		mockRepo.On("GetByID", mock.Anything, int64(1)).
+			Return(user, nil).Once()
+
+		err := service.Enable(context.Background(), 1)
+
+		assert.NoError(t, err)
+		mockRepo.AssertNotCalled(t, "Enable", mock.Anything, int64(1))
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("sucesso: ativa usuário com sucesso", func(t *testing.T) {
+		mockRepo, _, service := setup()
+
+		user := &modelUser.User{UID: 1, Status: false}
+
+		mockRepo.On("GetByID", mock.Anything, int64(1)).
+			Return(user, nil).Once()
 		mockRepo.On("Enable", mock.Anything, int64(1)).
 			Return(nil).Once()
 
@@ -684,30 +739,33 @@ func TestUserService_Enable(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("Deve retornar erro quando usuário não for encontrado ao habilitar", func(t *testing.T) {
+	t.Run("falha: erro inesperado ao buscar usuário", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
-		mockRepo.On("Enable", mock.Anything, int64(42)).
-			Return(errMsg.ErrNotFound).Once()
+		mockRepo.On("GetByID", mock.Anything, int64(1)).
+			Return(nil, fmt.Errorf("falha na consulta")).Once()
 
-		err := service.Enable(context.Background(), 42)
+		err := service.Enable(context.Background(), 1)
 
-		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		assert.ErrorContains(t, err, "falha na consulta")
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("Deve retornar erro ao ativar usuário", func(t *testing.T) {
+	t.Run("falha: erro ao ativar usuário", func(t *testing.T) {
 		mockRepo, _, service := setup()
 
-		mockRepo.On("Enable", mock.Anything, int64(2)).
-			Return(fmt.Errorf("falha no banco")).Once()
+		user := &modelUser.User{UID: 1, Status: false}
 
-		err := service.Enable(context.Background(), 2)
+		mockRepo.On("GetByID", mock.Anything, int64(1)).
+			Return(user, nil).Once()
+		mockRepo.On("Enable", mock.Anything, int64(1)).
+			Return(fmt.Errorf("erro ao ativar")).Once()
 
-		assert.ErrorContains(t, err, "falha no banco")
+		err := service.Enable(context.Background(), 1)
+
+		assert.ErrorContains(t, err, "erro ao ativar")
 		mockRepo.AssertExpectations(t)
 	})
-
 }
 
 func TestUserService_Delete(t *testing.T) {

@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type ProductCategoryRepository interface {
+type ProductCategory interface {
 	Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error)
 	GetByID(ctx context.Context, id int64) (*models.ProductCategory, error)
 	GetAll(ctx context.Context) ([]*models.ProductCategory, error)
@@ -19,15 +19,15 @@ type ProductCategoryRepository interface {
 	Delete(ctx context.Context, id int64) error
 }
 
-type productCategoryRepository struct {
+type productCategory struct {
 	db *pgxpool.Pool
 }
 
-func NewProductCategoryRepository(db *pgxpool.Pool) ProductCategoryRepository {
-	return &productCategoryRepository{db: db}
+func NewProductCategory(db *pgxpool.Pool) ProductCategory {
+	return &productCategory{db: db}
 }
 
-func (r *productCategoryRepository) Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error) {
+func (r *productCategory) Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error) {
 	const query = `
 		INSERT INTO product_categories (name, description, created_at, updated_at)
 		VALUES ($1, $2, NOW(), NOW())
@@ -43,7 +43,7 @@ func (r *productCategoryRepository) Create(ctx context.Context, category *models
 	return category, nil
 }
 
-func (r *productCategoryRepository) GetByID(ctx context.Context, id int64) (*models.ProductCategory, error) {
+func (r *productCategory) GetByID(ctx context.Context, id int64) (*models.ProductCategory, error) {
 	const query = `
 		SELECT id, name, description, created_at, updated_at
 		FROM product_categories
@@ -68,7 +68,7 @@ func (r *productCategoryRepository) GetByID(ctx context.Context, id int64) (*mod
 	return &category, nil
 }
 
-func (r *productCategoryRepository) GetAll(ctx context.Context) ([]*models.ProductCategory, error) {
+func (r *productCategory) GetAll(ctx context.Context) ([]*models.ProductCategory, error) {
 	const query = `
 		SELECT id, name, description, created_at, updated_at
 		FROM product_categories
@@ -102,7 +102,7 @@ func (r *productCategoryRepository) GetAll(ctx context.Context) ([]*models.Produ
 	return categories, nil
 }
 
-func (r *productCategoryRepository) Update(ctx context.Context, category *models.ProductCategory) error {
+func (r *productCategory) Update(ctx context.Context, category *models.ProductCategory) error {
 	const query = `
 		UPDATE product_categories
 		SET name = $1,
@@ -124,7 +124,7 @@ func (r *productCategoryRepository) Update(ctx context.Context, category *models
 	return nil
 }
 
-func (r *productCategoryRepository) Delete(ctx context.Context, id int64) error {
+func (r *productCategory) Delete(ctx context.Context, id int64) error {
 	const query = `DELETE FROM product_categories WHERE id = $1`
 
 	result, err := r.db.Exec(ctx, query, id)
