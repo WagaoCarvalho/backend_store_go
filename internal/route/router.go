@@ -61,6 +61,7 @@ func NewRouter(log *logger.LogAdapter) *mux.Router {
 	//Products
 	routesProduct.RegisterProductRoutes(r, db, log, blacklist)
 	routesProduct.RegisterProductCategoryRoutes(r, db, log, blacklist)
+	routesProduct.RegisterProductCategoryRelationRoutes(r, db, log, blacklist)
 
 	//Sale
 	routesSale.RegisterSaleRoutes(r, db, log, blacklist)
