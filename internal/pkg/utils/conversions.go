@@ -45,3 +45,10 @@ func DerefTime(p *time.Time) time.Time {
 	}
 	return time.Time{}
 }
+
+func DefaultString(value string, defaultValue string) string {
+	if value == "" {
+		return defaultValue
+	}
+	return value
+}

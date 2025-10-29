@@ -10,7 +10,7 @@ import (
 type SaleDTO struct {
 	ID            *int64  `json:"id,omitempty"`
 	ClientID      *int64  `json:"client_id,omitempty"`
-	UserID        int64   `json:"user_id"`
+	UserID        *int64  `json:"user_id,omitempty"`
 	SaleDate      *string `json:"sale_date,omitempty"`
 	TotalAmount   float64 `json:"total_amount"`
 	TotalDiscount float64 `json:"total_discount,omitempty"`
@@ -30,26 +30,21 @@ func ToSaleModel(dto SaleDTO) *models.Sale {
 		TotalAmount:   dto.TotalAmount,
 		TotalDiscount: dto.TotalDiscount,
 		PaymentType:   dto.PaymentType,
-		Status:        dto.Status,
+		Status:        utils.DefaultString(dto.Status, "active"),
 		Notes:         dto.Notes,
 		Version:       dto.Version,
 	}
 
-	// SaleDate
 	if dto.SaleDate != nil {
 		if t, err := time.Parse(time.RFC3339, *dto.SaleDate); err == nil {
 			model.SaleDate = t
 		}
 	}
-
-	// CreatedAt
 	if dto.CreatedAt != nil {
 		if t, err := time.Parse(time.RFC3339, *dto.CreatedAt); err == nil {
 			model.CreatedAt = t
 		}
 	}
-
-	// UpdatedAt
 	if dto.UpdatedAt != nil {
 		if t, err := time.Parse(time.RFC3339, *dto.UpdatedAt); err == nil {
 			model.UpdatedAt = t

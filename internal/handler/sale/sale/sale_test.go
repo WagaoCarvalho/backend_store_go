@@ -11,7 +11,7 @@ import (
 	"time"
 
 	mocksale "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/sale"
-	dtoSale "github.com/WagaoCarvalho/backend_store_go/internal/dto/sale"
+	dtoSale "github.com/WagaoCarvalho/backend_store_go/internal/dto/sale/sale"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -42,9 +42,20 @@ func TestSaleHandler_Create(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
+	t.Run("method not allowed", func(t *testing.T) {
+		_, h := setupHandler()
+		req := httptest.NewRequest(http.MethodGet, "/sale", nil) // GET em vez de POST
+		w := httptest.NewRecorder()
+
+		h.Create(w, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
+		assert.Contains(t, w.Body.String(), "método GET não permitido")
+	})
+
 	t.Run("erro do serviço", func(t *testing.T) {
 		mockService, h := setupHandler()
-		saleDTO := dtoSale.SaleDTO{UserID: 1, SaleDate: &now, TotalAmount: 100.0, PaymentType: "cash", Status: "active"}
+		saleDTO := dtoSale.SaleDTO{UserID: utils.Int64Ptr(1), SaleDate: &now, TotalAmount: 100.0, PaymentType: "cash", Status: "active"}
 		body, _ := json.Marshal(saleDTO)
 		req := httptest.NewRequest(http.MethodPost, "/sale", bytes.NewBuffer(body))
 		w := httptest.NewRecorder()
@@ -59,7 +70,7 @@ func TestSaleHandler_Create(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockService, h := setupHandler()
-		saleDTO := dtoSale.SaleDTO{UserID: 1, SaleDate: &now, TotalAmount: 100.0, PaymentType: "cash", Status: "active"}
+		saleDTO := dtoSale.SaleDTO{UserID: utils.Int64Ptr(1), SaleDate: &now, TotalAmount: 100.0, PaymentType: "cash", Status: "active"}
 		body, _ := json.Marshal(saleDTO)
 		req := httptest.NewRequest(http.MethodPost, "/sale", bytes.NewBuffer(body))
 		w := httptest.NewRecorder()
@@ -80,7 +91,7 @@ func TestSaleHandler_Create(t *testing.T) {
 	t.Run("erro de foreign key", func(t *testing.T) {
 		mockService, h := setupHandler()
 		saleDTO := dtoSale.SaleDTO{
-			UserID:      1,
+			UserID:      utils.Int64Ptr(1),
 			SaleDate:    &now,
 			TotalAmount: 100.0,
 			PaymentType: "cash",
@@ -130,9 +141,21 @@ func TestSaleHandler_GetByID(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
+	t.Run("method not allowed", func(t *testing.T) {
+		_, h := setupHandler()
+		req := httptest.NewRequest(http.MethodPost, "/sale/1", nil) // POST em vez de GET
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		h.GetByID(w, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
+		assert.Contains(t, w.Body.String(), "método POST não permitido")
+	})
+
 	t.Run("sucesso", func(t *testing.T) {
 		mockService, h := setupHandler()
-		saleModel := &dtoSale.SaleDTO{ID: utils.Int64Ptr(1), UserID: 1}
+		saleModel := &dtoSale.SaleDTO{ID: utils.Int64Ptr(1), UserID: utils.Int64Ptr(1)}
 		req := httptest.NewRequest(http.MethodGet, "/sale?id=1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
@@ -168,9 +191,21 @@ func TestSaleHandler_GetByClientID(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
+	t.Run("method not allowed", func(t *testing.T) {
+		_, h := setupHandler()
+		req := httptest.NewRequest(http.MethodPost, "/sale/client/1", nil) // POST em vez de GET
+		req = mux.SetURLVars(req, map[string]string{"client_id": "1"})
+		w := httptest.NewRecorder()
+
+		h.GetByClientID(w, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
+		assert.Contains(t, w.Body.String(), "método POST não permitido")
+	})
+
 	t.Run("sucesso", func(t *testing.T) {
 		mockService, h := setupHandler()
-		saleModel := []*dtoSale.SaleDTO{{ID: utils.Int64Ptr(1), UserID: 1}}
+		saleModel := []*dtoSale.SaleDTO{{ID: utils.Int64Ptr(1), UserID: utils.Int64Ptr(1)}}
 		req := httptest.NewRequest(http.MethodGet, "/sale/client/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"client_id": "1"})
 		w := httptest.NewRecorder()
@@ -196,6 +231,18 @@ func TestSaleHandler_GetByUserID(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
+	t.Run("method not allowed", func(t *testing.T) {
+		_, h := setupHandler()
+		req := httptest.NewRequest(http.MethodPost, "/sale/user/1", nil) // POST em vez de GET
+		req = mux.SetURLVars(req, map[string]string{"user_id": "1"})
+		w := httptest.NewRecorder()
+
+		h.GetByUserID(w, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
+		assert.Contains(t, w.Body.String(), "método POST não permitido")
+	})
+
 	t.Run("erro do serviço", func(t *testing.T) {
 		mockService, h := setupHandler()
 		req := httptest.NewRequest(http.MethodGet, "/sale/user/1", nil)
@@ -214,7 +261,7 @@ func TestSaleHandler_GetByUserID(t *testing.T) {
 	t.Run("sucesso", func(t *testing.T) {
 		mockService, h := setupHandler()
 		saleModel := []*dtoSale.SaleDTO{
-			{ID: utils.Int64Ptr(1), UserID: 1, SaleDate: &now, TotalAmount: 100.0, PaymentType: "cash", Status: "active"},
+			{ID: utils.Int64Ptr(1), UserID: utils.Int64Ptr(1), SaleDate: &now, TotalAmount: 100.0, PaymentType: "cash", Status: "active"},
 		}
 
 		req := httptest.NewRequest(http.MethodGet, "/sale/user/1", nil)
@@ -245,7 +292,7 @@ func TestSaleHandler_GetByStatus(t *testing.T) {
 
 		// DTO de exemplo
 		saleDTOs := []*dtoSale.SaleDTO{
-			{ID: utils.Int64Ptr(1), UserID: 1, SaleDate: &now, TotalAmount: 100.0, PaymentType: "cash", Status: "active"},
+			{ID: utils.Int64Ptr(1), UserID: utils.Int64Ptr(1), SaleDate: &now, TotalAmount: 100.0, PaymentType: "cash", Status: "active"},
 		}
 
 		// Path param
@@ -266,6 +313,18 @@ func TestSaleHandler_GetByStatus(t *testing.T) {
 		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 		assert.Equal(t, "Vendas por status recuperadas", resp["message"])
 		mockService.AssertExpectations(t)
+	})
+
+	t.Run("method not allowed", func(t *testing.T) {
+		_, h := setupHandler()
+		req := httptest.NewRequest(http.MethodPost, "/sale/status/active", nil) // POST em vez de GET
+		req = mux.SetURLVars(req, map[string]string{"status": "active"})
+		w := httptest.NewRecorder()
+
+		h.GetByStatus(w, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
+		assert.Contains(t, w.Body.String(), "método POST não permitido")
 	})
 
 	t.Run("erro do serviço", func(t *testing.T) {
@@ -306,6 +365,21 @@ func TestSaleHandler_GetByDateRange(t *testing.T) {
 
 		h.GetByDateRange(w, req)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("method not allowed", func(t *testing.T) {
+		_, h := setupHandler()
+		req := httptest.NewRequest(http.MethodPost, "/sale/date-range/2025-01-01/2025-01-31", nil) // POST em vez de GET
+		req = mux.SetURLVars(req, map[string]string{
+			"start": "2025-01-01",
+			"end":   "2025-01-31",
+		})
+		w := httptest.NewRecorder()
+
+		h.GetByDateRange(w, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
+		assert.Contains(t, w.Body.String(), "método POST não permitido")
 	})
 
 	t.Run("erro do serviço", func(t *testing.T) {
@@ -358,7 +432,7 @@ func TestSaleHandler_GetByDateRange(t *testing.T) {
 		mockService, h := setupHandler()
 
 		salesDTO := []*dtoSale.SaleDTO{
-			{ID: utils.Int64Ptr(1), UserID: 1, SaleDate: &now, TotalAmount: 100.0, PaymentType: "cash", Status: "active"},
+			{ID: utils.Int64Ptr(1), UserID: utils.Int64Ptr(1), SaleDate: &now, TotalAmount: 100.0, PaymentType: "cash", Status: "active"},
 		}
 
 		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/sale/daterange/%s/%s", start, end), nil)
@@ -400,11 +474,25 @@ func TestSaleHandler_Update(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
+	t.Run("method not allowed", func(t *testing.T) {
+		_, h := setupHandler()
+		req := httptest.NewRequest(http.MethodGet, "/sale/update/1", nil) // GET em vez de PUT
+		req = mux.SetURLVars(req, map[string]string{
+			"id": "1",
+		})
+		w := httptest.NewRecorder()
+
+		h.Update(w, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
+		assert.Contains(t, w.Body.String(), "método GET não permitido")
+	})
+
 	t.Run("erro do serviço", func(t *testing.T) {
 		mockService, h := setupHandler()
 
 		saleDTO := dtoSale.SaleDTO{
-			UserID:      1,
+			UserID:      utils.Int64Ptr(1),
 			SaleDate:    &now,
 			TotalAmount: 100.0,
 			PaymentType: "cash",
@@ -428,7 +516,7 @@ func TestSaleHandler_Update(t *testing.T) {
 		mockService, h := setupHandler()
 
 		saleDTO := dtoSale.SaleDTO{
-			UserID:      1,
+			UserID:      utils.Int64Ptr(1),
 			SaleDate:    &now,
 			TotalAmount: 100.0,
 			PaymentType: "cash",
@@ -453,7 +541,7 @@ func TestSaleHandler_Update(t *testing.T) {
 
 		now := time.Now().Format(time.RFC3339)
 		validSale := dtoSale.SaleDTO{
-			UserID:      1,
+			UserID:      utils.Int64Ptr(1),
 			SaleDate:    &now,
 			TotalAmount: 100.0,
 			PaymentType: "cash",
@@ -496,6 +584,20 @@ func TestSaleHandler_Delete(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
+	t.Run("method not allowed", func(t *testing.T) {
+		_, h := setupHandler()
+		req := httptest.NewRequest(http.MethodGet, "/sale/delete/1", nil) // GET em vez de DELETE
+		req = mux.SetURLVars(req, map[string]string{
+			"id": "1",
+		})
+		w := httptest.NewRecorder()
+
+		h.Delete(w, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
+		assert.Contains(t, w.Body.String(), "método GET não permitido")
+	})
+
 	t.Run("erro do serviço", func(t *testing.T) {
 		mockService, h := setupHandler()
 		req := httptest.NewRequest(http.MethodDelete, "/sale/delete/1", nil)
@@ -525,5 +627,109 @@ func TestSaleHandler_Delete(t *testing.T) {
 		assert.Empty(t, w.Body.String())
 
 		mockService.AssertExpectations(t)
+	})
+}
+
+func TestSaleHandler_Cancel(t *testing.T) {
+	t.Run("ID inválido", func(t *testing.T) {
+		_, h := setupHandler()
+		req := httptest.NewRequest(http.MethodPatch, "/sale/cancel/abc", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
+
+		h.Cancel(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("method not allowed", func(t *testing.T) {
+		_, h := setupHandler()
+		req := httptest.NewRequest(http.MethodGet, "/sale/cancel/1", nil) // GET em vez de PATCH
+		req = mux.SetURLVars(req, map[string]string{
+			"id": "1",
+		})
+		w := httptest.NewRecorder()
+
+		h.Cancel(w, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
+		assert.Contains(t, w.Body.String(), "método GET não permitido")
+	})
+
+	t.Run("erro do serviço", func(t *testing.T) {
+		svc, h := setupHandler()
+		svc.On("Cancel", mock.Anything, int64(1)).Return(errors.New("erro do serviço")).Once()
+
+		req := httptest.NewRequest(http.MethodPatch, "/sale/cancel/1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		h.Cancel(w, req)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		svc.AssertExpectations(t)
+	})
+
+	t.Run("sucesso", func(t *testing.T) {
+		svc, h := setupHandler()
+		svc.On("Cancel", mock.Anything, int64(2)).Return(nil).Once()
+
+		req := httptest.NewRequest(http.MethodPatch, "/sale/cancel/2", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "2"})
+		w := httptest.NewRecorder()
+
+		h.Cancel(w, req)
+		assert.Equal(t, http.StatusNoContent, w.Code)
+		svc.AssertExpectations(t)
+	})
+}
+
+func TestSaleHandler_Complete(t *testing.T) {
+	t.Run("ID inválido", func(t *testing.T) {
+		_, h := setupHandler()
+		req := httptest.NewRequest(http.MethodPatch, "/sale/complete/abc", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
+		w := httptest.NewRecorder()
+
+		h.Complete(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("method not allowed", func(t *testing.T) {
+		_, h := setupHandler()
+		req := httptest.NewRequest(http.MethodGet, "/sale/complete/1", nil) // GET em vez de PATCH
+		req = mux.SetURLVars(req, map[string]string{
+			"id": "1",
+		})
+		w := httptest.NewRecorder()
+
+		h.Complete(w, req)
+
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
+		assert.Contains(t, w.Body.String(), "método GET não permitido")
+	})
+
+	t.Run("erro do serviço", func(t *testing.T) {
+		svc, h := setupHandler()
+		svc.On("Complete", mock.Anything, int64(1)).Return(errors.New("erro do serviço")).Once()
+
+		req := httptest.NewRequest(http.MethodPatch, "/sale/complete/1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		h.Complete(w, req)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		svc.AssertExpectations(t)
+	})
+
+	t.Run("sucesso", func(t *testing.T) {
+		svc, h := setupHandler()
+		svc.On("Complete", mock.Anything, int64(2)).Return(nil).Once()
+
+		req := httptest.NewRequest(http.MethodPatch, "/sale/complete/2", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "2"})
+		w := httptest.NewRecorder()
+
+		h.Complete(w, req)
+		assert.Equal(t, http.StatusNoContent, w.Code)
+		svc.AssertExpectations(t)
 	})
 }

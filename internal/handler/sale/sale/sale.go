@@ -2,10 +2,11 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
-	dtoSale "github.com/WagaoCarvalho/backend_store_go/internal/dto/sale"
+	dtoSale "github.com/WagaoCarvalho/backend_store_go/internal/dto/sale/sale"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -13,11 +14,11 @@ import (
 )
 
 type SaleHandler struct {
-	service service.Sale
+	service service.SaleService
 	logger  *logger.LogAdapter
 }
 
-func NewSaleHandler(service service.Sale, logger *logger.LogAdapter) *SaleHandler {
+func NewSaleHandler(service service.SaleService, logger *logger.LogAdapter) *SaleHandler {
 	return &SaleHandler{
 		service: service,
 		logger:  logger,
@@ -27,6 +28,12 @@ func NewSaleHandler(service service.Sale, logger *logger.LogAdapter) *SaleHandle
 func (h *SaleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - Create] "
 	ctx := r.Context()
+
+	if r.Method != http.MethodPost {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{"method": r.Method})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
@@ -38,7 +45,6 @@ func (h *SaleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	saleModel := dtoSale.ToSaleModel(saleDTO)
-
 	createdModel, err := h.service.Create(ctx, saleModel)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
@@ -51,7 +57,6 @@ func (h *SaleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	createdDTO := dtoSale.ToSaleDTO(createdModel)
-
 	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{"sale_id": createdDTO.ID})
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
@@ -63,6 +68,12 @@ func (h *SaleHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *SaleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByID] "
 	ctx := r.Context()
+
+	if r.Method != http.MethodGet {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{"method": r.Method})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil || id <= 0 {
@@ -79,7 +90,6 @@ func (h *SaleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	createdDTO := dtoSale.ToSaleDTO(sale)
-
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Venda encontrada",
@@ -90,6 +100,12 @@ func (h *SaleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 func (h *SaleHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByClientID] "
 	ctx := r.Context()
+
+	if r.Method != http.MethodGet {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{"method": r.Method})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
 
 	clientID, err := utils.GetIDParam(r, "client_id")
 	if err != nil || clientID <= 0 {
@@ -109,7 +125,6 @@ func (h *SaleHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	salesDTO := dtoSale.ToSaleDTOList(sales)
-
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Vendas do cliente recuperadas",
@@ -120,6 +135,12 @@ func (h *SaleHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 func (h *SaleHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByUserID] "
 	ctx := r.Context()
+
+	if r.Method != http.MethodGet {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{"method": r.Method})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
 
 	userID, err := utils.GetIDParam(r, "user_id")
 	if err != nil || userID <= 0 {
@@ -139,7 +160,6 @@ func (h *SaleHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	salesDTO := dtoSale.ToSaleDTOList(sales)
-
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Vendas do usuário recuperadas",
@@ -151,9 +171,15 @@ func (h *SaleHandler) GetByStatus(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByStatus] "
 	ctx := r.Context()
 
+	if r.Method != http.MethodGet {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{"method": r.Method})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
 	status, err := utils.GetStringParam(r, "status")
 	if err != nil {
-		h.logger.Warn(ctx, "[SaleHandler - GetByStatus] status inválido", map[string]any{"erro": err.Error()})
+		h.logger.Warn(ctx, ref+"status inválido", map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, errMsg.ErrInvalidData, http.StatusBadRequest)
 		return
 	}
@@ -179,6 +205,12 @@ func (h *SaleHandler) GetByStatus(w http.ResponseWriter, r *http.Request) {
 func (h *SaleHandler) GetByDateRange(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByDateRange] "
 	ctx := r.Context()
+
+	if r.Method != http.MethodGet {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{"method": r.Method})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
 
 	startStr, errStart := utils.GetStringParam(r, "start")
 	endStr, errEnd := utils.GetStringParam(r, "end")
@@ -218,6 +250,12 @@ func (h *SaleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - Update] "
 	ctx := r.Context()
 
+	if r.Method != http.MethodPut {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{"method": r.Method})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
 	h.logger.Info(ctx, ref+"Iniciando atualização da venda", nil)
 
 	var saleDTO dtoSale.SaleDTO
@@ -255,6 +293,12 @@ func (h *SaleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - Delete] "
 	ctx := r.Context()
 
+	if r.Method != http.MethodDelete {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{"method": r.Method})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
 	h.logger.Info(ctx, ref+"Iniciando exclusão da venda", nil)
 
 	id, err := utils.GetIDParam(r, "id")
@@ -269,7 +313,56 @@ func (h *SaleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info(ctx, ref+ref+logger.LogDeleteSuccess, map[string]any{"sale_id": id})
+	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{"sale_id": id})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *SaleHandler) Cancel(w http.ResponseWriter, r *http.Request) {
+	const ref = "[SaleHandler - Cancel] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{"method": r.Method})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil || id <= 0 {
+		utils.ErrorResponse(w, errMsg.ErrZeroID, http.StatusBadRequest)
+		return
+	}
+
+	if err := h.service.Cancel(ctx, id); err != nil {
+		h.logger.Error(ctx, err, ref+"Erro ao cancelar venda", nil)
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *SaleHandler) Complete(w http.ResponseWriter, r *http.Request) {
+	const ref = "[SaleHandler - Complete] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodPatch {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{"method": r.Method})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil || id <= 0 {
+		utils.ErrorResponse(w, errMsg.ErrZeroID, http.StatusBadRequest)
+		return
+	}
+
+	if err := h.service.Complete(ctx, id); err != nil {
+		h.logger.Error(ctx, err, ref+"Erro ao completar venda", nil)
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusNoContent)
 }

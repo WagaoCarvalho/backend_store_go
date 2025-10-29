@@ -9,7 +9,7 @@ import (
 type Sale struct {
 	ID            int64
 	ClientID      *int64
-	UserID        int64
+	UserID        *int64
 	SaleDate      time.Time
 	TotalAmount   float64
 	TotalDiscount float64
@@ -21,43 +21,51 @@ type Sale struct {
 	UpdatedAt     time.Time
 }
 
-func (s *Sale) Validate() error {
+// --- Validação estrutural ---
+func (s *Sale) ValidateStructural() error {
 	var errs validators.ValidationErrors
 
-	// --- Associação obrigatória ---
-	if s.UserID == 0 {
-		errs = append(errs, validators.ValidationError{Field: "user_id", Message: validators.MsgRequiredField})
-	}
-
-	if s.SaleDate.IsZero() {
-		s.SaleDate = time.Now()
-	}
-
-	// --- Totais ---
 	if s.TotalAmount < 0 {
-		errs = append(errs, validators.ValidationError{Field: "total_amount", Message: "total_amount must be >= 0"})
+		errs = append(errs, validators.ValidationError{Field: "total_amount", Message: "must be >= 0"})
 	}
 	if s.TotalDiscount < 0 {
-		errs = append(errs, validators.ValidationError{Field: "total_discount", Message: "total_discount must be >= 0"})
+		errs = append(errs, validators.ValidationError{Field: "total_discount", Message: "must be >= 0"})
 	}
-
-	// --- PaymentType ---
 	if validators.IsBlank(s.PaymentType) {
 		errs = append(errs, validators.ValidationError{Field: "payment_type", Message: validators.MsgRequiredField})
 	} else if len(s.PaymentType) > 50 {
 		errs = append(errs, validators.ValidationError{Field: "payment_type", Message: validators.MsgMax50})
 	}
-
-	// --- Status ---
 	if validators.IsBlank(s.Status) {
 		errs = append(errs, validators.ValidationError{Field: "status", Message: validators.MsgRequiredField})
 	} else if len(s.Status) > 50 {
 		errs = append(errs, validators.ValidationError{Field: "status", Message: validators.MsgMax50})
 	}
-
-	// --- Notes ---
 	if len(s.Notes) > 500 {
-		errs = append(errs, validators.ValidationError{Field: "notes", Message: "notes max 500 characters"})
+		errs = append(errs, validators.ValidationError{Field: "notes", Message: "max 500 characters"})
+	}
+
+	if errs.HasErrors() {
+		return errs
+	}
+	return nil
+}
+
+// --- Regras de negócio ---
+func (s *Sale) ValidateBusinessRules() error {
+	var errs validators.ValidationErrors
+
+	if s.TotalDiscount > s.TotalAmount {
+		errs = append(errs, validators.ValidationError{
+			Field:   "total_discount",
+			Message: "discount cannot exceed total amount",
+		})
+	}
+	if s.SaleDate.IsZero() {
+		errs = append(errs, validators.ValidationError{
+			Field:   "sale_date",
+			Message: "sale_date cannot be empty",
+		})
 	}
 
 	if errs.HasErrors() {

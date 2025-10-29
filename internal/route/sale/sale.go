@@ -44,6 +44,8 @@ func RegisterSaleRoutes(
 	s.HandleFunc("/sale/user/{user_id:[0-9]+}", handler.GetByUserID).Methods(http.MethodGet)
 	s.HandleFunc("/sale/status/{status}", handler.GetByStatus).Methods(http.MethodGet)
 	s.HandleFunc("/sale/date-range/{start}/{end}", handler.GetByDateRange).Methods(http.MethodGet)
-	s.HandleFunc("/sale/update/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
-	s.HandleFunc("/sale/delete/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
+	s.HandleFunc("/sale/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
+	s.HandleFunc("/sale/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
+	s.HandleFunc("/sale/{id:[0-9]+}/cancel", handler.Cancel).Methods(http.MethodPatch)
+	s.HandleFunc("/sale/{id:[0-9]+}/complete", handler.Complete).Methods(http.MethodPatch)
 }
