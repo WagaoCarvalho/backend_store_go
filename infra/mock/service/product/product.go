@@ -116,3 +116,8 @@ func (m *ProductServiceMock) ApplyDiscount(ctx context.Context, id int64, percen
 	}
 	return nil, args.Error(1)
 }
+
+func (m *ProductServiceMock) ProductExists(ctx context.Context, productID int64) (bool, error) {
+	args := m.Called(ctx, productID)
+	return args.Bool(0), args.Error(1)
+}

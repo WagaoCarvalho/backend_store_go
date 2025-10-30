@@ -1,8 +1,8 @@
-package repo
+package services
 
 import "github.com/WagaoCarvalho/backend_store_go/internal/iface"
 
-type ProductRepo interface {
+type ProductService interface {
 	iface.ProductReader
 	iface.ProductWriter
 	iface.ProductStock

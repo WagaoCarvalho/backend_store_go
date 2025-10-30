@@ -16,11 +16,11 @@ import (
 )
 
 type Product struct {
-	service service.Product
+	service service.ProductService
 	logger  *logger.LogAdapter
 }
 
-func NewProduct(service service.Product, logger *logger.LogAdapter) *Product {
+func NewProduct(service service.ProductService, logger *logger.LogAdapter) *Product {
 	return &Product{
 		service: service,
 		logger:  logger,
