@@ -13,6 +13,7 @@ var (
 	ErrUpdate                = errors.New("erro ao atualizar")
 	ErrDelete                = errors.New("erro ao deletar")
 	ErrZeroID                = errors.New("erro ID deve ser maior que zero")
+	ErrNilModel              = errors.New("model nulo")
 	ErrScan                  = errors.New("erro ao ler banco de dados")
 	ErrIterate               = errors.New("erro ao iterar")
 	ErrPercentInvalid        = errors.New("erro porcentagem inválida")

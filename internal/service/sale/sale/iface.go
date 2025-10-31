@@ -1,9 +1,9 @@
 package services
 
-import "github.com/WagaoCarvalho/backend_store_go/internal/iface"
+import sale_iface "github.com/WagaoCarvalho/backend_store_go/internal/iface/sale"
 
 type SaleService interface {
-	iface.SaleReader
-	iface.SaleWriter
-	iface.SaleStatus
+	sale_iface.SaleReader
+	sale_iface.SaleWriter
+	sale_iface.SaleStatus
 }

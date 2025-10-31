@@ -32,55 +32,61 @@ func (h *UserCategoryRelation) Create(w http.ResponseWriter, r *http.Request) {
 
 	var requestData dto.UserCategoryRelationsDTO
 	if err := utils.FromJSON(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
-			"erro": err.Error(),
-		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": err.Error()})
+		utils.ErrorResponse(w, fmt.Errorf("erro ao decodificar JSON"), http.StatusBadRequest)
 		return
 	}
 
 	modelRelation := dto.ToUserCategoryRelationsModel(requestData)
 
-	created, wasCreated, err := h.service.Create(ctx, modelRelation.UserID, modelRelation.CategoryID)
+	// Validação simples de IDs antes de chamar o service
+	if modelRelation == nil || modelRelation.UserID <= 0 || modelRelation.CategoryID <= 0 {
+		h.logger.Warn(ctx, ref+"modelo nulo ou ID inválido", map[string]any{})
+		utils.ErrorResponse(w, fmt.Errorf("modelo nulo ou ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	created, err := h.service.Create(ctx, modelRelation)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrDBInvalidForeignKey) {
+		switch {
+		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
 			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"user_id":     modelRelation.UserID,
 				"category_id": modelRelation.CategoryID,
 				"erro":        err.Error(),
 			})
-			utils.ErrorResponse(w, fmt.Errorf("chave estrangeira inválida: %w", err), http.StatusBadRequest)
+			utils.ErrorResponse(w, fmt.Errorf("chave estrangeira inválida"), http.StatusBadRequest)
+			return
+		case errors.Is(err, errMsg.ErrRelationExists):
+			h.logger.Info(ctx, ref+logger.LogAlreadyExists, map[string]any{
+				"user_id":     modelRelation.UserID,
+				"category_id": modelRelation.CategoryID,
+			})
+			utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+				Data:    dto.ToUserCategoryRelationsDTO(created),
+				Message: "Relação já existente",
+				Status:  http.StatusOK,
+			})
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
+				"user_id":     modelRelation.UserID,
+				"category_id": modelRelation.CategoryID,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("erro ao criar relação: %v", err), http.StatusInternalServerError)
 			return
 		}
-
-		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"user_id":     modelRelation.UserID,
-			"category_id": modelRelation.CategoryID,
-		})
-		utils.ErrorResponse(w, fmt.Errorf("erro ao criar relação: %w", err), http.StatusInternalServerError)
-		return
 	}
 
-	status := http.StatusOK
-	message := "Relação já existente"
-	logMsg := logger.LogAlreadyExists
-	if wasCreated {
-		status = http.StatusCreated
-		message = "Relação criada com sucesso"
-		logMsg = logger.LogCreateSuccess
-	}
-
-	h.logger.Info(ctx, ref+logMsg, map[string]any{
+	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
 		"user_id":     modelRelation.UserID,
 		"category_id": modelRelation.CategoryID,
 	})
 
-	createdDTO := dto.ToUserCategoryRelationsDTO(created)
-
-	utils.ToJSON(w, status, utils.DefaultResponse{
-		Data:    createdDTO,
-		Message: message,
-		Status:  status,
+	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
+		Data:    dto.ToUserCategoryRelationsDTO(created),
+		Message: "Relação criada com sucesso",
+		Status:  http.StatusCreated,
 	})
 }
 

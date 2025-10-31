@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
+	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
 	modelsUser "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
@@ -37,7 +37,7 @@ func (m *mockTokenGen) Generate(uid int64, email string) (string, error) {
 
 func TestLoginService_Login(t *testing.T) {
 
-	mockRepo := new(mockUser.MockUserRepository)
+	mockRepo := new(mockUser.MockUser)
 	mockHasher := new(mockHasher)
 	mockToken := new(mockTokenGen)
 

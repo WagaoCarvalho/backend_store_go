@@ -8,31 +8,8 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	validate "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
-
-// --- Validação comum de paginação e ordenação ---
-func validatePagination(limit, offset int) error {
-	if limit <= 0 {
-		return errMsg.ErrInvalidLimit
-	}
-	if offset < 0 {
-		return errMsg.ErrInvalidOffset
-	}
-	return nil
-}
-
-func validateOrder(orderBy string, allowedFields map[string]bool, orderDir string) (string, error) {
-	if !allowedFields[orderBy] {
-		return "", errMsg.ErrInvalidOrderField
-	}
-
-	orderDir = strings.ToLower(orderDir)
-	if orderDir != "asc" && orderDir != "desc" {
-		return "", errMsg.ErrInvalidOrderDirection
-	}
-
-	return orderDir, nil
-}
 
 // --- Sale Reader Service ---
 func (s *sale) GetByID(ctx context.Context, id int64) (*models.Sale, error) {
@@ -56,11 +33,11 @@ func (s *sale) GetByClientID(ctx context.Context, clientID int64, limit, offset 
 		return nil, errMsg.ErrZeroID
 	}
 
-	if err := validatePagination(limit, offset); err != nil {
+	if err := validate.ValidatePagination(limit, offset); err != nil {
 		return nil, err
 	}
 
-	orderDir, err := validateOrder(orderBy, map[string]bool{
+	orderDir, err := validate.ValidateOrder(orderBy, map[string]bool{
 		"sale_date":    true,
 		"total_amount": true,
 	}, orderDir)
@@ -76,11 +53,11 @@ func (s *sale) GetByUserID(ctx context.Context, userID int64, limit, offset int,
 		return nil, errMsg.ErrZeroID
 	}
 
-	if err := validatePagination(limit, offset); err != nil {
+	if err := validate.ValidatePagination(limit, offset); err != nil {
 		return nil, err
 	}
 
-	orderDir, err := validateOrder(orderBy, map[string]bool{
+	orderDir, err := validate.ValidateOrder(orderBy, map[string]bool{
 		"sale_date":    true,
 		"total_amount": true,
 	}, orderDir)
@@ -96,11 +73,11 @@ func (s *sale) GetByStatus(ctx context.Context, status string, limit, offset int
 		return nil, errMsg.ErrInvalidData
 	}
 
-	if err := validatePagination(limit, offset); err != nil {
+	if err := validate.ValidatePagination(limit, offset); err != nil {
 		return nil, err
 	}
 
-	orderDir, err := validateOrder(orderBy, map[string]bool{
+	orderDir, err := validate.ValidateOrder(orderBy, map[string]bool{
 		"id":        true,
 		"sale_date": true,
 		"total":     true,
@@ -121,11 +98,11 @@ func (s *sale) GetByDateRange(ctx context.Context, start, end time.Time, limit, 
 		return nil, errMsg.ErrInvalidDateRange
 	}
 
-	if err := validatePagination(limit, offset); err != nil {
+	if err := validate.ValidatePagination(limit, offset); err != nil {
 		return nil, err
 	}
 
-	orderDir, err := validateOrder(orderBy, map[string]bool{
+	orderDir, err := validate.ValidateOrder(orderBy, map[string]bool{
 		"id":        true,
 		"sale_date": true,
 		"total":     true,

@@ -11,7 +11,7 @@ import (
 )
 
 type UserContactRelation interface {
-	Create(ctx context.Context, userID, contactID int64) (*models.UserContactRelation, bool, error)
+	Create(ctx context.Context, relation *models.UserContactRelation) (*models.UserContactRelation, error)
 	GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserContactRelation, error)
 	HasUserContactRelation(ctx context.Context, userID, contactID int64) (bool, error)
 	Delete(ctx context.Context, userID, contactID int64) error
@@ -28,45 +28,41 @@ func NewUserContactRelation(repo repo.UserContactRelation) UserContactRelation {
 	}
 }
 
-func (s *userContactRelation) Create(ctx context.Context, userID, contactID int64) (*models.UserContactRelation, bool, error) {
-	if userID <= 0 {
-		return nil, false, err_msg.ErrZeroID
-	}
-	if contactID <= 0 {
-		return nil, false, err_msg.ErrZeroID
+func (s *userContactRelation) Create(ctx context.Context, relation *models.UserContactRelation) (*models.UserContactRelation, error) {
+	if relation == nil {
+		return nil, err_msg.ErrNilModel
 	}
 
-	relation := models.UserContactRelation{
-		UserID:    userID,
-		ContactID: contactID,
+	if relation.UserID <= 0 || relation.ContactID <= 0 {
+		return nil, err_msg.ErrZeroID
 	}
 
-	createdRelation, err := s.relationRepo.Create(ctx, &relation)
+	createdRelation, err := s.relationRepo.Create(ctx, relation)
 	if err != nil {
 		switch {
 		case errors.Is(err, err_msg.ErrRelationExists):
-			relations, getErr := s.relationRepo.GetAllRelationsByUserID(ctx, userID)
+			relations, getErr := s.relationRepo.GetAllRelationsByUserID(ctx, relation.UserID)
 			if getErr != nil {
-				return nil, false, fmt.Errorf("%w: %v", err_msg.ErrRelationCheck, getErr)
+				return nil, fmt.Errorf("%w: %v", err_msg.ErrRelationCheck, getErr)
 			}
 
 			for _, rel := range relations {
-				if rel.ContactID == contactID {
-					return rel, false, nil
+				if rel.ContactID == relation.ContactID {
+					return rel, nil
 				}
 			}
 
-			return nil, false, err_msg.ErrRelationExists
+			return nil, err_msg.ErrRelationExists
 
 		case errors.Is(err, err_msg.ErrDBInvalidForeignKey):
-			return nil, false, err_msg.ErrDBInvalidForeignKey
+			return nil, err_msg.ErrDBInvalidForeignKey
 
 		default:
-			return nil, false, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
 		}
 	}
 
-	return createdRelation, true, nil
+	return createdRelation, nil
 }
 
 func (s *userContactRelation) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserContactRelation, error) {

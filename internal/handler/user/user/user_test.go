@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/user"
+	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
@@ -20,7 +20,7 @@ import (
 )
 
 func TestUserHandler_Create(t *testing.T) {
-	mockService := new(mockUser.MockUserService)
+	mockService := new(mockUser.MockUser)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -110,7 +110,7 @@ func TestUserHandler_Create(t *testing.T) {
 }
 
 func TestUserHandler_GetAll(t *testing.T) {
-	mockService := new(mockUser.MockUserService)
+	mockService := new(mockUser.MockUser)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -151,7 +151,7 @@ func TestUserHandler_GetAll(t *testing.T) {
 }
 
 func TestUserHandler_GetByID(t *testing.T) {
-	mockService := new(mockUser.MockUserService)
+	mockService := new(mockUser.MockUser)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -220,7 +220,7 @@ func TestUserHandler_GetByID(t *testing.T) {
 }
 
 func TestUserHandler_GetVersionByID(t *testing.T) {
-	mockService := new(mockUser.MockUserService)
+	mockService := new(mockUser.MockUser)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -283,7 +283,7 @@ func TestUserHandler_GetVersionByID(t *testing.T) {
 }
 
 func TestUserHandler_GetByEmail(t *testing.T) {
-	mockService := new(mockUser.MockUserService)
+	mockService := new(mockUser.MockUser)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -342,7 +342,7 @@ func TestUserHandler_GetByEmail(t *testing.T) {
 }
 
 func TestUserHandler_GetByName(t *testing.T) {
-	mockService := new(mockUser.MockUserService)
+	mockService := new(mockUser.MockUser)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -408,7 +408,7 @@ func TestUserHandler_GetByName(t *testing.T) {
 }
 
 func TestUserHandler_Update(t *testing.T) {
-	mockService := new(mockUser.MockUserService)
+	mockService := new(mockUser.MockUser)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -552,7 +552,7 @@ func TestUserHandler_Update(t *testing.T) {
 }
 
 func TestUserHandler_Disable(t *testing.T) {
-	mockService := new(mockUser.MockUserService)
+	mockService := new(mockUser.MockUser)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -637,7 +637,7 @@ func TestUserHandler_Disable(t *testing.T) {
 }
 
 func TestUserHandler_Enable(t *testing.T) {
-	mockService := new(mockUser.MockUserService)
+	mockService := new(mockUser.MockUser)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -722,7 +722,7 @@ func TestUserHandler_Enable(t *testing.T) {
 }
 
 func TestUserHandler_Delete(t *testing.T) {
-	mockService := new(mockUser.MockUserService)
+	mockService := new(mockUser.MockUser)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)

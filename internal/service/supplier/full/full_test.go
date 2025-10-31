@@ -19,9 +19,9 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 
+	mockAddress "github.com/WagaoCarvalho/backend_store_go/infra/mock/address"
+	mockContact "github.com/WagaoCarvalho/backend_store_go/infra/mock/contact"
 	mockTX "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo"
-	mockAddress "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/address"
-	mockContact "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/contact"
 	mockCatRel "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
 	mockSupplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
 )
@@ -62,8 +62,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("Supplier: sucesso ao criar supplier completo", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
 		tx := new(mockTX.MockTx)
 
@@ -137,8 +137,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
 		service := NewSupplierFull(
 			mockRepoSupplier,
-			new(mockAddress.MockAddressRepository),
-			new(mockContact.MockContactRepository),
+			new(mockAddress.MockAddress),
+			new(mockContact.MockContact),
 			new(mockCatRel.MockSupplierCategoryRelationRepo),
 			nil,
 		)
@@ -182,8 +182,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
 		service := NewSupplierFull(
 			mockRepoSupplier,
-			new(mockAddress.MockAddressRepository),
-			new(mockContact.MockContactRepository),
+			new(mockAddress.MockAddress),
+			new(mockContact.MockContact),
 			new(mockCatRel.MockSupplierCategoryRelationRepo),
 			nil,
 		)
@@ -228,8 +228,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 		service := NewSupplierFull(
 			mockRepoSupplier,
-			new(mockAddress.MockAddressRepository),
-			new(mockContact.MockContactRepository),
+			new(mockAddress.MockAddress),
+			new(mockContact.MockContact),
 			new(mockCatRel.MockSupplierCategoryRelationRepo),
 			nil,
 		)
@@ -273,8 +273,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("Transaction: falha no commit e rollback também falha", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
 		tx := new(mockTX.MockTx)
 
@@ -337,8 +337,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("Transaction: rollback é chamado e panic é propagado (SupplierFullService)", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
 		tx := new(mockTX.MockTx)
 
@@ -401,8 +401,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("Transaction: commit falha mas rollback funciona", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
 		tx := new(mockTX.MockTx)
 
@@ -485,8 +485,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("Transaction: erro na operação mas rollback funciona", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
 		tx := new(mockTX.MockTx)
 
@@ -553,7 +553,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 	// Address
 	t.Run("Address: falha na validação após setar SupplierID", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(
@@ -625,7 +625,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("Address: falha ao criar endereço e rollback também falha", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(
@@ -687,8 +687,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("Contact: falha na validação do contato", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(
@@ -753,8 +753,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("Contact: falha ao criar contato no banco", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(
@@ -823,8 +823,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("Contact: falha ao criar contato e rollback também falha", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(
@@ -895,8 +895,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("Contact: sucesso ao criar contato", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
 		tx := new(mockTX.MockTx)
 
@@ -979,8 +979,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("CategoryRelation: falha na validação da relação", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
 		tx := new(mockTX.MockTx)
 
@@ -1054,8 +1054,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("CategoryRelation: falha ao criar relação no banco", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
 		tx := new(mockTX.MockTx)
 
@@ -1134,8 +1134,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("CategoryRelation: falha ao criar relação e rollback também falha", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
 		tx := new(mockTX.MockTx)
 
@@ -1216,8 +1216,8 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("CategoryRelation: sucesso com múltiplas categorias", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
 		tx := new(mockTX.MockTx)
 

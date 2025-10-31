@@ -149,7 +149,6 @@ func (h *UserCategory) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requestDTO dto.UserCategoryDTO
-
 	if err := utils.FromJSON(r.Body, &requestDTO); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
@@ -157,34 +156,47 @@ func (h *UserCategory) Update(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
+
 	modelCategory := dto.ToUserCategoryModel(requestDTO)
 	modelCategory.ID = uint(id)
 
-	updatedCategory, err := h.service.Update(ctx, modelCategory)
-	if err != nil {
-		if errors.Is(err, errMsg.ErrNotFound) {
+	if err := h.service.Update(ctx, modelCategory); err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"id": id,
 			})
 			utils.ErrorResponse(w, fmt.Errorf("categoria não encontrada"), http.StatusNotFound)
 			return
+
+		case errors.Is(err, errMsg.ErrZeroID):
+			h.logger.Warn(ctx, ref+"ID inválido", map[string]any{
+				"id": id,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+			return
+
+		case errors.Is(err, errMsg.ErrInvalidData):
+			h.logger.Warn(ctx, ref+"dados inválidos", map[string]any{
+				"erro": err.Error(),
+			})
+			utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
+			return
+
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"id": id,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("erro ao atualizar categoria: %v", err), http.StatusInternalServerError)
+			return
 		}
-
-		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-			"id": id,
-		})
-		utils.ErrorResponse(w, fmt.Errorf("erro ao atualizar categoria: %v", err), http.StatusInternalServerError)
-		return
 	}
-
-	updatedDTO := dto.ToUserCategoryDTO(updatedCategory)
 
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
 		"id": id,
 	})
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    updatedDTO,
 		Message: "Categoria atualizada com sucesso",
 		Status:  http.StatusOK,
 	})

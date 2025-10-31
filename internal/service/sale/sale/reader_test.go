@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	mockSale "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/sale"
+	mockSale "github.com/WagaoCarvalho/backend_store_go/infra/mock/sale"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -15,7 +15,7 @@ import (
 )
 
 func TestSaleService_GetByID(t *testing.T) {
-	mockRepo := new(mockSale.MockSaleRepository)
+	mockRepo := new(mockSale.MockSale)
 	svc := NewSale(mockRepo)
 
 	t.Run("id inválido", func(t *testing.T) {
@@ -53,7 +53,7 @@ func TestSaleService_GetByID(t *testing.T) {
 }
 
 func TestSaleService_GetByClientID(t *testing.T) {
-	mockRepo := new(mockSale.MockSaleRepository)
+	mockRepo := new(mockSale.MockSale)
 	svc := NewSale(mockRepo)
 
 	t.Run("clientID inválido", func(t *testing.T) {
@@ -101,7 +101,7 @@ func TestSaleService_GetByClientID(t *testing.T) {
 }
 
 func TestSaleService_GetByUserID(t *testing.T) {
-	mockRepo := new(mockSale.MockSaleRepository)
+	mockRepo := new(mockSale.MockSale)
 	svc := NewSale(mockRepo)
 	ctx := context.Background()
 
@@ -149,7 +149,7 @@ func TestSaleService_GetByUserID(t *testing.T) {
 }
 
 func TestSaleService_GetByStatus(t *testing.T) {
-	mockRepo := new(mockSale.MockSaleRepository)
+	mockRepo := new(mockSale.MockSale)
 	svc := NewSale(mockRepo)
 	ctx := context.Background()
 
@@ -197,7 +197,7 @@ func TestSaleService_GetByStatus(t *testing.T) {
 }
 
 func TestSaleService_GetByDateRange(t *testing.T) {
-	mockRepo := new(mockSale.MockSaleRepository)
+	mockRepo := new(mockSale.MockSale)
 	svc := NewSale(mockRepo)
 	ctx := context.Background()
 	start := time.Now().Add(-24 * time.Hour)

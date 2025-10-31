@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/contact_relation"
@@ -27,60 +28,65 @@ func (h *UserContactRelation) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserContactRelationHandler - Create] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
+	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{})
 
 	var requestData dto.UserContactRelationDTO
 	if err := utils.FromJSON(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
-			"erro": err.Error(),
-		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": err.Error()})
+		utils.ErrorResponse(w, fmt.Errorf("erro ao decodificar JSON"), http.StatusBadRequest)
 		return
 	}
 
 	modelRelation := dto.ToContactRelationModel(requestData)
 
-	created, wasCreated, err := h.service.Create(ctx, modelRelation.UserID, modelRelation.ContactID)
+	// Validação simples de IDs antes de chamar o service
+	if modelRelation == nil || modelRelation.UserID <= 0 || modelRelation.ContactID <= 0 {
+		h.logger.Warn(ctx, ref+"modelo nulo ou ID inválido", map[string]any{})
+		utils.ErrorResponse(w, fmt.Errorf("modelo nulo ou ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	created, err := h.service.Create(ctx, modelRelation)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrDBInvalidForeignKey) {
+		switch {
+		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
 			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
 				"user_id":    modelRelation.UserID,
 				"contact_id": modelRelation.ContactID,
 				"erro":       err.Error(),
 			})
-			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			utils.ErrorResponse(w, fmt.Errorf("chave estrangeira inválida"), http.StatusBadRequest)
+			return
+		case errors.Is(err, errMsg.ErrRelationExists):
+			h.logger.Info(ctx, ref+logger.LogAlreadyExists, map[string]any{
+				"user_id":    modelRelation.UserID,
+				"contact_id": modelRelation.ContactID,
+			})
+			utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+				Data:    dto.ToContactRelationDTO(created),
+				Message: "Relação já existente",
+				Status:  http.StatusOK,
+			})
+			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
+				"user_id":    modelRelation.UserID,
+				"contact_id": modelRelation.ContactID,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("erro ao criar relação: %v", err), http.StatusInternalServerError)
 			return
 		}
-
-		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"user_id":    modelRelation.UserID,
-			"contact_id": modelRelation.ContactID,
-		})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
 	}
 
-	status := http.StatusOK
-	message := "Relação já existente"
-	logMsg := logger.LogAlreadyExists
-
-	if wasCreated {
-		status = http.StatusCreated
-		message = "Relação criada com sucesso"
-		logMsg = logger.LogCreateSuccess
-	}
-
-	h.logger.Info(ctx, ref+logMsg, map[string]any{
+	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
 		"user_id":    modelRelation.UserID,
 		"contact_id": modelRelation.ContactID,
 	})
 
-	createdDTO := dto.ToContactRelationDTO(created)
-
-	utils.ToJSON(w, status, utils.DefaultResponse{
-		Data:    createdDTO,
-		Message: message,
-		Status:  status,
+	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
+		Data:    dto.ToContactRelationDTO(created),
+		Message: "Relação criada com sucesso",
+		Status:  http.StatusCreated,
 	})
 }
 

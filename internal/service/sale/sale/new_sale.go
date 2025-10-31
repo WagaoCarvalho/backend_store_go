@@ -1,6 +1,6 @@
 package services
 
-import repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/sale"
+import repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/sale/sale"
 
 type sale struct {
 	repo repo.SaleRepo

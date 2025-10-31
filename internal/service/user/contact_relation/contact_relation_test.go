@@ -9,148 +9,144 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	repo "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
+	mockContRel "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/contact_relation"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func Test_UserContactRelationServices_Create(t *testing.T) {
+func TestUserContactRelation_Create(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
-		service := NewUserContactRelation(mockRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
+		svc := NewUserContactRelation(mockRepo)
 
 		input := &models.UserContactRelation{UserID: 1, ContactID: 2}
-		expected := input
+		expected := *input
 
-		mockRepo.On("Create", mock.Anything, input).Return(expected, nil)
+		mockRepo.On("Create", mock.Anything, input).Return(&expected, nil)
 
-		result, wasCreated, err := service.Create(context.Background(), 1, 2)
+		result, err := svc.Create(context.Background(), input)
 
 		assert.NoError(t, err)
-		assert.True(t, wasCreated)
-		assert.Equal(t, expected, result)
+		assert.Equal(t, &expected, result)
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("Zero UserID", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
-		service := NewUserContactRelation(mockRepo)
+	t.Run("NilModel", func(t *testing.T) {
+		mockRepo := new(mockContRel.MockUserContactRelation)
+		svc := NewUserContactRelation(mockRepo)
 
-		result, wasCreated, err := service.Create(context.Background(), 0, 2)
+		result, err := svc.Create(context.Background(), nil)
 
-		assert.Error(t, err)
-		assert.False(t, wasCreated)
 		assert.Nil(t, result)
-		assert.EqualError(t, err, err_msg.ErrZeroID.Error())
-		mockRepo.AssertNotCalled(t, "Create")
+		assert.ErrorIs(t, err, err_msg.ErrNilModel)
+		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("Zero ContactID", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
-		service := NewUserContactRelation(mockRepo)
+	t.Run("ZeroID", func(t *testing.T) {
+		mockRepo := new(mockContRel.MockUserContactRelation)
+		svc := NewUserContactRelation(mockRepo)
 
-		result, wasCreated, err := service.Create(context.Background(), 1, 0)
+		input := &models.UserContactRelation{UserID: 0, ContactID: 0}
 
-		assert.Error(t, err)
-		assert.False(t, wasCreated)
+		result, err := svc.Create(context.Background(), input)
+
 		assert.Nil(t, result)
-		assert.EqualError(t, err, err_msg.ErrZeroID.Error())
-		mockRepo.AssertNotCalled(t, "Create")
+		assert.ErrorIs(t, err, err_msg.ErrZeroID)
+		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("Duplicate Relation Exists", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
-		service := NewUserContactRelation(mockRepo)
+	t.Run("RelationExists_ReturnsExisting", func(t *testing.T) {
+		mockRepo := new(mockContRel.MockUserContactRelation)
+		svc := NewUserContactRelation(mockRepo)
 
 		input := &models.UserContactRelation{UserID: 1, ContactID: 2}
 		existing := &models.UserContactRelation{UserID: 1, ContactID: 2}
 
 		mockRepo.On("Create", mock.Anything, input).Return(nil, err_msg.ErrRelationExists)
-		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).Return([]*models.UserContactRelation{existing}, nil)
+		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).
+			Return([]*models.UserContactRelation{existing}, nil)
 
-		result, wasCreated, err := service.Create(context.Background(), 1, 2)
+		result, err := svc.Create(context.Background(), input)
 
 		assert.NoError(t, err)
-		assert.False(t, wasCreated)
 		assert.Equal(t, existing, result)
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("Duplicate Relation Exists but not found in GetAll", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
-		service := NewUserContactRelation(mockRepo)
+	t.Run("RelationExists_ButNotFound", func(t *testing.T) {
+		mockRepo := new(mockContRel.MockUserContactRelation)
+		svc := NewUserContactRelation(mockRepo)
 
 		input := &models.UserContactRelation{UserID: 1, ContactID: 2}
 
 		mockRepo.On("Create", mock.Anything, input).Return(nil, err_msg.ErrRelationExists)
-		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).Return([]*models.UserContactRelation{}, nil)
+		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).
+			Return([]*models.UserContactRelation{
+				{UserID: 1, ContactID: 999},
+			}, nil)
 
-		result, wasCreated, err := service.Create(context.Background(), 1, 2)
+		result, err := svc.Create(context.Background(), input)
 
-		assert.Error(t, err)
-		assert.False(t, wasCreated)
 		assert.Nil(t, result)
-		assert.EqualError(t, err, err_msg.ErrRelationExists.Error())
+		assert.ErrorIs(t, err, err_msg.ErrRelationExists)
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("Duplicate Relation Exists with repo GetAll error", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
-		service := NewUserContactRelation(mockRepo)
+	t.Run("InvalidForeignKey", func(t *testing.T) {
+		mockRepo := new(mockContRel.MockUserContactRelation)
+		svc := NewUserContactRelation(mockRepo)
 
-		input := &models.UserContactRelation{UserID: 1, ContactID: 2}
-
-		mockRepo.On("Create", mock.Anything, input).Return(nil, err_msg.ErrRelationExists)
-		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).Return(nil, errors.New("db error"))
-
-		result, wasCreated, err := service.Create(context.Background(), 1, 2)
-
-		assert.Error(t, err)
-		assert.False(t, wasCreated)
-		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), err_msg.ErrRelationCheck.Error())
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("Invalid Foreign Key", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
-		service := NewUserContactRelation(mockRepo)
-
-		input := &models.UserContactRelation{UserID: 1, ContactID: 2}
+		input := &models.UserContactRelation{UserID: 1, ContactID: 999}
 
 		mockRepo.On("Create", mock.Anything, input).Return(nil, err_msg.ErrDBInvalidForeignKey)
 
-		result, wasCreated, err := service.Create(context.Background(), 1, 2)
+		result, err := svc.Create(context.Background(), input)
 
-		assert.Error(t, err)
-		assert.False(t, wasCreated)
 		assert.Nil(t, result)
-		assert.EqualError(t, err, err_msg.ErrDBInvalidForeignKey.Error())
+		assert.ErrorIs(t, err, err_msg.ErrDBInvalidForeignKey)
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("Unexpected Repo Error", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
-		service := NewUserContactRelation(mockRepo)
+	t.Run("OtherRepositoryError", func(t *testing.T) {
+		mockRepo := new(mockContRel.MockUserContactRelation)
+		svc := NewUserContactRelation(mockRepo)
 
 		input := &models.UserContactRelation{UserID: 1, ContactID: 2}
 
-		mockRepo.On("Create", mock.Anything, input).Return(nil, errors.New("unexpected"))
+		mockRepo.On("Create", mock.Anything, input).Return(nil, errors.New("db error"))
 
-		result, wasCreated, err := service.Create(context.Background(), 1, 2)
+		result, err := svc.Create(context.Background(), input)
 
-		assert.Error(t, err)
-		assert.False(t, wasCreated)
 		assert.Nil(t, result)
-		assert.Contains(t, err.Error(), err_msg.ErrCreate.Error())
+		assert.ErrorContains(t, err, "erro ao criar")
 		mockRepo.AssertExpectations(t)
 	})
+
+	t.Run("RelationExists_GetAllError", func(t *testing.T) {
+		mockRepo := new(mockContRel.MockUserContactRelation)
+		svc := NewUserContactRelation(mockRepo)
+
+		input := &models.UserContactRelation{UserID: 1, ContactID: 2}
+
+		// Simula que a criação retorna ErrRelationExists
+		mockRepo.On("Create", mock.Anything, input).Return(nil, err_msg.ErrRelationExists)
+		// Simula erro ao buscar relações existentes
+		mockRepo.On("GetAllRelationsByUserID", mock.Anything, int64(1)).
+			Return(nil, errors.New("db error"))
+
+		result, err := svc.Create(context.Background(), input)
+
+		assert.Nil(t, result)
+		assert.ErrorContains(t, err, "erro ao verificar relação") // ou parte da mensagem que você usa no fmt.Errorf
+		mockRepo.AssertExpectations(t)
+	})
+
 }
 
 func TestUserContactRelationServices_GetAllRelationsByUserID(t *testing.T) {
 	t.Run("success - retorna lista de relações", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		userID := int64(1)
@@ -172,7 +168,7 @@ func TestUserContactRelationServices_GetAllRelationsByUserID(t *testing.T) {
 	})
 
 	t.Run("erro - userID inválido", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		result, err := service.GetAllRelationsByUserID(context.Background(), 0)
@@ -184,7 +180,7 @@ func TestUserContactRelationServices_GetAllRelationsByUserID(t *testing.T) {
 	})
 
 	t.Run("erro no repositório", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		userID := int64(2)
@@ -205,7 +201,7 @@ func TestUserContactRelationServices_GetAllRelationsByUserID(t *testing.T) {
 
 func TestUserContactRelationServices_HasUserContactRelation(t *testing.T) {
 	t.Run("success - relação existe", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		userID := int64(1)
@@ -222,7 +218,7 @@ func TestUserContactRelationServices_HasUserContactRelation(t *testing.T) {
 	})
 
 	t.Run("success - relação não existe", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		userID := int64(1)
@@ -239,7 +235,7 @@ func TestUserContactRelationServices_HasUserContactRelation(t *testing.T) {
 	})
 
 	t.Run("erro - userID inválido", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		exists, err := service.HasUserContactRelation(context.Background(), 0, 10)
@@ -251,7 +247,7 @@ func TestUserContactRelationServices_HasUserContactRelation(t *testing.T) {
 	})
 
 	t.Run("erro - contactID inválido", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		exists, err := service.HasUserContactRelation(context.Background(), 1, 0)
@@ -263,7 +259,7 @@ func TestUserContactRelationServices_HasUserContactRelation(t *testing.T) {
 	})
 
 	t.Run("erro no repositório", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		userID := int64(1)
@@ -285,7 +281,7 @@ func TestUserContactRelationServices_HasUserContactRelation(t *testing.T) {
 
 func TestUserContactRelationServices_Delete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		userID := int64(1)
@@ -301,7 +297,7 @@ func TestUserContactRelationServices_Delete(t *testing.T) {
 	})
 
 	t.Run("erro - userID inválido", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		err := service.Delete(context.Background(), 0, 2)
@@ -312,7 +308,7 @@ func TestUserContactRelationServices_Delete(t *testing.T) {
 	})
 
 	t.Run("erro - contactID inválido", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		err := service.Delete(context.Background(), 1, 0)
@@ -323,7 +319,7 @@ func TestUserContactRelationServices_Delete(t *testing.T) {
 	})
 
 	t.Run("erro - relação não encontrada", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		userID := int64(1)
@@ -340,7 +336,7 @@ func TestUserContactRelationServices_Delete(t *testing.T) {
 	})
 
 	t.Run("erro inesperado do repositório", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		userID := int64(1)
@@ -361,7 +357,7 @@ func TestUserContactRelationServices_Delete(t *testing.T) {
 
 func TestUserContactRelationServices_DeleteAll(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		userID := int64(1)
@@ -376,7 +372,7 @@ func TestUserContactRelationServices_DeleteAll(t *testing.T) {
 	})
 
 	t.Run("erro - userID inválido", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		err := service.DeleteAll(context.Background(), 0)
@@ -387,7 +383,7 @@ func TestUserContactRelationServices_DeleteAll(t *testing.T) {
 	})
 
 	t.Run("erro inesperado do repositório", func(t *testing.T) {
-		mockRepo := new(repo.MockUserContactRelationRepo)
+		mockRepo := new(mockContRel.MockUserContactRelation)
 		service := NewUserContactRelation(mockRepo)
 
 		userID := int64(1)

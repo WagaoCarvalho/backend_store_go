@@ -7,7 +7,7 @@ import (
 
 	mock_repo "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/sale"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/sale/sale"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

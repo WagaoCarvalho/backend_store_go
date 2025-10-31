@@ -23,4 +23,6 @@ const (
 	MsgCostNonNegative = "preço de custo não pode ser negativo"
 	MsgSaleNonNegative = "preço de venda não pode ser negativo"
 	MsgStockNegative   = "estoque não pode ser negativo"
+
+	MsgInvalidLimit = "Limite invalido"
 )

@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
-	mockSale "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/sale"
+	mockSale "github.com/WagaoCarvalho/backend_store_go/infra/mock/sale"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSaleService_Create(t *testing.T) {
-	mockRepo := new(mockSale.MockSaleRepository)
+	mockRepo := new(mockSale.MockSale)
 	svc := NewSale(mockRepo)
 	ctx := context.Background()
 
@@ -92,7 +92,7 @@ func TestSaleService_Create(t *testing.T) {
 }
 
 func TestSaleService_Update(t *testing.T) {
-	mockRepo := new(mockSale.MockSaleRepository)
+	mockRepo := new(mockSale.MockSale)
 	svc := NewSale(mockRepo)
 	ctx := context.Background()
 
@@ -194,7 +194,7 @@ func TestSaleService_Update(t *testing.T) {
 }
 
 func TestSaleService_Delete(t *testing.T) {
-	mockRepo := new(mockSale.MockSaleRepository)
+	mockRepo := new(mockSale.MockSale)
 	svc := NewSale(mockRepo)
 	ctx := context.Background()
 

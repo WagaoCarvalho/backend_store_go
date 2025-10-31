@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	mockContact "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/contact"
+	mockContact "github.com/WagaoCarvalho/backend_store_go/infra/mock/contact"
 	dtoContact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
@@ -35,7 +35,7 @@ func TestContactHandler_Create(t *testing.T) {
 
 	t.Run("Success - Create Contact", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logAdapter)
 
 		inputDTO := &dtoContact.ContactDTO{
@@ -47,7 +47,7 @@ func TestContactHandler_Create(t *testing.T) {
 		// Converte para model para mock
 		inputModel := dtoContact.ToContactModel(*inputDTO)
 
-		mockService.On("Create", mock.Anything, inputModel).Return(inputModel, nil)
+		mockService.On("Create", mock.Anything, inputModel).Return((*models.Contact)(inputModel), nil)
 
 		body, _ := json.Marshal(inputDTO)
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
@@ -80,7 +80,7 @@ func TestContactHandler_Create(t *testing.T) {
 
 	t.Run("ServiceError", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logAdapter)
 
 		inputDTO := &dtoContact.ContactDTO{
@@ -108,7 +108,7 @@ func TestContactHandler_Create(t *testing.T) {
 
 	t.Run("InvalidJSON", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer([]byte(`{invalid`)))
@@ -125,7 +125,7 @@ func TestContactHandler_Create(t *testing.T) {
 
 	t.Run("ForeignKey inválida deve retornar 400", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logAdapter)
 
 		inputDTO := &dtoContact.ContactDTO{
@@ -152,7 +152,7 @@ func TestContactHandler_Create(t *testing.T) {
 	})
 
 	t.Run("Erro - InvalidData", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logAdapter)
 
 		inputDTO := &dtoContact.ContactDTO{
@@ -178,7 +178,7 @@ func TestContactHandler_Create(t *testing.T) {
 	})
 
 	t.Run("Erro - Duplicate", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logAdapter)
 
 		inputDTO := &dtoContact.ContactDTO{
@@ -204,7 +204,7 @@ func TestContactHandler_Create(t *testing.T) {
 	})
 
 	t.Run("Erro - NotFound", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logAdapter)
 
 		inputDTO := &dtoContact.ContactDTO{
@@ -236,7 +236,7 @@ func TestContactHandler_GetByID(t *testing.T) {
 	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("deve retornar contato com sucesso", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logger)
 
 		expectedID := int64(1)
@@ -275,7 +275,7 @@ func TestContactHandler_GetByID(t *testing.T) {
 	})
 
 	t.Run("deve retornar erro 400 se o ID for inválido", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/abc", nil)
@@ -289,7 +289,7 @@ func TestContactHandler_GetByID(t *testing.T) {
 	})
 
 	t.Run("deve retornar erro 404 se o serviço retornar erro", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logger)
 
 		mockService.On("GetByID", mock.Anything, int64(1)).Return((*models.Contact)(nil), assert.AnError)
@@ -316,7 +316,7 @@ func TestContactHandler_Update(t *testing.T) {
 	}
 
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logger)
 
 		id := int64(1)
@@ -351,7 +351,7 @@ func TestContactHandler_Update(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logger)
 
 		dto := dtoContact.ContactDTO{ContactName: "Nome Teste"}
@@ -364,7 +364,7 @@ func TestContactHandler_Update(t *testing.T) {
 	})
 
 	t.Run("ParseJSONError", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodPut, "/contacts/1", strings.NewReader("invalid-json"))
@@ -376,7 +376,7 @@ func TestContactHandler_Update(t *testing.T) {
 	})
 
 	t.Run("ErrInvalidData", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logger)
 
 		id := int64(1)
@@ -394,7 +394,7 @@ func TestContactHandler_Update(t *testing.T) {
 	})
 
 	t.Run("ErrDuplicate", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logger)
 
 		id := int64(1)
@@ -412,7 +412,7 @@ func TestContactHandler_Update(t *testing.T) {
 	})
 
 	t.Run("ErrNotFound", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logger)
 
 		id := int64(1)
@@ -430,7 +430,7 @@ func TestContactHandler_Update(t *testing.T) {
 	})
 
 	t.Run("UnexpectedError", func(t *testing.T) {
-		mockService := new(mockContact.MockContactService)
+		mockService := new(mockContact.MockContact)
 		handler := NewContact(mockService, logger)
 
 		id := int64(1)
@@ -455,7 +455,7 @@ func TestContactHandler_Delete(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(mockContact.MockContactService)
+		mockSvc := new(mockContact.MockContact)
 		handler := NewContact(mockSvc, logAdapter)
 
 		mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil).Once()
@@ -476,7 +476,7 @@ func TestContactHandler_Delete(t *testing.T) {
 
 	t.Run("invalid ID", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(mockContact.MockContactService)
+		mockSvc := new(mockContact.MockContact)
 		handler := NewContact(mockSvc, logAdapter)
 
 		req := newRequestWithVars("DELETE", "/contacts/abc", nil, map[string]string{"id": "abc"})
@@ -494,7 +494,7 @@ func TestContactHandler_Delete(t *testing.T) {
 
 	t.Run("not found", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(mockContact.MockContactService)
+		mockSvc := new(mockContact.MockContact)
 		handler := NewContact(mockSvc, logAdapter)
 
 		mockSvc.On("Delete", mock.Anything, int64(99)).Return(errors.New("contato não encontrado")).Once()

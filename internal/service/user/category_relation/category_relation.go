@@ -11,7 +11,7 @@ import (
 )
 
 type UserCategoryRelation interface {
-	Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelation, bool, error)
+	Create(ctx context.Context, relation *models.UserCategoryRelation) (*models.UserCategoryRelation, error)
 	GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelation, error)
 	HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error)
 	Delete(ctx context.Context, userID, categoryID int64) error
@@ -28,58 +28,59 @@ func NewUserCategoryRelation(repo repo.UserCategoryRelation) UserCategoryRelatio
 	}
 }
 
-func (s *userCategoryRelation) Create(ctx context.Context, userID, categoryID int64) (*models.UserCategoryRelation, bool, error) {
-	if userID <= 0 {
-		return nil, false, err_msg.ErrZeroID
-	}
-	if categoryID <= 0 {
-		return nil, false, err_msg.ErrZeroID
+func (s *userCategoryRelation) Create(ctx context.Context, relation *models.UserCategoryRelation) (*models.UserCategoryRelation, error) {
+	if relation == nil {
+		return nil, err_msg.ErrNilModel
 	}
 
-	relation := models.UserCategoryRelation{
-		UserID:     userID,
-		CategoryID: categoryID,
+	if relation.UserID <= 0 || relation.CategoryID <= 0 {
+		return nil, err_msg.ErrZeroID
 	}
 
-	createdRelation, err := s.relationRepo.Create(ctx, &relation)
+	createdRelation, err := s.relationRepo.Create(ctx, relation)
 	if err != nil {
 		switch {
 		case errors.Is(err, err_msg.ErrRelationExists):
-			relations, getErr := s.relationRepo.GetAllRelationsByUserID(ctx, userID)
+			relations, getErr := s.relationRepo.GetAllRelationsByUserID(ctx, relation.UserID)
 			if getErr != nil {
-				return nil, false, fmt.Errorf("%w: %v", err_msg.ErrRelationCheck, getErr)
+				return nil, fmt.Errorf("%w: %v", err_msg.ErrRelationCheck, getErr)
 			}
 
 			for _, rel := range relations {
-				if rel.CategoryID == categoryID {
-					return rel, false, nil
+				if rel.CategoryID == relation.CategoryID {
+					return rel, nil
 				}
 			}
 
-			return nil, false, err_msg.ErrRelationExists
+			return nil, err_msg.ErrRelationExists
 
 		case errors.Is(err, err_msg.ErrDBInvalidForeignKey):
-			return nil, false, err_msg.ErrDBInvalidForeignKey
+			return nil, err_msg.ErrDBInvalidForeignKey
 
 		default:
-			return nil, false, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
 		}
 	}
 
-	return createdRelation, true, nil
+	return createdRelation, nil
 }
 
 func (s *userCategoryRelation) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelation, error) {
 	if userID <= 0 {
-		return nil, err_msg.ErrZeroID
+		return []*models.UserCategoryRelation{}, err_msg.ErrZeroID
 	}
 
-	relationsPtr, err := s.relationRepo.GetAllRelationsByUserID(ctx, userID)
+	relations, err := s.relationRepo.GetAllRelationsByUserID(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
+		return []*models.UserCategoryRelation{}, fmt.Errorf("%w: %v", err_msg.ErrGet, err)
 	}
 
-	return relationsPtr, nil
+	// Garantir que nunca retorne nil
+	if relations == nil {
+		relations = []*models.UserCategoryRelation{}
+	}
+
+	return relations, nil
 }
 
 func (s *userCategoryRelation) HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error) {

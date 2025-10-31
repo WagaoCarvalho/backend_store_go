@@ -5,14 +5,14 @@ import (
 	"errors"
 	"testing"
 
-	mockSale "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/sale"
+	mockSale "github.com/WagaoCarvalho/backend_store_go/infra/mock/sale"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSaleService_Cancel(t *testing.T) {
-	mockRepo := new(mockSale.MockSaleRepository)
+	mockRepo := new(mockSale.MockSale)
 	svc := NewSale(mockRepo)
 	ctx := context.Background()
 
@@ -60,7 +60,7 @@ func TestSaleService_Cancel(t *testing.T) {
 	})
 
 	t.Run("erro repo get", func(t *testing.T) {
-		mockRepo := new(mockSale.MockSaleRepository)
+		mockRepo := new(mockSale.MockSale)
 		svc := NewSale(mockRepo)
 		ctx := context.Background()
 
@@ -75,7 +75,7 @@ func TestSaleService_Cancel(t *testing.T) {
 }
 
 func TestSaleService_Complete(t *testing.T) {
-	mockRepo := new(mockSale.MockSaleRepository)
+	mockRepo := new(mockSale.MockSale)
 	svc := NewSale(mockRepo)
 	ctx := context.Background()
 
@@ -123,7 +123,7 @@ func TestSaleService_Complete(t *testing.T) {
 	})
 
 	t.Run("erro repo get genérico", func(t *testing.T) {
-		mockRepo := new(mockSale.MockSaleRepository)
+		mockRepo := new(mockSale.MockSale)
 		svc := NewSale(mockRepo)
 		ctx := context.Background()
 

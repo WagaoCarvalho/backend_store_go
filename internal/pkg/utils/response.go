@@ -75,6 +75,35 @@ func GetStringParam(r *http.Request, key string) (string, error) {
 	return val, nil
 }
 
+func GetPaginationParams(r *http.Request) (limit, offset int) {
+	const (
+		defaultLimit  = 10
+		defaultOffset = 0
+	)
+
+	query := r.URL.Query()
+
+	limitStr := query.Get("limit")
+	offsetStr := query.Get("offset")
+
+	limit = defaultLimit
+	offset = defaultOffset
+
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+		}
+	}
+
+	if offsetStr != "" {
+		if o, err := strconv.Atoi(offsetStr); err == nil && o >= 0 {
+			offset = o
+		}
+	}
+
+	return limit, offset
+}
+
 func ParseErrorResponse(body []byte) (DefaultResponse, error) {
 	var resp DefaultResponse
 	err := json.Unmarshal(body, &resp)

@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	service "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/user"
+	service "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
 	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
 	dtoContact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
 	dtoUserCategories "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/category"

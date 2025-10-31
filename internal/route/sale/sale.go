@@ -8,7 +8,7 @@ import (
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/sale"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/sale/sale"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/sale/sale"
 
 	"github.com/gorilla/mux"

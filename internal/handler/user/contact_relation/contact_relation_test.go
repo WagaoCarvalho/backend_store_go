@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/user"
+	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/contact_relation"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/user/contact_relation"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
@@ -19,163 +19,301 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
-func setupUserContact() (*mockUser.MockUserContactRelationService, *UserContactRelation) {
+func setupUserContact() (*mockUser.MockUserContactRelation, *UserContactRelation) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
-	mockService := new(mockUser.MockUserContactRelationService)
+	mockService := new(mockUser.MockUserContactRelation)
 	handler := NewUserContactRelation(mockService, logAdapter)
 
 	return mockService, handler
 }
 
 func TestUserContactRelationHandler_Create(t *testing.T) {
-	t.Run("success - relação criada", func(t *testing.T) {
-		mockService, handler := setupUserContact()
+	baseLogger := logrus.New()
+	baseLogger.Out = &bytes.Buffer{}
+	logger := logger.NewLoggerAdapter(baseLogger)
 
-		relationDTO := dto.UserContactRelationDTO{
-			UserID:    1,
-			ContactID: 2,
+	t.Run("success - relação criada", func(t *testing.T) {
+		mockService := new(mockUser.MockUserContactRelation)
+		handler := NewUserContactRelation(mockService, logger)
+
+		dtoRel := dto.UserContactRelationDTO{
+			UserID:    *utils.Int64Ptr(1),
+			ContactID: *utils.Int64Ptr(2),
 		}
-		expectedModel := &model.UserContactRelation{
+		createdRel := &model.UserContactRelation{
 			UserID:    1,
 			ContactID: 2,
 			CreatedAt: time.Now(),
 		}
 
-		mockService.On("Create", mock.Anything, int64(1), int64(2)).
-			Return(expectedModel, true, nil).Once()
+		mockService.On("Create", mock.Anything, mock.MatchedBy(func(rel *model.UserContactRelation) bool {
+			return rel.UserID == 1 && rel.ContactID == 2
+		})).Return(createdRel, nil).Once()
 
-		body, _ := json.Marshal(relationDTO)
-		req := httptest.NewRequest(http.MethodPost, "/user-contact-relations", bytes.NewBuffer(body))
+		body, _ := json.Marshal(dtoRel)
+		req := httptest.NewRequest(http.MethodPost, "/contact-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
 
 		handler.Create(rec, req)
 
-		resp := rec.Result()
-		defer resp.Body.Close()
+		assert.Equal(t, http.StatusCreated, rec.Code)
 
-		assert.Equal(t, http.StatusCreated, resp.StatusCode)
-
-		var response utils.DefaultResponse
-		err := json.NewDecoder(resp.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, "Relação criada com sucesso", response.Message)
-
-		dataBytes, _ := json.Marshal(response.Data)
-		var got dto.UserContactRelationDTO
-		_ = json.Unmarshal(dataBytes, &got)
-
-		assert.Equal(t, int64(1), got.UserID)
-		assert.Equal(t, int64(2), got.ContactID)
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+		assert.Equal(t, "Relação criada com sucesso", resp.Message)
 
 		mockService.AssertExpectations(t)
 	})
 
 	t.Run("success - relação já existente", func(t *testing.T) {
-		mockService, handler := setupUserContact()
+		mockService := new(mockUser.MockUserContactRelation)
+		handler := NewUserContactRelation(mockService, logger)
 
-		relationDTO := dto.UserContactRelationDTO{
-			UserID:    1,
-			ContactID: 2,
+		dtoRel := dto.UserContactRelationDTO{
+			UserID:    *utils.Int64Ptr(1),
+			ContactID: *utils.Int64Ptr(2),
 		}
-		expectedModel := &model.UserContactRelation{
+		existingRel := &model.UserContactRelation{
 			UserID:    1,
 			ContactID: 2,
 			CreatedAt: time.Now(),
 		}
 
-		mockService.On("Create", mock.Anything, int64(1), int64(2)).
-			Return(expectedModel, false, nil).Once()
+		mockService.On("Create", mock.Anything, mock.MatchedBy(func(rel *model.UserContactRelation) bool {
+			return rel.UserID == 1 && rel.ContactID == 2
+		})).Return(existingRel, errMsg.ErrRelationExists).Once()
 
-		body, _ := json.Marshal(relationDTO)
-		req := httptest.NewRequest(http.MethodPost, "/user-contact-relations", bytes.NewBuffer(body))
+		body, _ := json.Marshal(dtoRel)
+		req := httptest.NewRequest(http.MethodPost, "/contact-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
 
 		handler.Create(rec, req)
 
-		resp := rec.Result()
-		defer resp.Body.Close()
+		assert.Equal(t, http.StatusOK, rec.Code)
 
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		var response utils.DefaultResponse
-		_ = json.NewDecoder(resp.Body).Decode(&response)
-		assert.Equal(t, "Relação já existente", response.Message)
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+		assert.Equal(t, "Relação já existente", resp.Message)
 
 		mockService.AssertExpectations(t)
+	})
+
+	t.Run("error - corpo inválido (JSON parse)", func(t *testing.T) {
+		handler := NewUserContactRelation(new(mockUser.MockUserContactRelation), logger)
+
+		req := httptest.NewRequest(http.MethodPost, "/contact-relations", bytes.NewBufferString("invalid-json"))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "erro ao decodificar JSON")
 	})
 
 	t.Run("error - chave estrangeira inválida", func(t *testing.T) {
-		mockService, handler := setupUserContact()
+		mockService := new(mockUser.MockUserContactRelation)
+		handler := NewUserContactRelation(mockService, logger)
 
-		relationDTO := dto.UserContactRelationDTO{
-			UserID:    1,
-			ContactID: 99,
+		dtoRel := dto.UserContactRelationDTO{
+			UserID:    *utils.Int64Ptr(99),
+			ContactID: *utils.Int64Ptr(88),
 		}
 
-		mockService.On("Create", mock.Anything, int64(1), int64(99)).
-			Return(nil, false, errMsg.ErrDBInvalidForeignKey).Once()
+		mockService.On("Create", mock.Anything, mock.MatchedBy(func(rel *model.UserContactRelation) bool {
+			return rel.UserID == 99 && rel.ContactID == 88
+		})).Return(nil, errMsg.ErrDBInvalidForeignKey).Once()
 
-		body, _ := json.Marshal(relationDTO)
-		req := httptest.NewRequest(http.MethodPost, "/user-contact-relations", bytes.NewBuffer(body))
+		body, _ := json.Marshal(dtoRel)
+		req := httptest.NewRequest(http.MethodPost, "/contact-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
 
 		handler.Create(rec, req)
 
-		resp := rec.Result()
-		defer resp.Body.Close()
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
 
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "chave estrangeira inválida")
 
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("error - interno no serviço", func(t *testing.T) {
-		mockService, handler := setupUserContact()
+	t.Run("error - falha interna do serviço", func(t *testing.T) {
+		mockService := new(mockUser.MockUserContactRelation)
+		handler := NewUserContactRelation(mockService, logger)
 
-		relationDTO := dto.UserContactRelationDTO{
-			UserID:    1,
-			ContactID: 2,
+		dtoRel := dto.UserContactRelationDTO{
+			UserID:    *utils.Int64Ptr(1),
+			ContactID: *utils.Int64Ptr(2),
 		}
 
-		mockService.On("Create", mock.Anything, int64(1), int64(2)).
-			Return(nil, false, errors.New("db error")).Once()
+		mockService.On("Create", mock.Anything, mock.MatchedBy(func(rel *model.UserContactRelation) bool {
+			return rel.UserID == 1 && rel.ContactID == 2
+		})).Return(nil, errors.New("erro inesperado")).Once()
 
-		body, _ := json.Marshal(relationDTO)
-		req := httptest.NewRequest(http.MethodPost, "/user-contact-relations", bytes.NewBuffer(body))
+		body, _ := json.Marshal(dtoRel)
+		req := httptest.NewRequest(http.MethodPost, "/contact-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
 
 		handler.Create(rec, req)
 
-		resp := rec.Result()
-		defer resp.Body.Close()
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
 
-		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+		assert.Equal(t, http.StatusInternalServerError, resp.Status)
+		assert.Contains(t, resp.Message, "erro ao criar relação")
 
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("error - JSON inválido", func(t *testing.T) {
-		_, handler := setupUserContact()
+	t.Run("error - modelo nulo ou ID inválido (UserID zero)", func(t *testing.T) {
+		handler := NewUserContactRelation(new(mockUser.MockUserContactRelation), logger)
 
-		req := httptest.NewRequest(http.MethodPost, "/user-contact-relations", bytes.NewBuffer([]byte("{invalid json")))
+		dtoRel := dto.UserContactRelationDTO{
+			UserID:    *utils.Int64Ptr(0), // UserID zero
+			ContactID: *utils.Int64Ptr(2),
+		}
+
+		body, _ := json.Marshal(dtoRel)
+		req := httptest.NewRequest(http.MethodPost, "/contact-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
 
 		handler.Create(rec, req)
 
-		resp := rec.Result()
-		defer resp.Body.Close()
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
 
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "modelo nulo ou ID inválido")
+	})
+
+	t.Run("error - modelo nulo ou ID inválido (ContactID zero)", func(t *testing.T) {
+		handler := NewUserContactRelation(new(mockUser.MockUserContactRelation), logger)
+
+		dtoRel := dto.UserContactRelationDTO{
+			UserID:    *utils.Int64Ptr(1),
+			ContactID: *utils.Int64Ptr(0), // ContactID zero
+		}
+
+		body, _ := json.Marshal(dtoRel)
+		req := httptest.NewRequest(http.MethodPost, "/contact-relations", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "modelo nulo ou ID inválido")
+	})
+
+	t.Run("error - modelo nulo ou ID inválido (ambos IDs zero)", func(t *testing.T) {
+		handler := NewUserContactRelation(new(mockUser.MockUserContactRelation), logger)
+
+		dtoRel := dto.UserContactRelationDTO{
+			UserID:    *utils.Int64Ptr(0), // Ambos IDs zero
+			ContactID: *utils.Int64Ptr(0),
+		}
+
+		body, _ := json.Marshal(dtoRel)
+		req := httptest.NewRequest(http.MethodPost, "/contact-relations", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "modelo nulo ou ID inválido")
+	})
+
+	t.Run("error - JSON vazio", func(t *testing.T) {
+		handler := NewUserContactRelation(new(mockUser.MockUserContactRelation), logger)
+
+		req := httptest.NewRequest(http.MethodPost, "/contact-relations", bytes.NewBufferString("{}"))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+	})
+
+	t.Run("success - diferentes combinações de IDs", func(t *testing.T) {
+		testCases := []struct {
+			name      string
+			userID    int64
+			contactID int64
+		}{
+			{"IDs pequenos", 1, 2},
+			{"IDs grandes", 999, 888},
+			{"IDs diferentes", 123, 456},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				mockService := new(mockUser.MockUserContactRelation)
+				handler := NewUserContactRelation(mockService, logger)
+
+				dtoRel := dto.UserContactRelationDTO{
+					UserID:    *utils.Int64Ptr(tc.userID),
+					ContactID: *utils.Int64Ptr(tc.contactID),
+				}
+				createdRel := &model.UserContactRelation{
+					UserID:    tc.userID,
+					ContactID: tc.contactID,
+					CreatedAt: time.Now(),
+				}
+
+				mockService.On("Create", mock.Anything, mock.MatchedBy(func(rel *model.UserContactRelation) bool {
+					return rel.UserID == tc.userID && rel.ContactID == tc.contactID
+				})).Return(createdRel, nil).Once()
+
+				body, _ := json.Marshal(dtoRel)
+				req := httptest.NewRequest(http.MethodPost, "/contact-relations", bytes.NewBuffer(body))
+				req.Header.Set("Content-Type", "application/json")
+				rec := httptest.NewRecorder()
+
+				handler.Create(rec, req)
+
+				assert.Equal(t, http.StatusCreated, rec.Code)
+
+				var resp utils.DefaultResponse
+				require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp))
+				assert.Equal(t, "Relação criada com sucesso", resp.Message)
+
+				mockService.AssertExpectations(t)
+			})
+		}
 	})
 }
 

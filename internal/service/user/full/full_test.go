@@ -19,13 +19,13 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 
+	mockAddress "github.com/WagaoCarvalho/backend_store_go/infra/mock/address"
 	mockAuth "github.com/WagaoCarvalho/backend_store_go/infra/mock/auth"
+	mockContact "github.com/WagaoCarvalho/backend_store_go/infra/mock/contact"
 	mockTX "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo"
-	mockAddress "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/address"
-	mockContact "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/contact"
-	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
-	mockUserCatRel "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
-	mockUserContactRel "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/user"
+	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
+	mockUserCatRel "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
+	mockUserContactRel "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
 )
 
 func TestUserFullService_CreateFull(t *testing.T) {
@@ -36,7 +36,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	// ------------------------
 	t.Run("User: falha quando userFull é nil", func(t *testing.T) {
 		service := NewUserFull(
-			new(mockUser.MockUserFullRepository),
+			new(mockUser.MockUserFullRepo),
 			nil, nil, nil, nil,
 			new(mockAuth.MockHasher),
 		)
@@ -49,7 +49,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 
 	t.Run("User: falha ao validar usuário inválido", func(t *testing.T) {
 		service := NewUserFull(
-			new(mockUser.MockUserFullRepository),
+			new(mockUser.MockUserFullRepo),
 			nil, nil, nil, nil,
 			new(mockAuth.MockHasher),
 		)
@@ -65,7 +65,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("User: falha ao hashear senha", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
 		mockHasher := new(mockAuth.MockHasher)
 
 		service := NewUserFull(
@@ -114,11 +114,11 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("User: falha ao criar usuário no banco", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
-		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelationRepo)
-		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelationRepo)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
+		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelation)
+		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelation)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
@@ -178,8 +178,8 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	// Grupo: Address
 	// ------------------------
 	t.Run("Address: falha ao validar endereço inválido", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
+		mockRepoAddress := new(mockAddress.MockAddress)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
@@ -233,11 +233,11 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("Address: falha ao criar endereço no banco", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
-		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelationRepo)
-		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelationRepo)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
+		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelation)
+		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelation)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
@@ -297,9 +297,9 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	// Grupo: Contact
 	// ------------------------
 	t.Run("Contact: falha ao validar contato inválido", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
@@ -358,11 +358,11 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("Contact: falha ao criar contato no banco", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
-		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelationRepo)
-		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelationRepo)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
+		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelation)
+		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelation)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
@@ -423,11 +423,11 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	// Grupo: Relations (User-Contact e User-Category)
 	// ------------------------
 	t.Run("Relations: sucesso ao criar relações user-contact e user-category", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
-		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelationRepo)
-		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelationRepo)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
+		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelation)
+		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelation)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
@@ -499,10 +499,10 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("UserContactRelation: falha ao validar relação inválida", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
-		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelationRepo)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
+		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelation)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
@@ -566,10 +566,10 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("UserContactRelation: falha ao criar relação no repo", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
-		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelationRepo)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
+		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelation)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
@@ -633,11 +633,11 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("UserCategoryRelation: falha ao validar relação categoria inválida", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
-		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelationRepo)
-		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelationRepo)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
+		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelation)
+		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelation)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
@@ -701,11 +701,11 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("UserCategoryRelation: falha ao criar relação categoria no repo", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
-		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelationRepo)
-		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelationRepo)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
+		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelation)
+		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelation)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
@@ -775,15 +775,15 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	// ------------------------
 
 	t.Run("Transaction: falha ao iniciar transação", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
 		mockHasher := new(mockAuth.MockHasher)
 
 		service := NewUserFull(
 			mockRepoUser,
-			new(mockAddress.MockAddressRepository),
-			new(mockContact.MockContactRepository),
-			new(mockUserCatRel.MockUserCategoryRelationRepo),
-			new(mockUserContactRel.MockUserContactRelationRepo),
+			new(mockAddress.MockAddress),
+			new(mockContact.MockContact),
+			new(mockUserCatRel.MockUserCategoryRelation),
+			new(mockUserContactRel.MockUserContactRelation),
 			mockHasher,
 		)
 
@@ -827,15 +827,15 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("Transaction: falha quando transação é nil", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
 		mockHasher := new(mockAuth.MockHasher)
 
 		service := NewUserFull(
 			mockRepoUser,
-			new(mockAddress.MockAddressRepository),
-			new(mockContact.MockContactRepository),
-			new(mockUserCatRel.MockUserCategoryRelationRepo),
-			new(mockUserContactRel.MockUserContactRelationRepo),
+			new(mockAddress.MockAddress),
+			new(mockContact.MockContact),
+			new(mockUserCatRel.MockUserCategoryRelation),
+			new(mockUserContactRel.MockUserContactRelation),
 			mockHasher,
 		)
 
@@ -879,16 +879,16 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("Transaction: falha no rollback quando há erro", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
 		service := NewUserFull(
 			mockRepoUser,
-			new(mockAddress.MockAddressRepository),
-			new(mockContact.MockContactRepository),
-			new(mockUserCatRel.MockUserCategoryRelationRepo),
-			new(mockUserContactRel.MockUserContactRelationRepo),
+			new(mockAddress.MockAddress),
+			new(mockContact.MockContact),
+			new(mockUserCatRel.MockUserCategoryRelation),
+			new(mockUserContactRel.MockUserContactRelation),
 			mockHasher,
 		)
 
@@ -935,17 +935,17 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("Transaction: faz rollback em caso de panic", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
+		mockRepoAddress := new(mockAddress.MockAddress)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
 		service := NewUserFull(
 			mockRepoUser,
 			mockRepoAddress,
-			new(mockContact.MockContactRepository),
-			new(mockUserCatRel.MockUserCategoryRelationRepo),
-			new(mockUserContactRel.MockUserContactRelationRepo),
+			new(mockContact.MockContact),
+			new(mockUserCatRel.MockUserCategoryRelation),
+			new(mockUserContactRel.MockUserContactRelation),
 			mockHasher,
 		)
 
@@ -1007,11 +1007,11 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("Transaction: falha no commit e rollback também falha", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
-		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelationRepo)
-		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelationRepo)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
+		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelation)
+		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelation)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
@@ -1092,11 +1092,11 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("Transaction: falha no commit e rollback com sucesso", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
-		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelationRepo)
-		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelationRepo)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
+		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelation)
+		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelation)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
@@ -1178,11 +1178,11 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	// Grupo: Success
 	// ------------------------
 	t.Run("Success: cria userFull com múltiplas categorias", func(t *testing.T) {
-		mockRepoUser := new(mockUser.MockUserFullRepository)
-		mockRepoAddress := new(mockAddress.MockAddressRepository)
-		mockRepoContact := new(mockContact.MockContactRepository)
-		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelationRepo)
-		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelationRepo)
+		mockRepoUser := new(mockUser.MockUserFullRepo)
+		mockRepoAddress := new(mockAddress.MockAddress)
+		mockRepoContact := new(mockContact.MockContact)
+		mockRepoUserCatRel := new(mockUserCatRel.MockUserCategoryRelation)
+		mockRepoUserContactRel := new(mockUserContactRel.MockUserContactRelation)
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 

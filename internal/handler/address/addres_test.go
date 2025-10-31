@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	mockAddress "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/address"
+	mockAddress "github.com/WagaoCarvalho/backend_store_go/infra/mock/address"
 	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
@@ -35,7 +35,7 @@ func TestAddressHandler_Create(t *testing.T) {
 
 	t.Run("Success - Create Address", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		uid := int64(10)
@@ -102,7 +102,7 @@ func TestAddressHandler_Create(t *testing.T) {
 
 	t.Run("ServiceError", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		uid := int64(42)
@@ -134,7 +134,7 @@ func TestAddressHandler_Create(t *testing.T) {
 
 	t.Run("DuplicateAddress", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		uid := int64(42)
@@ -172,7 +172,7 @@ func TestAddressHandler_Create(t *testing.T) {
 
 	t.Run("InvalidJSON", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer([]byte(`{invalid`)))
@@ -189,7 +189,7 @@ func TestAddressHandler_Create(t *testing.T) {
 
 	t.Run("ForeignKey inválida deve retornar 400", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		uid := int64(99)
@@ -227,7 +227,7 @@ func TestAddressHandler_GetByID(t *testing.T) {
 	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("deve retornar endereço com sucesso", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		h := NewAddress(mockService, logAdapter)
 
 		expected := &models.Address{
@@ -263,7 +263,7 @@ func TestAddressHandler_GetByID(t *testing.T) {
 	})
 
 	t.Run("deve retornar erro 400 se o ID for inválido", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		h := NewAddress(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/addresses/abc", nil)
@@ -277,7 +277,7 @@ func TestAddressHandler_GetByID(t *testing.T) {
 	})
 
 	t.Run("deve retornar erro 404 se o serviço retornar erro", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		h := NewAddress(mockService, logAdapter)
 
 		mockService.On("GetByID", mock.Anything, int64(1)).Return((*models.Address)(nil), errors.New("not found"))
@@ -299,7 +299,7 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		h := NewAddress(mockService, logAdapter)
 
 		expected := []*models.Address{
@@ -339,7 +339,7 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		h := NewAddress(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/addresses/user/abc", nil)
@@ -352,7 +352,7 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		h := NewAddress(mockService, logAdapter)
 
 		mockService.On("GetByUserID", mock.Anything, int64(1)).Return(nil, assert.AnError)
@@ -368,7 +368,7 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 	})
 
 	t.Run("UserNotFound", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		h := NewAddress(mockService, logAdapter)
 
 		// Mock do service retornando ErrNotFound
@@ -400,7 +400,7 @@ func TestAddressHandler_GetByClientID(t *testing.T) {
 	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		h := NewAddress(mockService, logAdapter)
 
 		expected := []*models.Address{
@@ -440,7 +440,7 @@ func TestAddressHandler_GetByClientID(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		h := NewAddress(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/addresses/client/abc", nil)
@@ -453,7 +453,7 @@ func TestAddressHandler_GetByClientID(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		h := NewAddress(mockService, logAdapter)
 
 		mockService.On("GetByClientID", mock.Anything, int64(1)).Return(nil, assert.AnError)
@@ -475,7 +475,7 @@ func TestAddressHandler_GetBySupplierID(t *testing.T) {
 	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		h := NewAddress(mockService, logAdapter)
 
 		expected := []*models.Address{
@@ -515,7 +515,7 @@ func TestAddressHandler_GetBySupplierID(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		h := NewAddress(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/addresses/supplier/abc", nil)
@@ -528,7 +528,7 @@ func TestAddressHandler_GetBySupplierID(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		h := NewAddress(mockService, logAdapter)
 
 		mockService.On("GetBySupplierID", mock.Anything, int64(1)).Return(nil, assert.AnError)
@@ -551,7 +551,7 @@ func TestAddressHandler_Update(t *testing.T) {
 	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success - Update Address", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		uid := int64(10)
@@ -609,7 +609,7 @@ func TestAddressHandler_Update(t *testing.T) {
 	})
 
 	t.Run("ValidationError", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		inputDTO := &dtoAddress.AddressDTO{}
@@ -637,7 +637,7 @@ func TestAddressHandler_Update(t *testing.T) {
 	})
 
 	t.Run("ForeignKey inválida deve retornar 400", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		uid := int64(99)
@@ -662,7 +662,7 @@ func TestAddressHandler_Update(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		uid := int64(42)
@@ -687,7 +687,7 @@ func TestAddressHandler_Update(t *testing.T) {
 	})
 
 	t.Run("Invalid ID error deve retornar 400", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		uid := int64(99)
@@ -726,7 +726,7 @@ func TestAddressHandler_Update(t *testing.T) {
 	})
 
 	t.Run("Invalid JSON", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPut, "/addresses/1", bytes.NewBuffer([]byte("{invalid")))
@@ -745,7 +745,7 @@ func TestAddressHandler_Update(t *testing.T) {
 	})
 
 	t.Run("Invalid ID param", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		// Teste com ID inválido na URL
@@ -766,7 +766,7 @@ func TestAddressHandler_Update(t *testing.T) {
 	})
 
 	t.Run("Missing ID param", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		// Teste sem parâmetro ID na URL
@@ -792,7 +792,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(mockAddress.MockAddressService)
+		mockSvc := new(mockAddress.MockAddress)
 		handler := NewAddress(mockSvc, logAdapter)
 
 		mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil).Once()
@@ -813,7 +813,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 
 	t.Run("invalid ID", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(mockAddress.MockAddressService)
+		mockSvc := new(mockAddress.MockAddress)
 		handler := NewAddress(mockSvc, logAdapter)
 
 		req := newRequestWithVars("DELETE", "/addresses/abc", nil, map[string]string{"id": "abc"})
@@ -831,7 +831,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 
 	t.Run("not found", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(mockAddress.MockAddressService)
+		mockSvc := new(mockAddress.MockAddress)
 		handler := NewAddress(mockSvc, logAdapter)
 
 		mockSvc.On("Delete", mock.Anything, int64(99)).Return(errMsg.ErrNotFound).Once()
@@ -852,7 +852,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 
 	t.Run("validation error", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(mockAddress.MockAddressService)
+		mockSvc := new(mockAddress.MockAddress)
 		handler := NewAddress(mockSvc, logAdapter)
 
 		mockSvc.On("Delete", mock.Anything, int64(2)).Return(errMsg.ErrZeroID).Once()
@@ -881,7 +881,7 @@ func TestAddressHandler_Delete(t *testing.T) {
 
 	t.Run("internal server error", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(mockAddress.MockAddressService)
+		mockSvc := new(mockAddress.MockAddress)
 		handler := NewAddress(mockSvc, logAdapter)
 
 		mockSvc.On("Delete", mock.Anything, int64(3)).Return(assert.AnError).Once()
@@ -908,7 +908,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 
 	t.Run("Success - Enable Address", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		id := int64(1)
@@ -929,7 +929,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 
 	t.Run("Error - Invalid ID", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPatch, "/addresses/invalid/enable", nil)
@@ -946,7 +946,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 
 	t.Run("Error - Enable Service returns ErrNotFound", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		id := int64(1)
@@ -967,7 +967,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 
 	t.Run("Error - Enable Service returns generic error", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		id := int64(1)
@@ -988,7 +988,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 
 	t.Run("Error - Enable Method Not Allowed", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/addresses/1/enable", nil)
@@ -1005,7 +1005,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 
 	t.Run("Error - Enable Invalid ID", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPatch, "/addresses/abc/enable", nil)
@@ -1022,7 +1022,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 
 	t.Run("Error - Enable Service returns ErrID", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		id := int64(1)
@@ -1049,7 +1049,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 
 	t.Run("Success - Disable Address", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		id := int64(1)
@@ -1070,7 +1070,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 
 	t.Run("Error - Invalid ID", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPatch, "/addresses/invalid/disable", nil)
@@ -1087,7 +1087,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 
 	t.Run("Error - Disable Service returns ErrNotFound", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		id := int64(1)
@@ -1108,7 +1108,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 
 	t.Run("Error - Disable Service returns generic error", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		id := int64(1)
@@ -1129,7 +1129,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 
 	t.Run("Error - Disable Method Not Allowed", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/addresses/1/disable", nil)
@@ -1146,7 +1146,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 
 	t.Run("Error - Disable Invalid ID", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPatch, "/addresses/abc/disable", nil)
@@ -1163,7 +1163,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 
 	t.Run("Error - Disable Service returns ErrID", func(t *testing.T) {
 		t.Parallel()
-		mockService := new(mockAddress.MockAddressService)
+		mockService := new(mockAddress.MockAddress)
 		handler := NewAddress(mockService, logAdapter)
 
 		id := int64(1)
