@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type ProductRepositoryMock struct {
+type ProductMock struct {
 	mock.Mock
 }
 
-func (m *ProductRepositoryMock) Create(ctx context.Context, product *models.Product) (*models.Product, error) {
+func (m *ProductMock) Create(ctx context.Context, product *models.Product) (*models.Product, error) {
 	args := m.Called(ctx, product)
 	if prod, ok := args.Get(0).(*models.Product); ok {
 		return prod, args.Error(1)
@@ -19,7 +19,7 @@ func (m *ProductRepositoryMock) Create(ctx context.Context, product *models.Prod
 	return nil, args.Error(1)
 }
 
-func (m *ProductRepositoryMock) GetAll(ctx context.Context, limit, offset int) ([]*models.Product, error) {
+func (m *ProductMock) GetAll(ctx context.Context, limit, offset int) ([]*models.Product, error) {
 	args := m.Called(ctx, limit, offset)
 	if prods, ok := args.Get(0).([]*models.Product); ok {
 		return prods, args.Error(1)
@@ -27,7 +27,7 @@ func (m *ProductRepositoryMock) GetAll(ctx context.Context, limit, offset int) (
 	return nil, args.Error(1)
 }
 
-func (m *ProductRepositoryMock) GetByID(ctx context.Context, id int64) (*models.Product, error) {
+func (m *ProductMock) GetByID(ctx context.Context, id int64) (*models.Product, error) {
 	args := m.Called(ctx, id)
 	if prod, ok := args.Get(0).(*models.Product); ok {
 		return prod, args.Error(1)
@@ -35,7 +35,7 @@ func (m *ProductRepositoryMock) GetByID(ctx context.Context, id int64) (*models.
 	return nil, args.Error(1)
 }
 
-func (m *ProductRepositoryMock) GetByName(ctx context.Context, name string) ([]*models.Product, error) {
+func (m *ProductMock) GetByName(ctx context.Context, name string) ([]*models.Product, error) {
 	args := m.Called(ctx, name)
 	if prods, ok := args.Get(0).([]*models.Product); ok {
 		return prods, args.Error(1)
@@ -43,7 +43,7 @@ func (m *ProductRepositoryMock) GetByName(ctx context.Context, name string) ([]*
 	return nil, args.Error(1)
 }
 
-func (m *ProductRepositoryMock) GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error) {
+func (m *ProductMock) GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error) {
 	args := m.Called(ctx, manufacturer)
 	if prods, ok := args.Get(0).([]*models.Product); ok {
 		return prods, args.Error(1)
@@ -51,12 +51,12 @@ func (m *ProductRepositoryMock) GetByManufacturer(ctx context.Context, manufactu
 	return nil, args.Error(1)
 }
 
-func (m *ProductRepositoryMock) Update(ctx context.Context, product *models.Product) error {
+func (m *ProductMock) Update(ctx context.Context, product *models.Product) error {
 	args := m.Called(ctx, product)
 	return args.Error(0)
 }
 
-func (m *ProductRepositoryMock) GetVersionByID(ctx context.Context, pid int64) (int64, error) {
+func (m *ProductMock) GetVersionByID(ctx context.Context, pid int64) (int64, error) {
 	args := m.Called(ctx, pid)
 
 	if version, ok := args.Get(0).(int64); ok {
@@ -66,52 +66,52 @@ func (m *ProductRepositoryMock) GetVersionByID(ctx context.Context, pid int64) (
 	return 0, args.Error(1)
 }
 
-func (m *ProductRepositoryMock) DisableProduct(ctx context.Context, pid int64) error {
+func (m *ProductMock) DisableProduct(ctx context.Context, pid int64) error {
 	args := m.Called(ctx, pid)
 	return args.Error(0)
 }
 
-func (m *ProductRepositoryMock) EnableProduct(ctx context.Context, pid int64) error {
+func (m *ProductMock) EnableProduct(ctx context.Context, pid int64) error {
 	args := m.Called(ctx, pid)
 	return args.Error(0)
 }
 
-func (m *ProductRepositoryMock) Delete(ctx context.Context, id int64) error {
+func (m *ProductMock) Delete(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
-func (m *ProductRepositoryMock) UpdateStock(ctx context.Context, id int64, quantity int) error {
+func (m *ProductMock) UpdateStock(ctx context.Context, id int64, quantity int) error {
 	args := m.Called(ctx, id, quantity)
 	return args.Error(0)
 }
 
-func (m *ProductRepositoryMock) IncreaseStock(ctx context.Context, id int64, amount int) error {
+func (m *ProductMock) IncreaseStock(ctx context.Context, id int64, amount int) error {
 	args := m.Called(ctx, id, amount)
 	return args.Error(0)
 }
 
-func (m *ProductRepositoryMock) DecreaseStock(ctx context.Context, id int64, amount int) error {
+func (m *ProductMock) DecreaseStock(ctx context.Context, id int64, amount int) error {
 	args := m.Called(ctx, id, amount)
 	return args.Error(0)
 }
 
-func (m *ProductRepositoryMock) GetStock(ctx context.Context, id int64) (int, error) {
+func (m *ProductMock) GetStock(ctx context.Context, id int64) (int, error) {
 	args := m.Called(ctx, id)
 	return args.Int(0), args.Error(1)
 }
 
-func (m *ProductRepositoryMock) EnableDiscount(ctx context.Context, id int64) error {
+func (m *ProductMock) EnableDiscount(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
-func (m *ProductRepositoryMock) DisableDiscount(ctx context.Context, id int64) error {
+func (m *ProductMock) DisableDiscount(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
-func (m *ProductRepositoryMock) ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error) {
+func (m *ProductMock) ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error) {
 	args := m.Called(ctx, id, percent)
 	if product, ok := args.Get(0).(*models.Product); ok {
 		return product, args.Error(1)
@@ -119,7 +119,7 @@ func (m *ProductRepositoryMock) ApplyDiscount(ctx context.Context, id int64, per
 	return nil, args.Error(1)
 }
 
-func (m *ProductRepositoryMock) ProductExists(ctx context.Context, productID int64) (bool, error) {
+func (m *ProductMock) ProductExists(ctx context.Context, productID int64) (bool, error) {
 	args := m.Called(ctx, productID)
 	return args.Bool(0), args.Error(1)
 }

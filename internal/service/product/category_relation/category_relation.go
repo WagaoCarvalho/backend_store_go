@@ -11,7 +11,7 @@ import (
 )
 
 type ProductCategoryRelation interface {
-	Create(ctx context.Context, productID, categoryID int64) (*models.ProductCategoryRelation, bool, error)
+	Create(ctx context.Context, relation *models.ProductCategoryRelation) (*models.ProductCategoryRelation, error)
 	GetAllRelationsByProductID(ctx context.Context, productID int64) ([]*models.ProductCategoryRelation, error)
 	HasProductCategoryRelation(ctx context.Context, productID, categoryID int64) (bool, error)
 	Delete(ctx context.Context, productID, categoryID int64) error
@@ -28,45 +28,40 @@ func NewProductCategoryRelation(repo repo.ProductCategoryRelation) ProductCatego
 	}
 }
 
-func (s *productCategoryRelation) Create(ctx context.Context, productID, categoryID int64) (*models.ProductCategoryRelation, bool, error) {
-	if productID <= 0 {
-		return nil, false, err_msg.ErrZeroID
+func (s *productCategoryRelation) Create(ctx context.Context, relation *models.ProductCategoryRelation) (*models.ProductCategoryRelation, error) {
+	if relation == nil {
+		return nil, err_msg.ErrNilModel
 	}
-	if categoryID <= 0 {
-		return nil, false, err_msg.ErrZeroID
-	}
-
-	relation := models.ProductCategoryRelation{
-		ProductID:  productID,
-		CategoryID: categoryID,
+	if relation.ProductID <= 0 || relation.CategoryID <= 0 {
+		return nil, err_msg.ErrZeroID
 	}
 
-	createdRelation, err := s.relationRepo.Create(ctx, &relation)
+	createdRelation, err := s.relationRepo.Create(ctx, relation)
 	if err != nil {
 		switch {
 		case errors.Is(err, err_msg.ErrRelationExists):
-			relations, getErr := s.relationRepo.GetAllRelationsByProductID(ctx, productID)
+			relations, getErr := s.relationRepo.GetAllRelationsByProductID(ctx, relation.ProductID)
 			if getErr != nil {
-				return nil, false, fmt.Errorf("%w: %v", err_msg.ErrRelationCheck, getErr)
+				return nil, fmt.Errorf("%w: %v", err_msg.ErrRelationCheck, getErr)
 			}
 
 			for _, rel := range relations {
-				if rel.CategoryID == categoryID {
-					return rel, false, nil
+				if rel.CategoryID == relation.CategoryID {
+					return rel, nil
 				}
 			}
 
-			return nil, false, err_msg.ErrRelationExists
+			return nil, err_msg.ErrRelationExists
 
 		case errors.Is(err, err_msg.ErrDBInvalidForeignKey):
-			return nil, false, err_msg.ErrDBInvalidForeignKey
+			return nil, err_msg.ErrDBInvalidForeignKey
 
 		default:
-			return nil, false, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
 		}
 	}
 
-	return createdRelation, true, nil
+	return createdRelation, nil
 }
 
 func (s *productCategoryRelation) GetAllRelationsByProductID(ctx context.Context, productID int64) ([]*models.ProductCategoryRelation, error) {

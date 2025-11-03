@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	mockService "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/product"
+	mockService "github.com/WagaoCarvalho/backend_store_go/infra/mock/product"
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/product/category"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/category"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
@@ -28,7 +28,7 @@ func TestProductCategoryHandler_Create(t *testing.T) {
 	}
 	t.Run("Sucesso - Criar categoria", func(t *testing.T) {
 		t.Parallel()
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
 		input := dto.ProductCategoryDTO{Name: "Categoria X"}
@@ -69,7 +69,7 @@ func TestProductCategoryHandler_Create(t *testing.T) {
 		baseLogger.Out = &bytes.Buffer{}
 		logAdapter := logger.NewLoggerAdapter(baseLogger)
 
-		mockService := new(mockService.ProductCategoryServiceMock)
+		mockService := new(mockService.MockProductCategory)
 		handler := NewProductCategory(mockService, logAdapter)
 
 		// JSON inválido
@@ -97,7 +97,7 @@ func TestProductCategoryHandler_Create(t *testing.T) {
 		baseLogger.Out = &bytes.Buffer{}
 		logAdapter := logger.NewLoggerAdapter(baseLogger)
 
-		mockService := new(mockService.ProductCategoryServiceMock)
+		mockService := new(mockService.MockProductCategory)
 		handler := NewProductCategory(mockService, logAdapter)
 
 		input := dto.ProductCategoryDTO{
@@ -142,7 +142,7 @@ func TestProductCategoryHandler_GetByID(t *testing.T) {
 	}
 
 	t.Run("Sucesso - GetByID", func(t *testing.T) {
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
 		id := int64(1)
@@ -173,7 +173,7 @@ func TestProductCategoryHandler_GetByID(t *testing.T) {
 	})
 
 	t.Run("Erro - ID inválido", func(t *testing.T) {
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
 		req := httptest.NewRequest(http.MethodGet, "/categories/abc", nil)
@@ -188,7 +188,7 @@ func TestProductCategoryHandler_GetByID(t *testing.T) {
 	})
 
 	t.Run("Erro - Categoria não encontrada", func(t *testing.T) {
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
 		id := int64(999)
@@ -208,7 +208,7 @@ func TestProductCategoryHandler_GetByID(t *testing.T) {
 	})
 
 	t.Run("Erro genérico do service", func(t *testing.T) {
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
 		id := int64(1)
@@ -235,7 +235,7 @@ func TestProductCategoryHandler_GetAll(t *testing.T) {
 		return logger.NewLoggerAdapter(log)
 	}
 	t.Run("Sucesso - GetAll", func(t *testing.T) {
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
 		expectedModels := []*models.ProductCategory{
@@ -267,10 +267,10 @@ func TestProductCategoryHandler_GetAll(t *testing.T) {
 	})
 
 	t.Run("Erro genérico do service - GetAll", func(t *testing.T) {
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
-		mockSvc.On("GetAll", mock.Anything).Return(nil, errors.New("erro interno")).Once()
+		mockSvc.On("GetAll", mock.Anything).Return([]*models.ProductCategory(nil), errors.New("erro interno")).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/categories", nil)
 		w := httptest.NewRecorder()
@@ -292,18 +292,24 @@ func TestProductCategoryHandler_Update(t *testing.T) {
 		log.Out = &bytes.Buffer{}
 		return logger.NewLoggerAdapter(log)
 	}
+
 	t.Run("Sucesso - Update", func(t *testing.T) {
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
 		id := int64(1)
 		input := dto.ProductCategoryDTO{Name: "Nova Categoria"}
 		expectedModel := dto.ToProductCategoryModel(input)
 		expectedModel.ID = uint(id)
+		updatedModel := &models.ProductCategory{ID: uint(id), Name: "Nova Categoria"}
 
+		// Mock do Update (retorna apenas error)
 		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(m *models.ProductCategory) bool {
 			return m.ID == uint(id) && m.Name == input.Name
-		})).Return(expectedModel, nil).Once()
+		})).Return(nil).Once()
+
+		// Mock do GetByID para retornar a categoria atualizada
+		mockSvc.On("GetByID", mock.Anything, id).Return(updatedModel, nil).Once()
 
 		body, _ := json.Marshal(input)
 		req := httptest.NewRequest(http.MethodPut, "/categories/1", bytes.NewBuffer(body))
@@ -323,13 +329,14 @@ func TestProductCategoryHandler_Update(t *testing.T) {
 		}
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		assert.NoError(t, err)
-		assert.Equal(t, expectedModel.ID, *response.Data.ID)
+		assert.Equal(t, "Categoria atualizada com sucesso", response.Message)
+		assert.Equal(t, uint(id), *response.Data.ID)
 
 		mockSvc.AssertExpectations(t)
 	})
 
 	t.Run("Erro - ID inválido", func(t *testing.T) {
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
 		req := httptest.NewRequest(http.MethodPut, "/categories/abc", nil)
@@ -344,7 +351,7 @@ func TestProductCategoryHandler_Update(t *testing.T) {
 	})
 
 	t.Run("Erro - JSON inválido", func(t *testing.T) {
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
 		req := httptest.NewRequest(http.MethodPut, "/categories/1", bytes.NewBuffer([]byte("{invalid json")))
@@ -359,16 +366,17 @@ func TestProductCategoryHandler_Update(t *testing.T) {
 	})
 
 	t.Run("Erro - Categoria não encontrada", func(t *testing.T) {
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
 		id := int64(999)
 		input := dto.ProductCategoryDTO{Name: "Nova Categoria"}
 		body, _ := json.Marshal(input)
 
+		// Update retorna ErrNotFound
 		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(m *models.ProductCategory) bool {
 			return m.ID == uint(id)
-		})).Return(nil, errMsg.ErrNotFound).Once()
+		})).Return(errMsg.ErrNotFound).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/categories/999", bytes.NewBuffer(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "999"})
@@ -383,17 +391,18 @@ func TestProductCategoryHandler_Update(t *testing.T) {
 		mockSvc.AssertExpectations(t)
 	})
 
-	t.Run("Erro genérico do service", func(t *testing.T) {
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+	t.Run("Erro genérico do service no Update", func(t *testing.T) {
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
 		id := int64(1)
 		input := dto.ProductCategoryDTO{Name: "Nova Categoria"}
 		body, _ := json.Marshal(input)
 
+		// Update retorna erro genérico
 		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(m *models.ProductCategory) bool {
 			return m.ID == uint(id)
-		})).Return(nil, errors.New("erro interno")).Once()
+		})).Return(errors.New("erro interno")).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/categories/1", bytes.NewBuffer(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -408,6 +417,33 @@ func TestProductCategoryHandler_Update(t *testing.T) {
 		mockSvc.AssertExpectations(t)
 	})
 
+	t.Run("Erro ao buscar categoria atualizada", func(t *testing.T) {
+		mockSvc := new(mockService.MockProductCategory)
+		h := NewProductCategory(mockSvc, baseLogger())
+
+		id := int64(1)
+		input := dto.ProductCategoryDTO{Name: "Nova Categoria"}
+		body, _ := json.Marshal(input)
+
+		// Update funciona, mas GetByID falha
+		mockSvc.On("Update", mock.Anything, mock.MatchedBy(func(m *models.ProductCategory) bool {
+			return m.ID == uint(id) && m.Name == input.Name
+		})).Return(nil).Once()
+
+		mockSvc.On("GetByID", mock.Anything, id).Return(nil, errors.New("erro ao buscar")).Once()
+
+		req := httptest.NewRequest(http.MethodPut, "/categories/1", bytes.NewBuffer(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		h.Update(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+
+		mockSvc.AssertExpectations(t)
+	})
 }
 
 func TestProductCategoryHandler_Delete(t *testing.T) {
@@ -417,7 +453,7 @@ func TestProductCategoryHandler_Delete(t *testing.T) {
 		return logger.NewLoggerAdapter(log)
 	}
 	t.Run("Sucesso - Delete", func(t *testing.T) {
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
 		id := int64(1)
@@ -437,7 +473,7 @@ func TestProductCategoryHandler_Delete(t *testing.T) {
 	})
 
 	t.Run("Erro - ID inválido", func(t *testing.T) {
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
 		req := httptest.NewRequest(http.MethodDelete, "/categories/abc", nil)
@@ -452,7 +488,7 @@ func TestProductCategoryHandler_Delete(t *testing.T) {
 	})
 
 	t.Run("Erro genérico do service", func(t *testing.T) {
-		mockSvc := new(mockService.ProductCategoryServiceMock)
+		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategory(mockSvc, baseLogger())
 
 		id := int64(1)

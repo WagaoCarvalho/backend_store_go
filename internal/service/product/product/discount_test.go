@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	mock_product "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/product"
+	mockProduct "github.com/WagaoCarvalho/backend_store_go/infra/mock/product"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/stretchr/testify/assert"
@@ -15,8 +15,8 @@ import (
 
 func TestProductService_EnableDiscount(t *testing.T) {
 
-	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+	setup := func() (*mockProduct.ProductMock, ProductService) {
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 		return mockRepo, service
 	}
@@ -33,7 +33,7 @@ func TestProductService_EnableDiscount(t *testing.T) {
 	})
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
-		repoMock := new(mock_product.ProductRepositoryMock)
+		repoMock := new(mockProduct.ProductMock)
 		service := product{repo: repoMock}
 
 		ctx := context.Background() // ⚠️ necessário criar o contexto
@@ -58,8 +58,8 @@ func TestProductService_EnableDiscount(t *testing.T) {
 
 func TestProductService_DisableDiscount(t *testing.T) {
 
-	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+	setup := func() (*mockProduct.ProductMock, ProductService) {
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 		return mockRepo, service
 	}
@@ -76,7 +76,7 @@ func TestProductService_DisableDiscount(t *testing.T) {
 	})
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
-		repoMock := new(mock_product.ProductRepositoryMock)
+		repoMock := new(mockProduct.ProductMock)
 		service := product{repo: repoMock}
 
 		ctx := context.Background() // ⚠️ necessário criar o contexto
@@ -113,8 +113,8 @@ func TestProductService_DisableDiscount(t *testing.T) {
 
 func TestProductService_ApplyDiscount(t *testing.T) {
 
-	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+	setup := func() (*mockProduct.ProductMock, ProductService) {
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 		return mockRepo, service
 	}

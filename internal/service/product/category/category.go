@@ -11,10 +11,10 @@ import (
 )
 
 type ProductCategory interface {
+	Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error)
 	GetAll(ctx context.Context) ([]*models.ProductCategory, error)
 	GetByID(ctx context.Context, id int64) (*models.ProductCategory, error)
-	Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error)
-	Update(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error)
+	Update(ctx context.Context, category *models.ProductCategory) error
 	Delete(ctx context.Context, id int64) error
 }
 
@@ -66,27 +66,27 @@ func (s *productCategory) GetByID(ctx context.Context, id int64) (*models.Produc
 	return category, nil
 }
 
-func (s *productCategory) Update(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error) {
+func (s *productCategory) Update(ctx context.Context, category *models.ProductCategory) error {
 	if category.ID <= 0 {
-		return nil, errMsg.ErrZeroID
+		return errMsg.ErrZeroID
 	}
 
 	if err := category.Validate(); err != nil {
-		return nil, err
+		return err
 	}
 
 	if _, err := s.repo.GetByID(ctx, int64(category.ID)); err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
-			return nil, errMsg.ErrNotFound
+			return errMsg.ErrNotFound
 		}
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	if err := s.repo.Update(ctx, category); err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
-	return category, nil
+	return nil
 }
 
 func (s *productCategory) Delete(ctx context.Context, id int64) error {

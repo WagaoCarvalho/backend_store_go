@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	mock_product "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/product"
+	mockProduct "github.com/WagaoCarvalho/backend_store_go/infra/mock/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -13,8 +13,8 @@ import (
 
 func TestProductService_UpdateStock(t *testing.T) {
 
-	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+	setup := func() (*mockProduct.ProductMock, ProductService) {
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 		return mockRepo, service
 	}
@@ -66,7 +66,7 @@ func TestProductService_IncreaseStock(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Deve retornar erro quando repo retornar erro", func(t *testing.T) {
-		repoMock := new(mock_product.ProductRepositoryMock)
+		repoMock := new(mockProduct.ProductMock)
 
 		service := product{repo: repoMock}
 
@@ -80,7 +80,7 @@ func TestProductService_IncreaseStock(t *testing.T) {
 	})
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
-		repoMock := new(mock_product.ProductRepositoryMock)
+		repoMock := new(mockProduct.ProductMock)
 		service := product{repo: repoMock}
 
 		err := service.IncreaseStock(ctx, 0, 10)
@@ -90,7 +90,7 @@ func TestProductService_IncreaseStock(t *testing.T) {
 	})
 
 	t.Run("falha: quantidade inválida", func(t *testing.T) {
-		repoMock := new(mock_product.ProductRepositoryMock)
+		repoMock := new(mockProduct.ProductMock)
 		service := product{repo: repoMock}
 
 		err := service.IncreaseStock(ctx, 1, 0)
@@ -100,7 +100,7 @@ func TestProductService_IncreaseStock(t *testing.T) {
 	})
 
 	t.Run("Deve aumentar estoque com sucesso", func(t *testing.T) {
-		repoMock := new(mock_product.ProductRepositoryMock)
+		repoMock := new(mockProduct.ProductMock)
 
 		service := product{repo: repoMock}
 
@@ -117,7 +117,7 @@ func TestProductService_DecreaseStock(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Deve retornar erro quando repo retornar erro", func(t *testing.T) {
-		repoMock := new(mock_product.ProductRepositoryMock)
+		repoMock := new(mockProduct.ProductMock)
 
 		service := product{repo: repoMock}
 
@@ -131,7 +131,7 @@ func TestProductService_DecreaseStock(t *testing.T) {
 	})
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
-		repoMock := new(mock_product.ProductRepositoryMock)
+		repoMock := new(mockProduct.ProductMock)
 		service := product{repo: repoMock}
 
 		err := service.DecreaseStock(ctx, 0, 10)
@@ -141,7 +141,7 @@ func TestProductService_DecreaseStock(t *testing.T) {
 	})
 
 	t.Run("falha: quantidade inválida", func(t *testing.T) {
-		repoMock := new(mock_product.ProductRepositoryMock)
+		repoMock := new(mockProduct.ProductMock)
 		service := product{repo: repoMock}
 
 		err := service.DecreaseStock(ctx, 1, 0)
@@ -151,7 +151,7 @@ func TestProductService_DecreaseStock(t *testing.T) {
 	})
 
 	t.Run("Deve diminuir estoque com sucesso", func(t *testing.T) {
-		repoMock := new(mock_product.ProductRepositoryMock)
+		repoMock := new(mockProduct.ProductMock)
 
 		service := product{repo: repoMock}
 
@@ -168,7 +168,7 @@ func TestProductService_GetStock(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Deve retornar erro quando repo retornar erro", func(t *testing.T) {
-		repoMock := new(mock_product.ProductRepositoryMock)
+		repoMock := new(mockProduct.ProductMock)
 
 		service := product{repo: repoMock}
 
@@ -183,7 +183,7 @@ func TestProductService_GetStock(t *testing.T) {
 	})
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
-		repoMock := new(mock_product.ProductRepositoryMock)
+		repoMock := new(mockProduct.ProductMock)
 		service := product{repo: repoMock}
 
 		stock, err := service.GetStock(ctx, 0)
@@ -194,7 +194,7 @@ func TestProductService_GetStock(t *testing.T) {
 	})
 
 	t.Run("Deve retornar estoque com sucesso", func(t *testing.T) {
-		repoMock := new(mock_product.ProductRepositoryMock)
+		repoMock := new(mockProduct.ProductMock)
 
 		service := product{repo: repoMock}
 

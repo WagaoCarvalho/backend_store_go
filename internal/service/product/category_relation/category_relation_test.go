@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	repo "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/product"
+	mock_product "github.com/WagaoCarvalho/backend_store_go/infra/mock/product"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/category_relation"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
@@ -16,7 +16,7 @@ import (
 func Test_Create(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
 		input := &models.ProductCategoryRelation{ProductID: 1, CategoryID: 2}
@@ -24,97 +24,113 @@ func Test_Create(t *testing.T) {
 
 		mockRepo.On("Create", mock.Anything, input).Return(expected, nil)
 
-		result, wasCreated, err := service.Create(context.Background(), 1, 2)
+		result, err := service.Create(context.Background(), input)
 
 		assert.NoError(t, err)
-		assert.True(t, wasCreated)
 		assert.Equal(t, expected, result)
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("InvalidIDs", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
-		_, _, err := service.Create(context.Background(), 0, 1)
+		// ProductID inválido
+		_, err := service.Create(context.Background(), &models.ProductCategoryRelation{ProductID: 0, CategoryID: 1})
 		assert.ErrorIs(t, err, err_msg.ErrZeroID)
 
-		_, _, err = service.Create(context.Background(), 1, 0)
+		// CategoryID inválido
+		_, err = service.Create(context.Background(), &models.ProductCategoryRelation{ProductID: 1, CategoryID: 0})
 		assert.ErrorIs(t, err, err_msg.ErrZeroID)
 	})
 
-	t.Run("AlreadyExists_ReturnsExisting", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+	t.Run("NilModel", func(t *testing.T) {
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
+		_, err := service.Create(context.Background(), nil)
+		assert.ErrorIs(t, err, err_msg.ErrNilModel)
+	})
+
+	t.Run("AlreadyExists_ReturnsExisting", func(t *testing.T) {
+		mockRepo := new(mock_product.MockProductCategoryRelation)
+		service := NewProductCategoryRelation(mockRepo)
+
+		input := &models.ProductCategoryRelation{ProductID: 1, CategoryID: 2}
 		existing := &models.ProductCategoryRelation{ProductID: 1, CategoryID: 2}
 
-		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, err_msg.ErrRelationExists)
-		mockRepo.On("GetAllRelationsByProductID", mock.Anything, int64(1)).Return([]*models.ProductCategoryRelation{existing}, nil)
+		mockRepo.On("Create", mock.Anything, input).Return(nil, err_msg.ErrRelationExists)
+		mockRepo.On("GetAllRelationsByProductID", mock.Anything, int64(1)).
+			Return([]*models.ProductCategoryRelation{existing}, nil)
 
-		result, wasCreated, err := service.Create(context.Background(), 1, 2)
+		result, err := service.Create(context.Background(), input)
 
 		assert.NoError(t, err)
-		assert.False(t, wasCreated)
 		assert.Equal(t, *existing, *result)
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("AlreadyExists_GetByProductIDFails", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
-		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, err_msg.ErrRelationExists)
-		mockRepo.On("GetAllRelationsByProductID", mock.Anything, int64(1)).
-			Return([]*models.ProductCategoryRelation{}, errors.New("db error"))
+		input := &models.ProductCategoryRelation{ProductID: 1, CategoryID: 2}
 
-		_, _, err := service.Create(context.Background(), 1, 2)
+		mockRepo.On("Create", mock.Anything, input).
+			Return(nil, err_msg.ErrRelationExists)
+		mockRepo.On("GetAllRelationsByProductID", mock.Anything, int64(1)).
+			Return([]*models.ProductCategoryRelation(nil), errors.New("db error"))
+
+		_, err := service.Create(context.Background(), input)
 
 		assert.ErrorContains(t, err, "erro ao verificar relação")
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("AlreadyExists_ButRelationNotFound", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
-		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, err_msg.ErrRelationExists)
-		mockRepo.On("GetAllRelationsByProductID", mock.Anything, int64(1)).Return([]*models.ProductCategoryRelation{
-			{ProductID: 1, CategoryID: 999},
-		}, nil)
+		input := &models.ProductCategoryRelation{ProductID: 1, CategoryID: 2}
 
-		_, _, err := service.Create(context.Background(), 1, 2)
+		mockRepo.On("Create", mock.Anything, input).Return(nil, err_msg.ErrRelationExists)
+		mockRepo.On("GetAllRelationsByProductID", mock.Anything, int64(1)).
+			Return([]*models.ProductCategoryRelation{
+				{ProductID: 1, CategoryID: 999},
+			}, nil)
+
+		_, err := service.Create(context.Background(), input)
 
 		assert.ErrorIs(t, err, err_msg.ErrRelationExists)
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("ForeignKeyViolation_ReturnsInvalidForeignKeyError", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
-		productID := int64(1)
-		categoryID := int64(999)
+		input := &models.ProductCategoryRelation{ProductID: 1, CategoryID: 999}
 
-		mockRepo.
-			On("Create", mock.Anything, mock.Anything).
+		mockRepo.On("Create", mock.Anything, input).
 			Return(nil, err_msg.ErrDBInvalidForeignKey)
 
-		rel, wasCreated, err := service.Create(context.Background(), productID, categoryID)
+		result, err := service.Create(context.Background(), input)
 
-		assert.Nil(t, rel)
-		assert.False(t, wasCreated)
+		assert.Nil(t, result)
 		assert.ErrorIs(t, err, err_msg.ErrDBInvalidForeignKey)
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
-		mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil, errors.New("db error"))
+		input := &models.ProductCategoryRelation{ProductID: 1, CategoryID: 2}
 
-		_, _, err := service.Create(context.Background(), 1, 2)
+		mockRepo.On("Create", mock.Anything, input).
+			Return(nil, errors.New("db error"))
+
+		_, err := service.Create(context.Background(), input)
 
 		assert.ErrorContains(t, err, "erro ao criar")
 		mockRepo.AssertExpectations(t)
@@ -124,7 +140,7 @@ func Test_Create(t *testing.T) {
 func Test_GetAllRelationsByProductID(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
 		expected := []*models.ProductCategoryRelation{{ProductID: 1, CategoryID: 2}}
@@ -138,7 +154,7 @@ func Test_GetAllRelationsByProductID(t *testing.T) {
 	})
 
 	t.Run("InvalidProductID", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
 		_, err := service.GetAllRelationsByProductID(context.Background(), 0)
@@ -146,7 +162,7 @@ func Test_GetAllRelationsByProductID(t *testing.T) {
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
 		expectedErr := errors.New("erro no banco de dados")
@@ -164,7 +180,7 @@ func Test_GetAllRelationsByProductID(t *testing.T) {
 func Test_HasProductCategoryRelation(t *testing.T) {
 
 	t.Run("Success_ExistsTrue", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
 		mockRepo.On("HasProductCategoryRelation", mock.Anything, int64(1), int64(2)).Return(true, nil)
@@ -177,7 +193,7 @@ func Test_HasProductCategoryRelation(t *testing.T) {
 	})
 
 	t.Run("Success_ExistsFalse", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
 		mockRepo.On("HasProductCategoryRelation", mock.Anything, int64(1), int64(3)).Return(false, nil)
@@ -190,7 +206,7 @@ func Test_HasProductCategoryRelation(t *testing.T) {
 	})
 
 	t.Run("InvalidProductID", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
 		_, err := service.HasProductCategoryRelation(context.Background(), 0, 1)
@@ -198,7 +214,7 @@ func Test_HasProductCategoryRelation(t *testing.T) {
 	})
 
 	t.Run("InvalidCategoryID", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
 		_, err := service.HasProductCategoryRelation(context.Background(), 1, 0)
@@ -206,7 +222,7 @@ func Test_HasProductCategoryRelation(t *testing.T) {
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
-		mockRepo := new(repo.MockProductCategoryRelationRepo)
+		mockRepo := new(mock_product.MockProductCategoryRelation)
 		service := NewProductCategoryRelation(mockRepo)
 
 		expectedErr := errors.New("erro no banco de dados")
@@ -223,7 +239,7 @@ func Test_HasProductCategoryRelation(t *testing.T) {
 
 func Test_Delete(t *testing.T) {
 
-	mockRepo := new(repo.MockProductCategoryRelationRepo)
+	mockRepo := new(mock_product.MockProductCategoryRelation)
 	service := NewProductCategoryRelation(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {
@@ -269,7 +285,7 @@ func Test_Delete(t *testing.T) {
 
 func Test_DeleteAll(t *testing.T) {
 
-	mockRepo := new(repo.MockProductCategoryRelationRepo)
+	mockRepo := new(mock_product.MockProductCategoryRelation)
 	service := NewProductCategoryRelation(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {

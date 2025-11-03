@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	mockProductCat "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/product"
+	mockProductCat "github.com/WagaoCarvalho/backend_store_go/infra/mock/product"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/category"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +15,7 @@ import (
 func TestProductCategoryService_Create(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
-		mockRepo := new(mockProductCat.MockProductCategoryRepository)
+		mockRepo := new(mockProductCat.MockProductCategory)
 
 		inputCategory := &models.ProductCategory{Name: "NewCategory", Description: "NewDesc"}
 		createdCategory := &models.ProductCategory{ID: 1, Name: "NewCategory", Description: "NewDesc"}
@@ -33,7 +33,7 @@ func TestProductCategoryService_Create(t *testing.T) {
 	})
 
 	t.Run("ErrInvalidCategoryName", func(t *testing.T) {
-		mockRepo := new(mockProductCat.MockProductCategoryRepository)
+		mockRepo := new(mockProductCat.MockProductCategory)
 		service := NewProductCategory(mockRepo)
 
 		invalidCategory := &models.ProductCategory{Name: "   "} // nome só com espaços
@@ -45,7 +45,7 @@ func TestProductCategoryService_Create(t *testing.T) {
 	})
 
 	t.Run("ErrorOnCreate", func(t *testing.T) {
-		mockRepo := new(mockProductCat.MockProductCategoryRepository)
+		mockRepo := new(mockProductCat.MockProductCategory)
 		inputCategory := &models.ProductCategory{Name: "NewCategory", Description: "NewDesc"}
 
 		mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(cat *models.ProductCategory) bool {
@@ -66,7 +66,7 @@ func TestProductCategoryService_Create(t *testing.T) {
 func TestProductCategoryService_GetAll(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
-		mockRepo := new(mockProductCat.MockProductCategoryRepository)
+		mockRepo := new(mockProductCat.MockProductCategory)
 		expectedCategories := []*models.ProductCategory{
 			{ID: 1, Name: "Category1", Description: "Desc1"},
 		}
@@ -82,7 +82,7 @@ func TestProductCategoryService_GetAll(t *testing.T) {
 	})
 
 	t.Run("ErrorOnGetAll", func(t *testing.T) {
-		mockRepo := new(mockProductCat.MockProductCategoryRepository)
+		mockRepo := new(mockProductCat.MockProductCategory)
 		mockRepo.On("GetAll", mock.Anything).Return([]*models.ProductCategory(nil), errors.New("db error"))
 
 		service := NewProductCategory(mockRepo)
@@ -98,7 +98,7 @@ func TestProductCategoryService_GetAll(t *testing.T) {
 
 func TestProductCategoryService_GetById(t *testing.T) {
 
-	mockRepo := new(mockProductCat.MockProductCategoryRepository)
+	mockRepo := new(mockProductCat.MockProductCategory)
 	service := NewProductCategory(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {
@@ -156,8 +156,7 @@ func TestProductCategoryService_GetById(t *testing.T) {
 }
 
 func TestProductCategoryService_Update(t *testing.T) {
-
-	mockRepo := new(mockProductCat.MockProductCategoryRepository)
+	mockRepo := new(mockProductCat.MockProductCategory)
 	service := NewProductCategory(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {
@@ -167,10 +166,9 @@ func TestProductCategoryService_Update(t *testing.T) {
 		mockRepo.On("GetByID", ctx, int64(1)).Return(updatedCategory, nil).Once()
 		mockRepo.On("Update", ctx, updatedCategory).Return(nil).Once()
 
-		category, err := service.Update(ctx, updatedCategory)
+		err := service.Update(ctx, updatedCategory)
 
 		assert.NoError(t, err)
-		assert.Equal(t, updatedCategory, category)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -186,9 +184,8 @@ func TestProductCategoryService_Update(t *testing.T) {
 
 		mockRepo.On("GetByID", ctx, int64(7)).Return(nil, dbErr).Once()
 
-		result, err := service.Update(ctx, category)
+		err := service.Update(ctx, category)
 
-		assert.Nil(t, result)
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errMsg.ErrGet)
 		assert.ErrorContains(t, err, "erro no banco")
@@ -203,11 +200,10 @@ func TestProductCategoryService_Update(t *testing.T) {
 		mockRepo.On("GetByID", ctx, int64(2)).Return(updatedCategory, nil).Once()
 		mockRepo.On("Update", ctx, updatedCategory).Return(repoErr).Once()
 
-		category, err := service.Update(ctx, updatedCategory)
+		err := service.Update(ctx, updatedCategory)
 
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, "erro ao atualizar categoria")
-		assert.Nil(t, category)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -219,9 +215,8 @@ func TestProductCategoryService_Update(t *testing.T) {
 			Description: "Sem nome",
 		}
 
-		result, err := service.Update(ctx, invalidCategory)
+		err := service.Update(ctx, invalidCategory)
 
-		assert.Nil(t, result)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "campo obrigatório")
 	})
@@ -232,24 +227,22 @@ func TestProductCategoryService_Update(t *testing.T) {
 
 		mockRepo.On("GetByID", ctx, int64(4)).Return(nil, errMsg.ErrNotFound).Once()
 
-		category, err := service.Update(ctx, missingCategory)
+		err := service.Update(ctx, missingCategory)
 
 		assert.ErrorIs(t, err, errMsg.ErrNotFound)
-		assert.Nil(t, category)
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("InvalidCategoryID", func(t *testing.T) {
 		category := &models.ProductCategory{ID: 0}
-		result, err := service.Update(context.Background(), category)
+		err := service.Update(context.Background(), category)
 		assert.ErrorIs(t, err, errMsg.ErrZeroID)
-		assert.Nil(t, result)
 	})
 }
 
 func TestProductCategoryService_Delete(t *testing.T) {
 
-	mockRepo := new(mockProductCat.MockProductCategoryRepository)
+	mockRepo := new(mockProductCat.MockProductCategory)
 	service := NewProductCategory(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {

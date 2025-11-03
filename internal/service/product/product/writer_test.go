@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	mock_product "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/product"
+	mockProduct "github.com/WagaoCarvalho/backend_store_go/infra/mock/product"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -28,7 +28,7 @@ func TestProductService_Create(t *testing.T) {
 	}
 
 	t.Run("falha: produto é nil", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 
 		// Chama com produto nulo
@@ -40,7 +40,7 @@ func TestProductService_Create(t *testing.T) {
 	})
 
 	t.Run("sucesso", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 
 		service := NewProduct(mockRepo)
 
@@ -66,7 +66,7 @@ func TestProductService_Create(t *testing.T) {
 	})
 
 	t.Run("produto inválido", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 
 		input := &models.Product{
@@ -81,7 +81,7 @@ func TestProductService_Create(t *testing.T) {
 	})
 
 	t.Run("erro no repositório", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 
 		service := NewProduct(mockRepo)
 
@@ -116,7 +116,7 @@ func TestProductService_Update(t *testing.T) {
 	}
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 
 		input := validProduct()
@@ -129,7 +129,7 @@ func TestProductService_Update(t *testing.T) {
 	})
 
 	t.Run("falha: validação inválida", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 
 		input := validProduct()
@@ -142,7 +142,7 @@ func TestProductService_Update(t *testing.T) {
 	})
 
 	t.Run("falha: versão inválida", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 
 		input := validProduct()
@@ -155,7 +155,7 @@ func TestProductService_Update(t *testing.T) {
 	})
 
 	t.Run("falha: produto não encontrado (ProductExists = false)", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 
 		input := validProduct()
@@ -172,7 +172,7 @@ func TestProductService_Update(t *testing.T) {
 	})
 
 	t.Run("falha: conflito de versão (ProductExists = true)", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 
 		input := validProduct()
@@ -187,7 +187,7 @@ func TestProductService_Update(t *testing.T) {
 	})
 
 	t.Run("falha: erro ao verificar existência", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 
 		input := validProduct()
@@ -204,7 +204,7 @@ func TestProductService_Update(t *testing.T) {
 	})
 
 	t.Run("falha: erro genérico no Update", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 
 		input := validProduct()
@@ -220,7 +220,7 @@ func TestProductService_Update(t *testing.T) {
 	})
 
 	t.Run("sucesso", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 
 		input := validProduct()
@@ -238,7 +238,7 @@ func TestProductService_Delete(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("sucesso", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 
 		service := NewProduct(mockRepo)
 
@@ -253,7 +253,7 @@ func TestProductService_Delete(t *testing.T) {
 	})
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 
 		service := NewProduct(mockRepo)
 
@@ -265,7 +265,7 @@ func TestProductService_Delete(t *testing.T) {
 	})
 
 	t.Run("erro do repositório", func(t *testing.T) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+		mockRepo := new(mockProduct.ProductMock)
 
 		service := NewProduct(mockRepo)
 

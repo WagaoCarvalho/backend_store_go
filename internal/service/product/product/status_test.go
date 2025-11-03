@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	mock_product "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/product"
+	mockProduct "github.com/WagaoCarvalho/backend_store_go/infra/mock/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -13,8 +13,8 @@ import (
 
 func TestProductService_DisableProduct(t *testing.T) {
 
-	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+	setup := func() (*mockProduct.ProductMock, ProductService) {
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 		return mockRepo, service
 	}
@@ -54,8 +54,8 @@ func TestProductService_DisableProduct(t *testing.T) {
 
 func TestProductService_EnableProduct(t *testing.T) {
 
-	setup := func() (*mock_product.ProductRepositoryMock, ProductService) {
-		mockRepo := new(mock_product.ProductRepositoryMock)
+	setup := func() (*mockProduct.ProductMock, ProductService) {
+		mockRepo := new(mockProduct.ProductMock)
 		service := NewProduct(mockRepo)
 		return mockRepo, service
 	}

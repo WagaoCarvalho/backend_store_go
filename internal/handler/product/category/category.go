@@ -157,10 +157,11 @@ func (h *ProductCategory) Update(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
+
 	modelCategory := dto.ToProductCategoryModel(requestDTO)
 	modelCategory.ID = uint(id)
 
-	updatedCategory, err := h.service.Update(ctx, modelCategory)
+	err = h.service.Update(ctx, modelCategory)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
@@ -174,6 +175,15 @@ func (h *ProductCategory) Update(w http.ResponseWriter, r *http.Request) {
 			"id": id,
 		})
 		utils.ErrorResponse(w, fmt.Errorf("erro ao atualizar categoria: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	updatedCategory, err := h.service.GetByID(ctx, int64(id))
+	if err != nil {
+		h.logger.Error(ctx, err, ref+"erro ao buscar categoria atualizada", map[string]any{
+			"id": id,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("erro ao buscar categoria atualizada"), http.StatusInternalServerError)
 		return
 	}
 
