@@ -28,9 +28,20 @@ func (h *SupplierCategoryRelation) Create(w http.ResponseWriter, r *http.Request
 	const ref = "[SupplierCategoryRelationHandler - Create] "
 	ctx := r.Context()
 
+	if r.Method != http.MethodPost {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	var requestData dto.SupplierCategoryRelationsDTO
+	var requestData struct {
+		Relation *dto.SupplierCategoryRelationsDTO `json:"relation"`
+	}
+
 	if err := utils.FromJSON(r.Body, &requestData); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
@@ -39,49 +50,49 @@ func (h *SupplierCategoryRelation) Create(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	modelRelation := dto.ToSupplierCategoryRelationsModel(requestData)
+	if requestData.Relation == nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
+			"erro": "relation não fornecida",
+		})
+		utils.ErrorResponse(w, fmt.Errorf("relation não fornecida"), http.StatusBadRequest)
+		return
+	}
 
-	created, wasCreated, err := h.service.Create(ctx, modelRelation.SupplierID, modelRelation.CategoryID)
+	// converte DTO para Model
+	modelRelation := dto.ToSupplierCategoryRelationsModel(*requestData.Relation)
+
+	createdRelation, err := h.service.Create(ctx, modelRelation)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrDBInvalidForeignKey) {
-			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
-				"supplier_id": modelRelation.SupplierID,
-				"category_id": modelRelation.CategoryID,
-				"erro":        err.Error(),
-			})
-			utils.ErrorResponse(w, err, http.StatusBadRequest)
-			return
+		status := http.StatusInternalServerError
+
+		switch {
+		case errors.Is(err, errMsg.ErrZeroID):
+			status = http.StatusBadRequest
+		case errors.Is(err, errMsg.ErrRelationExists):
+			status = http.StatusConflict
+		case errors.Is(err, errMsg.ErrDBInvalidForeignKey): // <--- adicionar
+			status = http.StatusBadRequest
 		}
 
 		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 			"supplier_id": modelRelation.SupplierID,
 			"category_id": modelRelation.CategoryID,
 		})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		utils.ErrorResponse(w, err, status)
 		return
 	}
 
-	status := http.StatusOK
-	message := "Relação já existente"
-	logMsg := logger.LogAlreadyExists
-
-	if wasCreated {
-		status = http.StatusCreated
-		message = "Relação criada com sucesso"
-		logMsg = logger.LogCreateSuccess
-	}
-
-	h.logger.Info(ctx, ref+logMsg, map[string]any{
-		"supplier_id": modelRelation.SupplierID,
-		"category_id": modelRelation.CategoryID,
+	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
+		"supplier_id": createdRelation.SupplierID,
+		"category_id": createdRelation.CategoryID,
 	})
 
-	createdDTO := dto.ToSupplierCategoryRelationsDTO(created)
+	createdDTO := dto.ToSupplierCategoryRelationsDTO(createdRelation)
 
-	utils.ToJSON(w, status, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
+		Status:  http.StatusCreated,
+		Message: "Relação criada com sucesso",
 		Data:    createdDTO,
-		Message: message,
-		Status:  status,
 	})
 }
 
@@ -105,7 +116,7 @@ func (h *SupplierCategoryRelation) GetBySupplierID(w http.ResponseWriter, r *htt
 
 	h.logger.Info(ctx, ref+"Relações retornadas com sucesso", map[string]any{"supplier_id": supplierID})
 
-	supplierDTO := dto.ToSupplierRelatiosDTOs(relations)
+	supplierDTO := dto.ToSupplierRelatinosDTOs(relations)
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Data:    supplierDTO,
@@ -134,7 +145,7 @@ func (h *SupplierCategoryRelation) GetByCategoryID(w http.ResponseWriter, r *htt
 
 	h.logger.Info(ctx, ref+"Relações retornadas com sucesso", map[string]any{"category_id": categoryID})
 
-	supplierDTO := dto.ToSupplierRelatiosDTOs(relations)
+	supplierDTO := dto.ToSupplierRelatinosDTOs(relations)
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Data:    supplierDTO,
@@ -143,7 +154,7 @@ func (h *SupplierCategoryRelation) GetByCategoryID(w http.ResponseWriter, r *htt
 	})
 }
 
-func (h *SupplierCategoryRelation) DeleteByID(w http.ResponseWriter, r *http.Request) {
+func (h *SupplierCategoryRelation) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierCategoryRelationHandler - DeleteByID] "
 	ctx := r.Context()
 
@@ -159,7 +170,7 @@ func (h *SupplierCategoryRelation) DeleteByID(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err := h.service.DeleteByID(ctx, supplierID, categoryID)
+	err := h.service.Delete(ctx, supplierID, categoryID)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+"Erro ao excluir relação", map[string]any{
 			"supplier_id": supplierID,

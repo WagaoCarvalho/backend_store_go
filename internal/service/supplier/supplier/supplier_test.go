@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	mock_supplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
+	mock_supplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/supplier"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	convert "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -16,8 +16,8 @@ import (
 
 func TestSupplierService_Create(t *testing.T) {
 
-	setup := func() (*mock_supplier.MockSupplierRepository, Supplier) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+	setup := func() (*mock_supplier.MockSupplier, Supplier) {
+		mockRepo := new(mock_supplier.MockSupplier)
 		service := NewSupplier(mockRepo)
 		return mockRepo, service
 	}
@@ -68,8 +68,8 @@ func TestSupplierService_Create(t *testing.T) {
 
 func TestSupplierService_GetAll(t *testing.T) {
 
-	setup := func() (*mock_supplier.MockSupplierRepository, Supplier) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+	setup := func() (*mock_supplier.MockSupplier, Supplier) {
+		mockRepo := new(mock_supplier.MockSupplier)
 		service := NewSupplier(mockRepo)
 		return mockRepo, service
 	}
@@ -112,8 +112,8 @@ func TestSupplierService_GetAll(t *testing.T) {
 
 func TestSupplierService_GetByID(t *testing.T) {
 
-	setup := func() (*mock_supplier.MockSupplierRepository, Supplier) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+	setup := func() (*mock_supplier.MockSupplier, Supplier) {
+		mockRepo := new(mock_supplier.MockSupplier)
 		service := NewSupplier(mockRepo)
 		return mockRepo, service
 	}
@@ -176,8 +176,8 @@ func TestSupplierService_GetByID(t *testing.T) {
 
 func TestSupplierService_GetByName(t *testing.T) {
 
-	setup := func() (*mock_supplier.MockSupplierRepository, Supplier) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+	setup := func() (*mock_supplier.MockSupplier, Supplier) {
+		mockRepo := new(mock_supplier.MockSupplier)
 		service := NewSupplier(mockRepo)
 		return mockRepo, service
 	}
@@ -252,14 +252,14 @@ func TestSupplierService_GetVersionByID(t *testing.T) {
 	tests := []struct {
 		name           string
 		args           args
-		mockRepo       func(m *mock_supplier.MockSupplierRepository)
+		mockRepo       func(m *mock_supplier.MockSupplier)
 		expectedResult int64
 		expectedErr    error
 	}{
 		{
 			name: "sucesso ao obter versão",
 			args: args{id: 1},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(m *mock_supplier.MockSupplier) {
 				m.On("GetVersionByID", mock.Anything, int64(1)).Return(int64(3), nil).Once()
 			},
 			expectedResult: 3,
@@ -268,7 +268,7 @@ func TestSupplierService_GetVersionByID(t *testing.T) {
 		{
 			name: "id inválido",
 			args: args{id: 0},
-			mockRepo: func(_ *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(_ *mock_supplier.MockSupplier) {
 				// não deve chamar o repo
 			},
 			expectedResult: 0,
@@ -277,7 +277,7 @@ func TestSupplierService_GetVersionByID(t *testing.T) {
 		{
 			name: "erro ao buscar versão",
 			args: args{id: 2},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(m *mock_supplier.MockSupplier) {
 				m.On("GetVersionByID", mock.Anything, int64(2)).Return(int64(0), errors.New("erro ao buscar versão")).Once()
 			},
 			expectedResult: 0,
@@ -287,7 +287,7 @@ func TestSupplierService_GetVersionByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockRepo := &mock_supplier.MockSupplierRepository{}
+			mockRepo := &mock_supplier.MockSupplier{}
 			if tt.mockRepo != nil {
 				tt.mockRepo(mockRepo)
 			}
@@ -322,7 +322,7 @@ func TestSupplierService_Update(t *testing.T) {
 	}
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(mock_supplier.MockSupplier)
 		service := NewSupplier(mockRepo)
 
 		input := validSupplier()
@@ -335,7 +335,7 @@ func TestSupplierService_Update(t *testing.T) {
 	})
 
 	t.Run("falha: validação inválida", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(mock_supplier.MockSupplier)
 		service := NewSupplier(mockRepo)
 
 		input := validSupplier()
@@ -348,7 +348,7 @@ func TestSupplierService_Update(t *testing.T) {
 	})
 
 	t.Run("falha: versão inválida", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(mock_supplier.MockSupplier)
 		service := NewSupplier(mockRepo)
 
 		input := validSupplier()
@@ -361,7 +361,7 @@ func TestSupplierService_Update(t *testing.T) {
 	})
 
 	t.Run("falha: fornecedor não encontrado (SupplierExists = false)", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(mock_supplier.MockSupplier)
 		service := NewSupplier(mockRepo)
 
 		input := validSupplier()
@@ -376,7 +376,7 @@ func TestSupplierService_Update(t *testing.T) {
 	})
 
 	t.Run("falha: conflito de versão (SupplierExists = true)", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(mock_supplier.MockSupplier)
 		service := NewSupplier(mockRepo)
 
 		input := validSupplier()
@@ -391,7 +391,7 @@ func TestSupplierService_Update(t *testing.T) {
 	})
 
 	t.Run("falha: erro ao verificar existência", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(mock_supplier.MockSupplier)
 		service := NewSupplier(mockRepo)
 
 		input := validSupplier()
@@ -407,7 +407,7 @@ func TestSupplierService_Update(t *testing.T) {
 	})
 
 	t.Run("falha: erro genérico no repositório", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(mock_supplier.MockSupplier)
 		service := NewSupplier(mockRepo)
 
 		input := validSupplier()
@@ -422,7 +422,7 @@ func TestSupplierService_Update(t *testing.T) {
 	})
 
 	t.Run("sucesso", func(t *testing.T) {
-		mockRepo := new(mock_supplier.MockSupplierRepository)
+		mockRepo := new(mock_supplier.MockSupplier)
 		service := NewSupplier(mockRepo)
 
 		input := validSupplier()
@@ -444,13 +444,13 @@ func TestSupplierService_Delete(t *testing.T) {
 	tests := []struct {
 		name        string
 		args        args
-		mockRepo    func(m *mock_supplier.MockSupplierRepository)
+		mockRepo    func(m *mock_supplier.MockSupplier)
 		expectedErr error
 	}{
 		{
 			name: "sucesso ao deletar",
 			args: args{id: 1},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(m *mock_supplier.MockSupplier) {
 				m.On("Delete", mock.Anything, int64(1)).Return(nil).Once()
 			},
 			expectedErr: nil,
@@ -458,7 +458,7 @@ func TestSupplierService_Delete(t *testing.T) {
 		{
 			name: "id inválido para deleção",
 			args: args{id: 0},
-			mockRepo: func(_ *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(_ *mock_supplier.MockSupplier) {
 				// não deve chamar Delete
 			},
 			expectedErr: errMsg.ErrZeroID,
@@ -466,7 +466,7 @@ func TestSupplierService_Delete(t *testing.T) {
 		{
 			name: "erro ao deletar",
 			args: args{id: 2},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(m *mock_supplier.MockSupplier) {
 				m.On("Delete", mock.Anything, int64(2)).Return(errors.New("erro banco")).Once()
 			},
 			expectedErr: errors.New("erro banco"),
@@ -475,7 +475,7 @@ func TestSupplierService_Delete(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockRepo := &mock_supplier.MockSupplierRepository{}
+			mockRepo := &mock_supplier.MockSupplier{}
 			if tt.mockRepo != nil {
 				tt.mockRepo(mockRepo)
 			}
@@ -504,13 +504,13 @@ func TestSupplierService_Disable(t *testing.T) {
 	tests := []struct {
 		name        string
 		args        args
-		mockRepo    func(m *mock_supplier.MockSupplierRepository)
+		mockRepo    func(m *mock_supplier.MockSupplier)
 		expectedErr error
 	}{
 		{
 			name: "sucesso ao desabilitar fornecedor",
 			args: args{id: 1},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(m *mock_supplier.MockSupplier) {
 				m.On("GetByID", mock.Anything, int64(1)).Return(&models.Supplier{
 					ID:     1,
 					Status: true,
@@ -524,7 +524,7 @@ func TestSupplierService_Disable(t *testing.T) {
 		{
 			name: "id inválido para desabilitar",
 			args: args{id: 0},
-			mockRepo: func(_ *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(_ *mock_supplier.MockSupplier) {
 				// não deve chamar o repo
 			},
 			expectedErr: errMsg.ErrZeroID,
@@ -532,7 +532,7 @@ func TestSupplierService_Disable(t *testing.T) {
 		{
 			name: "erro ao obter fornecedor",
 			args: args{id: 2},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(m *mock_supplier.MockSupplier) {
 				m.On("GetByID", mock.Anything, int64(2)).Return(nil, errors.New("erro banco")).Once()
 			},
 			expectedErr: fmt.Errorf("%w: %v", errMsg.ErrGet, errors.New("erro banco")),
@@ -540,7 +540,7 @@ func TestSupplierService_Disable(t *testing.T) {
 		{
 			name: "erro ao atualizar fornecedor",
 			args: args{id: 3},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(m *mock_supplier.MockSupplier) {
 				m.On("GetByID", mock.Anything, int64(3)).Return(&models.Supplier{
 					ID:     3,
 					Status: true,
@@ -553,7 +553,7 @@ func TestSupplierService_Disable(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockRepo := &mock_supplier.MockSupplierRepository{}
+			mockRepo := &mock_supplier.MockSupplier{}
 			if tt.mockRepo != nil {
 				tt.mockRepo(mockRepo)
 			}
@@ -582,13 +582,13 @@ func TestSupplierService_Enable(t *testing.T) {
 	tests := []struct {
 		name        string
 		args        args
-		mockRepo    func(m *mock_supplier.MockSupplierRepository)
+		mockRepo    func(m *mock_supplier.MockSupplier)
 		expectedErr error
 	}{
 		{
 			name: "sucesso ao habilitar fornecedor",
 			args: args{id: 1},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(m *mock_supplier.MockSupplier) {
 				m.On("GetByID", mock.Anything, int64(1)).Return(&models.Supplier{
 					ID:     1,
 					Status: false,
@@ -602,7 +602,7 @@ func TestSupplierService_Enable(t *testing.T) {
 		{
 			name: "id inválido para habilitar",
 			args: args{id: 0},
-			mockRepo: func(_ *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(_ *mock_supplier.MockSupplier) {
 				// não deve chamar o repo
 			},
 			expectedErr: errMsg.ErrZeroID,
@@ -610,7 +610,7 @@ func TestSupplierService_Enable(t *testing.T) {
 		{
 			name: "erro ao obter fornecedor",
 			args: args{id: 2},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(m *mock_supplier.MockSupplier) {
 				m.On("GetByID", mock.Anything, int64(2)).Return(nil, errors.New("erro banco")).Once()
 			},
 			expectedErr: fmt.Errorf("%w: %v", errMsg.ErrGet, errors.New("erro banco")),
@@ -618,7 +618,7 @@ func TestSupplierService_Enable(t *testing.T) {
 		{
 			name: "erro ao atualizar fornecedor",
 			args: args{id: 3},
-			mockRepo: func(m *mock_supplier.MockSupplierRepository) {
+			mockRepo: func(m *mock_supplier.MockSupplier) {
 				m.On("GetByID", mock.Anything, int64(3)).Return(&models.Supplier{
 					ID:     3,
 					Status: false,
@@ -631,7 +631,7 @@ func TestSupplierService_Enable(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockRepo := &mock_supplier.MockSupplierRepository{}
+			mockRepo := &mock_supplier.MockSupplier{}
 			if tt.mockRepo != nil {
 				tt.mockRepo(mockRepo)
 			}

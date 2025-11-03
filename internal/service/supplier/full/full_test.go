@@ -22,8 +22,8 @@ import (
 	mockAddress "github.com/WagaoCarvalho/backend_store_go/infra/mock/address"
 	mockContact "github.com/WagaoCarvalho/backend_store_go/infra/mock/contact"
 	mockTX "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo"
-	mockCatRel "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
 	mockSupplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
+	mockCatRel "github.com/WagaoCarvalho/backend_store_go/infra/mock/supplier"
 )
 
 func TestSupplierFullService_CreateFull(t *testing.T) {
@@ -64,7 +64,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoContact := new(mockContact.MockContact)
-		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
+		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(
@@ -139,7 +139,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 			mockRepoSupplier,
 			new(mockAddress.MockAddress),
 			new(mockContact.MockContact),
-			new(mockCatRel.MockSupplierCategoryRelationRepo),
+			new(mockCatRel.MockSupplierCategoryRelation),
 			nil,
 		)
 
@@ -184,7 +184,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 			mockRepoSupplier,
 			new(mockAddress.MockAddress),
 			new(mockContact.MockContact),
-			new(mockCatRel.MockSupplierCategoryRelationRepo),
+			new(mockCatRel.MockSupplierCategoryRelation),
 			nil,
 		)
 
@@ -230,7 +230,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 			mockRepoSupplier,
 			new(mockAddress.MockAddress),
 			new(mockContact.MockContact),
-			new(mockCatRel.MockSupplierCategoryRelationRepo),
+			new(mockCatRel.MockSupplierCategoryRelation),
 			nil,
 		)
 
@@ -275,7 +275,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoContact := new(mockContact.MockContact)
-		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
+		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(
@@ -339,7 +339,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoContact := new(mockContact.MockContact)
-		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
+		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(
@@ -403,7 +403,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoContact := new(mockContact.MockContact)
-		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
+		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(
@@ -487,7 +487,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoContact := new(mockContact.MockContact)
-		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
+		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(
@@ -897,7 +897,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoContact := new(mockContact.MockContact)
-		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
+		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(
@@ -981,7 +981,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoContact := new(mockContact.MockContact)
-		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
+		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(
@@ -1056,7 +1056,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoContact := new(mockContact.MockContact)
-		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
+		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(
@@ -1136,7 +1136,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoContact := new(mockContact.MockContact)
-		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
+		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(
@@ -1218,7 +1218,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFullRepository)
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoContact := new(mockContact.MockContact)
-		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelationRepo)
+		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
 		service := NewSupplierFull(

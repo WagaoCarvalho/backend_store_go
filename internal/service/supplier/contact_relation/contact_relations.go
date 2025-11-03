@@ -11,7 +11,7 @@ import (
 )
 
 type SupplierContactRelation interface {
-	Create(ctx context.Context, supplierID, contactID int64) (*models.SupplierContactRelation, bool, error)
+	Create(ctx context.Context, relation *models.SupplierContactRelation) (*models.SupplierContactRelation, error)
 	GetAllRelationsBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierContactRelation, error)
 	HasSupplierContactRelation(ctx context.Context, supplierID, contactID int64) (bool, error)
 	Delete(ctx context.Context, supplierID, contactID int64) error
@@ -28,45 +28,42 @@ func NewSupplierContactRelation(repo repo.SupplierContactRelation) SupplierConta
 	}
 }
 
-func (s *supplierContactRelation) Create(ctx context.Context, supplierID, contactID int64) (*models.SupplierContactRelation, bool, error) {
-	if supplierID <= 0 {
-		return nil, false, err_msg.ErrZeroID
-	}
-	if contactID <= 0 {
-		return nil, false, err_msg.ErrZeroID
+func (s *supplierContactRelation) Create(ctx context.Context, relation *models.SupplierContactRelation) (*models.SupplierContactRelation, error) {
+	if relation == nil {
+		return nil, fmt.Errorf("%w: relação não fornecida", err_msg.ErrNilModel)
 	}
 
-	relation := models.SupplierContactRelation{
-		SupplierID: supplierID,
-		ContactID:  contactID,
+	if relation.SupplierID <= 0 || relation.ContactID <= 0 {
+		return nil, err_msg.ErrZeroID
 	}
 
-	createdRelation, err := s.relationRepo.Create(ctx, &relation)
+	createdRelation, err := s.relationRepo.Create(ctx, relation)
 	if err != nil {
 		switch {
 		case errors.Is(err, err_msg.ErrRelationExists):
-			relations, getErr := s.relationRepo.GetAllRelationsBySupplierID(ctx, supplierID)
+			// Recupera todas as relações e tenta retornar a já existente
+			relations, getErr := s.relationRepo.GetAllRelationsBySupplierID(ctx, relation.SupplierID)
 			if getErr != nil {
-				return nil, false, fmt.Errorf("%w: %v", err_msg.ErrRelationCheck, getErr)
+				return nil, fmt.Errorf("%w: %v", err_msg.ErrRelationCheck, getErr)
 			}
 
 			for _, rel := range relations {
-				if rel.ContactID == contactID {
-					return rel, false, nil
+				if rel.ContactID == relation.ContactID {
+					return rel, nil
 				}
 			}
 
-			return nil, false, err_msg.ErrRelationExists
+			return nil, err_msg.ErrRelationExists
 
 		case errors.Is(err, err_msg.ErrDBInvalidForeignKey):
-			return nil, false, err_msg.ErrDBInvalidForeignKey
+			return nil, err_msg.ErrDBInvalidForeignKey
 
 		default:
-			return nil, false, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
+			return nil, fmt.Errorf("%w: %v", err_msg.ErrCreate, err)
 		}
 	}
 
-	return createdRelation, true, nil
+	return createdRelation, nil
 }
 
 func (s *supplierContactRelation) GetAllRelationsBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierContactRelation, error) {

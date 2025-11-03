@@ -11,10 +11,10 @@ import (
 )
 
 type SupplierCategoryRelation interface {
-	Create(ctx context.Context, supplierID, categoryID int64) (*models.SupplierCategoryRelation, bool, error)
+	Create(ctx context.Context, relation *models.SupplierCategoryRelation) (*models.SupplierCategoryRelation, error)
 	GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelation, error)
 	GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelation, error)
-	DeleteByID(ctx context.Context, supplierID, categoryID int64) error
+	Delete(ctx context.Context, supplierID, categoryID int64) error
 	DeleteAllBySupplierID(ctx context.Context, supplierID int64) error
 	HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error)
 }
@@ -27,31 +27,30 @@ func NewSupplierCategoryRelation(repository repo.SupplierCategoryRelation) Suppl
 	return &supplierCategoryRelation{relationRepo: repository}
 }
 
-func (s *supplierCategoryRelation) Create(ctx context.Context, supplierID, categoryID int64) (*models.SupplierCategoryRelation, bool, error) {
-	if supplierID <= 0 || categoryID <= 0 {
-		return nil, false, errMsg.ErrZeroID
+func (s *supplierCategoryRelation) Create(ctx context.Context, relation *models.SupplierCategoryRelation) (*models.SupplierCategoryRelation, error) {
+	if relation == nil {
+		return nil, errMsg.ErrNilModel
 	}
 
-	exists, err := s.relationRepo.HasRelation(ctx, supplierID, categoryID)
+	if relation.SupplierID <= 0 || relation.CategoryID <= 0 {
+		return nil, errMsg.ErrZeroID
+	}
+
+	exists, err := s.relationRepo.HasRelation(ctx, relation.SupplierID, relation.CategoryID)
 	if err != nil {
-		return nil, false, fmt.Errorf("%w: %v", errMsg.ErrRelationCheck, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrRelationCheck, err)
 	}
 
 	if exists {
-		return nil, false, errMsg.ErrRelationExists
-	}
-
-	relation := &models.SupplierCategoryRelation{
-		SupplierID: supplierID,
-		CategoryID: categoryID,
+		return nil, errMsg.ErrRelationExists
 	}
 
 	created, err := s.relationRepo.Create(ctx, relation)
 	if err != nil {
-		return nil, false, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 
-	return created, true, nil
+	return created, nil
 }
 
 func (s *supplierCategoryRelation) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelation, error) {
@@ -80,7 +79,7 @@ func (s *supplierCategoryRelation) GetByCategoryID(ctx context.Context, category
 	return result, nil
 }
 
-func (s *supplierCategoryRelation) DeleteByID(ctx context.Context, supplierID, categoryID int64) error {
+func (s *supplierCategoryRelation) Delete(ctx context.Context, supplierID, categoryID int64) error {
 	if supplierID <= 0 || categoryID <= 0 {
 		return errMsg.ErrInvalidData
 	}

@@ -8,7 +8,7 @@ import (
 
 	mockAddress "github.com/WagaoCarvalho/backend_store_go/infra/mock/address"
 	mockClient "github.com/WagaoCarvalho/backend_store_go/infra/mock/client"
-	mockSupplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/repo/supplier"
+	mockSupplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/supplier"
 	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
@@ -24,7 +24,7 @@ func TestAddressService_Create(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		// endereço inválido: nenhum ID preenchido, campos obrigatórios vazios
@@ -43,7 +43,7 @@ func TestAddressService_Create(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		addressModel := &model.Address{
@@ -70,7 +70,7 @@ func TestAddressService_Create(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		userID := int64(1)
@@ -106,7 +106,7 @@ func TestAddressService_GetByID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 		result, err := service.GetByID(context.Background(), 0)
 
@@ -119,7 +119,7 @@ func TestAddressService_GetByID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		addressID := int64(1)
@@ -135,7 +135,7 @@ func TestAddressService_GetByID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		userID := int64(2)
@@ -156,7 +156,7 @@ func TestAddressService_GetByID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		addressID := int64(3)
@@ -182,7 +182,7 @@ func TestAddressService_GetByID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
 		addressID := int64(1)
@@ -208,7 +208,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		result, err := service.GetByUserID(context.Background(), 0)
@@ -222,7 +222,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		userID := int64(2)
@@ -243,7 +243,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		// Configura o mock para retornar lista vazia de endereços
@@ -264,7 +264,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		// Lista de endereços vazia
@@ -286,7 +286,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		// Lista de endereços vazia
@@ -308,7 +308,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		userID := int64(2)
@@ -330,7 +330,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		clientID := int64(123)
@@ -361,7 +361,7 @@ func TestAddressService_GetByClientID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		result, err := service.GetByClientID(context.Background(), 0)
@@ -375,7 +375,7 @@ func TestAddressService_GetByClientID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		clientID := int64(1)
@@ -397,7 +397,7 @@ func TestAddressService_GetByClientID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		clientID := int64(2)
@@ -419,7 +419,7 @@ func TestAddressService_GetByClientID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		clientID := int64(123)
@@ -454,7 +454,7 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		result, err := service.GetBySupplierID(context.Background(), 0)
@@ -468,7 +468,7 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		supplierID := int64(1)
@@ -492,7 +492,7 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 		mockRepoClient := new(mockClient.MockClient)
 
 		mockRepoUser := new(mockUser.MockUser)
-		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
 		supplierID := int64(789)
@@ -517,7 +517,7 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 		mockRepoClient := new(mockClient.MockClient)
 
 		mockRepoUser := new(mockUser.MockUser)
-		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
 		supplierID := int64(999)
@@ -540,7 +540,7 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
 		supplierID := int64(111)
@@ -566,7 +566,7 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplierRepository)
+		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		supplierID := int64(2)
@@ -672,7 +672,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
 		addressID := int64(1)
@@ -692,7 +692,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
 		err := service.Delete(context.Background(), 0)
@@ -706,7 +706,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
 		addressID := int64(1)
@@ -723,7 +723,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
 		addressID := int64(2)
@@ -743,7 +743,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
-		mockRepoSupplier := new(mockSupplier.MockSupplierRepository)
+		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
 		addressID := int64(3)
@@ -767,7 +767,7 @@ func TestAddressService_DisableAddress(t *testing.T) {
 	mockRepoAddress := new(mockAddress.MockAddress)
 	mockRepoClient := new(mockClient.MockClient)
 	mockRepoUser := new(mockUser.MockUser)
-	mockSupplier := new(mockSupplier.MockSupplierRepository)
+	mockSupplier := new(mockSupplier.MockSupplier)
 	service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 	t.Run("sucesso ao desabilitar endereço", func(t *testing.T) {
@@ -807,7 +807,7 @@ func TestAddressService_EnableAddress(t *testing.T) {
 	mockRepoAddress := new(mockAddress.MockAddress)
 	mockRepoClient := new(mockClient.MockClient)
 	mockRepoUser := new(mockUser.MockUser)
-	mockSupplier := new(mockSupplier.MockSupplierRepository)
+	mockSupplier := new(mockSupplier.MockSupplier)
 	service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 	t.Run("sucesso ao habilitar endereço", func(t *testing.T) {

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/contact_relation"
@@ -27,9 +28,20 @@ func (h *SupplierContactRelation) Create(w http.ResponseWriter, r *http.Request)
 	const ref = "[SupplierContactRelationHandler - Create] "
 	ctx := r.Context()
 
+	if r.Method != http.MethodPost {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	var requestData dto.ContactSupplierRelationDTO
+	var requestData struct {
+		Relation *dto.ContactSupplierRelationDTO `json:"relation"`
+	}
+
 	if err := utils.FromJSON(r.Body, &requestData); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
@@ -38,49 +50,49 @@ func (h *SupplierContactRelation) Create(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	modelRelation := dto.ToContactSupplierRelationModel(requestData)
+	if requestData.Relation == nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
+			"erro": "relation não fornecida",
+		})
+		utils.ErrorResponse(w, fmt.Errorf("relation não fornecida"), http.StatusBadRequest)
+		return
+	}
 
-	created, wasCreated, err := h.service.Create(ctx, modelRelation.SupplierID, modelRelation.ContactID)
+	// converte DTO para Model
+	modelRelation := dto.ToContactSupplierRelationModel(*requestData.Relation)
+
+	createdRelation, err := h.service.Create(ctx, modelRelation)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrDBInvalidForeignKey) {
-			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
-				"supplier_id": modelRelation.SupplierID,
-				"contact_id":  modelRelation.ContactID,
-				"erro":        err.Error(),
-			})
-			utils.ErrorResponse(w, err, http.StatusBadRequest)
-			return
+		status := http.StatusInternalServerError
+
+		switch {
+		case errors.Is(err, errMsg.ErrZeroID):
+			status = http.StatusBadRequest
+		case errors.Is(err, errMsg.ErrRelationExists):
+			status = http.StatusConflict
+		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
+			status = http.StatusBadRequest
 		}
 
 		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
 			"supplier_id": modelRelation.SupplierID,
 			"contact_id":  modelRelation.ContactID,
 		})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		utils.ErrorResponse(w, err, status)
 		return
 	}
 
-	status := http.StatusOK
-	message := "Relação já existente"
-	logMsg := logger.LogAlreadyExists
-
-	if wasCreated {
-		status = http.StatusCreated
-		message = "Relação criada com sucesso"
-		logMsg = logger.LogCreateSuccess
-	}
-
-	h.logger.Info(ctx, ref+logMsg, map[string]any{
-		"supplier_id": modelRelation.SupplierID,
-		"contact_id":  modelRelation.ContactID,
+	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
+		"supplier_id": createdRelation.SupplierID,
+		"contact_id":  createdRelation.ContactID,
 	})
 
-	createdDTO := dto.ToContactSupplierRelationDTO(created)
+	createdDTO := dto.ToContactSupplierRelationDTO(createdRelation)
 
-	utils.ToJSON(w, status, utils.DefaultResponse{
+	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
+		Status:  http.StatusCreated,
+		Message: "Relação criada com sucesso",
 		Data:    createdDTO,
-		Message: message,
-		Status:  status,
 	})
 }
 

@@ -41,6 +41,6 @@ func RegisterSupplierCategoryRelationRoutes(
 	s.HandleFunc("/supplier-category-relation", relationHandler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/supplier-category-relations/{supplier_id:[0-9]+}", relationHandler.GetBySupplierID).Methods(http.MethodGet)
 	s.HandleFunc("/supplier-category-relation/{supplier_id:[0-9]+}/category/{category_id:[0-9]+}/exists", relationHandler.HasSupplierCategoryRelation).Methods(http.MethodGet)
-	s.HandleFunc("/supplier-category-relation/{supplier_id:[0-9]+}/category/{category_id:[0-9]+}", relationHandler.DeleteByID).Methods(http.MethodDelete)
+	s.HandleFunc("/supplier-category-relation/{supplier_id:[0-9]+}/category/{category_id:[0-9]+}", relationHandler.Delete).Methods(http.MethodDelete)
 	s.HandleFunc("/supplier-category-relation/{supplier_id:[0-9]+}", relationHandler.DeleteAllBySupplierID).Methods(http.MethodDelete)
 }

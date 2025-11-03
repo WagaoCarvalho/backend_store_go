@@ -8,11 +8,11 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
 )
 
-type MockSupplierRepository struct {
+type MockSupplier struct {
 	mock.Mock
 }
 
-func (m *MockSupplierRepository) Create(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error) {
+func (m *MockSupplier) Create(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error) {
 	args := m.Called(ctx, supplier)
 	var result *models.Supplier
 	if args.Get(0) != nil {
@@ -21,7 +21,7 @@ func (m *MockSupplierRepository) Create(ctx context.Context, supplier *models.Su
 	return result, args.Error(1)
 }
 
-func (m *MockSupplierRepository) GetByID(ctx context.Context, id int64) (*models.Supplier, error) {
+func (m *MockSupplier) GetByID(ctx context.Context, id int64) (*models.Supplier, error) {
 	args := m.Called(ctx, id)
 	var result *models.Supplier
 	if args.Get(0) != nil {
@@ -30,7 +30,7 @@ func (m *MockSupplierRepository) GetByID(ctx context.Context, id int64) (*models
 	return result, args.Error(1)
 }
 
-func (m *MockSupplierRepository) GetByName(ctx context.Context, name string) ([]*models.Supplier, error) {
+func (m *MockSupplier) GetByName(ctx context.Context, name string) ([]*models.Supplier, error) {
 	args := m.Called(ctx, name)
 	if args.Get(0) != nil {
 		return args.Get(0).([]*models.Supplier), args.Error(1)
@@ -38,37 +38,37 @@ func (m *MockSupplierRepository) GetByName(ctx context.Context, name string) ([]
 	return nil, args.Error(1)
 }
 
-func (m *MockSupplierRepository) GetAll(ctx context.Context) ([]*models.Supplier, error) {
+func (m *MockSupplier) GetAll(ctx context.Context) ([]*models.Supplier, error) {
 	args := m.Called(ctx)
 	return args.Get(0).([]*models.Supplier), args.Error(1)
 }
 
-func (m *MockSupplierRepository) Update(ctx context.Context, supplier *models.Supplier) error {
+func (m *MockSupplier) Update(ctx context.Context, supplier *models.Supplier) error {
 	args := m.Called(ctx, supplier)
 	return args.Error(0)
 }
 
-func (m *MockSupplierRepository) Delete(ctx context.Context, id int64) error {
+func (m *MockSupplier) Delete(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
-func (m *MockSupplierRepository) Disable(ctx context.Context, id int64) error {
+func (m *MockSupplier) Disable(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
-func (m *MockSupplierRepository) Enable(ctx context.Context, id int64) error {
+func (m *MockSupplier) Enable(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
-func (m *MockSupplierRepository) GetVersionByID(ctx context.Context, id int64) (int64, error) {
+func (m *MockSupplier) GetVersionByID(ctx context.Context, id int64) (int64, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(int64), args.Error(1)
 }
 
-func (m *MockSupplierRepository) SupplierExists(ctx context.Context, supplierID int64) (bool, error) {
+func (m *MockSupplier) SupplierExists(ctx context.Context, supplierID int64) (bool, error) {
 	args := m.Called(ctx, supplierID)
 	return args.Bool(0), args.Error(1)
 }

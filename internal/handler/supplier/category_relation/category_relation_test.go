@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	mockSupplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/supplier"
+	mockSupplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/supplier"
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/category_relation"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/category_relation"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
@@ -20,12 +20,12 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setup() (*mockSupplier.MockSupplierCategoryRelationService, *SupplierCategoryRelation) {
+func setup() (*mockSupplier.MockSupplierCategoryRelation, *SupplierCategoryRelation) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
-	mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+	mockService := new(mockSupplier.MockSupplierCategoryRelation)
 	handler := NewSupplierCategoryRelation(mockService, logAdapter)
 
 	return mockService, handler
@@ -44,10 +44,14 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 			CategoryID: 2,
 		}
 
-		mockService.On("Create", mock.Anything, int64(1), int64(2)).
-			Return(expectedModel, true, nil).Once()
+		mockService.On("Create", mock.Anything, mock.MatchedBy(func(r *model.SupplierCategoryRelation) bool {
+			return r.SupplierID == 1 && r.CategoryID == 2
+		})).Return(expectedModel, nil).Once()
 
-		body, _ := json.Marshal(relationDTO)
+		body, _ := json.Marshal(struct {
+			Relation *dto.SupplierCategoryRelationsDTO `json:"relation"`
+		}{Relation: &relationDTO})
+
 		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
@@ -74,24 +78,11 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("success - relação já existente", func(t *testing.T) {
+	t.Run("error - método não permitido", func(t *testing.T) {
 		mockService, handler := setup()
 
-		relationDTO := dto.SupplierCategoryRelationsDTO{
-			SupplierID: utils.Int64Ptr(1),
-			CategoryID: utils.Int64Ptr(2),
-		}
-		expectedModel := &model.SupplierCategoryRelation{
-			SupplierID: 1,
-			CategoryID: 2,
-		}
-
-		mockService.On("Create", mock.Anything, int64(1), int64(2)).
-			Return(expectedModel, false, nil).Once()
-
-		body, _ := json.Marshal(relationDTO)
-		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
+		// Cria uma requisição com método GET (não permitido)
+		req := httptest.NewRequest(http.MethodGet, "/supplier-category-relations", nil)
 		rec := httptest.NewRecorder()
 
 		handler.Create(rec, req)
@@ -99,12 +90,12 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		resp := rec.Result()
 		defer resp.Body.Close()
 
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
 
 		var response utils.DefaultResponse
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		assert.NoError(t, err)
-		assert.Equal(t, "Relação já existente", response.Message)
+		assert.Contains(t, response.Message, "método GET não permitido")
 
 		mockService.AssertExpectations(t)
 	})
@@ -131,6 +122,74 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
+	t.Run("error - relação já existente", func(t *testing.T) {
+		mockService, handler := setup()
+
+		relationDTO := dto.SupplierCategoryRelationsDTO{
+			SupplierID: utils.Int64Ptr(1),
+			CategoryID: utils.Int64Ptr(2),
+		}
+
+		mockService.On("Create", mock.Anything, mock.MatchedBy(func(r *model.SupplierCategoryRelation) bool {
+			return r.SupplierID == 1 && r.CategoryID == 2
+		})).Return(nil, errMsg.ErrRelationExists).Once()
+
+		body, _ := json.Marshal(struct {
+			Relation *dto.SupplierCategoryRelationsDTO `json:"relation"`
+		}{Relation: &relationDTO})
+
+		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		resp := rec.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusConflict, resp.StatusCode)
+
+		var response utils.DefaultResponse
+		_ = json.NewDecoder(resp.Body).Decode(&response)
+		assert.Equal(t, http.StatusConflict, response.Status)
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("error - falha interna", func(t *testing.T) {
+		mockService, handler := setup()
+
+		relationDTO := dto.SupplierCategoryRelationsDTO{
+			SupplierID: utils.Int64Ptr(1),
+			CategoryID: utils.Int64Ptr(2),
+		}
+
+		mockService.On("Create", mock.Anything, mock.MatchedBy(func(r *model.SupplierCategoryRelation) bool {
+			return r.SupplierID == 1 && r.CategoryID == 2
+		})).Return(nil, errors.New("erro inesperado")).Once()
+
+		body, _ := json.Marshal(struct {
+			Relation *dto.SupplierCategoryRelationsDTO `json:"relation"`
+		}{Relation: &relationDTO})
+
+		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		resp := rec.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+
+		var response utils.DefaultResponse
+		_ = json.NewDecoder(resp.Body).Decode(&response)
+		assert.Equal(t, http.StatusInternalServerError, response.Status)
+
+		mockService.AssertExpectations(t)
+	})
+
 	t.Run("error - chave estrangeira inválida", func(t *testing.T) {
 		mockService, handler := setup()
 
@@ -139,10 +198,40 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 			CategoryID: utils.Int64Ptr(88),
 		}
 
-		mockService.On("Create", mock.Anything, int64(99), int64(88)).
-			Return(nil, false, errMsg.ErrDBInvalidForeignKey).Once()
+		mockService.On("Create", mock.Anything, mock.MatchedBy(func(r *model.SupplierCategoryRelation) bool {
+			return r.SupplierID == 99 && r.CategoryID == 88
+		})).Return(nil, errMsg.ErrDBInvalidForeignKey).Once()
 
-		body, _ := json.Marshal(relationDTO)
+		body, _ := json.Marshal(struct {
+			Relation *dto.SupplierCategoryRelationsDTO `json:"relation"`
+		}{Relation: &relationDTO})
+
+		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+
+		resp := rec.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var response utils.DefaultResponse
+		_ = json.NewDecoder(resp.Body).Decode(&response)
+		assert.Equal(t, http.StatusBadRequest, response.Status)
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("error - relation não fornecida", func(t *testing.T) {
+		mockService, handler := setup()
+
+		// Corpo da requisição com relation = null
+		body, _ := json.Marshal(struct {
+			Relation *dto.SupplierCategoryRelationsDTO `json:"relation"`
+		}{Relation: nil})
+
 		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
@@ -158,22 +247,28 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusBadRequest, response.Status)
+		assert.Equal(t, "relation não fornecida", response.Message)
 
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("error - falha interna", func(t *testing.T) {
+	t.Run("error - IDs zerados", func(t *testing.T) {
 		mockService, handler := setup()
 
+		// DTO com IDs zerados
 		relationDTO := dto.SupplierCategoryRelationsDTO{
-			SupplierID: utils.Int64Ptr(1),
-			CategoryID: utils.Int64Ptr(2),
+			SupplierID: utils.Int64Ptr(0),
+			CategoryID: utils.Int64Ptr(0),
 		}
 
-		mockService.On("Create", mock.Anything, int64(1), int64(2)).
-			Return(nil, false, errors.New("erro inesperado")).Once()
+		mockService.On("Create", mock.Anything, mock.MatchedBy(func(r *model.SupplierCategoryRelation) bool {
+			return r.SupplierID == 0 && r.CategoryID == 0
+		})).Return(nil, errMsg.ErrZeroID).Once()
 
-		body, _ := json.Marshal(relationDTO)
+		body, _ := json.Marshal(struct {
+			Relation *dto.SupplierCategoryRelationsDTO `json:"relation"`
+		}{Relation: &relationDTO})
+
 		req := httptest.NewRequest(http.MethodPost, "/supplier-category-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
@@ -183,15 +278,17 @@ func TestSupplierCategoryRelationHandler_Create(t *testing.T) {
 		resp := rec.Result()
 		defer resp.Body.Close()
 
-		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		var response utils.DefaultResponse
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		assert.NoError(t, err)
-		assert.Equal(t, http.StatusInternalServerError, response.Status)
+		assert.Equal(t, http.StatusBadRequest, response.Status)
+		assert.Equal(t, errMsg.ErrZeroID.Error(), response.Message)
 
 		mockService.AssertExpectations(t)
 	})
+
 }
 
 func TestSupplierCategoryRelationHandler_GetBySupplierID(t *testing.T) {
@@ -200,7 +297,7 @@ func TestSupplierCategoryRelationHandler_GetBySupplierID(t *testing.T) {
 	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("erro - id inválido", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/supplier-category-relations/invalid", nil)
@@ -221,12 +318,12 @@ func TestSupplierCategoryRelationHandler_GetBySupplierID(t *testing.T) {
 	})
 
 	t.Run("erro - erro no serviço", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		mockService.
 			On("GetBySupplierID", mock.Anything, int64(123)).
-			Return(nil, errors.New("erro no banco"))
+			Return([]*model.SupplierCategoryRelation(nil), errors.New("erro no banco"))
 
 		req := httptest.NewRequest(http.MethodGet, "/supplier-category-relations/123", nil)
 		req = mux.SetURLVars(req, map[string]string{"supplier_id": "123"})
@@ -245,7 +342,7 @@ func TestSupplierCategoryRelationHandler_GetBySupplierID(t *testing.T) {
 	})
 
 	t.Run("sucesso - relações encontradas", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		expectedRelations := []*model.SupplierCategoryRelation{
@@ -295,7 +392,7 @@ func TestSupplierCategoryRelationHandler_GetByCategoryID(t *testing.T) {
 	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("erro - id inválido", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/supplier-category-relations/category/invalid", nil)
@@ -315,12 +412,12 @@ func TestSupplierCategoryRelationHandler_GetByCategoryID(t *testing.T) {
 	})
 
 	t.Run("erro - erro no serviço", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		mockService.
 			On("GetByCategoryID", mock.Anything, int64(456)).
-			Return(nil, errors.New("erro no banco"))
+			Return([]*model.SupplierCategoryRelation(nil), errors.New("erro no banco"))
 
 		req := httptest.NewRequest(http.MethodGet, "/supplier-category-relations/category/456", nil)
 		req = mux.SetURLVars(req, map[string]string{"category_id": "456"})
@@ -339,7 +436,7 @@ func TestSupplierCategoryRelationHandler_GetByCategoryID(t *testing.T) {
 	})
 
 	t.Run("sucesso - relações encontradas", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		expectedRelations := []*model.SupplierCategoryRelation{
@@ -383,13 +480,13 @@ func TestSupplierCategoryRelationHandler_GetByCategoryID(t *testing.T) {
 
 }
 
-func TestSupplierCategoryRelationHandler_DeleteByID(t *testing.T) {
+func TestSupplierCategoryRelationHandler_Delete(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("erro - ids inválidos", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodDelete, "/supplier-category-relations/invalid/invalid", nil)
@@ -399,7 +496,7 @@ func TestSupplierCategoryRelationHandler_DeleteByID(t *testing.T) {
 		})
 		rec := httptest.NewRecorder()
 
-		handler.DeleteByID(rec, req)
+		handler.Delete(rec, req)
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 
@@ -412,11 +509,11 @@ func TestSupplierCategoryRelationHandler_DeleteByID(t *testing.T) {
 	})
 
 	t.Run("erro - erro no serviço", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		mockService.
-			On("DeleteByID", mock.Anything, int64(123), int64(456)).
+			On("Delete", mock.Anything, int64(123), int64(456)).
 			Return(errors.New("erro ao deletar"))
 
 		req := httptest.NewRequest(http.MethodDelete, "/supplier-category-relations/123/456", nil)
@@ -426,7 +523,7 @@ func TestSupplierCategoryRelationHandler_DeleteByID(t *testing.T) {
 		})
 		rec := httptest.NewRecorder()
 
-		handler.DeleteByID(rec, req)
+		handler.Delete(rec, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
 
@@ -439,11 +536,11 @@ func TestSupplierCategoryRelationHandler_DeleteByID(t *testing.T) {
 	})
 
 	t.Run("sucesso - relação excluída", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		mockService.
-			On("DeleteByID", mock.Anything, int64(123), int64(456)).
+			On("Delete", mock.Anything, int64(123), int64(456)).
 			Return(nil)
 
 		req := httptest.NewRequest(http.MethodDelete, "/supplier-category-relations/123/456", nil)
@@ -453,7 +550,7 @@ func TestSupplierCategoryRelationHandler_DeleteByID(t *testing.T) {
 		})
 		rec := httptest.NewRecorder()
 
-		handler.DeleteByID(rec, req)
+		handler.Delete(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
 
@@ -473,7 +570,7 @@ func TestSupplierCategoryRelationHandler_DeleteAllBySupplierID(t *testing.T) {
 	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("erro - id inválido", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodDelete, "/supplier-category-relations/invalid", nil)
@@ -493,7 +590,7 @@ func TestSupplierCategoryRelationHandler_DeleteAllBySupplierID(t *testing.T) {
 	})
 
 	t.Run("erro - erro no serviço", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		mockService.
@@ -517,7 +614,7 @@ func TestSupplierCategoryRelationHandler_DeleteAllBySupplierID(t *testing.T) {
 	})
 
 	t.Run("sucesso - relações excluídas", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		mockService.
@@ -548,7 +645,7 @@ func TestSupplierCategoryRelationHandler_HasSupplierCategoryRelation(t *testing.
 	logger := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("success - relação existe", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		mockService.
@@ -573,7 +670,7 @@ func TestSupplierCategoryRelationHandler_HasSupplierCategoryRelation(t *testing.
 	})
 
 	t.Run("success - relação não existe", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		mockService.
@@ -598,7 +695,7 @@ func TestSupplierCategoryRelationHandler_HasSupplierCategoryRelation(t *testing.
 	})
 
 	t.Run("error - supplier_id inválido", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/supplier-category-relation/abc/category/2", nil)
@@ -615,7 +712,7 @@ func TestSupplierCategoryRelationHandler_HasSupplierCategoryRelation(t *testing.
 	})
 
 	t.Run("error - category_id inválido", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/supplier-category-relation/1/category/xyz", nil)
@@ -631,7 +728,7 @@ func TestSupplierCategoryRelationHandler_HasSupplierCategoryRelation(t *testing.
 		assert.Contains(t, rr.Body.String(), "ID de categoria inválido")
 	})
 	t.Run("error - falha ao verificar relação", func(t *testing.T) {
-		mockService := new(mockSupplier.MockSupplierCategoryRelationService)
+		mockService := new(mockSupplier.MockSupplierCategoryRelation)
 		handler := NewSupplierCategoryRelation(mockService, logger)
 
 		supplierID := int64(1)

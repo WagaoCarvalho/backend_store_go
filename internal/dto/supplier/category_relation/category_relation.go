@@ -43,7 +43,7 @@ func ToSupplierCategoryRelationsDTO(model *models.SupplierCategoryRelation) Supp
 	}
 }
 
-func ToSupplierRelatiosDTOs(models []*models.SupplierCategoryRelation) []SupplierCategoryRelationsDTO {
+func ToSupplierRelatinosDTOs(models []*models.SupplierCategoryRelation) []SupplierCategoryRelationsDTO {
 	if len(models) == 0 {
 		return []SupplierCategoryRelationsDTO{}
 	}

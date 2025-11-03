@@ -7,32 +7,32 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockSupplierCategoryRepo struct {
+type MockSupplierCategory struct {
 	mock.Mock
 }
 
-func (m *MockSupplierCategoryRepo) Create(ctx context.Context, category *models.SupplierCategory) (*models.SupplierCategory, error) {
+func (m *MockSupplierCategory) Create(ctx context.Context, category *models.SupplierCategory) (*models.SupplierCategory, error) {
 	args := m.Called(ctx, category)
 	result, _ := args.Get(0).(*models.SupplierCategory)
 	return result, args.Error(1)
 }
 
-func (m *MockSupplierCategoryRepo) GetByID(ctx context.Context, id int64) (*models.SupplierCategory, error) {
+func (m *MockSupplierCategory) GetByID(ctx context.Context, id int64) (*models.SupplierCategory, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(*models.SupplierCategory), args.Error(1)
 }
 
-func (m *MockSupplierCategoryRepo) GetAll(ctx context.Context) ([]*models.SupplierCategory, error) {
+func (m *MockSupplierCategory) GetAll(ctx context.Context) ([]*models.SupplierCategory, error) {
 	args := m.Called(ctx)
 	return args.Get(0).([]*models.SupplierCategory), args.Error(1)
 }
 
-func (m *MockSupplierCategoryRepo) Update(ctx context.Context, category *models.SupplierCategory) error {
+func (m *MockSupplierCategory) Update(ctx context.Context, category *models.SupplierCategory) error {
 	args := m.Called(ctx, category)
 	return args.Error(0)
 }
 
-func (m *MockSupplierCategoryRepo) Delete(ctx context.Context, id int64) error {
+func (m *MockSupplierCategory) Delete(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
