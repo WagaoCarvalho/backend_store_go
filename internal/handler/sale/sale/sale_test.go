@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	mocksale "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/sale"
+	mocksale "github.com/WagaoCarvalho/backend_store_go/infra/mock/sale"
 	dtoSale "github.com/WagaoCarvalho/backend_store_go/internal/dto/sale/sale"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
@@ -21,8 +21,8 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setupHandler() (*mocksale.MockSaleService, *SaleHandler) {
-	mockService := new(mocksale.MockSaleService)
+func setupHandler() (*mocksale.MockSale, *SaleHandler) {
+	mockService := new(mocksale.MockSale)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	loggerAdapter := logger.NewLoggerAdapter(baseLogger)

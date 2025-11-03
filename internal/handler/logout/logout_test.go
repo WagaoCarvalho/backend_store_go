@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	mockLogout "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/logout"
+	mockLogout "github.com/WagaoCarvalho/backend_store_go/infra/mock/logout"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +21,7 @@ func TestLogoutHandler_Logout(t *testing.T) {
 	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	t.Run("Success", func(t *testing.T) {
-		mockService := new(mockLogout.MockLogoutService)
+		mockService := new(mockLogout.MockLogout)
 		handler := NewLogoutHandler(mockService, logAdapter)
 
 		token := "valid_token"
@@ -41,7 +41,7 @@ func TestLogoutHandler_Logout(t *testing.T) {
 	})
 
 	t.Run("InvalidMethod", func(t *testing.T) {
-		mockService := new(mockLogout.MockLogoutService)
+		mockService := new(mockLogout.MockLogout)
 		handler := NewLogoutHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/logout", nil)
@@ -54,7 +54,7 @@ func TestLogoutHandler_Logout(t *testing.T) {
 	})
 
 	t.Run("MissingAuthorizationHeader", func(t *testing.T) {
-		mockService := new(mockLogout.MockLogoutService)
+		mockService := new(mockLogout.MockLogout)
 		handler := NewLogoutHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPost, "/logout", nil)
@@ -67,7 +67,7 @@ func TestLogoutHandler_Logout(t *testing.T) {
 	})
 
 	t.Run("InvalidAuthorizationHeader", func(t *testing.T) {
-		mockService := new(mockLogout.MockLogoutService)
+		mockService := new(mockLogout.MockLogout)
 		handler := NewLogoutHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPost, "/logout", nil)
@@ -81,7 +81,7 @@ func TestLogoutHandler_Logout(t *testing.T) {
 	})
 
 	t.Run("ServiceError", func(t *testing.T) {
-		mockService := new(mockLogout.MockLogoutService)
+		mockService := new(mockLogout.MockLogout)
 		handler := NewLogoutHandler(mockService, logAdapter)
 
 		token := "token_error"

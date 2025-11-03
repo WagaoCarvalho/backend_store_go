@@ -6,11 +6,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockLogoutService struct {
+type MockLogout struct {
 	mock.Mock
 }
 
-func (m *MockLogoutService) Logout(ctx context.Context, tokenString string) error {
+func (m *MockLogout) Logout(ctx context.Context, tokenString string) error {
 	args := m.Called(ctx, tokenString)
 	return args.Error(0)
 }

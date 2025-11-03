@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	mockLogin "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/login"
+	mockLogin "github.com/WagaoCarvalho/backend_store_go/infra/mock/login"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/gorilla/mux"
