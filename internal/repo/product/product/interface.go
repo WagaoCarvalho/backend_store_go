@@ -1,6 +1,6 @@
 package repo
 
-import "github.com/WagaoCarvalho/backend_store_go/internal/iface"
+import iface "github.com/WagaoCarvalho/backend_store_go/internal/iface/product"
 
 type ProductRepo interface {
 	iface.ProductReader

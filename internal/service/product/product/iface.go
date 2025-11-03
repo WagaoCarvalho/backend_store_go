@@ -1,6 +1,6 @@
 package services
 
-import "github.com/WagaoCarvalho/backend_store_go/internal/iface"
+import iface "github.com/WagaoCarvalho/backend_store_go/internal/iface/product"
 
 type ProductService interface {
 	iface.ProductReader
