@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	mockSupplierFull "github.com/WagaoCarvalho/backend_store_go/infra/mock/service/supplier"
+	mockSupplierFull "github.com/WagaoCarvalho/backend_store_go/infra/mock/supplier"
 	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
 	dtoContact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
 	dtoSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/category"
@@ -27,7 +27,7 @@ import (
 )
 
 func TestSupplierHandler_CreateFull(t *testing.T) {
-	mockService := new(mockSupplierFull.MockSupplierFullService)
+	mockService := new(mockSupplierFull.MockSupplierFull)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
