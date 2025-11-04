@@ -9,20 +9,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/category_relation"
 )
-
-type SupplierCategoryRelation struct {
-	service service.SupplierCategoryRelation
-	logger  *logger.LogAdapter
-}
-
-func NewSupplierCategoryRelation(service service.SupplierCategoryRelation, logger *logger.LogAdapter) *SupplierCategoryRelation {
-	return &SupplierCategoryRelation{
-		service: service,
-		logger:  logger,
-	}
-}
 
 func (h *SupplierCategoryRelation) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierCategoryRelationHandler - Create] "
@@ -96,64 +83,6 @@ func (h *SupplierCategoryRelation) Create(w http.ResponseWriter, r *http.Request
 	})
 }
 
-func (h *SupplierCategoryRelation) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
-	const ref = "[SupplierCategoryRelationHandler - GetBySupplierID] "
-	ctx := r.Context()
-
-	supplierID, err := utils.GetIDParam(r, "supplier_id")
-	if err != nil {
-		h.logger.Warn(ctx, ref+"ID inválido", map[string]any{"supplier_id": supplierID})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
-		return
-	}
-
-	relations, err := h.service.GetBySupplierID(ctx, supplierID)
-	if err != nil {
-		h.logger.Error(ctx, err, ref+"Erro ao buscar relações", map[string]any{"supplier_id": supplierID})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	h.logger.Info(ctx, ref+"Relações retornadas com sucesso", map[string]any{"supplier_id": supplierID})
-
-	supplierDTO := dto.ToSupplierRelatinosDTOs(relations)
-
-	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    supplierDTO,
-		Message: "Relações encontradas",
-		Status:  http.StatusOK,
-	})
-}
-
-func (h *SupplierCategoryRelation) GetByCategoryID(w http.ResponseWriter, r *http.Request) {
-	const ref = "[SupplierCategoryRelationHandler - GetByCategoryID] "
-	ctx := r.Context()
-
-	categoryID, err := utils.GetIDParam(r, "category_id")
-	if err != nil {
-		h.logger.Warn(ctx, ref+"ID inválido", map[string]any{"category_id": categoryID, "erro": err.Error()})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
-		return
-	}
-
-	relations, err := h.service.GetByCategoryID(ctx, categoryID)
-	if err != nil {
-		h.logger.Error(ctx, err, ref+"Erro ao buscar relações", map[string]any{"category_id": categoryID})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	h.logger.Info(ctx, ref+"Relações retornadas com sucesso", map[string]any{"category_id": categoryID})
-
-	supplierDTO := dto.ToSupplierRelatinosDTOs(relations)
-
-	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    supplierDTO,
-		Message: "Relações encontradas",
-		Status:  http.StatusOK,
-	})
-}
-
 func (h *SupplierCategoryRelation) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierCategoryRelationHandler - DeleteByID] "
 	ctx := r.Context()
@@ -214,49 +143,6 @@ func (h *SupplierCategoryRelation) DeleteAllBySupplierID(w http.ResponseWriter, 
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Message: "Relações excluídas com sucesso",
-		Status:  http.StatusOK,
-	})
-}
-
-func (h *SupplierCategoryRelation) HasSupplierCategoryRelation(w http.ResponseWriter, r *http.Request) {
-	const ref = "[SupplierCategoryRelationHandler - HasSupplierCategoryRelation] "
-
-	supplierID, err := utils.GetIDParam(r, "supplier_id")
-	if err != nil {
-		h.logger.Warn(r.Context(), ref+"supplier_id inválido", map[string]any{
-			"erro": err.Error(),
-		})
-		utils.ErrorResponse(w, fmt.Errorf("ID de fornecedor inválido: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	categoryID, err := utils.GetIDParam(r, "category_id")
-	if err != nil {
-		h.logger.Warn(r.Context(), ref+"category_id inválido", map[string]any{
-			"erro": err.Error(),
-		})
-		utils.ErrorResponse(w, fmt.Errorf("ID de categoria inválido: %w", err), http.StatusBadRequest)
-		return
-	}
-
-	h.logger.Info(r.Context(), ref+"iniciando verificação", map[string]any{
-		"supplier_id": supplierID,
-		"category_id": categoryID,
-	})
-
-	hasRelation, err := h.service.HasRelation(r.Context(), supplierID, categoryID)
-	if err != nil {
-		h.logger.Error(r.Context(), err, ref+"erro ao verificar relação", map[string]any{
-			"supplier_id": supplierID,
-			"category_id": categoryID,
-		})
-		utils.ErrorResponse(w, fmt.Errorf("erro ao verificar relação: %w", err), http.StatusInternalServerError)
-		return
-	}
-
-	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    map[string]bool{"exists": hasRelation},
-		Message: "Verificação concluída com sucesso",
 		Status:  http.StatusOK,
 	})
 }
