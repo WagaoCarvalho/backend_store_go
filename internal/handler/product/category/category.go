@@ -6,18 +6,18 @@ import (
 	"net/http"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/product/category"
+	iface "github.com/WagaoCarvalho/backend_store_go/internal/iface/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/product/category"
 )
 
 type ProductCategory struct {
-	service service.ProductCategory
+	service iface.ProductCategory
 	logger  *logger.LogAdapter
 }
 
-func NewProductCategory(service service.ProductCategory, logger *logger.LogAdapter) *ProductCategory {
+func NewProductCategory(service iface.ProductCategory, logger *logger.LogAdapter) *ProductCategory {
 	return &ProductCategory{
 		service: service,
 		logger:  logger,

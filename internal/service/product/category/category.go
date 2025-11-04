@@ -5,24 +5,16 @@ import (
 	"errors"
 	"fmt"
 
+	iface "github.com/WagaoCarvalho/backend_store_go/internal/iface/product"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/category"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product/category"
 )
 
-type ProductCategory interface {
-	Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error)
-	GetAll(ctx context.Context) ([]*models.ProductCategory, error)
-	GetByID(ctx context.Context, id int64) (*models.ProductCategory, error)
-	Update(ctx context.Context, category *models.ProductCategory) error
-	Delete(ctx context.Context, id int64) error
-}
-
 type productCategory struct {
-	repo repo.ProductCategory
+	repo iface.ProductCategory
 }
 
-func NewProductCategory(repo repo.ProductCategory) ProductCategory {
+func NewProductCategory(repo iface.ProductCategory) iface.ProductCategory {
 	return &productCategory{
 		repo: repo,
 	}
