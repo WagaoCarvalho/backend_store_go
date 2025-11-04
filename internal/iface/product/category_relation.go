@@ -1,0 +1,15 @@
+package iface
+
+import (
+	"context"
+
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/category_relation"
+)
+
+type ProductCategoryRelation interface {
+	Create(ctx context.Context, relation *models.ProductCategoryRelation) (*models.ProductCategoryRelation, error)
+	HasProductCategoryRelation(ctx context.Context, productID, categoryID int64) (bool, error)
+	GetAllRelationsByProductID(ctx context.Context, productID int64) ([]*models.ProductCategoryRelation, error)
+	Delete(ctx context.Context, productID, categoryID int64) error
+	DeleteAll(ctx context.Context, productID int64) error
+}

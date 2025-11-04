@@ -6,21 +6,21 @@ import (
 	"net/http"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/product/category_relation"
+	iface "github.com/WagaoCarvalho/backend_store_go/internal/iface/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/product/category_relation"
 )
 
 type ProductCategoryRelation struct {
-	service service.ProductCategoryRelation
-	logger  *logger.LogAdapter
+	productCategoryRelation iface.ProductCategoryRelation
+	logger                  *logger.LogAdapter
 }
 
-func NewProductCategoryRelation(service service.ProductCategoryRelation, logger *logger.LogAdapter) *ProductCategoryRelation {
+func NewProductCategoryRelation(productCategoryRelation iface.ProductCategoryRelation, logger *logger.LogAdapter) *ProductCategoryRelation {
 	return &ProductCategoryRelation{
-		service: service,
-		logger:  logger,
+		productCategoryRelation: productCategoryRelation,
+		logger:                  logger,
 	}
 }
 
@@ -46,7 +46,7 @@ func (h *ProductCategoryRelation) Create(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	created, err := h.service.Create(ctx, modelRelation)
+	created, err := h.productCategoryRelation.Create(ctx, modelRelation)
 	if err != nil {
 		switch {
 		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
@@ -107,7 +107,7 @@ func (h *ProductCategoryRelation) GetAllRelationsByProductID(w http.ResponseWrit
 		return
 	}
 
-	relations, err := h.service.GetAllRelationsByProductID(ctx, id)
+	relations, err := h.productCategoryRelation.GetAllRelationsByProductID(ctx, id)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"product_id": id,
@@ -162,7 +162,7 @@ func (h *ProductCategoryRelation) HasProductCategoryRelation(w http.ResponseWrit
 		return
 	}
 
-	exists, err := h.service.HasProductCategoryRelation(ctx, productID, categoryID)
+	exists, err := h.productCategoryRelation.HasProductCategoryRelation(ctx, productID, categoryID)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogVerificationError, map[string]any{
 			"product_id":  productID,
@@ -203,7 +203,7 @@ func (h *ProductCategoryRelation) Delete(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err := h.service.Delete(ctx, productID, categoryID); err != nil {
+	if err := h.productCategoryRelation.Delete(ctx, productID, categoryID); err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"product_id":  productID,
 			"category_id": categoryID,
@@ -236,7 +236,7 @@ func (h *ProductCategoryRelation) DeleteAll(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := h.service.DeleteAll(ctx, productID); err != nil {
+	if err := h.productCategoryRelation.DeleteAll(ctx, productID); err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
 			"product_id": productID,
 		})

@@ -11,12 +11,12 @@ import (
 )
 
 type productCategory struct {
-	repo iface.ProductCategory
+	productCategory iface.ProductCategory
 }
 
-func NewProductCategory(repo iface.ProductCategory) iface.ProductCategory {
+func NewProductCategory(iface iface.ProductCategory) iface.ProductCategory {
 	return &productCategory{
-		repo: repo,
+		productCategory: iface,
 	}
 }
 
@@ -25,7 +25,7 @@ func (s *productCategory) Create(ctx context.Context, category *models.ProductCa
 		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 
-	createdCategory, err := s.repo.Create(ctx, category)
+	createdCategory, err := s.productCategory.Create(ctx, category)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
@@ -34,7 +34,7 @@ func (s *productCategory) Create(ctx context.Context, category *models.ProductCa
 }
 
 func (s *productCategory) GetAll(ctx context.Context) ([]*models.ProductCategory, error) {
-	categories, err := s.repo.GetAll(ctx)
+	categories, err := s.productCategory.GetAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
@@ -47,7 +47,7 @@ func (s *productCategory) GetByID(ctx context.Context, id int64) (*models.Produc
 		return nil, errMsg.ErrZeroID
 	}
 
-	category, err := s.repo.GetByID(ctx, id)
+	category, err := s.productCategory.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
 			return nil, errMsg.ErrNotFound
@@ -67,14 +67,14 @@ func (s *productCategory) Update(ctx context.Context, category *models.ProductCa
 		return err
 	}
 
-	if _, err := s.repo.GetByID(ctx, int64(category.ID)); err != nil {
+	if _, err := s.productCategory.GetByID(ctx, int64(category.ID)); err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
 			return errMsg.ErrNotFound
 		}
 		return fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
-	if err := s.repo.Update(ctx, category); err != nil {
+	if err := s.productCategory.Update(ctx, category); err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
@@ -86,14 +86,14 @@ func (s *productCategory) Delete(ctx context.Context, id int64) error {
 		return errMsg.ErrZeroID
 	}
 
-	if _, err := s.repo.GetByID(ctx, id); err != nil {
+	if _, err := s.productCategory.GetByID(ctx, id); err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
 			return errMsg.ErrNotFound
 		}
 		return fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
-	if err := s.repo.Delete(ctx, id); err != nil {
+	if err := s.productCategory.Delete(ctx, id); err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
 
