@@ -9,10 +9,10 @@ type product struct {
 	db repo.DBExecutor
 }
 
-func NewProductFromPool(pool *pgxpool.Pool) ProductRepo {
+func NewProductFromPool(pool *pgxpool.Pool) Product {
 	return &product{db: pool}
 }
 
-func NewProduct(db repo.DBExecutor) ProductRepo {
+func NewProduct(db repo.DBExecutor) Product {
 	return &product{db: db}
 }

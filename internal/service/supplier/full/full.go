@@ -10,7 +10,7 @@ import (
 
 	modelsFull "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
+	repoAddressTx "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
 	repoContact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	repoRelation "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/category_relation"
 	repoContactRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/contact_relation"
@@ -23,7 +23,7 @@ type SupplierFull interface {
 
 type supplierFull struct {
 	repoSupplier   repoSupplier.SupplierFull
-	repoAddress    repoAddress.Address
+	repoAddressTx  repoAddressTx.AddressTx
 	repoContact    repoContact.Contact
 	repoCatRel     repoRelation.SupplierCategoryRelation
 	repoContactRel repoContactRel.SupplierContactRelation
@@ -31,14 +31,14 @@ type supplierFull struct {
 
 func NewSupplierFull(
 	repoSupplier repoSupplier.SupplierFull,
-	repoAddress repoAddress.Address,
+	repoAddressTx repoAddressTx.AddressTx,
 	repoContact repoContact.Contact,
 	repoCatRel repoRelation.SupplierCategoryRelation,
 	repoContactRel repoContactRel.SupplierContactRelation,
 ) SupplierFull {
 	return &supplierFull{
 		repoSupplier:   repoSupplier,
-		repoAddress:    repoAddress,
+		repoAddressTx:  repoAddressTx,
 		repoContact:    repoContact,
 		repoCatRel:     repoCatRel,
 		repoContactRel: repoContactRel,
@@ -97,7 +97,7 @@ func (s *supplierFull) CreateFull(ctx context.Context, supplierFull *modelsFull.
 	if err := supplierFull.Address.Validate(); err != nil {
 		return nil, commitOrRollback(fmt.Errorf("endereço inválido: %w", err))
 	}
-	createdAddress, err := s.repoAddress.CreateTx(ctx, tx, supplierFull.Address)
+	createdAddress, err := s.repoAddressTx.CreateTx(ctx, tx, supplierFull.Address)
 	if err != nil {
 		return nil, commitOrRollback(err)
 	}

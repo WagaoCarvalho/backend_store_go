@@ -2,7 +2,7 @@ package repo
 
 import iface "github.com/WagaoCarvalho/backend_store_go/internal/iface/product"
 
-type ProductRepo interface {
+type Product interface {
 	iface.ProductReader
 	iface.ProductWriter
 	iface.ProductStock

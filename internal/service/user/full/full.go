@@ -14,7 +14,7 @@ import (
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 
-	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
+	repoAddressTx "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
 	repoContact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	repoUserCatRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/category_relation"
 	repoUserContactRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/contact_relation"
@@ -27,7 +27,7 @@ type UserFull interface {
 
 type userFull struct {
 	repoUser           repoUserFull.UserFull
-	repoAddress        repoAddress.Address
+	repoAddressTx      repoAddressTx.AddressTx
 	repoContact        repoContact.Contact
 	repoUserCatRel     repoUserCatRel.UserCategoryRelation
 	repoUserContactRel repoUserContactRel.UserContactRelation
@@ -36,7 +36,7 @@ type userFull struct {
 
 func NewUserFull(
 	repoUser repoUserFull.UserFull,
-	repoAddress repoAddress.Address,
+	repoAddressTx repoAddressTx.AddressTx,
 	repoContact repoContact.Contact,
 	repoUserCatRel repoUserCatRel.UserCategoryRelation,
 	repoUserContactRel repoUserContactRel.UserContactRelation,
@@ -44,7 +44,7 @@ func NewUserFull(
 ) UserFull {
 	return &userFull{
 		repoUser:           repoUser,
-		repoAddress:        repoAddress,
+		repoAddressTx:      repoAddressTx,
 		repoContact:        repoContact,
 		repoUserCatRel:     repoUserCatRel,
 		repoUserContactRel: repoUserContactRel,
@@ -111,7 +111,7 @@ func (s *userFull) CreateFull(ctx context.Context, userFull *modelsUserFull.User
 	if err := userFull.Address.Validate(); err != nil {
 		return nil, commitOrRollback(fmt.Errorf("endereço inválido: %w", err))
 	}
-	createdAddress, err := s.repoAddress.CreateTx(ctx, tx, userFull.Address)
+	createdAddress, err := s.repoAddressTx.CreateTx(ctx, tx, userFull.Address)
 	if err != nil {
 		return nil, commitOrRollback(err)
 	}
