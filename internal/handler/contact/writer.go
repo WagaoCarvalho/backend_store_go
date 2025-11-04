@@ -8,20 +8,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/contact"
 )
-
-type Contact struct {
-	service service.Contact
-	logger  *logger.LogAdapter
-}
-
-func NewContact(service service.Contact, logger *logger.LogAdapter) *Contact {
-	return &Contact{
-		service: service,
-		logger:  logger,
-	}
-}
 
 func (h *Contact) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ContactHandler - Create] "
@@ -76,44 +63,6 @@ func (h *Contact) Create(w http.ResponseWriter, r *http.Request) {
 		Status:  http.StatusCreated,
 		Message: "Contato criado com sucesso",
 		Data:    createdDTO,
-	})
-}
-
-func (h *Contact) GetByID(w http.ResponseWriter, r *http.Request) {
-	const ref = "[ContactHandler - GetByID] "
-	ctx := r.Context()
-
-	h.logger.Info(ctx, ref+logger.LogGetInit, nil)
-
-	id, err := utils.GetIDParam(r, "id")
-	if err != nil {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
-			"erro": err.Error(),
-		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
-		return
-	}
-
-	contactModel, err := h.service.GetByID(ctx, id)
-	if err != nil {
-		h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-			"contact_id": id,
-			"erro":       err.Error(),
-		})
-		utils.ErrorResponse(w, err, http.StatusNotFound)
-		return
-	}
-
-	contactDTO := dtoContact.ToContactDTO(contactModel)
-
-	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"contact_id": contactDTO.ID,
-	})
-
-	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
-		Message: "Contato encontrado",
-		Data:    contactDTO,
 	})
 }
 
