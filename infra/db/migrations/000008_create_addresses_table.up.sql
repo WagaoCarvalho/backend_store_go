@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS addresses (
     is_active BOOLEAN NOT NULL DEFAULT TRUE, 
 
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_addresses_city_state ON addresses (city, state);
