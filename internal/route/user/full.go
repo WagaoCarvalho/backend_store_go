@@ -28,7 +28,7 @@ func RegisterUserFullRoutes(
 ) {
 	repoUser := repoUser.NewUser(db)
 	repoAddress := repoAddress.NewAddressTx(db)
-	repoContact := repoContact.NewContact(db)
+	repoContact := repoContact.NewContactTx(db)
 	repoUserCatRel := repoUserCatRel.NewUserCategoryRelation(db)
 	repoUserContactRel := repoUserContactRel.NewUserContactRelation(db)
 	hasher := auth.BcryptHasher{}

@@ -14,8 +14,8 @@ import (
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 
-	repoAddressTx "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
-	repoContact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
+	repoAddressTx "github.com/WagaoCarvalho/backend_store_go/internal/iface/address"
+	repoContactTx "github.com/WagaoCarvalho/backend_store_go/internal/iface/contact"
 	repoUserCatRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/category_relation"
 	repoUserContactRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/contact_relation"
 	repoUserFull "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/full"
@@ -28,7 +28,7 @@ type UserFull interface {
 type userFull struct {
 	repoUser           repoUserFull.UserFull
 	repoAddressTx      repoAddressTx.AddressTx
-	repoContact        repoContact.Contact
+	repoContactTx      repoContactTx.ContactTx
 	repoUserCatRel     repoUserCatRel.UserCategoryRelation
 	repoUserContactRel repoUserContactRel.UserContactRelation
 	hasher             auth.PasswordHasher
@@ -37,7 +37,7 @@ type userFull struct {
 func NewUserFull(
 	repoUser repoUserFull.UserFull,
 	repoAddressTx repoAddressTx.AddressTx,
-	repoContact repoContact.Contact,
+	repoContactTx repoContactTx.ContactTx,
 	repoUserCatRel repoUserCatRel.UserCategoryRelation,
 	repoUserContactRel repoUserContactRel.UserContactRelation,
 	hasher auth.PasswordHasher,
@@ -45,7 +45,7 @@ func NewUserFull(
 	return &userFull{
 		repoUser:           repoUser,
 		repoAddressTx:      repoAddressTx,
-		repoContact:        repoContact,
+		repoContactTx:      repoContactTx,
 		repoUserCatRel:     repoUserCatRel,
 		repoUserContactRel: repoUserContactRel,
 		hasher:             hasher,
@@ -120,7 +120,7 @@ func (s *userFull) CreateFull(ctx context.Context, userFull *modelsUserFull.User
 	if err := userFull.Contact.Validate(); err != nil {
 		return nil, commitOrRollback(fmt.Errorf("contato inválido: %w", err))
 	}
-	createdContact, err := s.repoContact.CreateTx(ctx, tx, userFull.Contact)
+	createdContact, err := s.repoContactTx.CreateTx(ctx, tx, userFull.Contact)
 	if err != nil {
 		return nil, commitOrRollback(err)
 	}

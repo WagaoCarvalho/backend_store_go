@@ -8,10 +8,10 @@ import (
 	modelsCatRel "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/category_relation"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 
+	repoAddressTx "github.com/WagaoCarvalho/backend_store_go/internal/iface/address"
+	repoContactTx "github.com/WagaoCarvalho/backend_store_go/internal/iface/contact"
 	modelsFull "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	repoAddressTx "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
-	repoContact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	repoRelation "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/category_relation"
 	repoContactRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/contact_relation"
 	repoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/full"
@@ -24,7 +24,7 @@ type SupplierFull interface {
 type supplierFull struct {
 	repoSupplier   repoSupplier.SupplierFull
 	repoAddressTx  repoAddressTx.AddressTx
-	repoContact    repoContact.Contact
+	repoContactTx  repoContactTx.ContactTx
 	repoCatRel     repoRelation.SupplierCategoryRelation
 	repoContactRel repoContactRel.SupplierContactRelation
 }
@@ -32,14 +32,14 @@ type supplierFull struct {
 func NewSupplierFull(
 	repoSupplier repoSupplier.SupplierFull,
 	repoAddressTx repoAddressTx.AddressTx,
-	repoContact repoContact.Contact,
+	repoContactTx repoContactTx.ContactTx,
 	repoCatRel repoRelation.SupplierCategoryRelation,
 	repoContactRel repoContactRel.SupplierContactRelation,
 ) SupplierFull {
 	return &supplierFull{
 		repoSupplier:   repoSupplier,
 		repoAddressTx:  repoAddressTx,
-		repoContact:    repoContact,
+		repoContactTx:  repoContactTx,
 		repoCatRel:     repoCatRel,
 		repoContactRel: repoContactRel,
 	}
@@ -106,7 +106,7 @@ func (s *supplierFull) CreateFull(ctx context.Context, supplierFull *modelsFull.
 	if err := supplierFull.Contact.Validate(); err != nil {
 		return nil, commitOrRollback(fmt.Errorf("contato inválido: %w", err))
 	}
-	createdContact, err := s.repoContact.CreateTx(ctx, tx, supplierFull.Contact)
+	createdContact, err := s.repoContactTx.CreateTx(ctx, tx, supplierFull.Contact)
 	if err != nil {
 		return nil, commitOrRollback(err)
 	}

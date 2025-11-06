@@ -12,10 +12,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type AddressTx interface {
-	CreateTx(ctx context.Context, tx pgx.Tx, address *models.Address) (*models.Address, error)
-}
-
 type addressTx struct {
 	db *pgxpool.Pool
 }

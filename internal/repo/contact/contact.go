@@ -11,24 +11,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-type Contact interface {
-	Create(ctx context.Context, contact *models.Contact) (*models.Contact, error)
-	CreateTx(ctx context.Context, tx pgx.Tx, contact *models.Contact) (*models.Contact, error)
-	GetByID(ctx context.Context, id int64) (*models.Contact, error)
-	Update(ctx context.Context, contact *models.Contact) error
-	Delete(ctx context.Context, id int64) error
-}
-
-type contact struct {
-	db *pgxpool.Pool
-}
-
-func NewContact(db *pgxpool.Pool) Contact {
-	return &contact{db: db}
-}
 
 func (r *contact) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
 	const query = `
@@ -70,63 +53,6 @@ func (r *contact) Create(ctx context.Context, contact *models.Contact) (*models.
 	}
 
 	return contact, nil
-}
-
-func (r *contact) CreateTx(ctx context.Context, tx pgx.Tx, contact *models.Contact) (*models.Contact, error) {
-	const query = `
-		INSERT INTO contacts (
-			contact_name, contact_description,
-			email, phone, cell, contact_type, created_at, updated_at
-		) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-		RETURNING id, created_at, updated_at
-	`
-
-	err := tx.QueryRow(ctx, query,
-		contact.ContactName,
-		contact.ContactDescription,
-		contact.Email,
-		contact.Phone,
-		contact.Cell,
-		contact.ContactType,
-	).Scan(&contact.ID, &contact.CreatedAt, &contact.UpdatedAt)
-
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
-	}
-
-	return contact, nil
-}
-
-func (r *contact) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
-	const query = `
-		SELECT 
-			id, contact_name, contact_description,
-			email, phone, cell, contact_type, created_at, updated_at
-		FROM contacts 
-		WHERE id = $1
-	`
-
-	var contact models.Contact
-	err := r.db.QueryRow(ctx, query, id).Scan(
-		&contact.ID,
-		&contact.ContactName,
-		&contact.ContactDescription,
-		&contact.Email,
-		&contact.Phone,
-		&contact.Cell,
-		&contact.ContactType,
-		&contact.CreatedAt,
-		&contact.UpdatedAt,
-	)
-
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, errMsg.ErrNotFound
-		}
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-
-	return &contact, nil
 }
 
 func (r *contact) Update(ctx context.Context, contact *models.Contact) error {
