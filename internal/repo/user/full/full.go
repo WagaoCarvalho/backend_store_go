@@ -19,7 +19,7 @@ type userFull struct {
 	db repo.DBTransactor
 }
 
-func NewUser(db repo.DBTransactor) UserFull {
+func NewUserFull(db repo.DBTransactor) UserFull {
 	return &userFull{
 		db: db,
 	}

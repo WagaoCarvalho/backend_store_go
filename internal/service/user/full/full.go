@@ -16,8 +16,8 @@ import (
 
 	repoAddressTx "github.com/WagaoCarvalho/backend_store_go/internal/iface/address"
 	repoContactTx "github.com/WagaoCarvalho/backend_store_go/internal/iface/contact"
-	repoUserCatRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/category_relation"
-	repoUserContactRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/contact_relation"
+	repoUserCatRelTx "github.com/WagaoCarvalho/backend_store_go/internal/iface/user"
+	repoUserContactRelTx "github.com/WagaoCarvalho/backend_store_go/internal/iface/user"
 	repoUserFull "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/full"
 )
 
@@ -26,29 +26,29 @@ type UserFull interface {
 }
 
 type userFull struct {
-	repoUser           repoUserFull.UserFull
-	repoAddressTx      repoAddressTx.AddressTx
-	repoContactTx      repoContactTx.ContactTx
-	repoUserCatRel     repoUserCatRel.UserCategoryRelation
-	repoUserContactRel repoUserContactRel.UserContactRelation
-	hasher             auth.PasswordHasher
+	repoUser             repoUserFull.UserFull
+	repoAddressTx        repoAddressTx.AddressTx
+	repoContactTx        repoContactTx.ContactTx
+	repoUserCatRelTx     repoUserCatRelTx.UserCategoryRelationTx
+	repoUserContactRelTx repoUserContactRelTx.UserContactRelationTx
+	hasher               auth.PasswordHasher
 }
 
 func NewUserFull(
 	repoUser repoUserFull.UserFull,
 	repoAddressTx repoAddressTx.AddressTx,
 	repoContactTx repoContactTx.ContactTx,
-	repoUserCatRel repoUserCatRel.UserCategoryRelation,
-	repoUserContactRel repoUserContactRel.UserContactRelation,
+	repoUserCatRelTx repoUserCatRelTx.UserCategoryRelationTx,
+	repoUserContactRelTx repoUserContactRelTx.UserContactRelationTx,
 	hasher auth.PasswordHasher,
 ) UserFull {
 	return &userFull{
-		repoUser:           repoUser,
-		repoAddressTx:      repoAddressTx,
-		repoContactTx:      repoContactTx,
-		repoUserCatRel:     repoUserCatRel,
-		repoUserContactRel: repoUserContactRel,
-		hasher:             hasher,
+		repoUser:             repoUser,
+		repoAddressTx:        repoAddressTx,
+		repoContactTx:        repoContactTx,
+		repoUserCatRelTx:     repoUserCatRelTx,
+		repoUserContactRelTx: repoUserContactRelTx,
+		hasher:               hasher,
 	}
 }
 
@@ -133,7 +133,7 @@ func (s *userFull) CreateFull(ctx context.Context, userFull *modelsUserFull.User
 	if err := relation.Validate(); err != nil {
 		return nil, commitOrRollback(fmt.Errorf("relação usuário-contato inválida: %w", err))
 	}
-	if _, err := s.repoUserContactRel.CreateTx(ctx, tx, relation); err != nil {
+	if _, err := s.repoUserContactRelTx.CreateTx(ctx, tx, relation); err != nil {
 		return nil, commitOrRollback(err)
 	}
 
@@ -148,7 +148,7 @@ func (s *userFull) CreateFull(ctx context.Context, userFull *modelsUserFull.User
 			return nil, commitOrRollback(fmt.Errorf("relação usuário-categoria inválida: %w", err))
 		}
 
-		if _, err := s.repoUserCatRel.CreateTx(ctx, tx, relation); err != nil {
+		if _, err := s.repoUserCatRelTx.CreateTx(ctx, tx, relation); err != nil {
 			return nil, commitOrRollback(err)
 		}
 	}
