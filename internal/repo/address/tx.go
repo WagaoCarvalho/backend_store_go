@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	iface "github.com/WagaoCarvalho/backend_store_go/internal/iface/address"
+	ifaceTx "github.com/WagaoCarvalho/backend_store_go/internal/iface/address"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
@@ -16,7 +16,7 @@ type addressTx struct {
 	db *pgxpool.Pool
 }
 
-func NewAddressTx(db *pgxpool.Pool) iface.AddressTx {
+func NewAddressTx(db *pgxpool.Pool) ifaceTx.AddressTx {
 	return &addressTx{db: db}
 }
 

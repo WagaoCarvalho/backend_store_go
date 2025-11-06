@@ -10,9 +10,9 @@ import (
 
 	repoAddressTx "github.com/WagaoCarvalho/backend_store_go/internal/iface/address"
 	repoContactTx "github.com/WagaoCarvalho/backend_store_go/internal/iface/contact"
+	repoRelationTx "github.com/WagaoCarvalho/backend_store_go/internal/iface/supplier"
 	modelsFull "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/full"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	repoRelation "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/category_relation"
 	repoContactRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/contact_relation"
 	repoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/full"
 )
@@ -22,26 +22,26 @@ type SupplierFull interface {
 }
 
 type supplierFull struct {
-	repoSupplier   repoSupplier.SupplierFull
-	repoAddressTx  repoAddressTx.AddressTx
-	repoContactTx  repoContactTx.ContactTx
-	repoCatRel     repoRelation.SupplierCategoryRelation
-	repoContactRel repoContactRel.SupplierContactRelation
+	repoSupplier         repoSupplier.SupplierFull
+	repoAddressTx        repoAddressTx.AddressTx
+	repoContactTx        repoContactTx.ContactTx
+	repoCategoryRelation repoRelationTx.SupplierCategoryRelationTx
+	repoContactRel       repoContactRel.SupplierContactRelation
 }
 
 func NewSupplierFull(
 	repoSupplier repoSupplier.SupplierFull,
 	repoAddressTx repoAddressTx.AddressTx,
 	repoContactTx repoContactTx.ContactTx,
-	repoCatRel repoRelation.SupplierCategoryRelation,
+	repoCatRel repoRelationTx.SupplierCategoryRelationTx,
 	repoContactRel repoContactRel.SupplierContactRelation,
 ) SupplierFull {
 	return &supplierFull{
-		repoSupplier:   repoSupplier,
-		repoAddressTx:  repoAddressTx,
-		repoContactTx:  repoContactTx,
-		repoCatRel:     repoCatRel,
-		repoContactRel: repoContactRel,
+		repoSupplier:         repoSupplier,
+		repoAddressTx:        repoAddressTx,
+		repoContactTx:        repoContactTx,
+		repoCategoryRelation: repoCatRel,
+		repoContactRel:       repoContactRel,
 	}
 }
 
@@ -122,7 +122,7 @@ func (s *supplierFull) CreateFull(ctx context.Context, supplierFull *modelsFull.
 			return nil, commitOrRollback(fmt.Errorf("relação fornecedor-categoria inválida: %w", err))
 		}
 
-		if _, err := s.repoCatRel.CreateTx(ctx, tx, relation); err != nil {
+		if _, err := s.repoCategoryRelation.CreateTx(ctx, tx, relation); err != nil {
 			return nil, commitOrRollback(err)
 		}
 	}

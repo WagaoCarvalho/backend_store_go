@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	iface "github.com/WagaoCarvalho/backend_store_go/internal/iface/contact"
+	ifaceTx "github.com/WagaoCarvalho/backend_store_go/internal/iface/contact"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/jackc/pgx/v5"
@@ -15,7 +15,7 @@ type contactTx struct {
 	db *pgxpool.Pool
 }
 
-func NewContactTx(db *pgxpool.Pool) iface.ContactTx {
+func NewContactTx(db *pgxpool.Pool) ifaceTx.ContactTx {
 	return &contactTx{db: db}
 }
 
