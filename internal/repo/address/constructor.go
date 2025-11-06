@@ -1,11 +1,11 @@
 package repo
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
 
 type address struct {
-	db *pgxpool.Pool
+	db repo.DBExecutor
 }
 
-func NewAddress(db *pgxpool.Pool) Address {
+func NewAddress(db repo.DBExecutor) Address {
 	return &address{db: db}
 }

@@ -1,11 +1,11 @@
 package repo
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
 
 type clientCredit struct {
-	db *pgxpool.Pool
+	db repo.DBExecutor
 }
 
-func NewClientCredit(db *pgxpool.Pool) ClientCredit {
+func NewClientCredit(db repo.DBExecutor) ClientCredit {
 	return &clientCredit{db: db}
 }

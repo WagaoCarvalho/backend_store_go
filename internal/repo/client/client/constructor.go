@@ -1,11 +1,11 @@
 package repo
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
 
 type client struct {
-	db *pgxpool.Pool
+	db repo.DBExecutor
 }
 
-func NewClient(db *pgxpool.Pool) Client {
+func NewClient(db repo.DBExecutor) Client {
 	return &client{db: db}
 }

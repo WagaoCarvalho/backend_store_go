@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	iface "github.com/WagaoCarvalho/backend_store_go/internal/iface/product"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/category"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	iface "github.com/WagaoCarvalho/backend_store_go/internal/repo/product/category"
 )
 
 type productCategory struct {

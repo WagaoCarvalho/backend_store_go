@@ -8,8 +8,8 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/category_relation"
 	errMsgDb "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type SupplierCategoryRelation interface {
@@ -23,10 +23,10 @@ type SupplierCategoryRelation interface {
 }
 
 type supplierCategoryRelation struct {
-	db *pgxpool.Pool
+	db repo.DBExecutor
 }
 
-func NewSupplierCategoryRelation(db *pgxpool.Pool) SupplierCategoryRelation {
+func NewSupplierCategoryRelation(db repo.DBExecutor) SupplierCategoryRelation {
 	return &supplierCategoryRelation{db: db}
 }
 

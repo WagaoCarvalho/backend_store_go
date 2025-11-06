@@ -8,8 +8,8 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type User interface {
@@ -27,10 +27,10 @@ type User interface {
 }
 
 type user struct {
-	db *pgxpool.Pool
+	db repo.DBExecutor
 }
 
-func NewUser(db *pgxpool.Pool) User {
+func NewUser(db repo.DBExecutor) User {
 	return &user{
 		db: db,
 	}

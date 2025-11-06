@@ -6,8 +6,8 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserFull interface {
@@ -16,10 +16,10 @@ type UserFull interface {
 }
 
 type userFull struct {
-	db *pgxpool.Pool
+	db repo.DBTransactor
 }
 
-func NewUser(db *pgxpool.Pool) UserFull {
+func NewUser(db repo.DBTransactor) UserFull {
 	return &userFull{
 		db: db,
 	}

@@ -5,16 +5,15 @@ import (
 	"errors"
 	"fmt"
 
-	iface "github.com/WagaoCarvalho/backend_store_go/internal/iface/product"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/category_relation"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
 type productCategoryRelation struct {
-	relationRepo iface.ProductCategoryRelation
+	relationRepo ProductCategoryRelation
 }
 
-func NewProductCategoryRelation(repo iface.ProductCategoryRelation) iface.ProductCategoryRelation {
+func NewProductCategoryRelation(repo ProductCategoryRelation) ProductCategoryRelation {
 	return &productCategoryRelation{
 		relationRepo: repo,
 	}

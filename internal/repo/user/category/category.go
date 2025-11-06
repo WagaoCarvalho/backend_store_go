@@ -7,8 +7,8 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/category"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserCategory interface {
@@ -20,10 +20,10 @@ type UserCategory interface {
 }
 
 type userCategory struct {
-	db *pgxpool.Pool
+	db repo.DBExecutor
 }
 
-func NewUserCategory(db *pgxpool.Pool) UserCategory {
+func NewUserCategory(db repo.DBExecutor) UserCategory {
 	return &userCategory{db: db}
 }
 

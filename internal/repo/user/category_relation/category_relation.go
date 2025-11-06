@@ -8,8 +8,8 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/category_relation"
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserCategoryRelation interface {
@@ -22,10 +22,10 @@ type UserCategoryRelation interface {
 }
 
 type userCategoryRelation struct {
-	db *pgxpool.Pool
+	db repo.DBExecutor
 }
 
-func NewUserCategoryRelation(db *pgxpool.Pool) UserCategoryRelation {
+func NewUserCategoryRelation(db repo.DBExecutor) UserCategoryRelation {
 	return &userCategoryRelation{db: db}
 }
 

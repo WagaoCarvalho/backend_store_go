@@ -12,7 +12,7 @@ func (s *address) Disable(ctx context.Context, id int64) error {
 		return errMsg.ErrZeroID
 	}
 
-	if err := s.repoAddress.Disable(ctx, id); err != nil {
+	if err := s.address.Disable(ctx, id); err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrDisable, err)
 	}
 
@@ -24,7 +24,7 @@ func (s *address) Enable(ctx context.Context, id int64) error {
 		return errMsg.ErrZeroID
 	}
 
-	if err := s.repoAddress.Enable(ctx, id); err != nil {
+	if err := s.address.Enable(ctx, id); err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrEnable, err)
 	}
 

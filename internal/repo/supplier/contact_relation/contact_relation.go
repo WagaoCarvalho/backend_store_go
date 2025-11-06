@@ -8,8 +8,8 @@ import (
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type SupplierContactRelation interface {
@@ -22,10 +22,10 @@ type SupplierContactRelation interface {
 }
 
 type supplierContactRelation struct {
-	db *pgxpool.Pool
+	db repo.DBExecutor
 }
 
-func NewSupplierContactRelation(db *pgxpool.Pool) SupplierContactRelation {
+func NewSupplierContactRelation(db repo.DBExecutor) SupplierContactRelation {
 	return &supplierContactRelation{db: db}
 }
 

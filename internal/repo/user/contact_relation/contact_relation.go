@@ -8,8 +8,8 @@ import (
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserContactRelation interface {
@@ -22,10 +22,10 @@ type UserContactRelation interface {
 }
 
 type userContactRelation struct {
-	db *pgxpool.Pool
+	db repo.DBExecutor
 }
 
-func NewUserContactRelation(db *pgxpool.Pool) UserContactRelation {
+func NewUserContactRelation(db repo.DBExecutor) UserContactRelation {
 	return &userContactRelation{db: db}
 }
 

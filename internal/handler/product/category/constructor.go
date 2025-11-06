@@ -1,8 +1,8 @@
 package handler
 
 import (
-	iface "github.com/WagaoCarvalho/backend_store_go/internal/iface/product"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	iface "github.com/WagaoCarvalho/backend_store_go/internal/service/product/category"
 )
 
 type ProductCategory struct {

@@ -6,8 +6,8 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type SupplierFull interface {
@@ -16,13 +16,11 @@ type SupplierFull interface {
 }
 
 type supplierFull struct {
-	db *pgxpool.Pool
+	db repo.DBTransactor
 }
 
-func NewSupplierFull(db *pgxpool.Pool) SupplierFull {
-	return &supplierFull{
-		db: db,
-	}
+func NewSupplierFull(db repo.DBTransactor) SupplierFull {
+	return &supplierFull{db: db}
 }
 
 func (r *supplierFull) BeginTx(ctx context.Context) (pgx.Tx, error) {
