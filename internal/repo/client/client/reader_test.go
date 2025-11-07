@@ -1,0 +1,331 @@
+package repo
+
+import (
+	"context"
+	"errors"
+	"testing"
+	"time"
+
+	mockDb "github.com/WagaoCarvalho/backend_store_go/infra/mock/db"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	"github.com/jackc/pgx/v5"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+)
+
+func TestClient_GetByID(t *testing.T) {
+	t.Run("successfully get client by id", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &client{db: mockDB}
+		ctx := context.Background()
+		clientID := int64(1)
+		expectedTime := time.Now()
+
+		mockRow := &mockDb.MockRowWithID{
+			IDValue:   clientID,
+			TimeValue: expectedTime,
+		}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{clientID}).Return(mockRow)
+
+		result, err := repo.GetByID(ctx, clientID)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, expectedTime, result.CreatedAt)
+		assert.Equal(t, clientID, result.ID)
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrNotFound when client does not exist", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &client{db: mockDB}
+		ctx := context.Background()
+		clientID := int64(999)
+
+		mockRow := &mockDb.MockRow{Err: pgx.ErrNoRows}
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{clientID}).Return(mockRow)
+
+		result, err := repo.GetByID(ctx, clientID)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrGet when database error occurs", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &client{db: mockDB}
+		ctx := context.Background()
+		clientID := int64(1)
+		dbError := errors.New("connection lost")
+
+		mockRow := &mockDb.MockRow{Err: dbError}
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{clientID}).Return(mockRow)
+
+		result, err := repo.GetByID(ctx, clientID)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+		assert.ErrorContains(t, err, dbError.Error())
+		mockDB.AssertExpectations(t)
+	})
+}
+
+func TestClient_GetByName(t *testing.T) {
+	t.Run("successfully get clients by name", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &client{db: mockDB}
+		ctx := context.Background()
+
+		mockRows := new(mockDb.MockRows)
+		mockRows.On("Next").Return(true).Once()
+		mockRows.On("Scan",
+			mock.AnythingOfType("*int64"),     // ID
+			mock.AnythingOfType("*string"),    // Name
+			mock.AnythingOfType("**string"),   // Email (ponteiro para ponteiro)
+			mock.AnythingOfType("**string"),   // Phone (ponteiro para ponteiro)
+			mock.AnythingOfType("**string"),   // Document (ponteiro para ponteiro)
+			mock.AnythingOfType("*string"),    // Address
+			mock.AnythingOfType("*bool"),      // IsActive
+			mock.AnythingOfType("*time.Time"), // CreatedAt
+			mock.AnythingOfType("*time.Time"), // UpdatedAt
+		).Return(nil).Once()
+		mockRows.On("Next").Return(false).Once()
+		mockRows.On("Close").Return()
+
+		mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(mockRows, nil)
+
+		result, err := repo.GetByName(ctx, "test")
+
+		assert.NoError(t, err)
+		assert.Len(t, result, 1)
+		mockDB.AssertExpectations(t)
+		mockRows.AssertExpectations(t)
+	})
+
+	t.Run("return ErrGet when query fails", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &client{db: mockDB}
+		ctx := context.Background()
+
+		dbErr := errors.New("db failure")
+
+		// Retornar um MockRows vazio junto com o erro, ou apenas o erro
+		mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(&mockDb.MockRows{}, dbErr)
+
+		result, err := repo.GetByName(ctx, "test")
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+		assert.ErrorContains(t, err, dbErr.Error())
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrGet when scan fails", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &client{db: mockDB}
+		ctx := context.Background()
+
+		scanErr := errors.New("scan error")
+		mockRows := new(mockDb.MockRows)
+		mockRows.On("Next").Return(true).Once()
+		mockRows.On("Scan",
+			mock.AnythingOfType("*int64"),
+			mock.AnythingOfType("*string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("*string"),
+			mock.AnythingOfType("*bool"),
+			mock.AnythingOfType("*time.Time"),
+			mock.AnythingOfType("*time.Time"),
+		).Return(scanErr).Once()
+		mockRows.On("Close").Return()
+
+		mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(mockRows, nil)
+
+		result, err := repo.GetByName(ctx, "test")
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+		assert.ErrorContains(t, err, scanErr.Error())
+		mockDB.AssertExpectations(t)
+		mockRows.AssertExpectations(t)
+	})
+}
+
+// -------------------- GetVersionByID --------------------
+
+func TestClient_GetVersionByID(t *testing.T) {
+	t.Run("successfully get version by id", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &client{db: mockDB}
+		ctx := context.Background()
+
+		// Criar um MockRow personalizado para int
+		mockRow := &mockDb.MockRowWithInt{IntValue: 5}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{int64(1)}).Return(mockRow)
+
+		version, err := repo.GetVersionByID(ctx, 1)
+
+		assert.NoError(t, err)
+		assert.Equal(t, 5, version)
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrGet when scan fails", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &client{db: mockDB}
+		ctx := context.Background()
+
+		dbErr := errors.New("db error")
+		mockRow := &mockDb.MockRow{Err: dbErr}
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{int64(1)}).Return(mockRow)
+
+		version, err := repo.GetVersionByID(ctx, 1)
+
+		assert.Zero(t, version)
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+		assert.ErrorContains(t, err, dbErr.Error())
+		mockDB.AssertExpectations(t)
+	})
+}
+
+// -------------------- GetAll --------------------
+
+func TestClient_GetAll(t *testing.T) {
+	t.Run("successfully get all clients", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &client{db: mockDB}
+		ctx := context.Background()
+
+		mockRows := new(mockDb.MockRows)
+		mockRows.On("Next").Return(true).Once()
+		mockRows.On("Scan",
+			mock.AnythingOfType("*int64"),
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		).Return(nil).Once()
+		mockRows.On("Next").Return(false).Once()
+		mockRows.On("Err").Return(nil)
+		mockRows.On("Close").Return()
+
+		// CORREÇÃO: Usar mock.AnythingOfType para o slice de interfaces
+		mockDB.On("Query", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).Return(mockRows, nil)
+
+		result, err := repo.GetAll(ctx, 10, 0)
+
+		assert.NoError(t, err)
+		assert.Len(t, result, 1)
+		mockDB.AssertExpectations(t)
+		mockRows.AssertExpectations(t)
+	})
+
+	t.Run("return ErrGet when query fails", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &client{db: mockDB}
+		ctx := context.Background()
+
+		dbErr := errors.New("db fail")
+		mockRows := new(mockDb.MockRows)
+
+		// A função Query recebe (ctx, query string, args []interface{})
+		mockDB.On("Query", ctx, mock.Anything, []interface{}{10, 0}).Return(mockRows, dbErr)
+
+		result, err := repo.GetAll(ctx, 10, 0)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+		assert.ErrorContains(t, err, dbErr.Error())
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrGet when scan fails", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &client{db: mockDB}
+		ctx := context.Background()
+
+		scanErr := errors.New("scan failed")
+		mockRows := new(mockDb.MockRows)
+		mockRows.On("Next").Return(true).Once()
+		mockRows.On("Scan", mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything).Return(scanErr).Once()
+		mockRows.On("Close").Return()
+
+		// CORREÇÃO: Usar []interface{}{10, 0} em vez de 10, 0
+		mockDB.On("Query", ctx, mock.Anything, []interface{}{10, 0}).Return(mockRows, nil)
+
+		result, err := repo.GetAll(ctx, 10, 0)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+		assert.ErrorContains(t, err, scanErr.Error())
+		mockDB.AssertExpectations(t)
+		mockRows.AssertExpectations(t)
+	})
+
+	t.Run("return ErrGet when rows error occurs", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &client{db: mockDB}
+		ctx := context.Background()
+
+		rowsErr := errors.New("rows iteration error")
+		mockRows := new(mockDb.MockRows)
+
+		// Simula que Next() retorna false (nenhuma linha) mas há erro na iteração
+		mockRows.On("Next").Return(false).Once()
+		mockRows.On("Err").Return(rowsErr)
+		mockRows.On("Close").Return()
+
+		mockDB.On("Query", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).Return(mockRows, nil)
+
+		result, err := repo.GetAll(ctx, 10, 0)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+		assert.ErrorContains(t, err, rowsErr.Error())
+		mockDB.AssertExpectations(t)
+		mockRows.AssertExpectations(t)
+	})
+}
+
+// -------------------- ClientExists --------------------
+
+func TestClient_ClientExists(t *testing.T) {
+	t.Run("successfully check client exists", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &client{db: mockDB}
+		ctx := context.Background()
+
+		// Usar bool diretamente
+		mockRow := &mockDb.MockRow{Value: true}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{int64(1)}).Return(mockRow)
+
+		exists, err := repo.ClientExists(ctx, 1)
+
+		assert.NoError(t, err)
+		assert.True(t, exists)
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrGet when scan fails", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &client{db: mockDB}
+		ctx := context.Background()
+
+		scanErr := errors.New("scan fail")
+		mockRow := &mockDb.MockRow{Err: scanErr}
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{int64(1)}).Return(mockRow)
+
+		exists, err := repo.ClientExists(ctx, 1)
+
+		assert.False(t, exists)
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+		assert.ErrorContains(t, err, scanErr.Error())
+		mockDB.AssertExpectations(t)
+	})
+}
