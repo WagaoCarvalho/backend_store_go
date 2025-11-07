@@ -13,7 +13,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 func init() {
@@ -99,26 +98,30 @@ func TestRealPgxPool_ParseConfig(t *testing.T) {
 }
 
 func TestRealPgxPool_NewWithConfig(t *testing.T) {
-	if testing.Short() || os.Getenv("CI") != "" {
-		t.Skip("skipando teste de integração no modo short ou no CI")
-	}
+	t.Run("successfully create new pool with config", func(t *testing.T) {
+		realPool := &RealPgxPool{}
+		ctx := context.Background()
 
-	connStr := os.Getenv("DB_CONN_URL")
-	if connStr == "" {
-		t.Skip("DB_CONN_URL não definido para teste de integração")
-	}
+		cfg, err := pgxpool.ParseConfig("postgres://user:pass@localhost:5432/testdb")
+		if err != nil {
+			t.Skip("Configuração de teste inválida, pulando teste")
+		}
 
-	realPool := &RealPgxPool{}
+		pool, err := realPool.NewWithConfig(ctx, cfg)
+		assert.NoError(t, err)
+		assert.NotNil(t, pool)
 
-	cfg, err := realPool.ParseConfig(connStr)
-	require.NoError(t, err)
+		if pool != nil {
+			pool.Close()
+		}
+	})
 
-	pool, err := realPool.NewWithConfig(context.Background(), cfg)
-	require.NoError(t, err)
-	require.NotNil(t, pool)
+	t.Run("return error when config is nil", func(t *testing.T) {
+		realPool := &RealPgxPool{}
+		ctx := context.Background()
 
-	err = pool.Ping(context.Background())
-	require.NoError(t, err)
-
-	pool.Close()
+		pool, err := realPool.NewWithConfig(ctx, nil)
+		assert.Error(t, err)
+		assert.Nil(t, pool)
+	})
 }

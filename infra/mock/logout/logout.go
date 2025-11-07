@@ -1,4 +1,4 @@
-package mockLogout
+package mock
 
 import (
 	"context"

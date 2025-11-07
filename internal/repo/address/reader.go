@@ -20,159 +20,83 @@ func (r *address) GetByID(ctx context.Context, id int64) (*models.Address, error
 		WHERE id = $1;
 	`
 
-	var address models.Address
-	err := r.db.QueryRow(ctx, query, id).Scan(
-		&address.ID,
-		&address.UserID,
-		&address.ClientID,
-		&address.SupplierID,
-		&address.Street,
-		&address.StreetNumber,
-		&address.Complement,
-		&address.City,
-		&address.State,
-		&address.Country,
-		&address.PostalCode,
-		&address.IsActive,
-		&address.CreatedAt,
-		&address.UpdatedAt,
-	)
-
+	row := r.db.QueryRow(ctx, query, id)
+	addr, err := scanAddress(row)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errMsg.ErrNotFound
 		}
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
-
-	return &address, nil
+	return addr, nil
 }
 
 func (r *address) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
-	const query = `
-		SELECT 
-			id, user_id, client_id, supplier_id,
-			street, street_number, complement, city, state, country, postal_code,
-			is_active, created_at, updated_at
-		FROM addresses
-		WHERE user_id = $1;
-	`
-
-	rows, err := r.db.Query(ctx, query, userID)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-	defer rows.Close()
-
-	var addresses []*models.Address
-	for rows.Next() {
-		var address models.Address
-		if err := rows.Scan(
-			&address.ID,
-			&address.UserID,
-			&address.ClientID,
-			&address.SupplierID,
-			&address.Street,
-			&address.StreetNumber,
-			&address.Complement,
-			&address.City,
-			&address.State,
-			&address.Country,
-			&address.PostalCode,
-			&address.IsActive,
-			&address.CreatedAt,
-			&address.UpdatedAt,
-		); err != nil {
-			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-		}
-		addresses = append(addresses, &address)
-	}
-
-	return addresses, nil
+	return r.getByField(ctx, "user_id", userID)
 }
 
 func (r *address) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
-	const query = `
-		SELECT 
-			id, user_id, client_id, supplier_id,
-			street, street_number, complement, city, state, country, postal_code,
-			is_active, created_at, updated_at
-		FROM addresses
-		WHERE client_id = $1;
-	`
-
-	rows, err := r.db.Query(ctx, query, clientID)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-	defer rows.Close()
-
-	var addresses []*models.Address
-	for rows.Next() {
-		var address models.Address
-		if err := rows.Scan(
-			&address.ID,
-			&address.UserID,
-			&address.ClientID,
-			&address.SupplierID,
-			&address.Street,
-			&address.StreetNumber,
-			&address.Complement,
-			&address.City,
-			&address.State,
-			&address.Country,
-			&address.PostalCode,
-			&address.IsActive,
-			&address.CreatedAt,
-			&address.UpdatedAt,
-		); err != nil {
-			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-		}
-		addresses = append(addresses, &address)
-	}
-
-	return addresses, nil
+	return r.getByField(ctx, "client_id", clientID)
 }
 
 func (r *address) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
-	const query = `
+	return r.getByField(ctx, "supplier_id", supplierID)
+}
+
+func (r *address) getByField(ctx context.Context, field string, value any) ([]*models.Address, error) {
+	query := fmt.Sprintf(`
 		SELECT 
 			id, user_id, client_id, supplier_id,
 			street, street_number, complement, city, state, country, postal_code,
 			is_active, created_at, updated_at
 		FROM addresses
-		WHERE supplier_id = $1;
-	`
+		WHERE %s = $1;
+	`, field)
 
-	rows, err := r.db.Query(ctx, query, supplierID)
+	rows, err := r.db.Query(ctx, query, value)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	defer rows.Close()
 
-	var addresses []*models.Address
+	var results []*models.Address
 	for rows.Next() {
-		var address models.Address
-		if err := rows.Scan(
-			&address.ID,
-			&address.UserID,
-			&address.ClientID,
-			&address.SupplierID,
-			&address.Street,
-			&address.StreetNumber,
-			&address.Complement,
-			&address.City,
-			&address.State,
-			&address.Country,
-			&address.PostalCode,
-			&address.IsActive,
-			&address.CreatedAt,
-			&address.UpdatedAt,
-		); err != nil {
-			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+		addr, err := scanAddress(rows)
+		if err != nil {
+			return nil, err
 		}
-		addresses = append(addresses, &address)
+		results = append(results, addr)
 	}
 
-	return addresses, nil
+	return results, nil
+}
+
+type scanner interface {
+	Scan(dest ...any) error
+}
+
+func scanAddress(s scanner) (*models.Address, error) {
+	var addr models.Address
+
+	err := s.Scan(
+		&addr.ID,
+		&addr.UserID,
+		&addr.ClientID,
+		&addr.SupplierID,
+		&addr.Street,
+		&addr.StreetNumber,
+		&addr.Complement,
+		&addr.City,
+		&addr.State,
+		&addr.Country,
+		&addr.PostalCode,
+		&addr.IsActive,
+		&addr.CreatedAt,
+		&addr.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &addr, nil
 }

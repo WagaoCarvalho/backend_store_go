@@ -23,6 +23,9 @@ func (r *RealPgxPool) ParseConfig(connString string) (*pgxpool.Config, error) {
 }
 
 func (r *RealPgxPool) NewWithConfig(ctx context.Context, config *pgxpool.Config) (*pgxpool.Pool, error) {
+	if config == nil {
+		return nil, fmt.Errorf("%w: config is nil", errMsg.ErrDBNewPool)
+	}
 	return pgxpool.NewWithConfig(ctx, config)
 }
 

@@ -31,3 +31,11 @@ func IsDuplicateKey(err error) bool {
 	}
 	return err != nil && strings.Contains(err.Error(), "duplicate key")
 }
+
+func NewForeignKeyViolation(constraint string) *pgconn.PgError {
+	return &pgconn.PgError{
+		Code:           "23503",
+		ConstraintName: constraint,
+		Message:        "violação de chave estrangeira",
+	}
+}
