@@ -6,4 +6,5 @@ type Client interface {
 	iface.ClientReader
 	iface.ClientWriter
 	iface.ClientStatus
+	iface.ClientFilter
 }

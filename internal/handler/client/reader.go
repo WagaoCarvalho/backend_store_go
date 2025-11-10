@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/client/client"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
@@ -141,53 +140,6 @@ func (h *Client) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 			"client_id": uid,
 			"version":   version,
 		},
-	})
-}
-
-func (h *Client) GetAll(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	const ref = "[clientHandler - GetAll] "
-
-	limit := 10
-	offset := 0
-
-	if l := r.URL.Query().Get("limit"); l != "" {
-		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
-			limit = parsed
-		}
-	}
-
-	if o := r.URL.Query().Get("offset"); o != "" {
-		if parsed, err := strconv.Atoi(o); err == nil && parsed >= 0 {
-			offset = parsed
-		}
-	}
-
-	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"limit":  limit,
-		"offset": offset,
-	})
-
-	clients, err := h.service.GetAll(ctx, limit, offset)
-	if err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"limit":  limit,
-			"offset": offset,
-		})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"total_encontrados": len(clients),
-	})
-
-	clientDTOs := dto.ToClientDTOs(clients)
-
-	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
-		Message: "Clientes listados com sucesso",
-		Data:    clientDTOs,
 	})
 }
 

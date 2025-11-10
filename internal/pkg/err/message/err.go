@@ -23,6 +23,7 @@ var (
 	ErrInvalidOrderField     = errors.New("ordem dos args inválida")
 	ErrInvalidOrderDirection = errors.New("direção da ordem inválida")
 	ErrInvalidDateRange      = errors.New("range de data inválido")
+	ErrInvalidFilter         = errors.New("filtro inválido")
 
 	// version
 	ErrGetVersion      = errors.New("erro ao buscar versão")

@@ -15,7 +15,7 @@ type Client interface {
 	GetByID(ctx context.Context, id int64) (*models.Client, error)
 	GetByName(ctx context.Context, name string) ([]*models.Client, error)
 	GetVersionByID(ctx context.Context, id int64) (int, error)
-	GetAll(ctx context.Context, limit, offset int) ([]*models.Client, error)
+	GetAll(ctx context.Context, filter *models.ClientFilter) ([]*models.Client, error)
 	Update(ctx context.Context, client *models.Client) error
 	Delete(ctx context.Context, id int64) error
 	Disable(ctx context.Context, id int64) error
@@ -89,14 +89,6 @@ func (s *client) GetVersionByID(ctx context.Context, id int64) (int, error) {
 		return 0, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 	return version, nil
-}
-
-func (s *client) GetAll(ctx context.Context, limit, offset int) ([]*models.Client, error) {
-	clients, err := s.repo.GetAll(ctx, limit, offset)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-	return clients, nil
 }
 
 func (s *client) Update(ctx context.Context, client *models.Client) error {

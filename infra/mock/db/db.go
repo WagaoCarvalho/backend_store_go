@@ -18,7 +18,6 @@ func (m *MockDatabase) QueryRow(ctx context.Context, query string, args ...inter
 
 	result := call.Get(0)
 
-	// Verificar todos os tipos possíveis que implementam pgx.Row
 	switch row := result.(type) {
 	case *MockRow:
 		return row
@@ -37,18 +36,16 @@ func (m *MockDatabase) QueryRow(ctx context.Context, query string, args ...inter
 	}
 }
 
-// No arquivo infra/mock/db/db.go
 func (m *MockDatabase) Exec(ctx context.Context, query string, args ...interface{}) (pgconn.CommandTag, error) {
 	call := m.Called(ctx, query, args)
 
-	// Se retornar um MockCommandTag, converta para pgconn.CommandTag
 	result := call.Get(0)
 	if result == nil {
 		return pgconn.CommandTag{}, call.Error(1)
 	}
 
 	if cmdTag, ok := result.(MockCommandTag); ok {
-		// Converter MockCommandTag para pgconn.CommandTag
+
 		return pgconn.NewCommandTag(fmt.Sprintf("UPDATE %d", cmdTag.RowsAffectedCount)), call.Error(1)
 	}
 
@@ -57,5 +54,8 @@ func (m *MockDatabase) Exec(ctx context.Context, query string, args ...interface
 
 func (m *MockDatabase) Query(ctx context.Context, query string, args ...interface{}) (pgx.Rows, error) {
 	call := m.Called(ctx, query, args)
-	return call.Get(0).(pgx.Rows), call.Error(1)
+	if v := call.Get(0); v != nil {
+		return v.(pgx.Rows), call.Error(1)
+	}
+	return nil, call.Error(1)
 }

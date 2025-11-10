@@ -239,41 +239,6 @@ func TestClientService_GetVersionByID(t *testing.T) {
 	})
 }
 
-func TestClientService_GetAll(t *testing.T) {
-	t.Run("falha no repo", func(t *testing.T) {
-		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
-
-		expectedErr := errors.New("db error")
-		mockRepo.
-			On("GetAll", mock.Anything, 10, 0).
-			Return(nil, expectedErr)
-
-		result, err := service.GetAll(context.Background(), 10, 0)
-
-		assert.Nil(t, result)
-		assert.ErrorContains(t, err, errMsg.ErrGet.Error())
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("sucesso", func(t *testing.T) {
-		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
-
-		client := &models.Client{ID: 1, Name: "Teste"}
-		mockRepo.
-			On("GetAll", mock.Anything, 5, 2).
-			Return([]*models.Client{client}, nil)
-
-		result, err := service.GetAll(context.Background(), 5, 2)
-
-		assert.NoError(t, err)
-		assert.Len(t, result, 1)
-		assert.Equal(t, client, result[0])
-		mockRepo.AssertExpectations(t)
-	})
-}
-
 func TestClientService_ClientExists(t *testing.T) {
 	t.Run("falha por ID inválido", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
