@@ -6,7 +6,7 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
 	"github.com/jackc/pgx/v5"
 )
 

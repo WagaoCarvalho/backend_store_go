@@ -1,6 +1,6 @@
 package repo
 
-import "github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
+import repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
 
 type userCategoryRelation struct {
 	db repo.DBExecutor

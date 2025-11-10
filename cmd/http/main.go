@@ -12,7 +12,7 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db_postgres"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
 	routes "github.com/WagaoCarvalho/backend_store_go/internal/route"
 	"github.com/sirupsen/logrus"
 )

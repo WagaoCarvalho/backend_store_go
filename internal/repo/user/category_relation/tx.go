@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	ifaceTx "github.com/WagaoCarvalho/backend_store_go/internal/iface/user"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/category_relation"
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	"github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
 	"github.com/jackc/pgx/v5"
 )
 

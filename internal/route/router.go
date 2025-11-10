@@ -12,7 +12,7 @@ import (
 	rateLimiter "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/rate_limiter"
 	recover "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/recover"
 	request "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/request"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db_postgres"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
 	routesClient "github.com/WagaoCarvalho/backend_store_go/internal/route/client"
 	routesProduct "github.com/WagaoCarvalho/backend_store_go/internal/route/product"
 	routesSale "github.com/WagaoCarvalho/backend_store_go/internal/route/sale"

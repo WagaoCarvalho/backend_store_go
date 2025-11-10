@@ -8,7 +8,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/category_relation"
 	errMsgDb "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/repo"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
 	"github.com/jackc/pgx/v5"
 )
 
