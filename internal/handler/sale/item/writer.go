@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *SaleItemHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *saleItemHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleItemHandler - Create] "
 	ctx := r.Context()
 
@@ -54,7 +54,7 @@ func (h *SaleItemHandler) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SaleItemHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *saleItemHandler) Update(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleItemHandler - Update] "
 	ctx := r.Context()
 
@@ -124,7 +124,7 @@ func (h *SaleItemHandler) Update(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SaleItemHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *saleItemHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleItemHandler - Delete] "
 	ctx := r.Context()
 
@@ -149,7 +149,7 @@ func (h *SaleItemHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *SaleItemHandler) DeleteBySaleID(w http.ResponseWriter, r *http.Request) {
+func (h *saleItemHandler) DeleteBySaleID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleItemHandler - DeleteBySaleID] "
 	ctx := r.Context()
 

@@ -9,19 +9,19 @@ import (
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/login"
 )
 
-type LoginHandler struct {
+type loginHandler struct {
 	service service.LoginService
 	logger  *logger.LogAdapter
 }
 
-func NewLoginHandler(service service.LoginService, logger *logger.LogAdapter) *LoginHandler {
-	return &LoginHandler{
+func NewLoginHandler(service service.LoginService, logger *logger.LogAdapter) *loginHandler {
+	return &loginHandler{
 		service: service,
 		logger:  logger,
 	}
 }
 
-func (h *LoginHandler) Login(w http.ResponseWriter, r *http.Request) {
+func (h *loginHandler) Login(w http.ResponseWriter, r *http.Request) {
 	const ref = "[LoginHandler - Login] "
 
 	h.logger.Info(r.Context(), ref+logger.LogLoginInit, nil)

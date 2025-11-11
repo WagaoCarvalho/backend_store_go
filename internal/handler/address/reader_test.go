@@ -27,7 +27,7 @@ func TestAddressHandler_GetByID(t *testing.T) {
 
 	t.Run("deve retornar endereço com sucesso", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
-		h := NewAddress(mockService, logAdapter)
+		h := NewAddressHandler(mockService, logAdapter)
 
 		expected := &models.Address{
 			ID:     1,
@@ -63,7 +63,7 @@ func TestAddressHandler_GetByID(t *testing.T) {
 
 	t.Run("deve retornar erro 400 se o ID for inválido", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
-		h := NewAddress(mockService, logAdapter)
+		h := NewAddressHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/addresses/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -77,7 +77,7 @@ func TestAddressHandler_GetByID(t *testing.T) {
 
 	t.Run("deve retornar erro 404 se o serviço retornar erro", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
-		h := NewAddress(mockService, logAdapter)
+		h := NewAddressHandler(mockService, logAdapter)
 
 		mockService.On("GetByID", mock.Anything, int64(1)).Return((*models.Address)(nil), errors.New("not found"))
 
@@ -99,7 +99,7 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
-		h := NewAddress(mockService, logAdapter)
+		h := NewAddressHandler(mockService, logAdapter)
 
 		expected := []*models.Address{
 			{ID: 1, Street: "Rua 1", City: "Cidade A"},
@@ -139,7 +139,7 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 
 	t.Run("InvalidID", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
-		h := NewAddress(mockService, logAdapter)
+		h := NewAddressHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/addresses/user/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -152,7 +152,7 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 
 	t.Run("ServiceError", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
-		h := NewAddress(mockService, logAdapter)
+		h := NewAddressHandler(mockService, logAdapter)
 
 		mockService.On("GetByUserID", mock.Anything, int64(1)).Return(nil, assert.AnError)
 
@@ -168,7 +168,7 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 
 	t.Run("UserNotFound", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
-		h := NewAddress(mockService, logAdapter)
+		h := NewAddressHandler(mockService, logAdapter)
 
 		// Mock do service retornando ErrNotFound
 		mockService.On("GetByUserID", mock.Anything, int64(1)).
@@ -200,7 +200,7 @@ func TestAddressHandler_GetByClientID(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
-		h := NewAddress(mockService, logAdapter)
+		h := NewAddressHandler(mockService, logAdapter)
 
 		expected := []*models.Address{
 			{ID: 1, ClientID: utils.Int64Ptr(1), Street: "Rua 1", City: "Cidade A"},
@@ -240,7 +240,7 @@ func TestAddressHandler_GetByClientID(t *testing.T) {
 
 	t.Run("InvalidID", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
-		h := NewAddress(mockService, logAdapter)
+		h := NewAddressHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/addresses/client/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -253,7 +253,7 @@ func TestAddressHandler_GetByClientID(t *testing.T) {
 
 	t.Run("ServiceError", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
-		h := NewAddress(mockService, logAdapter)
+		h := NewAddressHandler(mockService, logAdapter)
 
 		mockService.On("GetByClientID", mock.Anything, int64(1)).Return(nil, assert.AnError)
 
@@ -275,7 +275,7 @@ func TestAddressHandler_GetBySupplierID(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
-		h := NewAddress(mockService, logAdapter)
+		h := NewAddressHandler(mockService, logAdapter)
 
 		expected := []*models.Address{
 			{ID: 1, SupplierID: utils.Int64Ptr(1), Street: "Rua 1", City: "Cidade A"},
@@ -315,7 +315,7 @@ func TestAddressHandler_GetBySupplierID(t *testing.T) {
 
 	t.Run("InvalidID", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
-		h := NewAddress(mockService, logAdapter)
+		h := NewAddressHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/addresses/supplier/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -328,7 +328,7 @@ func TestAddressHandler_GetBySupplierID(t *testing.T) {
 
 	t.Run("ServiceError", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
-		h := NewAddress(mockService, logAdapter)
+		h := NewAddressHandler(mockService, logAdapter)
 
 		mockService.On("GetBySupplierID", mock.Anything, int64(1)).Return(nil, assert.AnError)
 

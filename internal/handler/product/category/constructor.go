@@ -5,13 +5,13 @@ import (
 	iface "github.com/WagaoCarvalho/backend_store_go/internal/service/product/category"
 )
 
-type ProductCategory struct {
+type productCategoryHandler struct {
 	service iface.ProductCategory
 	logger  *logger.LogAdapter
 }
 
-func NewProductCategory(service iface.ProductCategory, logger *logger.LogAdapter) *ProductCategory {
-	return &ProductCategory{
+func NewProductCategoryHandler(service iface.ProductCategory, logger *logger.LogAdapter) *productCategoryHandler {
+	return &productCategoryHandler{
 		service: service,
 		logger:  logger,
 	}

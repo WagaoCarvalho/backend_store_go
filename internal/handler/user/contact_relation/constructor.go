@@ -5,13 +5,13 @@ import (
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/contact_relation"
 )
 
-type UserContactRelation struct {
+type userContactRelationHandler struct {
 	service service.UserContactRelation
 	logger  *logger.LogAdapter
 }
 
-func NewUserContactRelation(service service.UserContactRelation, logger *logger.LogAdapter) *UserContactRelation {
-	return &UserContactRelation{
+func NewUserContactRelationHandler(service service.UserContactRelation, logger *logger.LogAdapter) *userContactRelationHandler {
+	return &userContactRelationHandler{
 		service: service,
 		logger:  logger,
 	}

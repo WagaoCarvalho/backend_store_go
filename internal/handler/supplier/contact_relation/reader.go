@@ -7,7 +7,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *SupplierContactRelation) GetAllBySupplierID(w http.ResponseWriter, r *http.Request) {
+func (h *supplierContactRelationHandler) GetAllBySupplierID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierContactRelationHandler - GetAllBySupplierID] "
 	ctx := r.Context()
 
@@ -36,7 +36,7 @@ func (h *SupplierContactRelation) GetAllBySupplierID(w http.ResponseWriter, r *h
 	})
 }
 
-func (h *SupplierContactRelation) HasSupplierContactRelation(w http.ResponseWriter, r *http.Request) {
+func (h *supplierContactRelationHandler) HasSupplierContactRelation(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierContactRelationHandler - HasRelation] "
 	ctx := r.Context()
 

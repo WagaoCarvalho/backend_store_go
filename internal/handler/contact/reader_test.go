@@ -24,7 +24,7 @@ func TestContactHandler_GetByID(t *testing.T) {
 
 	t.Run("deve retornar contato com sucesso", func(t *testing.T) {
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logger)
+		handler := NewContactHandler(mockService, logger)
 
 		expectedID := int64(1)
 		expectedModel := &models.Contact{
@@ -63,7 +63,7 @@ func TestContactHandler_GetByID(t *testing.T) {
 
 	t.Run("deve retornar erro 400 se o ID for inválido", func(t *testing.T) {
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logger)
+		handler := NewContactHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/contacts/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -77,7 +77,7 @@ func TestContactHandler_GetByID(t *testing.T) {
 
 	t.Run("deve retornar erro 404 se o serviço retornar erro", func(t *testing.T) {
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logger)
+		handler := NewContactHandler(mockService, logger)
 
 		mockService.On("GetByID", mock.Anything, int64(1)).Return((*models.Contact)(nil), assert.AnError)
 

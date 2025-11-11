@@ -9,19 +9,19 @@ import (
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/logout"
 )
 
-type LogoutHandler struct {
+type logoutHandler struct {
 	service service.LogoutService
 	logger  *logger.LogAdapter
 }
 
-func NewLogoutHandler(service service.LogoutService, logger *logger.LogAdapter) *LogoutHandler {
-	return &LogoutHandler{
+func NewLogoutHandler(service service.LogoutService, logger *logger.LogAdapter) *logoutHandler {
+	return &logoutHandler{
 		service: service,
 		logger:  logger,
 	}
 }
 
-func (h *LogoutHandler) Logout(w http.ResponseWriter, r *http.Request) {
+func (h *logoutHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	const ref = "[LogoutHandler - Logout] "
 	ctx := r.Context()
 

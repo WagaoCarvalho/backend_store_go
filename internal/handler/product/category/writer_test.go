@@ -29,7 +29,7 @@ func TestProductCategoryHandler_Create(t *testing.T) {
 	t.Run("Sucesso - Criar categoria", func(t *testing.T) {
 		t.Parallel()
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		input := dto.ProductCategoryDTO{Name: "Categoria X"}
 		expectedModel := dto.ToProductCategoryModel(input)
@@ -70,7 +70,7 @@ func TestProductCategoryHandler_Create(t *testing.T) {
 		logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 		mockService := new(mockService.MockProductCategory)
-		handler := NewProductCategory(mockService, logAdapter)
+		handler := NewProductCategoryHandler(mockService, logAdapter)
 
 		// JSON inválido
 		body := []byte(`{invalid json`)
@@ -98,7 +98,7 @@ func TestProductCategoryHandler_Create(t *testing.T) {
 		logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 		mockService := new(mockService.MockProductCategory)
-		handler := NewProductCategory(mockService, logAdapter)
+		handler := NewProductCategoryHandler(mockService, logAdapter)
 
 		input := dto.ProductCategoryDTO{
 			Name: "Categoria X",
@@ -143,7 +143,7 @@ func TestProductCategoryHandler_Update(t *testing.T) {
 
 	t.Run("Sucesso - Update", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		id := int64(1)
 		input := dto.ProductCategoryDTO{Name: "Nova Categoria"}
@@ -185,7 +185,7 @@ func TestProductCategoryHandler_Update(t *testing.T) {
 
 	t.Run("Erro - ID inválido", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		req := httptest.NewRequest(http.MethodPut, "/categories/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -200,7 +200,7 @@ func TestProductCategoryHandler_Update(t *testing.T) {
 
 	t.Run("Erro - JSON inválido", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		req := httptest.NewRequest(http.MethodPut, "/categories/1", bytes.NewBuffer([]byte("{invalid json")))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -215,7 +215,7 @@ func TestProductCategoryHandler_Update(t *testing.T) {
 
 	t.Run("Erro - Categoria não encontrada", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		id := int64(999)
 		input := dto.ProductCategoryDTO{Name: "Nova Categoria"}
@@ -241,7 +241,7 @@ func TestProductCategoryHandler_Update(t *testing.T) {
 
 	t.Run("Erro genérico do service no Update", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		id := int64(1)
 		input := dto.ProductCategoryDTO{Name: "Nova Categoria"}
@@ -267,7 +267,7 @@ func TestProductCategoryHandler_Update(t *testing.T) {
 
 	t.Run("Erro ao buscar categoria atualizada", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		id := int64(1)
 		input := dto.ProductCategoryDTO{Name: "Nova Categoria"}
@@ -302,7 +302,7 @@ func TestProductCategoryHandler_Delete(t *testing.T) {
 	}
 	t.Run("Sucesso - Delete", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		id := int64(1)
 		mockSvc.On("Delete", mock.Anything, id).Return(nil).Once()
@@ -322,7 +322,7 @@ func TestProductCategoryHandler_Delete(t *testing.T) {
 
 	t.Run("Erro - ID inválido", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		req := httptest.NewRequest(http.MethodDelete, "/categories/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -337,7 +337,7 @@ func TestProductCategoryHandler_Delete(t *testing.T) {
 
 	t.Run("Erro genérico do service", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		id := int64(1)
 		mockSvc.On("Delete", mock.Anything, id).Return(errors.New("erro interno")).Once()

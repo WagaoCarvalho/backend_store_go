@@ -26,7 +26,7 @@ func TestSupplierCategoryHandler_Create(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
-	handler := NewSupplierCategory(mockSvc, logger)
+	handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 	t.Run("Sucesso", func(t *testing.T) {
 		categoryDTO := dto.SupplierCategoryDTO{Name: "Alimentos"}
@@ -105,7 +105,7 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := new(mockSupplier.MockSupplierCategory)
-		handler := NewSupplierCategory(mockSvc, logger)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		categoryDTO := dto.SupplierCategoryDTO{
 			Name: "Categoria Atualizada",
@@ -140,7 +140,7 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 
 	t.Run("InvalidID", func(t *testing.T) {
 		mockSvc := new(mockSupplier.MockSupplierCategory)
-		handler := NewSupplierCategory(mockSvc, logger)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		categoryDTO := dto.SupplierCategoryDTO{Name: "Categoria Inválida"}
 		body, _ := json.Marshal(categoryDTO)
@@ -166,7 +166,7 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 
 	t.Run("InvalidJSON", func(t *testing.T) {
 		mockSvc := new(mockSupplier.MockSupplierCategory)
-		handler := NewSupplierCategory(mockSvc, logger)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		req := mux.SetURLVars(
 			httptest.NewRequest("PUT", "/supplier-categories/123", bytes.NewBuffer([]byte(`{invalid-json}`))),
@@ -189,7 +189,7 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 
 	t.Run("NotFound", func(t *testing.T) {
 		mockSvc := new(mockSupplier.MockSupplierCategory)
-		handler := NewSupplierCategory(mockSvc, logger)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		categoryDTO := dto.SupplierCategoryDTO{Name: "Não Existe"}
 		modelCategory := dto.ToSupplierCategoryModel(categoryDTO)
@@ -222,7 +222,7 @@ func TestSupplierCategoryHandler_Update(t *testing.T) {
 
 	t.Run("ServiceError", func(t *testing.T) {
 		mockSvc := new(mockSupplier.MockSupplierCategory)
-		handler := NewSupplierCategory(mockSvc, logger)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		categoryDTO := dto.SupplierCategoryDTO{Name: "Erro Serviço"}
 		modelCategory := dto.ToSupplierCategoryModel(categoryDTO)
@@ -261,7 +261,7 @@ func TestSupplierCategoryHandler_Delete(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := new(mockSupplier.MockSupplierCategory)
-		handler := NewSupplierCategory(mockSvc, logger)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/supplier-categories/123", nil), map[string]string{"id": "123"})
 		w := httptest.NewRecorder()
@@ -278,7 +278,7 @@ func TestSupplierCategoryHandler_Delete(t *testing.T) {
 
 	t.Run("InvalidID", func(t *testing.T) {
 		mockSvc := new(mockSupplier.MockSupplierCategory)
-		handler := NewSupplierCategory(mockSvc, logger)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/supplier-categories/abc", nil), map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
@@ -298,7 +298,7 @@ func TestSupplierCategoryHandler_Delete(t *testing.T) {
 
 	t.Run("ServiceError", func(t *testing.T) {
 		mockSvc := new(mockSupplier.MockSupplierCategory)
-		handler := NewSupplierCategory(mockSvc, logger)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/supplier-categories/456", nil), map[string]string{"id": "456"})
 		w := httptest.NewRecorder()
@@ -320,7 +320,7 @@ func TestSupplierCategoryHandler_Delete(t *testing.T) {
 
 	t.Run("Delete_NotFound", func(t *testing.T) {
 		mockSvc := new(mockSupplier.MockSupplierCategory)
-		handler := NewSupplierCategory(mockSvc, logger)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/supplier-categories/999", nil), map[string]string{"id": "999"})
 		w := httptest.NewRecorder()

@@ -9,7 +9,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *UserCategory) GetAll(w http.ResponseWriter, r *http.Request) {
+func (h *userCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserCategoryHandler - GetAll] "
 	ctx := r.Context()
 
@@ -35,7 +35,7 @@ func (h *UserCategory) GetAll(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserCategory) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *userCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserCategoryHandler - GetById] "
 	ctx := r.Context()
 

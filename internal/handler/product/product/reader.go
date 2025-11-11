@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (h *Product) GetAll(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	const ref = "[productHandler - GetAll] "
 
@@ -59,7 +59,7 @@ func (h *Product) GetAll(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Product) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - GetByID] "
 	ctx := r.Context()
 
@@ -96,7 +96,7 @@ func (h *Product) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Product) GetByName(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - GetByName] "
 	ctx := r.Context()
 
@@ -140,7 +140,7 @@ func (h *Product) GetByName(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Product) GetByManufacturer(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) GetByManufacturer(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - GetByManufacturer] "
 	ctx := r.Context()
 
@@ -195,7 +195,7 @@ func (h *Product) GetByManufacturer(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Product) GetVersionByID(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - GetVersionByID] "
 	ctx := r.Context()
 

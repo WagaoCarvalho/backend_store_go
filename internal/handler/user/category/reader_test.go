@@ -24,7 +24,7 @@ func TestUserCategoryHandler_GetByID(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
-	handler := NewUserCategory(mockSvc, logger)
+	handler := NewUserCategoryHandler(mockSvc, logger)
 
 	t.Run("Success", func(t *testing.T) {
 		expected := &model.UserCategory{ID: 1, Name: "Teste"}
@@ -54,7 +54,7 @@ func TestUserCategoryHandler_GetByID(t *testing.T) {
 
 	t.Run("ServiceError", func(t *testing.T) {
 		mockSvc := new(mockUserCat.MockUserCategory)
-		handler := NewUserCategory(mockSvc, logger)
+		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		mockSvc.On("GetByID", mock.Anything, int64(42)).Return(nil, errors.New("erro inesperado"))
 
@@ -115,7 +115,7 @@ func TestUserCategoryHandler_GetAll(t *testing.T) {
 		baseLogger := logrus.New()
 		baseLogger.Out = &bytes.Buffer{}
 		logger := logger.NewLoggerAdapter(baseLogger)
-		handler := NewUserCategory(mockSvc, logger)
+		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		expected := []*model.UserCategory{{ID: 1, Name: "Categoria"}}
 		mockSvc.On("GetAll", mock.Anything).Return(expected, nil)
@@ -154,7 +154,7 @@ func TestUserCategoryHandler_GetAll(t *testing.T) {
 		baseLogger := logrus.New()
 		baseLogger.Out = &bytes.Buffer{}
 		logger := logger.NewLoggerAdapter(baseLogger)
-		handler := NewUserCategory(mockSvc, logger)
+		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		mockSvc.On("GetAll", mock.Anything).Return(([]*model.UserCategory)(nil), errors.New("erro de banco"))
 

@@ -10,7 +10,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *Product) DisableProduct(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) DisableProduct(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - Disable] "
 	ctx := r.Context()
 
@@ -63,7 +63,7 @@ func (h *Product) DisableProduct(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *Product) EnableProduct(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) EnableProduct(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - Enable] "
 	ctx := r.Context()
 

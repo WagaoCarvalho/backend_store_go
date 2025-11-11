@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *ProductCategoryRelation) Create(w http.ResponseWriter, r *http.Request) {
+func (h *productCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ProductCategoryRelationHandler - Create] "
 	ctx := r.Context()
 
@@ -79,7 +79,7 @@ func (h *ProductCategoryRelation) Create(w http.ResponseWriter, r *http.Request)
 	})
 }
 
-func (h *ProductCategoryRelation) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *productCategoryRelationHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ProductCategoryRelationHandler - Delete] "
 	ctx := r.Context()
 
@@ -114,7 +114,7 @@ func (h *ProductCategoryRelation) Delete(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *ProductCategoryRelation) DeleteAll(w http.ResponseWriter, r *http.Request) {
+func (h *productCategoryRelationHandler) DeleteAll(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ProductCategoryRelationHandler - DeleteAll] "
 	ctx := r.Context()
 

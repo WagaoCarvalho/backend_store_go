@@ -29,7 +29,7 @@ func RegisterAddressRoutes(
 	repoUser := repoUser.NewUser(db)
 	repoSupplier := repoSupplier.NewSupplier(db)
 	service := service.NewAddressService(repoAddress, repoClient, repoUser, repoSupplier)
-	handler := handler.NewAddress(service, log)
+	handler := handler.NewAddressHandler(service, log)
 
 	jwtCfg := config.LoadJwtConfig()
 

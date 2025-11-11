@@ -24,7 +24,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 	t.Run("Success - Enable Address", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockAddress.MockAddress)
-		handler := NewAddress(mockService, logAdapter)
+		handler := NewAddressHandler(mockService, logAdapter)
 
 		id := int64(1)
 		mockService.On("Enable", mock.Anything, id).Return(nil)
@@ -45,7 +45,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 	t.Run("Error - Invalid ID", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockAddress.MockAddress)
-		handler := NewAddress(mockService, logAdapter)
+		handler := NewAddressHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPatch, "/addresses/invalid/enable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -62,7 +62,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 	t.Run("Error - Enable Service returns ErrNotFound", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockAddress.MockAddress)
-		handler := NewAddress(mockService, logAdapter)
+		handler := NewAddressHandler(mockService, logAdapter)
 
 		id := int64(1)
 		mockService.On("Enable", mock.Anything, id).Return(errMsg.ErrNotFound)
@@ -83,7 +83,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 	t.Run("Error - Enable Service returns generic error", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockAddress.MockAddress)
-		handler := NewAddress(mockService, logAdapter)
+		handler := NewAddressHandler(mockService, logAdapter)
 
 		id := int64(1)
 		mockService.On("Enable", mock.Anything, id).Return(errors.New("db error"))
@@ -104,7 +104,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 	t.Run("Error - Enable Method Not Allowed", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockAddress.MockAddress)
-		handler := NewAddress(mockService, logAdapter)
+		handler := NewAddressHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/addresses/1/enable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -121,7 +121,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 	t.Run("Error - Enable Invalid ID", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockAddress.MockAddress)
-		handler := NewAddress(mockService, logAdapter)
+		handler := NewAddressHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPatch, "/addresses/abc/enable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -138,7 +138,7 @@ func TestAddressHandler_Enable(t *testing.T) {
 	t.Run("Error - Enable Service returns ErrID", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockAddress.MockAddress)
-		handler := NewAddress(mockService, logAdapter)
+		handler := NewAddressHandler(mockService, logAdapter)
 
 		id := int64(1)
 		mockService.On("Enable", mock.Anything, id).Return(errMsg.ErrZeroID)
@@ -165,7 +165,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 	t.Run("Success - Disable Address", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockAddress.MockAddress)
-		handler := NewAddress(mockService, logAdapter)
+		handler := NewAddressHandler(mockService, logAdapter)
 
 		id := int64(1)
 		mockService.On("Disable", mock.Anything, id).Return(nil)
@@ -186,7 +186,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 	t.Run("Error - Invalid ID", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockAddress.MockAddress)
-		handler := NewAddress(mockService, logAdapter)
+		handler := NewAddressHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPatch, "/addresses/invalid/disable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -203,7 +203,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 	t.Run("Error - Disable Service returns ErrNotFound", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockAddress.MockAddress)
-		handler := NewAddress(mockService, logAdapter)
+		handler := NewAddressHandler(mockService, logAdapter)
 
 		id := int64(1)
 		mockService.On("Disable", mock.Anything, id).Return(errMsg.ErrNotFound)
@@ -224,7 +224,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 	t.Run("Error - Disable Service returns generic error", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockAddress.MockAddress)
-		handler := NewAddress(mockService, logAdapter)
+		handler := NewAddressHandler(mockService, logAdapter)
 
 		id := int64(1)
 		mockService.On("Disable", mock.Anything, id).Return(errors.New("db error"))
@@ -245,7 +245,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 	t.Run("Error - Disable Method Not Allowed", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockAddress.MockAddress)
-		handler := NewAddress(mockService, logAdapter)
+		handler := NewAddressHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/addresses/1/disable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -262,7 +262,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 	t.Run("Error - Disable Invalid ID", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockAddress.MockAddress)
-		handler := NewAddress(mockService, logAdapter)
+		handler := NewAddressHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPatch, "/addresses/abc/disable", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -279,7 +279,7 @@ func TestAddressHandler_Disable(t *testing.T) {
 	t.Run("Error - Disable Service returns ErrID", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockAddress.MockAddress)
-		handler := NewAddress(mockService, logAdapter)
+		handler := NewAddressHandler(mockService, logAdapter)
 
 		id := int64(1)
 		mockService.On("Disable", mock.Anything, id).Return(errMsg.ErrZeroID)

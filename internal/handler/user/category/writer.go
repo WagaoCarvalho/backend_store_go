@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *UserCategory) Create(w http.ResponseWriter, r *http.Request) {
+func (h *userCategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserCategoryHandler - Create] "
 	ctx := r.Context()
 
@@ -48,7 +48,7 @@ func (h *UserCategory) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserCategory) Update(w http.ResponseWriter, r *http.Request) {
+func (h *userCategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserCategoryHandler - Update] "
 	ctx := r.Context()
 
@@ -117,7 +117,7 @@ func (h *UserCategory) Update(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserCategory) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *userCategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserCategoryHandler - Delete] "
 	ctx := r.Context()
 

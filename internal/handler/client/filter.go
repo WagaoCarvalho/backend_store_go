@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *Client) GetAll(w http.ResponseWriter, r *http.Request) {
+func (h *clientHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	const ref = "[clientHandler - GetAll] "
 

@@ -22,7 +22,7 @@ func RegisterSupplierCategoryRoutes(
 ) {
 	supplierCategoryRepo := repo.NewSupplierCategory(db)
 	supplierCategoryService := service.NewSupplierCategory(supplierCategoryRepo)
-	supplierCategoryHandler := handler.NewSupplierCategory(supplierCategoryService, log)
+	supplierCategoryHandler := handler.NewSupplierCategoryHandler(supplierCategoryService, log)
 
 	// Carregar config JWT
 	jwtCfg := config.LoadJwtConfig()

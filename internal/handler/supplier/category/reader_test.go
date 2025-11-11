@@ -25,7 +25,7 @@ func TestSupplierCategoryHandler_GetByID(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	log := logger.NewLoggerAdapter(baseLogger)
-	handler := NewSupplierCategory(mockSvc, log)
+	handler := NewSupplierCategoryHandler(mockSvc, log)
 
 	t.Run("Sucesso ao buscar por ID", func(t *testing.T) {
 		expected := &models.SupplierCategory{ID: 1, Name: "Fornecedor X"}
@@ -90,7 +90,7 @@ func TestSupplierCategoryHandler_GetByID(t *testing.T) {
 
 	t.Run("GetByID_NotFound", func(t *testing.T) {
 		mockSvc := new(mockSupplier.MockSupplierCategory)
-		handler := NewSupplierCategory(mockSvc, log)
+		handler := NewSupplierCategoryHandler(mockSvc, log)
 
 		req := mux.SetURLVars(httptest.NewRequest("GET", "/supplier-categories/999", nil), map[string]string{"id": "999"})
 		w := httptest.NewRecorder()
@@ -115,7 +115,7 @@ func TestSupplierCategoryHandler_GetAll(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	log := logger.NewLoggerAdapter(baseLogger)
-	handler := NewSupplierCategory(mockSvc, log)
+	handler := NewSupplierCategoryHandler(mockSvc, log)
 
 	t.Run("Sucesso ao buscar todas as categorias", func(t *testing.T) {
 		expected := []*models.SupplierCategory{
@@ -155,7 +155,7 @@ func TestSupplierCategoryHandler_GetAll(t *testing.T) {
 		baseLogger := logrus.New()
 		baseLogger.Out = &bytes.Buffer{}
 		logger := logger.NewLoggerAdapter(baseLogger)
-		handler := NewSupplierCategory(mockSvc, logger)
+		handler := NewSupplierCategoryHandler(mockSvc, logger)
 
 		req := httptest.NewRequest("GET", "/supplier-categories", nil)
 		w := httptest.NewRecorder()

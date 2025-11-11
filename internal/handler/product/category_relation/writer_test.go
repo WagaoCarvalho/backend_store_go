@@ -29,7 +29,7 @@ func TestProductCategoryRelationHandler_Create(t *testing.T) {
 
 	t.Run("success - relação criada", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		dtoRel := dto.ProductCategoryRelationsDTO{
 			ProductID:  *utils.Int64Ptr(1),
@@ -61,7 +61,7 @@ func TestProductCategoryRelationHandler_Create(t *testing.T) {
 
 	t.Run("error - corpo JSON inválido", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		// JSON inválido para forçar erro no parse
 		req := httptest.NewRequest(http.MethodPost, "/relations", bytes.NewBufferString("{invalid-json"))
@@ -80,7 +80,7 @@ func TestProductCategoryRelationHandler_Create(t *testing.T) {
 
 	t.Run("error - modelo nulo ou IDs inválidos", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		// DTO com IDs zerados para forçar erro na validação
 		dtoRel := dto.ProductCategoryRelationsDTO{
@@ -105,7 +105,7 @@ func TestProductCategoryRelationHandler_Create(t *testing.T) {
 
 	t.Run("error - chave estrangeira inválida", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		dtoRel := dto.ProductCategoryRelationsDTO{
 			ProductID:  *utils.Int64Ptr(1),
@@ -137,7 +137,7 @@ func TestProductCategoryRelationHandler_Create(t *testing.T) {
 
 	t.Run("error - relação já existente", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		dtoRel := dto.ProductCategoryRelationsDTO{
 			ProductID:  *utils.Int64Ptr(1),
@@ -171,7 +171,7 @@ func TestProductCategoryRelationHandler_Create(t *testing.T) {
 
 	t.Run("error - falha interna no serviço", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		dtoRel := dto.ProductCategoryRelationsDTO{
 			ProductID:  *utils.Int64Ptr(1),
@@ -208,7 +208,7 @@ func TestProductCategoryRelationHandler_Delete(t *testing.T) {
 
 	t.Run("success - relação deletada com sucesso", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		productID := int64(1)
 		categoryID := int64(100)
@@ -233,7 +233,7 @@ func TestProductCategoryRelationHandler_Delete(t *testing.T) {
 
 	t.Run("bad request - IDs inválidos", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodDelete, "/relations/abc/xyz", nil)
 		req = mux.SetURLVars(req, map[string]string{
@@ -250,7 +250,7 @@ func TestProductCategoryRelationHandler_Delete(t *testing.T) {
 
 	t.Run("internal error - erro ao deletar relação", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		productID := int64(2)
 		categoryID := int64(200)
@@ -281,7 +281,7 @@ func TestProductCategoryRelationHandler_DeleteAll(t *testing.T) {
 
 	t.Run("success - todas as relações deletadas com sucesso", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		productID := int64(1)
 
@@ -304,7 +304,7 @@ func TestProductCategoryRelationHandler_DeleteAll(t *testing.T) {
 
 	t.Run("bad request - ID de usuário inválido", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodDelete, "/relations/product/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{
@@ -320,7 +320,7 @@ func TestProductCategoryRelationHandler_DeleteAll(t *testing.T) {
 
 	t.Run("internal error - erro ao deletar todas as relações", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		productID := int64(2)
 

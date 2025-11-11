@@ -21,9 +21,9 @@ func TestProductHandler_EnableProduct(t *testing.T) {
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
 
-	setup := func() (*mockProduct.ProductMock, *Product) {
+	setup := func() (*mockProduct.ProductMock, *productHandler) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 		return mockService, handler
 	}
 
@@ -142,9 +142,9 @@ func TestProductHandler_DisableProduct(t *testing.T) {
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
 
-	setup := func() (*mockProduct.ProductMock, *Product) {
+	setup := func() (*mockProduct.ProductMock, *productHandler) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 		return mockService, handler
 	}
 

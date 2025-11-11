@@ -8,7 +8,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *SupplierCategoryRelation) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
+func (h *supplierCategoryRelationHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierCategoryRelationHandler - GetBySupplierID] "
 	ctx := r.Context()
 
@@ -37,7 +37,7 @@ func (h *SupplierCategoryRelation) GetBySupplierID(w http.ResponseWriter, r *htt
 	})
 }
 
-func (h *SupplierCategoryRelation) GetByCategoryID(w http.ResponseWriter, r *http.Request) {
+func (h *supplierCategoryRelationHandler) GetByCategoryID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierCategoryRelationHandler - GetByCategoryID] "
 	ctx := r.Context()
 
@@ -66,7 +66,7 @@ func (h *SupplierCategoryRelation) GetByCategoryID(w http.ResponseWriter, r *htt
 	})
 }
 
-func (h *SupplierCategoryRelation) HasSupplierCategoryRelation(w http.ResponseWriter, r *http.Request) {
+func (h *supplierCategoryRelationHandler) HasSupplierCategoryRelation(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierCategoryRelationHandler - HasSupplierCategoryRelation] "
 
 	supplierID, err := utils.GetIDParam(r, "supplier_id")

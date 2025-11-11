@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *User) GetAll(w http.ResponseWriter, r *http.Request) {
+func (h *userHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - GetAll] "
 	ctx := r.Context()
 
@@ -37,7 +37,7 @@ func (h *User) GetAll(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *User) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *userHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - GetByID] "
 	ctx := r.Context()
 
@@ -85,7 +85,7 @@ func (h *User) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *User) GetVersionByID(w http.ResponseWriter, r *http.Request) {
+func (h *userHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - GetVersionByID] "
 	ctx := r.Context()
 
@@ -133,7 +133,7 @@ func (h *User) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *User) GetByEmail(w http.ResponseWriter, r *http.Request) {
+func (h *userHandler) GetByEmail(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - GetByEmail] "
 	ctx := r.Context()
 
@@ -175,7 +175,7 @@ func (h *User) GetByEmail(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *User) GetByName(w http.ResponseWriter, r *http.Request) {
+func (h *userHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - GetByName] "
 	ctx := r.Context()
 

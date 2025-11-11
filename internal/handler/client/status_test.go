@@ -21,9 +21,9 @@ func TestClientHandler_Disable(t *testing.T) {
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
 
-	setup := func() (*mockClient.MockClient, *Client) {
+	setup := func() (*mockClient.MockClient, *clientHandler) {
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 		return mockService, handler
 	}
 
@@ -129,9 +129,9 @@ func TestClientHandler_Enable(t *testing.T) {
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
 
-	setup := func() (*mockClient.MockClient, *Client) {
+	setup := func() (*mockClient.MockClient, *clientHandler) {
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 		return mockService, handler
 	}
 

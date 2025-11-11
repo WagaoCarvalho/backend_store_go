@@ -21,13 +21,13 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setupSupplierContact() (*mockSupplier.MockSupplierContactRelation, *SupplierContactRelation) {
+func setupSupplierContact() (*mockSupplier.MockSupplierContactRelation, *supplierContactRelationHandler) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	mockService := new(mockSupplier.MockSupplierContactRelation)
-	handler := NewSupplierContactRelation(mockService, logAdapter)
+	handler := NewSupplierContactRelationHandler(mockService, logAdapter)
 
 	return mockService, handler
 }

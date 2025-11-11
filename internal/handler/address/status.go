@@ -8,22 +8,9 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/address"
 )
 
-type Address struct {
-	service service.Address
-	logger  *logger.LogAdapter
-}
-
-func NewAddress(service service.Address, logger *logger.LogAdapter) *Address {
-	return &Address{
-		service: service,
-		logger:  logger,
-	}
-}
-
-func (h *Address) Enable(w http.ResponseWriter, r *http.Request) {
+func (h *addressHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	const ref = "[AddressHandler - Enable] "
 	ctx := r.Context()
 
@@ -74,7 +61,7 @@ func (h *Address) Enable(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *Address) Disable(w http.ResponseWriter, r *http.Request) {
+func (h *addressHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	const ref = "[AddressHandler - Disable] "
 	ctx := r.Context()
 

@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *Product) Create(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ProductHandler - Create] "
 
 	h.logger.Info(r.Context(), ref+logger.LogCreateInit, nil)
@@ -55,7 +55,7 @@ func (h *Product) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Product) Update(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) Update(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ProductHandler - Update] "
 	ctx := r.Context()
 
@@ -119,7 +119,7 @@ func (h *Product) Update(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Product) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - Delete] "
 	ctx := r.Context()
 

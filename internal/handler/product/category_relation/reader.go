@@ -9,7 +9,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *ProductCategoryRelation) GetAllRelationsByProductID(w http.ResponseWriter, r *http.Request) {
+func (h *productCategoryRelationHandler) GetAllRelationsByProductID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ProductCategoryRelationHandler - GetAllRelationsByProductID] "
 	ctx := r.Context()
 
@@ -51,7 +51,7 @@ func (h *ProductCategoryRelation) GetAllRelationsByProductID(w http.ResponseWrit
 	})
 }
 
-func (h *ProductCategoryRelation) HasProductCategoryRelation(w http.ResponseWriter, r *http.Request) {
+func (h *productCategoryRelationHandler) HasProductCategoryRelation(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ProductCategoryRelationHandler - HasProductCategoryRelation] "
 	ctx := r.Context()
 

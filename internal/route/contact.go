@@ -24,7 +24,7 @@ func RegisterContactRoutes(
 ) {
 	repo := repo.NewContact(db)
 	service := service.NewContactService(repo)
-	handler := handler.NewContact(service, log)
+	handler := handler.NewContactHandler(service, log)
 
 	// Carrega a configuração do JWT
 	jwtCfg := config.LoadJwtConfig()

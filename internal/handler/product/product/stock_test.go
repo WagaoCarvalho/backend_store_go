@@ -27,7 +27,7 @@ func TestProductHandler_UpdateStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando o método não for PATCH", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/products/1/stock", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -42,7 +42,7 @@ func TestProductHandler_UpdateStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando o body for inválido", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/stock", strings.NewReader("invalid-json"))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -57,7 +57,7 @@ func TestProductHandler_UpdateStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando o ID for inválido", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		payload := `{"quantity": 10}`
 		req := httptest.NewRequest(http.MethodPatch, "/products/abc/stock", strings.NewReader(payload))
@@ -73,7 +73,7 @@ func TestProductHandler_UpdateStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando o service falhar", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		payload := `{"quantity": 10}`
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/stock", strings.NewReader(payload))
@@ -92,7 +92,7 @@ func TestProductHandler_UpdateStock(t *testing.T) {
 
 	t.Run("Deve atualizar estoque com sucesso", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		payload := `{"quantity": 10}`
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/stock", strings.NewReader(payload))
@@ -111,7 +111,7 @@ func TestProductHandler_UpdateStock(t *testing.T) {
 
 	t.Run("Deve retornar 404 quando o produto não for encontrado", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		payload := `{"quantity": 10}`
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/stock", strings.NewReader(payload))
@@ -130,7 +130,7 @@ func TestProductHandler_UpdateStock(t *testing.T) {
 
 	t.Run("Deve retornar 409 quando houver conflito de versão", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		payload := `{"quantity": 10}`
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/stock", strings.NewReader(payload))
@@ -159,7 +159,7 @@ func TestProductHandler_IncreaseStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando o método for inválido", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		req := httptest.NewRequest(http.MethodGet, "/products/1/increase-stock", nil)
 		w := httptest.NewRecorder()
@@ -171,7 +171,7 @@ func TestProductHandler_IncreaseStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando o ID for inválido", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		req := httptest.NewRequest(http.MethodPatch, "/products/abc/increase-stock", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -184,7 +184,7 @@ func TestProductHandler_IncreaseStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando o body for inválido", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/increase-stock", strings.NewReader("{invalid-json}"))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -197,7 +197,7 @@ func TestProductHandler_IncreaseStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando produto não encontrado", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		body := `{"stock_quantity": 5}`
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/increase-stock", strings.NewReader(body))
@@ -214,7 +214,7 @@ func TestProductHandler_IncreaseStock(t *testing.T) {
 
 	t.Run("Deve retornar erro de conflito de versão", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		body := `{"stock_quantity": 5}`
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/increase-stock", strings.NewReader(body))
@@ -231,7 +231,7 @@ func TestProductHandler_IncreaseStock(t *testing.T) {
 
 	t.Run("Deve retornar erro interno para falhas inesperadas", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		body := `{"stock_quantity": 5}`
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/increase-stock", strings.NewReader(body))
@@ -248,7 +248,7 @@ func TestProductHandler_IncreaseStock(t *testing.T) {
 
 	t.Run("Deve aumentar estoque com sucesso", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		body := `{"stock_quantity": 5}`
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/increase-stock", strings.NewReader(body))
@@ -273,7 +273,7 @@ func TestProductHandler_DecreaseStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando o método for inválido", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		req := httptest.NewRequest(http.MethodGet, "/products/1/decrease-stock", nil)
 		w := httptest.NewRecorder()
@@ -285,7 +285,7 @@ func TestProductHandler_DecreaseStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando o ID for inválido", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		req := httptest.NewRequest(http.MethodPatch, "/products/abc/decrease-stock", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -298,7 +298,7 @@ func TestProductHandler_DecreaseStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando o body for inválido", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/decrease-stock", strings.NewReader("{invalid-json}"))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -311,7 +311,7 @@ func TestProductHandler_DecreaseStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando produto não encontrado", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		body := `{"stock_quantity": 5}`
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/decrease-stock", strings.NewReader(body))
@@ -328,7 +328,7 @@ func TestProductHandler_DecreaseStock(t *testing.T) {
 
 	t.Run("Deve retornar erro de conflito de versão", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		body := `{"stock_quantity": 5}`
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/decrease-stock", strings.NewReader(body))
@@ -345,7 +345,7 @@ func TestProductHandler_DecreaseStock(t *testing.T) {
 
 	t.Run("Deve retornar erro interno para falhas inesperadas", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		body := `{"stock_quantity": 5}`
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/decrease-stock", strings.NewReader(body))
@@ -362,7 +362,7 @@ func TestProductHandler_DecreaseStock(t *testing.T) {
 
 	t.Run("Deve diminuir estoque com sucesso", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		body := `{"stock_quantity": 5}`
 		req := httptest.NewRequest(http.MethodPatch, "/products/1/decrease-stock", strings.NewReader(body))
@@ -388,7 +388,7 @@ func TestProductHandler_GetStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando o método for inválido", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		req := httptest.NewRequest(http.MethodPost, "/products/1/stock", nil)
 		w := httptest.NewRecorder()
@@ -400,7 +400,7 @@ func TestProductHandler_GetStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando o ID for inválido", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		req := httptest.NewRequest(http.MethodGet, "/products/abc/stock", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -413,7 +413,7 @@ func TestProductHandler_GetStock(t *testing.T) {
 
 	t.Run("Deve retornar erro quando produto não encontrado", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		req := httptest.NewRequest(http.MethodGet, "/products/1/stock", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -429,7 +429,7 @@ func TestProductHandler_GetStock(t *testing.T) {
 
 	t.Run("Deve retornar erro interno para falhas inesperadas", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		req := httptest.NewRequest(http.MethodGet, "/products/1/stock", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -445,7 +445,7 @@ func TestProductHandler_GetStock(t *testing.T) {
 
 	t.Run("Deve retornar estoque com sucesso", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, newLogger())
+		handler := NewProductHandler(mockService, newLogger())
 
 		req := httptest.NewRequest(http.MethodGet, "/products/1/stock", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})

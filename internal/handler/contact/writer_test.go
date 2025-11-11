@@ -35,7 +35,7 @@ func TestContactHandler_Create(t *testing.T) {
 	t.Run("Success - Create Contact", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logAdapter)
+		handler := NewContactHandler(mockService, logAdapter)
 
 		inputDTO := &dtoContact.ContactDTO{
 			ContactName: "Contato Teste",
@@ -80,7 +80,7 @@ func TestContactHandler_Create(t *testing.T) {
 	t.Run("ServiceError", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logAdapter)
+		handler := NewContactHandler(mockService, logAdapter)
 
 		inputDTO := &dtoContact.ContactDTO{
 			ContactName: "Contato Erro",
@@ -108,7 +108,7 @@ func TestContactHandler_Create(t *testing.T) {
 	t.Run("InvalidJSON", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logAdapter)
+		handler := NewContactHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer([]byte(`{invalid`)))
 		req.Header.Set("Content-Type", "application/json")
@@ -125,7 +125,7 @@ func TestContactHandler_Create(t *testing.T) {
 	t.Run("ForeignKey inválida deve retornar 400", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logAdapter)
+		handler := NewContactHandler(mockService, logAdapter)
 
 		inputDTO := &dtoContact.ContactDTO{
 			ContactName: "Contato FK",
@@ -152,7 +152,7 @@ func TestContactHandler_Create(t *testing.T) {
 
 	t.Run("Erro - InvalidData", func(t *testing.T) {
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logAdapter)
+		handler := NewContactHandler(mockService, logAdapter)
 
 		inputDTO := &dtoContact.ContactDTO{
 			ContactName: "",
@@ -178,7 +178,7 @@ func TestContactHandler_Create(t *testing.T) {
 
 	t.Run("Erro - Duplicate", func(t *testing.T) {
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logAdapter)
+		handler := NewContactHandler(mockService, logAdapter)
 
 		inputDTO := &dtoContact.ContactDTO{
 			ContactName: "Contato Teste",
@@ -204,7 +204,7 @@ func TestContactHandler_Create(t *testing.T) {
 
 	t.Run("Erro - NotFound", func(t *testing.T) {
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logAdapter)
+		handler := NewContactHandler(mockService, logAdapter)
 
 		inputDTO := &dtoContact.ContactDTO{
 			ContactName: "Contato Teste",
@@ -241,7 +241,7 @@ func TestContactHandler_Update(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logger)
+		handler := NewContactHandler(mockService, logger)
 
 		id := int64(1)
 		dto := dtoContact.ContactDTO{
@@ -276,7 +276,7 @@ func TestContactHandler_Update(t *testing.T) {
 
 	t.Run("InvalidID", func(t *testing.T) {
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logger)
+		handler := NewContactHandler(mockService, logger)
 
 		dto := dtoContact.ContactDTO{ContactName: "Nome Teste"}
 		req := httptest.NewRequest(http.MethodPut, "/contacts/abc", toReader(dto))
@@ -289,7 +289,7 @@ func TestContactHandler_Update(t *testing.T) {
 
 	t.Run("ParseJSONError", func(t *testing.T) {
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logger)
+		handler := NewContactHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodPut, "/contacts/1", strings.NewReader("invalid-json"))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -301,7 +301,7 @@ func TestContactHandler_Update(t *testing.T) {
 
 	t.Run("ErrInvalidData", func(t *testing.T) {
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logger)
+		handler := NewContactHandler(mockService, logger)
 
 		id := int64(1)
 		dto := dtoContact.ContactDTO{ID: &id, ContactName: ""} // falha de validação
@@ -319,7 +319,7 @@ func TestContactHandler_Update(t *testing.T) {
 
 	t.Run("ErrDuplicate", func(t *testing.T) {
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logger)
+		handler := NewContactHandler(mockService, logger)
 
 		id := int64(1)
 		dto := dtoContact.ContactDTO{ID: &id, ContactName: "Nome Teste"}
@@ -337,7 +337,7 @@ func TestContactHandler_Update(t *testing.T) {
 
 	t.Run("ErrNotFound", func(t *testing.T) {
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logger)
+		handler := NewContactHandler(mockService, logger)
 
 		id := int64(1)
 		dto := dtoContact.ContactDTO{ID: &id, ContactName: "Nome Teste"}
@@ -355,7 +355,7 @@ func TestContactHandler_Update(t *testing.T) {
 
 	t.Run("UnexpectedError", func(t *testing.T) {
 		mockService := new(mockContact.MockContact)
-		handler := NewContact(mockService, logger)
+		handler := NewContactHandler(mockService, logger)
 
 		id := int64(1)
 		dto := dtoContact.ContactDTO{ID: &id, ContactName: "Nome Teste"}
@@ -380,7 +380,7 @@ func TestContactHandler_Delete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 		mockSvc := new(mockContact.MockContact)
-		handler := NewContact(mockSvc, logAdapter)
+		handler := NewContactHandler(mockSvc, logAdapter)
 
 		mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil).Once()
 
@@ -401,7 +401,7 @@ func TestContactHandler_Delete(t *testing.T) {
 	t.Run("invalid ID", func(t *testing.T) {
 		t.Parallel()
 		mockSvc := new(mockContact.MockContact)
-		handler := NewContact(mockSvc, logAdapter)
+		handler := NewContactHandler(mockSvc, logAdapter)
 
 		req := newRequestWithVars("DELETE", "/contacts/abc", nil, map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
@@ -419,7 +419,7 @@ func TestContactHandler_Delete(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		t.Parallel()
 		mockSvc := new(mockContact.MockContact)
-		handler := NewContact(mockSvc, logAdapter)
+		handler := NewContactHandler(mockSvc, logAdapter)
 
 		mockSvc.On("Delete", mock.Anything, int64(99)).Return(errors.New("contato não encontrado")).Once()
 

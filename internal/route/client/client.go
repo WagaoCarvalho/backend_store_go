@@ -23,7 +23,7 @@ func RegisterClientRoutes(
 ) {
 	repo := repo.NewClient(db)
 	service := service.NewClientService(repo)
-	handler := handler.NewClient(service, log)
+	handler := handler.NewClientHandler(service, log)
 
 	jwtCfg := config.LoadJwtConfig()
 

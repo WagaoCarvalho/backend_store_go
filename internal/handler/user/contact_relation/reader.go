@@ -7,7 +7,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *UserContactRelation) GetAllByUserID(w http.ResponseWriter, r *http.Request) {
+func (h *userContactRelationHandler) GetAllByUserID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserContactRelationHandler - GetAllByUserID] "
 	ctx := r.Context()
 
@@ -37,7 +37,7 @@ func (h *UserContactRelation) GetAllByUserID(w http.ResponseWriter, r *http.Requ
 }
 
 // --- HAS RELATION ---
-func (h *UserContactRelation) HasRelation(w http.ResponseWriter, r *http.Request) {
+func (h *userContactRelationHandler) HasRelation(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserContactRelationHandler - HasRelation] "
 	ctx := r.Context()
 

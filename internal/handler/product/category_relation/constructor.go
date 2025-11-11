@@ -5,13 +5,16 @@ import (
 	iface "github.com/WagaoCarvalho/backend_store_go/internal/service/product/category_relation"
 )
 
-type ProductCategoryRelation struct {
+type productCategoryRelationHandler struct {
 	productCategoryRelation iface.ProductCategoryRelation
 	logger                  *logger.LogAdapter
 }
 
-func NewProductCategoryRelation(productCategoryRelation iface.ProductCategoryRelation, logger *logger.LogAdapter) *ProductCategoryRelation {
-	return &ProductCategoryRelation{
+func NewProductCategoryRelationHandler(
+	productCategoryRelation iface.ProductCategoryRelation,
+	logger *logger.LogAdapter,
+) *productCategoryRelationHandler {
+	return &productCategoryRelationHandler{
 		productCategoryRelation: productCategoryRelation,
 		logger:                  logger,
 	}

@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *SupplierContactRelation) Create(w http.ResponseWriter, r *http.Request) {
+func (h *supplierContactRelationHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierContactRelationHandler - Create] "
 	ctx := r.Context()
 
@@ -83,7 +83,7 @@ func (h *SupplierContactRelation) Create(w http.ResponseWriter, r *http.Request)
 	})
 }
 
-func (h *SupplierContactRelation) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *supplierContactRelationHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierContactRelationHandler - Delete] "
 	ctx := r.Context()
 
@@ -122,7 +122,7 @@ func (h *SupplierContactRelation) Delete(w http.ResponseWriter, r *http.Request)
 	})
 }
 
-func (h *SupplierContactRelation) DeleteAll(w http.ResponseWriter, r *http.Request) {
+func (h *supplierContactRelationHandler) DeleteAll(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierContactRelationHandler - DeleteAll] "
 	ctx := r.Context()
 

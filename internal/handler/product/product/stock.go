@@ -10,7 +10,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *Product) UpdateStock(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) UpdateStock(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - UpdateStock] "
 	ctx := r.Context()
 
@@ -76,7 +76,7 @@ func (h *Product) UpdateStock(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *Product) IncreaseStock(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) IncreaseStock(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - IncreaseStock] "
 	ctx := r.Context()
 
@@ -142,7 +142,7 @@ func (h *Product) IncreaseStock(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *Product) DecreaseStock(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) DecreaseStock(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - DecreaseStock] "
 	ctx := r.Context()
 
@@ -208,7 +208,7 @@ func (h *Product) DecreaseStock(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *Product) GetStock(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) GetStock(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - GetStock] "
 	ctx := r.Context()
 

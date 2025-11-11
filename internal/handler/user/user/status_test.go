@@ -21,7 +21,7 @@ func TestUserHandler_Disable(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
-	handler := NewUser(mockService, logger)
+	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao desabilitar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
@@ -106,7 +106,7 @@ func TestUserHandler_Enable(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
-	handler := NewUser(mockService, logger)
+	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao habilitar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil

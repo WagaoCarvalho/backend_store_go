@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *SupplierHandler) Disable(w http.ResponseWriter, r *http.Request) {
+func (h *supplierHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierHandler - Disable] "
 	ctx := r.Context()
 
@@ -93,7 +93,7 @@ func (h *SupplierHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *SupplierHandler) Enable(w http.ResponseWriter, r *http.Request) {
+func (h *supplierHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierHandler - Enable] "
 	ctx := r.Context()
 

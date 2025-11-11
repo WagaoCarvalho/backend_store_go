@@ -22,7 +22,7 @@ func RegisterProductCategoryRoutes(
 ) {
 	productCategoryRepo := repo.NewProductCategory(db)
 	productCategoryService := service.NewProductCategoryService(productCategoryRepo)
-	productCategoryHandler := handler.NewProductCategory(productCategoryService, log)
+	productCategoryHandler := handler.NewProductCategoryHandler(productCategoryService, log)
 
 	// Carregar config JWT
 	jwtCfg := config.LoadJwtConfig()

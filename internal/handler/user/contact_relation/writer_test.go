@@ -22,13 +22,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupUserContact() (*mockUser.MockUserContactRelation, *UserContactRelation) {
+func setupUserContact() (*mockUser.MockUserContactRelation, *userContactRelationHandler) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	mockService := new(mockUser.MockUserContactRelation)
-	handler := NewUserContactRelation(mockService, logAdapter)
+	handler := NewUserContactRelationHandler(mockService, logAdapter)
 
 	return mockService, handler
 }
@@ -40,7 +40,7 @@ func TestUserContactRelationHandler_Create(t *testing.T) {
 
 	t.Run("success - relação criada", func(t *testing.T) {
 		mockService := new(mockUser.MockUserContactRelation)
-		handler := NewUserContactRelation(mockService, logger)
+		handler := NewUserContactRelationHandler(mockService, logger)
 
 		dtoRel := dto.UserContactRelationDTO{
 			UserID:    *utils.Int64Ptr(1),
@@ -74,7 +74,7 @@ func TestUserContactRelationHandler_Create(t *testing.T) {
 
 	t.Run("success - relação já existente", func(t *testing.T) {
 		mockService := new(mockUser.MockUserContactRelation)
-		handler := NewUserContactRelation(mockService, logger)
+		handler := NewUserContactRelationHandler(mockService, logger)
 
 		dtoRel := dto.UserContactRelationDTO{
 			UserID:    *utils.Int64Ptr(1),
@@ -107,7 +107,7 @@ func TestUserContactRelationHandler_Create(t *testing.T) {
 	})
 
 	t.Run("error - corpo inválido (JSON parse)", func(t *testing.T) {
-		handler := NewUserContactRelation(new(mockUser.MockUserContactRelation), logger)
+		handler := NewUserContactRelationHandler(new(mockUser.MockUserContactRelation), logger)
 
 		req := httptest.NewRequest(http.MethodPost, "/contact-relations", bytes.NewBufferString("invalid-json"))
 		req.Header.Set("Content-Type", "application/json")
@@ -125,7 +125,7 @@ func TestUserContactRelationHandler_Create(t *testing.T) {
 
 	t.Run("error - chave estrangeira inválida", func(t *testing.T) {
 		mockService := new(mockUser.MockUserContactRelation)
-		handler := NewUserContactRelation(mockService, logger)
+		handler := NewUserContactRelationHandler(mockService, logger)
 
 		dtoRel := dto.UserContactRelationDTO{
 			UserID:    *utils.Int64Ptr(99),
@@ -155,7 +155,7 @@ func TestUserContactRelationHandler_Create(t *testing.T) {
 
 	t.Run("error - falha interna do serviço", func(t *testing.T) {
 		mockService := new(mockUser.MockUserContactRelation)
-		handler := NewUserContactRelation(mockService, logger)
+		handler := NewUserContactRelationHandler(mockService, logger)
 
 		dtoRel := dto.UserContactRelationDTO{
 			UserID:    *utils.Int64Ptr(1),
@@ -184,7 +184,7 @@ func TestUserContactRelationHandler_Create(t *testing.T) {
 	})
 
 	t.Run("error - modelo nulo ou ID inválido (UserID zero)", func(t *testing.T) {
-		handler := NewUserContactRelation(new(mockUser.MockUserContactRelation), logger)
+		handler := NewUserContactRelationHandler(new(mockUser.MockUserContactRelation), logger)
 
 		dtoRel := dto.UserContactRelationDTO{
 			UserID:    *utils.Int64Ptr(0), // UserID zero
@@ -207,7 +207,7 @@ func TestUserContactRelationHandler_Create(t *testing.T) {
 	})
 
 	t.Run("error - modelo nulo ou ID inválido (ContactID zero)", func(t *testing.T) {
-		handler := NewUserContactRelation(new(mockUser.MockUserContactRelation), logger)
+		handler := NewUserContactRelationHandler(new(mockUser.MockUserContactRelation), logger)
 
 		dtoRel := dto.UserContactRelationDTO{
 			UserID:    *utils.Int64Ptr(1),
@@ -230,7 +230,7 @@ func TestUserContactRelationHandler_Create(t *testing.T) {
 	})
 
 	t.Run("error - modelo nulo ou ID inválido (ambos IDs zero)", func(t *testing.T) {
-		handler := NewUserContactRelation(new(mockUser.MockUserContactRelation), logger)
+		handler := NewUserContactRelationHandler(new(mockUser.MockUserContactRelation), logger)
 
 		dtoRel := dto.UserContactRelationDTO{
 			UserID:    *utils.Int64Ptr(0), // Ambos IDs zero
@@ -253,7 +253,7 @@ func TestUserContactRelationHandler_Create(t *testing.T) {
 	})
 
 	t.Run("error - JSON vazio", func(t *testing.T) {
-		handler := NewUserContactRelation(new(mockUser.MockUserContactRelation), logger)
+		handler := NewUserContactRelationHandler(new(mockUser.MockUserContactRelation), logger)
 
 		req := httptest.NewRequest(http.MethodPost, "/contact-relations", bytes.NewBufferString("{}"))
 		req.Header.Set("Content-Type", "application/json")
@@ -282,7 +282,7 @@ func TestUserContactRelationHandler_Create(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				mockService := new(mockUser.MockUserContactRelation)
-				handler := NewUserContactRelation(mockService, logger)
+				handler := NewUserContactRelationHandler(mockService, logger)
 
 				dtoRel := dto.UserContactRelationDTO{
 					UserID:    *utils.Int64Ptr(tc.userID),

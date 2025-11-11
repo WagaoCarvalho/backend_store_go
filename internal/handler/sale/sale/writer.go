@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *SaleHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *saleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - Create] "
 	ctx := r.Context()
 
@@ -51,7 +51,7 @@ func (h *SaleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SaleHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *saleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - Update] "
 	ctx := r.Context()
 
@@ -94,7 +94,7 @@ func (h *SaleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SaleHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *saleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - Delete] "
 	ctx := r.Context()
 
@@ -122,7 +122,7 @@ func (h *SaleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *SaleHandler) Cancel(w http.ResponseWriter, r *http.Request) {
+func (h *saleHandler) Cancel(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - Cancel] "
 	ctx := r.Context()
 
@@ -147,7 +147,7 @@ func (h *SaleHandler) Cancel(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *SaleHandler) Complete(w http.ResponseWriter, r *http.Request) {
+func (h *saleHandler) Complete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - Complete] "
 	ctx := r.Context()
 

@@ -5,13 +5,13 @@ import (
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/full"
 )
 
-type UserHandler struct {
+type userHandler struct {
 	service service.UserFull
 	logger  *logger.LogAdapter
 }
 
-func NewUserFullHandler(service service.UserFull, logger *logger.LogAdapter) *UserHandler {
-	return &UserHandler{
+func NewUserFullHandler(service service.UserFull, logger *logger.LogAdapter) *userHandler {
+	return &userHandler{
 		service: service,
 		logger:  logger,
 	}

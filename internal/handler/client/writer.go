@@ -10,7 +10,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *Client) Create(w http.ResponseWriter, r *http.Request) {
+func (h *clientHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ClientHandler - Create] "
 	ctx := r.Context()
 
@@ -64,7 +64,7 @@ func (h *Client) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Client) Update(w http.ResponseWriter, r *http.Request) {
+func (h *clientHandler) Update(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ClientHandler - Update] "
 	ctx := r.Context()
 
@@ -147,7 +147,7 @@ func (h *Client) Update(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Client) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *clientHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[clientHandler - Delete] "
 	ctx := r.Context()
 

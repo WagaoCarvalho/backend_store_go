@@ -24,7 +24,7 @@ func TestUserHandler_Create(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
-	handler := NewUser(mockService, logger)
+	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao criar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
@@ -114,7 +114,7 @@ func TestUserHandler_Update(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
-	handler := NewUser(mockService, logger)
+	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao atualizar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil
@@ -258,7 +258,7 @@ func TestUserHandler_Delete(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
-	handler := NewUser(mockService, logger)
+	handler := NewUserHandler(mockService, logger)
 
 	t.Run("Sucesso ao deletar usuário", func(t *testing.T) {
 		mockService.ExpectedCalls = nil

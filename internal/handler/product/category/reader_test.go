@@ -27,7 +27,7 @@ func TestProductCategoryHandler_GetByID(t *testing.T) {
 
 	t.Run("Sucesso - GetByID", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		id := int64(1)
 		expectedModel := &models.ProductCategory{ID: uint(id), Name: "Categoria X"}
@@ -58,7 +58,7 @@ func TestProductCategoryHandler_GetByID(t *testing.T) {
 
 	t.Run("Erro - ID inválido", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		req := httptest.NewRequest(http.MethodGet, "/categories/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -73,7 +73,7 @@ func TestProductCategoryHandler_GetByID(t *testing.T) {
 
 	t.Run("Erro - Categoria não encontrada", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		id := int64(999)
 		mockSvc.On("GetByID", mock.Anything, id).Return(nil, errors.New("categoria não encontrada")).Once()
@@ -93,7 +93,7 @@ func TestProductCategoryHandler_GetByID(t *testing.T) {
 
 	t.Run("Erro genérico do service", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		id := int64(1)
 		mockSvc.On("GetByID", mock.Anything, id).Return(nil, errors.New("erro interno")).Once()
@@ -120,7 +120,7 @@ func TestProductCategoryHandler_GetAll(t *testing.T) {
 	}
 	t.Run("Sucesso - GetAll", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		expectedModels := []*models.ProductCategory{
 			{ID: 1, Name: "Categoria 1"},
@@ -152,7 +152,7 @@ func TestProductCategoryHandler_GetAll(t *testing.T) {
 
 	t.Run("Erro genérico do service - GetAll", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
-		h := NewProductCategory(mockSvc, baseLogger())
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		mockSvc.On("GetAll", mock.Anything).Return([]*models.ProductCategory(nil), errors.New("erro interno")).Once()
 

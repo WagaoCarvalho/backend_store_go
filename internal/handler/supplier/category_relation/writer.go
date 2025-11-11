@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *SupplierCategoryRelation) Create(w http.ResponseWriter, r *http.Request) {
+func (h *supplierCategoryRelationHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierCategoryRelationHandler - Create] "
 	ctx := r.Context()
 
@@ -83,7 +83,7 @@ func (h *SupplierCategoryRelation) Create(w http.ResponseWriter, r *http.Request
 	})
 }
 
-func (h *SupplierCategoryRelation) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *supplierCategoryRelationHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierCategoryRelationHandler - DeleteByID] "
 	ctx := r.Context()
 
@@ -120,7 +120,7 @@ func (h *SupplierCategoryRelation) Delete(w http.ResponseWriter, r *http.Request
 	})
 }
 
-func (h *SupplierCategoryRelation) DeleteAllBySupplierID(w http.ResponseWriter, r *http.Request) {
+func (h *supplierCategoryRelationHandler) DeleteAllBySupplierID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierCategoryRelationHandler - DeleteAllBySupplierID] "
 	ctx := r.Context()
 

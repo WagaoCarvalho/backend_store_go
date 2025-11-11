@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setupHandler() (*mocksale.MockSale, *SaleHandler) {
+func setupHandler() (*mocksale.MockSale, *saleHandler) {
 	mockService := new(mocksale.MockSale)
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}

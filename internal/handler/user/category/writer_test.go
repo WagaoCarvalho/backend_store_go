@@ -26,7 +26,7 @@ func TestUserCategoryHandler_Create(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
-	handler := NewUserCategory(mockSvc, logger)
+	handler := NewUserCategoryHandler(mockSvc, logger)
 
 	t.Run("Success", func(t *testing.T) {
 		categoryDTO := dto.UserCategoryDTO{Name: "Nova"}
@@ -105,7 +105,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := new(mockUserCat.MockUserCategory)
-		handler := NewUserCategory(mockSvc, logger)
+		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		categoryDTO := dto.UserCategoryDTO{Name: "Atualizada"}
 		categoryModel := dto.ToUserCategoryModel(categoryDTO)
@@ -134,7 +134,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 
 	t.Run("NotFound", func(t *testing.T) {
 		mockSvc := new(mockUserCat.MockUserCategory)
-		handler := NewUserCategory(mockSvc, logger)
+		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		categoryDTO := dto.UserCategoryDTO{Name: "Inexistente"}
 
@@ -160,7 +160,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		handler := NewUserCategory(new(mockUserCat.MockUserCategory), logger)
+		handler := NewUserCategoryHandler(new(mockUserCat.MockUserCategory), logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("PUT", "/categories/abc", bytes.NewBuffer([]byte("{}"))), map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
@@ -177,7 +177,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 	})
 
 	t.Run("InvalidJSON", func(t *testing.T) {
-		handler := NewUserCategory(new(mockUserCat.MockUserCategory), logger)
+		handler := NewUserCategoryHandler(new(mockUserCat.MockUserCategory), logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("PUT", "/categories/1", bytes.NewBuffer([]byte("{invalid"))), map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
@@ -195,7 +195,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 
 	t.Run("UpdateError", func(t *testing.T) {
 		mockSvc := new(mockUserCat.MockUserCategory)
-		handler := NewUserCategory(mockSvc, logger)
+		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		categoryDTO := dto.UserCategoryDTO{Name: "Falha"}
 		categoryModel := dto.ToUserCategoryModel(categoryDTO)
@@ -224,7 +224,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 
 	t.Run("ZeroID", func(t *testing.T) {
 		mockSvc := new(mockUserCat.MockUserCategory)
-		handler := NewUserCategory(mockSvc, logger)
+		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		categoryDTO := dto.UserCategoryDTO{Name: "SemID"}
 		categoryModel := dto.ToUserCategoryModel(categoryDTO)
@@ -253,7 +253,7 @@ func TestUserCategoryHandler_Update(t *testing.T) {
 
 	t.Run("InvalidData", func(t *testing.T) {
 		mockSvc := new(mockUserCat.MockUserCategory)
-		handler := NewUserCategory(mockSvc, logger)
+		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		categoryDTO := dto.UserCategoryDTO{Name: ""}
 		categoryModel := dto.ToUserCategoryModel(categoryDTO)
@@ -289,7 +289,7 @@ func TestUserCategoryHandler_Delete(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockSvc := new(mockUserCat.MockUserCategory)
-		handler := NewUserCategory(mockSvc, logger)
+		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil)
 
@@ -305,7 +305,7 @@ func TestUserCategoryHandler_Delete(t *testing.T) {
 	})
 
 	t.Run("InvalidID", func(t *testing.T) {
-		handler := NewUserCategory(new(mockUserCat.MockUserCategory), logger)
+		handler := NewUserCategoryHandler(new(mockUserCat.MockUserCategory), logger)
 
 		req := mux.SetURLVars(httptest.NewRequest("DELETE", "/categories/abc", nil), map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
@@ -323,7 +323,7 @@ func TestUserCategoryHandler_Delete(t *testing.T) {
 
 	t.Run("ServiceError", func(t *testing.T) {
 		mockSvc := new(mockUserCat.MockUserCategory)
-		handler := NewUserCategory(mockSvc, logger)
+		handler := NewUserCategoryHandler(mockSvc, logger)
 
 		mockSvc.On("Delete", mock.Anything, int64(10)).Return(errors.New("erro ao deletar"))
 

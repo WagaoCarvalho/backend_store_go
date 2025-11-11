@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *UserContactRelation) Create(w http.ResponseWriter, r *http.Request) {
+func (h *userContactRelationHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserContactRelationHandler - Create] "
 	ctx := r.Context()
 
@@ -78,7 +78,7 @@ func (h *UserContactRelation) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 // --- DELETE ---
-func (h *UserContactRelation) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *userContactRelationHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserContactRelationHandler - Delete] "
 	ctx := r.Context()
 
@@ -118,7 +118,7 @@ func (h *UserContactRelation) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 // --- DELETE ALL ---
-func (h *UserContactRelation) DeleteAll(w http.ResponseWriter, r *http.Request) {
+func (h *userContactRelationHandler) DeleteAll(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserContactRelationHandler - DeleteAll] "
 	ctx := r.Context()
 

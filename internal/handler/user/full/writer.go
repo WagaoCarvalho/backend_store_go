@@ -9,7 +9,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *UserHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
+func (h *userHandler) CreateFull(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - CreateFull] "
 	ctx := r.Context()
 

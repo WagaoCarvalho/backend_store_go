@@ -8,22 +8,9 @@ import (
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/client/client"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
-	service "github.com/WagaoCarvalho/backend_store_go/internal/service/client/client"
 )
 
-type Client struct {
-	service service.Client
-	logger  *logger.LogAdapter
-}
-
-func NewClient(service service.Client, logger *logger.LogAdapter) *Client {
-	return &Client{
-		service: service,
-		logger:  logger,
-	}
-}
-
-func (h *Client) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *clientHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ClientHandler - GetByID] "
 	ctx := r.Context()
 
@@ -60,7 +47,7 @@ func (h *Client) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Client) GetByName(w http.ResponseWriter, r *http.Request) {
+func (h *clientHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 	const ref = "[clientHandler - GetByName] "
 	ctx := r.Context()
 
@@ -104,7 +91,7 @@ func (h *Client) GetByName(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Client) GetVersionByID(w http.ResponseWriter, r *http.Request) {
+func (h *clientHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[clientHandler - GetVersionByID] "
 	ctx := r.Context()
 
@@ -143,7 +130,7 @@ func (h *Client) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Client) ClientExists(w http.ResponseWriter, r *http.Request) {
+func (h *clientHandler) ClientExists(w http.ResponseWriter, r *http.Request) {
 	const ref = "[clientHandler - ClientExists] "
 	ctx := r.Context()
 

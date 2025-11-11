@@ -26,7 +26,7 @@ func RegisterUserRoutes(
 	hasher := auth.BcryptHasher{}
 
 	userService := service.NewUserService(repoUser, hasher)
-	handler := handler.NewUser(userService, log)
+	handler := handler.NewUserHandler(userService, log)
 
 	// Rota pública
 	r.HandleFunc("/user", handler.Create).Methods(http.MethodPost)

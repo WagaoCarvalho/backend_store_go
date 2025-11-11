@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *SaleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *saleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByID] "
 	ctx := r.Context()
 
@@ -43,7 +43,7 @@ func (h *SaleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SaleHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
+func (h *saleHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByClientID] "
 	ctx := r.Context()
 
@@ -78,7 +78,7 @@ func (h *SaleHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SaleHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
+func (h *saleHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByUserID] "
 	ctx := r.Context()
 
@@ -113,7 +113,7 @@ func (h *SaleHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SaleHandler) GetByStatus(w http.ResponseWriter, r *http.Request) {
+func (h *saleHandler) GetByStatus(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByStatus] "
 	ctx := r.Context()
 
@@ -148,7 +148,7 @@ func (h *SaleHandler) GetByStatus(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SaleHandler) GetByDateRange(w http.ResponseWriter, r *http.Request) {
+func (h *saleHandler) GetByDateRange(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByDateRange] "
 	ctx := r.Context()
 

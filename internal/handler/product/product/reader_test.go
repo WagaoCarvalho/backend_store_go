@@ -31,7 +31,7 @@ func TestProductHandler_GetAll(t *testing.T) {
 		t.Parallel()
 
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		expectedProducts := []*models.Product{
 			{ID: 1, ProductName: "Produto 1"},
@@ -63,7 +63,7 @@ func TestProductHandler_GetAll(t *testing.T) {
 		t.Parallel()
 
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		mockErr := errors.New("erro interno")
 		mockService.On("GetAll", mock.Anything, 10, 0).Return(nil, mockErr)
@@ -98,7 +98,7 @@ func TestProductHandler_GetVersionByID(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		productID := int64(1)
 		version := int64(5)
@@ -134,7 +134,7 @@ func TestProductHandler_GetVersionByID(t *testing.T) {
 	t.Run("Invalid ID parameter", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/products/abc/version", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -153,7 +153,7 @@ func TestProductHandler_GetVersionByID(t *testing.T) {
 	t.Run("Service error", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		productID := int64(1)
 		mockErr := errors.New("erro interno")
@@ -184,7 +184,7 @@ func TestProductHandler_GetByID(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		expected := &models.Product{
 			ID:            1,
@@ -219,7 +219,7 @@ func TestProductHandler_GetByID(t *testing.T) {
 	t.Run("InvalidIDParam", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/products/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -243,7 +243,7 @@ func TestProductHandler_GetByID(t *testing.T) {
 	t.Run("ServiceError", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		mockService.On("GetByID", mock.Anything, int64(1)).Return(nil, errors.New("erro interno"))
 
@@ -276,7 +276,7 @@ func TestProductHandler_GetByName(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		expectedProducts := []*models.Product{
 			{ID: 1, ProductName: "Produto A"},
@@ -309,7 +309,7 @@ func TestProductHandler_GetByName(t *testing.T) {
 	t.Run("MissingNameParam", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodGet, "/product/name/", nil)
 		req = mux.SetURLVars(req, map[string]string{"name": ""})
@@ -333,7 +333,7 @@ func TestProductHandler_GetByName(t *testing.T) {
 	t.Run("ServiceError", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		mockService.On("GetByName", mock.Anything, "Inexistente").Return(nil, errors.New("erro interno"))
 
@@ -359,7 +359,7 @@ func TestProductHandler_GetByName(t *testing.T) {
 	t.Run("No products found", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		// Mock retornando lista vazia
 		mockService.On("GetByName", mock.Anything, "Inexistente").
@@ -397,9 +397,9 @@ func TestProductHandler_GetByManufacturer(t *testing.T) {
 	log := logrus.New()
 	log.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(log)
-	setup := func() (*mockProduct.ProductMock, *Product) {
+	setup := func() (*mockProduct.ProductMock, *productHandler) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 		return mockService, handler
 	}
 

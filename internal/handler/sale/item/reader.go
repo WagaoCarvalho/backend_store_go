@@ -10,7 +10,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *SaleItemHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *saleItemHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleItemHandler - GetByID] "
 	ctx := r.Context()
 
@@ -43,7 +43,7 @@ func (h *SaleItemHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SaleItemHandler) GetBySaleID(w http.ResponseWriter, r *http.Request) {
+func (h *saleItemHandler) GetBySaleID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleItemHandler - GetBySaleID] "
 	ctx := r.Context()
 
@@ -78,7 +78,7 @@ func (h *SaleItemHandler) GetBySaleID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SaleItemHandler) GetByProductID(w http.ResponseWriter, r *http.Request) {
+func (h *saleItemHandler) GetByProductID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleItemHandler - GetByProductID] "
 	ctx := r.Context()
 

@@ -5,13 +5,13 @@ import (
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/sale/sale"
 )
 
-type SaleHandler struct {
+type saleHandler struct {
 	service service.SaleService
 	logger  *logger.LogAdapter
 }
 
-func NewSaleHandler(service service.SaleService, logger *logger.LogAdapter) *SaleHandler {
-	return &SaleHandler{
+func NewSaleHandler(service service.SaleService, logger *logger.LogAdapter) *saleHandler {
+	return &saleHandler{
 		service: service,
 		logger:  logger,
 	}

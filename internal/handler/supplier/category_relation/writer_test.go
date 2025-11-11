@@ -20,13 +20,13 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setup() (*mockSupplier.MockSupplierCategoryRelation, *SupplierCategoryRelation) {
+func setup() (*mockSupplier.MockSupplierCategoryRelation, *supplierCategoryRelationHandler) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
 	mockService := new(mockSupplier.MockSupplierCategoryRelation)
-	handler := NewSupplierCategoryRelation(mockService, logAdapter)
+	handler := NewSupplierCategoryRelationHandler(mockService, logAdapter)
 
 	return mockService, handler
 }
@@ -298,7 +298,7 @@ func TestSupplierCategoryRelationHandler_Delete(t *testing.T) {
 
 	t.Run("erro - ids inválidos", func(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplierCategoryRelation)
-		handler := NewSupplierCategoryRelation(mockService, logger)
+		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodDelete, "/supplier-category-relations/invalid/invalid", nil)
 		req = mux.SetURLVars(req, map[string]string{
@@ -321,7 +321,7 @@ func TestSupplierCategoryRelationHandler_Delete(t *testing.T) {
 
 	t.Run("erro - erro no serviço", func(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplierCategoryRelation)
-		handler := NewSupplierCategoryRelation(mockService, logger)
+		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
 		mockService.
 			On("Delete", mock.Anything, int64(123), int64(456)).
@@ -348,7 +348,7 @@ func TestSupplierCategoryRelationHandler_Delete(t *testing.T) {
 
 	t.Run("sucesso - relação excluída", func(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplierCategoryRelation)
-		handler := NewSupplierCategoryRelation(mockService, logger)
+		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
 		mockService.
 			On("Delete", mock.Anything, int64(123), int64(456)).
@@ -382,7 +382,7 @@ func TestSupplierCategoryRelationHandler_DeleteAllBySupplierID(t *testing.T) {
 
 	t.Run("erro - id inválido", func(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplierCategoryRelation)
-		handler := NewSupplierCategoryRelation(mockService, logger)
+		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodDelete, "/supplier-category-relations/invalid", nil)
 		req = mux.SetURLVars(req, map[string]string{"supplier_id": "invalid"})
@@ -402,7 +402,7 @@ func TestSupplierCategoryRelationHandler_DeleteAllBySupplierID(t *testing.T) {
 
 	t.Run("erro - erro no serviço", func(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplierCategoryRelation)
-		handler := NewSupplierCategoryRelation(mockService, logger)
+		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
 		mockService.
 			On("DeleteAllBySupplierID", mock.Anything, int64(123)).
@@ -426,7 +426,7 @@ func TestSupplierCategoryRelationHandler_DeleteAllBySupplierID(t *testing.T) {
 
 	t.Run("sucesso - relações excluídas", func(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplierCategoryRelation)
-		handler := NewSupplierCategoryRelation(mockService, logger)
+		handler := NewSupplierCategoryRelationHandler(mockService, logger)
 
 		mockService.
 			On("DeleteAllBySupplierID", mock.Anything, int64(123)).

@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *SupplierHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+func (h *supplierHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierHandler - GetAll] "
 	ctx := r.Context()
 
@@ -37,7 +37,7 @@ func (h *SupplierHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SupplierHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *supplierHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierHandler - GetByID] "
 	ctx := r.Context()
 
@@ -85,7 +85,7 @@ func (h *SupplierHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SupplierHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
+func (h *supplierHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierHandler - GetVersionByID] "
 	ctx := r.Context()
 
@@ -133,7 +133,7 @@ func (h *SupplierHandler) GetVersionByID(w http.ResponseWriter, r *http.Request)
 	})
 }
 
-func (h *SupplierHandler) GetByName(w http.ResponseWriter, r *http.Request) {
+func (h *supplierHandler) GetByName(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierHandler - GetByName] "
 	ctx := r.Context()
 

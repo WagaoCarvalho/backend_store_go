@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *SupplierHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *supplierHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierHandler - Create] "
 	ctx := r.Context()
 
@@ -75,7 +75,7 @@ func (h *SupplierHandler) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *supplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierHandler - Update] "
 	ctx := r.Context()
 
@@ -188,7 +188,7 @@ func (h *SupplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SupplierHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *supplierHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierHandler - Delete] "
 	ctx := r.Context()
 

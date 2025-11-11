@@ -5,13 +5,13 @@ import (
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/category"
 )
 
-type UserCategory struct {
+type userCategoryHandler struct {
 	service service.UserCategory
 	logger  *logger.LogAdapter
 }
 
-func NewUserCategory(service service.UserCategory, logger *logger.LogAdapter) *UserCategory {
-	return &UserCategory{
+func NewUserCategoryHandler(service service.UserCategory, logger *logger.LogAdapter) *userCategoryHandler {
+	return &userCategoryHandler{
 		service: service,
 		logger:  logger,
 	}

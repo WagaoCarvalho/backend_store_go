@@ -22,7 +22,7 @@ func RegisterUserCategoryRelationRoutes(
 ) {
 	relationRepo := repo.NewUserCategoryRelation(db)
 	relationService := service.NewUserCategoryRelationService(relationRepo)
-	relationHandler := handler.NewUserCategoryRelation(relationService, log)
+	relationHandler := handler.NewUserCategoryRelationHandler(relationService, log)
 
 	// Carregar config JWT
 	jwtCfg := config.LoadJwtConfig()

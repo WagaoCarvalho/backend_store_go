@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *Address) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *addressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[addressHandler - GetByID] "
 	ctx := r.Context()
 
@@ -48,7 +48,7 @@ func (h *Address) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Address) GetByUserID(w http.ResponseWriter, r *http.Request) {
+func (h *addressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[addressHandler - GetByUserID] "
 	ctx := r.Context()
 
@@ -88,7 +88,7 @@ func (h *Address) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Address) GetByClientID(w http.ResponseWriter, r *http.Request) {
+func (h *addressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[addressHandler - GetByClientID] "
 	ctx := r.Context()
 
@@ -122,7 +122,7 @@ func (h *Address) GetByClientID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Address) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
+func (h *addressHandler) GetBySupplierID(w http.ResponseWriter, r *http.Request) {
 	const ref = "[addressHandler - GetBySupplierID] "
 	ctx := r.Context()
 

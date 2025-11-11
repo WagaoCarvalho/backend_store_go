@@ -22,7 +22,7 @@ func RegisterSupplierContactRelationRoutes(
 ) {
 	contactRepo := repo.NewSupplierContactRelation(db)
 	contactService := service.NewSupplierContactRelationService(contactRepo)
-	contactHandler := handler.NewSupplierContactRelation(contactService, log)
+	contactHandler := handler.NewSupplierContactRelationHandler(contactService, log)
 
 	// Carregar config JWT
 	jwtCfg := config.LoadJwtConfig()

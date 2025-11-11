@@ -5,13 +5,13 @@ import (
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/category_relation"
 )
 
-type SupplierCategoryRelation struct {
+type supplierCategoryRelationHandler struct {
 	service service.SupplierCategoryRelation
 	logger  *logger.LogAdapter
 }
 
-func NewSupplierCategoryRelation(service service.SupplierCategoryRelation, logger *logger.LogAdapter) *SupplierCategoryRelation {
-	return &SupplierCategoryRelation{
+func NewSupplierCategoryRelationHandler(service service.SupplierCategoryRelation, logger *logger.LogAdapter) *supplierCategoryRelationHandler {
+	return &supplierCategoryRelationHandler{
 		service: service,
 		logger:  logger,
 	}

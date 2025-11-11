@@ -11,7 +11,7 @@ import (
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
-func (h *Address) Create(w http.ResponseWriter, r *http.Request) {
+func (h *addressHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[AddressHandler - Create] "
 	ctx := r.Context()
 
@@ -65,7 +65,7 @@ func (h *Address) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Address) Update(w http.ResponseWriter, r *http.Request) {
+func (h *addressHandler) Update(w http.ResponseWriter, r *http.Request) {
 	const ref = "[AddressHandler - Update] "
 	ctx := r.Context()
 
@@ -131,7 +131,7 @@ func (h *Address) Update(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Address) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *addressHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	const ref = "[AddressHandler - Delete] "
 
 	id, err := utils.GetIDParam(r, "id")

@@ -22,7 +22,7 @@ func TestProductCategoryRelationHandler_GetAllRelationsByProductID(t *testing.T)
 	logger := logger.NewLoggerAdapter(baseLogger)
 	t.Run("success - retorna todas as relações do usuário", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		expected := []*models.ProductCategoryRelation{
 			{ProductID: 1, CategoryID: 10},
@@ -49,7 +49,7 @@ func TestProductCategoryRelationHandler_GetAllRelationsByProductID(t *testing.T)
 
 	t.Run("error - ID inválido", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/product-category-relations/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"product_id": "abc"})
@@ -63,7 +63,7 @@ func TestProductCategoryRelationHandler_GetAllRelationsByProductID(t *testing.T)
 
 	t.Run("error - falha no serviço", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		mockService.
 			On("GetAllRelationsByProductID", mock.Anything, int64(1)).
@@ -89,7 +89,7 @@ func TestProductCategoryRelationHandler_HasProductCategoryRelation(t *testing.T)
 
 	t.Run("success - relação existe", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		mockService.On("HasProductCategoryRelation", mock.Anything, int64(1), int64(2)).Return(true, nil)
 
@@ -111,7 +111,7 @@ func TestProductCategoryRelationHandler_HasProductCategoryRelation(t *testing.T)
 
 	t.Run("success - relação não existe", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		mockService.On("HasProductCategoryRelation", mock.Anything, int64(1), int64(3)).Return(false, nil)
 
@@ -133,7 +133,7 @@ func TestProductCategoryRelationHandler_HasProductCategoryRelation(t *testing.T)
 
 	t.Run("error - product_id inválido", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/product-category-relation/abc/category/2", nil)
 		req = mux.SetURLVars(req, map[string]string{
@@ -150,7 +150,7 @@ func TestProductCategoryRelationHandler_HasProductCategoryRelation(t *testing.T)
 
 	t.Run("error - category_id inválido", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/product-category-relation/1/category/xyz", nil)
 		req = mux.SetURLVars(req, map[string]string{
@@ -167,7 +167,7 @@ func TestProductCategoryRelationHandler_HasProductCategoryRelation(t *testing.T)
 
 	t.Run("error - falha no serviço", func(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
-		handler := NewProductCategoryRelation(mockService, logger)
+		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		mockService.On("HasProductCategoryRelation", mock.Anything, int64(1), int64(2)).Return(false, errors.New("erro interno")).Once()
 

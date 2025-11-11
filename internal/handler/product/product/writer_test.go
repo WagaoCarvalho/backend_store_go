@@ -30,7 +30,7 @@ func TestProductHandler_Create(t *testing.T) {
 	t.Run("Sucesso - Criar Produto", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		input := dto.ProductDTO{
 			ProductName:   "Produto OK",
@@ -83,7 +83,7 @@ func TestProductHandler_Create(t *testing.T) {
 	t.Run("JSON inválido deve retornar 400", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPost, "/products", bytes.NewBuffer([]byte(`{invalid`)))
 		req.Header.Set("Content-Type", "application/json")
@@ -100,7 +100,7 @@ func TestProductHandler_Create(t *testing.T) {
 	t.Run("ForeignKey inválida deve retornar 400", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		input := dto.ProductDTO{
 			ProductName:   "Produto FK",
@@ -132,7 +132,7 @@ func TestProductHandler_Create(t *testing.T) {
 	t.Run("Erro inesperado no service deve retornar 500", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		input := dto.ProductDTO{
 			ProductName:   "Produto Erro",
@@ -187,7 +187,7 @@ func TestProductHandler_Update(t *testing.T) {
 
 	t.Run("ID inválido deve retornar 400", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPut, "/products/abc", bytes.NewBufferString(`{}`))
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -203,7 +203,7 @@ func TestProductHandler_Update(t *testing.T) {
 
 	t.Run("falha: JSON inválido deve retornar 400", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		// Corpo JSON inválido
 		req := httptest.NewRequest(http.MethodPut, "/products/1", bytes.NewBufferString(`{ invalido `))
@@ -221,7 +221,7 @@ func TestProductHandler_Update(t *testing.T) {
 
 	t.Run("dados inválidos (ErrInvalidData) deve retornar 400", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		reqBody, _ := json.Marshal(validDTO)
 		req := httptest.NewRequest(http.MethodPut, "/products/1", bytes.NewBuffer(reqBody))
@@ -241,7 +241,7 @@ func TestProductHandler_Update(t *testing.T) {
 
 	t.Run("foreign key inválida (ErrInvalidForeignKey) deve retornar 400", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		reqBody, _ := json.Marshal(validDTO)
 		req := httptest.NewRequest(http.MethodPut, "/products/1", bytes.NewBuffer(reqBody))
@@ -261,7 +261,7 @@ func TestProductHandler_Update(t *testing.T) {
 
 	t.Run("ID zero (ErrZeroID) deve retornar 400", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		reqBody, _ := json.Marshal(validDTO)
 		req := httptest.NewRequest(http.MethodPut, "/products/0", bytes.NewBuffer(reqBody))
@@ -281,7 +281,7 @@ func TestProductHandler_Update(t *testing.T) {
 
 	t.Run("produto não encontrado (ErrNotFound) deve retornar 404", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		reqBody, _ := json.Marshal(validDTO)
 		req := httptest.NewRequest(http.MethodPut, "/products/1", bytes.NewBuffer(reqBody))
@@ -301,7 +301,7 @@ func TestProductHandler_Update(t *testing.T) {
 
 	t.Run("conflito de versão (ErrVersionConflict) deve retornar 409", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		reqBody, _ := json.Marshal(validDTO)
 		req := httptest.NewRequest(http.MethodPut, "/products/1", bytes.NewBuffer(reqBody))
@@ -321,7 +321,7 @@ func TestProductHandler_Update(t *testing.T) {
 
 	t.Run("erro genérico do service deve retornar 500", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		reqBody, _ := json.Marshal(validDTO)
 		req := httptest.NewRequest(http.MethodPut, "/products/1", bytes.NewBuffer(reqBody))
@@ -341,7 +341,7 @@ func TestProductHandler_Update(t *testing.T) {
 
 	t.Run("sucesso - atualizar produto deve retornar 200", func(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		id := int64(1)
 		dtoInput := validDTO
@@ -389,7 +389,7 @@ func TestProductHandler_Delete(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 		productID := int64(1)
 
 		mockService.On("Delete", mock.Anything, productID).
@@ -418,7 +418,7 @@ func TestProductHandler_Delete(t *testing.T) {
 	t.Run("InvalidID", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodDelete, "/products/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -435,7 +435,7 @@ func TestProductHandler_Delete(t *testing.T) {
 	t.Run("ServiceError", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
-		handler := NewProduct(mockService, logAdapter)
+		handler := NewProductHandler(mockService, logAdapter)
 
 		mockService.On("Delete", mock.Anything, int64(1)).Return(errors.New("erro interno"))
 

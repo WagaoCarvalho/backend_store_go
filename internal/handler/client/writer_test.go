@@ -35,7 +35,7 @@ func TestClientHandler_Create(t *testing.T) {
 	t.Run("Success - Create Client", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 
 		email := "cliente@teste.com"
 		cpf := "12345678900"
@@ -84,7 +84,7 @@ func TestClientHandler_Create(t *testing.T) {
 	t.Run("Error - Invalid Foreign Key", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 
 		email := "fk@teste.com"
 		inputDTO := &dto.ClientDTO{Name: "Cliente FK", Email: &email}
@@ -109,7 +109,7 @@ func TestClientHandler_Create(t *testing.T) {
 	t.Run("Error - Duplicate Client", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 
 		email := "duplicado@teste.com"
 		inputDTO := &dto.ClientDTO{Name: "Duplicado", Email: &email}
@@ -138,7 +138,7 @@ func TestClientHandler_Create(t *testing.T) {
 	t.Run("Error - Service Failure", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 
 		email := "falha@teste.com"
 		inputDTO := &dto.ClientDTO{Name: "Falha", Email: &email}
@@ -163,7 +163,7 @@ func TestClientHandler_Create(t *testing.T) {
 	t.Run("Error - Invalid JSON", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPost, "/clients", bytes.NewBuffer([]byte(`{invalid`)))
 		req.Header.Set("Content-Type", "application/json")
@@ -185,7 +185,7 @@ func TestClientHandler_Update(t *testing.T) {
 	t.Run("erro - id inválido", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPut, "/clients/invalid", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "invalid"})
@@ -203,7 +203,7 @@ func TestClientHandler_Update(t *testing.T) {
 	t.Run("erro - dados inválidos (ErrInvalidData)", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 
 		// Simula um client com dados inválidos
 		invalidClient := &models.Client{ID: 1, Name: ""} // Name obrigatório, por exemplo
@@ -226,7 +226,7 @@ func TestClientHandler_Update(t *testing.T) {
 	t.Run("erro - ID zero (ErrZeroID)", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 
 		clientWithZeroID := &models.Client{ID: 0, Name: "Cliente X"}
 		body, _ := json.Marshal(clientWithZeroID)
@@ -247,7 +247,7 @@ func TestClientHandler_Update(t *testing.T) {
 	t.Run("erro - conflito de versão (ErrVersionConflict)", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 
 		clientWithVersion := &models.Client{ID: 1, Name: "Cliente Y", Version: 1}
 		body, _ := json.Marshal(clientWithVersion)
@@ -268,7 +268,7 @@ func TestClientHandler_Update(t *testing.T) {
 	t.Run("erro - corpo inválido", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 
 		req := httptest.NewRequest(http.MethodPut, "/clients/1", bytes.NewBuffer([]byte("{invalid json")))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -286,7 +286,7 @@ func TestClientHandler_Update(t *testing.T) {
 	t.Run("erro - service retorna ErrNotFound", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 
 		inputDTO := &dto.ClientDTO{Name: "Cliente Teste"}
 		body, _ := json.Marshal(inputDTO)
@@ -310,7 +310,7 @@ func TestClientHandler_Update(t *testing.T) {
 	t.Run("erro - service retorna ErrDuplicate", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 
 		inputDTO := &dto.ClientDTO{Name: "Cliente Teste"}
 		body, _ := json.Marshal(inputDTO)
@@ -334,7 +334,7 @@ func TestClientHandler_Update(t *testing.T) {
 	t.Run("sucesso - update", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 
 		email := "cliente@teste.com"
 		cpf := "12345678900"
@@ -380,7 +380,7 @@ func TestClientHandler_Update(t *testing.T) {
 
 	t.Run("erro - service retorna outro erro", func(t *testing.T) {
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logAdapter)
+		handler := NewClientHandler(mockService, logAdapter)
 
 		uid := "1"
 		reqBody := &dto.ClientDTO{Name: "Cliente Teste"}
@@ -412,7 +412,7 @@ func TestClientHandler_Delete(t *testing.T) {
 
 	t.Run("erro - id inválido", func(t *testing.T) {
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logger)
+		handler := NewClientHandler(mockService, logger)
 
 		req := httptest.NewRequest(http.MethodDelete, "/clients/invalid", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "invalid"})
@@ -432,7 +432,7 @@ func TestClientHandler_Delete(t *testing.T) {
 
 	t.Run("erro - serviço retorna erro", func(t *testing.T) {
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logger)
+		handler := NewClientHandler(mockService, logger)
 
 		mockService.On("Delete", mock.Anything, int64(1)).Return(errors.New("erro no banco"))
 
@@ -454,7 +454,7 @@ func TestClientHandler_Delete(t *testing.T) {
 
 	t.Run("sucesso - cliente deletado", func(t *testing.T) {
 		mockService := new(mockClient.MockClient)
-		handler := NewClient(mockService, logger)
+		handler := NewClientHandler(mockService, logger)
 
 		mockService.On("Delete", mock.Anything, int64(1)).Return(nil)
 

@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *Product) EnableDiscount(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) EnableDiscount(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - EnableDiscount] "
 	ctx := r.Context()
 
@@ -58,7 +58,7 @@ func (h *Product) EnableDiscount(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *Product) DisableDiscount(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) DisableDiscount(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - DisableDiscount] "
 	ctx := r.Context()
 
@@ -105,7 +105,7 @@ func (h *Product) DisableDiscount(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *Product) ApplyDiscount(w http.ResponseWriter, r *http.Request) {
+func (h *productHandler) ApplyDiscount(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - ApplyDiscount] "
 	ctx := r.Context()
 

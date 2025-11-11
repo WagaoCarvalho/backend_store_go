@@ -11,7 +11,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *SaleItemHandler) ItemExists(w http.ResponseWriter, r *http.Request) {
+func (h *saleItemHandler) ItemExists(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleItemHandler - ItemExists] "
 
 	h.logger.Info(r.Context(), ref+logger.LogGetInit, nil)

@@ -10,7 +10,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *User) Disable(w http.ResponseWriter, r *http.Request) {
+func (h *userHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - Disable] "
 	ctx := r.Context()
 
@@ -67,7 +67,7 @@ func (h *User) Disable(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *User) Enable(w http.ResponseWriter, r *http.Request) {
+func (h *userHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	const ref = "[UserHandler - Enable] "
 	ctx := r.Context()
 
