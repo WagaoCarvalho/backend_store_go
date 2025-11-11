@@ -1,10 +1,12 @@
 package services
 
+import repoClient "github.com/WagaoCarvalho/backend_store_go/internal/repo/client/client"
+
 type clientService struct {
-	repo Client
+	repo repoClient.Client
 }
 
-func NewClient(repo Client) Client {
+func NewClientService(repo Client) Client {
 	return &clientService{
 		repo: repo,
 	}

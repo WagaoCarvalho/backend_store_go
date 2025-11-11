@@ -17,7 +17,7 @@ import (
 func TestClientService_GetAll(t *testing.T) {
 	t.Run("falha quando filtro é nulo", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		result, err := service.GetAll(context.Background(), nil)
 
@@ -28,7 +28,7 @@ func TestClientService_GetAll(t *testing.T) {
 
 	t.Run("falha na validação do filtro", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		invalidFilter := &model.ClientFilter{
 			BaseFilter: filter.BaseFilter{
@@ -45,7 +45,7 @@ func TestClientService_GetAll(t *testing.T) {
 
 	t.Run("falha ao buscar no repositório", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		validFilter := &model.ClientFilter{
 			BaseFilter: filter.BaseFilter{
@@ -68,7 +68,7 @@ func TestClientService_GetAll(t *testing.T) {
 
 	t.Run("sucesso ao retornar lista de clientes", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		validFilter := &model.ClientFilter{
 			BaseFilter: filter.BaseFilter{

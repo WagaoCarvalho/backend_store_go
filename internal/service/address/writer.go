@@ -15,7 +15,7 @@ func (s *addressService) Create(ctx context.Context, address *models.Address) (*
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
-	createdAddress, err := s.address.Create(ctx, address)
+	createdAddress, err := s.addressRepo.Create(ctx, address)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
@@ -31,7 +31,7 @@ func (s *addressService) Update(ctx context.Context, address *models.Address) er
 		return fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
-	if err := s.address.Update(ctx, address); err != nil {
+	if err := s.addressRepo.Update(ctx, address); err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
@@ -43,7 +43,7 @@ func (s *addressService) Delete(ctx context.Context, id int64) error {
 		return errMsg.ErrZeroID
 	}
 
-	_, err := s.address.GetByID(ctx, id)
+	_, err := s.addressRepo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
 			return errMsg.ErrNotFound
@@ -51,7 +51,7 @@ func (s *addressService) Delete(ctx context.Context, id int64) error {
 		return fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
-	if err := s.address.Delete(ctx, id); err != nil {
+	if err := s.addressRepo.Delete(ctx, id); err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
 

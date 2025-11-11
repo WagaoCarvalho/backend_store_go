@@ -7,7 +7,6 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 )
 
 type Contact interface {
@@ -15,16 +14,6 @@ type Contact interface {
 	GetByID(ctx context.Context, id int64) (*models.Contact, error)
 	Update(ctx context.Context, contact *models.Contact) error
 	Delete(ctx context.Context, id int64) error
-}
-
-type contact struct {
-	contactRepo repo.Contact
-}
-
-func NewContact(contactRepo repo.Contact) Contact {
-	return &contact{
-		contactRepo: contactRepo,
-	}
 }
 
 func (s *contact) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {

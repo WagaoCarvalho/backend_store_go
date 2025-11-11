@@ -14,7 +14,7 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address
 		return nil, errMsg.ErrZeroID
 	}
 
-	addressModel, err := s.address.GetByID(ctx, id)
+	addressModel, err := s.addressRepo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
 			return nil, errMsg.ErrNotFound
@@ -30,13 +30,13 @@ func (s *addressService) GetByUserID(ctx context.Context, userID int64) ([]*mode
 		return nil, errMsg.ErrZeroID
 	}
 
-	addresses, err := s.address.GetByUserID(ctx, userID)
+	addresses, err := s.addressRepo.GetByUserID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	if len(addresses) == 0 {
-		exists, err := s.user.UserExists(ctx, userID)
+		exists, err := s.userRepo.UserExists(ctx, userID)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 		}
@@ -53,13 +53,13 @@ func (s *addressService) GetByClientID(ctx context.Context, clientID int64) ([]*
 		return nil, errMsg.ErrZeroID
 	}
 
-	addresses, err := s.address.GetByClientID(ctx, clientID)
+	addresses, err := s.addressRepo.GetByClientID(ctx, clientID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	if len(addresses) == 0 {
-		exists, err := s.client.ClientExists(ctx, clientID)
+		exists, err := s.clientRepo.ClientExists(ctx, clientID)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 		}
@@ -76,13 +76,13 @@ func (s *addressService) GetBySupplierID(ctx context.Context, supplierID int64) 
 		return nil, errMsg.ErrZeroID
 	}
 
-	addresses, err := s.address.GetBySupplierID(ctx, supplierID)
+	addresses, err := s.addressRepo.GetBySupplierID(ctx, supplierID)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
 	if len(addresses) == 0 {
-		exists, err := s.supplier.SupplierExists(ctx, supplierID)
+		exists, err := s.supplierRepo.SupplierExists(ctx, supplierID)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 		}

@@ -15,7 +15,7 @@ import (
 func TestClientService_GetByID(t *testing.T) {
 	t.Run("falha por ID inválido", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		result, err := service.GetByID(context.Background(), 0)
 
@@ -26,7 +26,7 @@ func TestClientService_GetByID(t *testing.T) {
 
 	t.Run("falha ao buscar cliente", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		expectedErr := errors.New("db error")
 		mockRepo.
@@ -42,7 +42,7 @@ func TestClientService_GetByID(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		client := &models.Client{ID: 1, Name: "teste"}
 
@@ -61,7 +61,7 @@ func TestClientService_GetByID(t *testing.T) {
 func TestClientService_GetByName(t *testing.T) {
 	t.Run("falha por nome vazio", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		result, err := service.GetByName(context.Background(), "")
 
@@ -72,7 +72,7 @@ func TestClientService_GetByName(t *testing.T) {
 
 	t.Run("falha ao buscar cliente por nome", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		expectedErr := errors.New("db error")
 		mockRepo.
@@ -88,7 +88,7 @@ func TestClientService_GetByName(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		client := &models.Client{ID: 1, Name: "teste"}
 		mockRepo.
@@ -107,7 +107,7 @@ func TestClientService_GetByName(t *testing.T) {
 func TestClientService_GetVersionByID(t *testing.T) {
 	t.Run("falha por ID inválido", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		version, err := service.GetVersionByID(context.Background(), 0)
 
@@ -118,7 +118,7 @@ func TestClientService_GetVersionByID(t *testing.T) {
 
 	t.Run("falha no repo", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		expectedErr := errors.New("db error")
 		mockRepo.
@@ -134,7 +134,7 @@ func TestClientService_GetVersionByID(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		mockRepo.
 			On("GetVersionByID", mock.Anything, int64(1)).
@@ -151,7 +151,7 @@ func TestClientService_GetVersionByID(t *testing.T) {
 func TestClientService_ClientExists(t *testing.T) {
 	t.Run("falha por ID inválido", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		exists, err := service.ClientExists(context.Background(), 0)
 
@@ -162,7 +162,7 @@ func TestClientService_ClientExists(t *testing.T) {
 
 	t.Run("falha ao verificar existência", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		expectedErr := errors.New("db error")
 		mockRepo.
@@ -178,7 +178,7 @@ func TestClientService_ClientExists(t *testing.T) {
 
 	t.Run("sucesso - cliente existe", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		mockRepo.
 			On("ClientExists", mock.Anything, int64(1)).

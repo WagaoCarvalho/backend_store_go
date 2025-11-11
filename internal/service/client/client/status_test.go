@@ -14,7 +14,7 @@ import (
 func TestClientService_Disable(t *testing.T) {
 	t.Run("falha por ID inválido", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		err := service.Disable(context.Background(), 0)
 
@@ -24,7 +24,7 @@ func TestClientService_Disable(t *testing.T) {
 
 	t.Run("falha no repo", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		expectedErr := errors.New("db error")
 		mockRepo.
@@ -39,7 +39,7 @@ func TestClientService_Disable(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		mockRepo.
 			On("Disable", mock.Anything, int64(1)).
@@ -55,7 +55,7 @@ func TestClientService_Disable(t *testing.T) {
 func TestClientService_Enable(t *testing.T) {
 	t.Run("falha por ID inválido", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		err := service.Enable(context.Background(), 0)
 
@@ -65,7 +65,7 @@ func TestClientService_Enable(t *testing.T) {
 
 	t.Run("falha no repo", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		expectedErr := errors.New("db error")
 		mockRepo.
@@ -80,7 +80,7 @@ func TestClientService_Enable(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClient(mockRepo)
+		service := NewClientService(mockRepo)
 
 		mockRepo.
 			On("Enable", mock.Anything, int64(1)).

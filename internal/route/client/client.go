@@ -22,7 +22,7 @@ func RegisterClientRoutes(
 	blacklist jwtMiddlewares.TokenBlacklist,
 ) {
 	repo := repo.NewClient(db)
-	service := service.NewClient(repo)
+	service := service.NewClientService(repo)
 	handler := handler.NewClient(service, log)
 
 	jwtCfg := config.LoadJwtConfig()
