@@ -8,7 +8,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *client) GetAll(ctx context.Context, filter *model.ClientFilter) ([]*model.Client, error) {
+func (s *clientService) GetAll(ctx context.Context, filter *model.ClientFilter) ([]*model.Client, error) {
 	if filter == nil {
 		return nil, fmt.Errorf("%w: filtro não pode ser nulo", errMsg.ErrInvalidFilter)
 	}
