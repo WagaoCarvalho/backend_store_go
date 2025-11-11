@@ -6,6 +6,6 @@ type productCategoryRelationRepo struct {
 	db repo.DBExecutor
 }
 
-func NewProductCategoryRelation(db repo.DBExecutor) ProductCategoryRelation {
+func NewProductCategoryRelation(db repo.DBExecutor) ProductCategoryRelationRepo {
 	return &productCategoryRelationRepo{db: db}
 }

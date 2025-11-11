@@ -14,7 +14,7 @@ func (s *contact) GetByID(ctx context.Context, id int64) (*models.Contact, error
 		return nil, errMsg.ErrZeroID
 	}
 
-	contact, err := s.contactRepo.GetByID(ctx, id)
+	contact, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
 			return nil, errMsg.ErrNotFound

@@ -15,7 +15,7 @@ func (s *contact) Create(ctx context.Context, contact *models.Contact) (*models.
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
-	createdContact, err := s.contactRepo.Create(ctx, contact)
+	createdContact, err := s.repo.Create(ctx, contact)
 	if err != nil {
 		switch {
 		case errors.Is(err, errMsg.ErrNotFound):
@@ -40,7 +40,7 @@ func (s *contact) Update(ctx context.Context, contact *models.Contact) error {
 		return fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
-	if err := s.contactRepo.Update(ctx, contact); err != nil {
+	if err := s.repo.Update(ctx, contact); err != nil {
 		switch {
 		case errors.Is(err, errMsg.ErrNotFound):
 			return errMsg.ErrNotFound
@@ -59,7 +59,7 @@ func (s *contact) Delete(ctx context.Context, id int64) error {
 		return errMsg.ErrZeroID
 	}
 
-	_, err := s.contactRepo.GetByID(ctx, id)
+	_, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
 			return errMsg.ErrNotFound
@@ -67,7 +67,7 @@ func (s *contact) Delete(ctx context.Context, id int64) error {
 		return fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
 
-	if err := s.contactRepo.Delete(ctx, id); err != nil {
+	if err := s.repo.Delete(ctx, id); err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
 

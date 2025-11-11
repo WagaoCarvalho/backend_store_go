@@ -24,7 +24,7 @@ func TestProductCategoryService_Create(t *testing.T) {
 			return cat.Name == inputCategory.Name && cat.Description == inputCategory.Description
 		})).Return(createdCategory, nil)
 
-		service := NewProductCategory(mockRepo)
+		service := NewProductCategoryService(mockRepo)
 		category, err := service.Create(context.Background(), inputCategory)
 
 		assert.NoError(t, err)
@@ -34,7 +34,7 @@ func TestProductCategoryService_Create(t *testing.T) {
 
 	t.Run("ErrInvalidCategoryName", func(t *testing.T) {
 		mockRepo := new(mockProductCat.MockProductCategory)
-		service := NewProductCategory(mockRepo)
+		service := NewProductCategoryService(mockRepo)
 
 		invalidCategory := &models.ProductCategory{Name: "   "} // nome só com espaços
 
@@ -52,7 +52,7 @@ func TestProductCategoryService_Create(t *testing.T) {
 			return cat.Name == inputCategory.Name && cat.Description == inputCategory.Description
 		})).Return(nil, errors.New("erro ao criar"))
 
-		service := NewProductCategory(mockRepo)
+		service := NewProductCategoryService(mockRepo)
 		category, err := service.Create(context.Background(), inputCategory)
 
 		assert.Error(t, err)
@@ -63,101 +63,9 @@ func TestProductCategoryService_Create(t *testing.T) {
 	})
 }
 
-func TestProductCategoryService_GetAll(t *testing.T) {
-
-	t.Run("Success", func(t *testing.T) {
-		mockRepo := new(mockProductCat.MockProductCategory)
-		expectedCategories := []*models.ProductCategory{
-			{ID: 1, Name: "Category1", Description: "Desc1"},
-		}
-
-		mockRepo.On("GetAll", mock.Anything).Return(expectedCategories, nil)
-
-		service := NewProductCategory(mockRepo)
-		categories, err := service.GetAll(context.Background())
-
-		assert.NoError(t, err)
-		assert.Equal(t, expectedCategories, categories)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("ErrorOnGetAll", func(t *testing.T) {
-		mockRepo := new(mockProductCat.MockProductCategory)
-		mockRepo.On("GetAll", mock.Anything).Return([]*models.ProductCategory(nil), errors.New("db error"))
-
-		service := NewProductCategory(mockRepo)
-		categories, err := service.GetAll(context.Background())
-
-		assert.Error(t, err)
-		assert.Nil(t, categories)
-		assert.Contains(t, err.Error(), "erro ao buscar")
-		assert.Contains(t, err.Error(), "db error")
-		mockRepo.AssertExpectations(t)
-	})
-}
-
-func TestProductCategoryService_GetById(t *testing.T) {
-
-	mockRepo := new(mockProductCat.MockProductCategory)
-	service := NewProductCategory(mockRepo)
-
-	t.Run("Success", func(t *testing.T) {
-		expectedCategory := &models.ProductCategory{ID: 1, Name: "Category1", Description: "Desc1"}
-		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(expectedCategory, nil).Once()
-
-		category, err := service.GetByID(context.Background(), 1)
-
-		assert.NoError(t, err)
-		assert.Equal(t, expectedCategory, category)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("ErrCategoryIDRequired", func(t *testing.T) {
-		category, err := service.GetByID(context.Background(), 0)
-
-		assert.Nil(t, category)
-		assert.ErrorIs(t, err, errMsg.ErrZeroID)
-	})
-
-	t.Run("ReturnCategoryNotFound", func(t *testing.T) {
-		mockRepo.On("GetByID", mock.Anything, int64(4)).Return(nil, errMsg.ErrNotFound).Once()
-
-		category, err := service.GetByID(context.Background(), 4)
-
-		assert.ErrorIs(t, err, errMsg.ErrNotFound)
-		assert.Nil(t, category)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("RepositoryError", func(t *testing.T) {
-		ctx := context.Background()
-		internalErr := errors.New("erro interno do banco")
-
-		mockRepo.On("GetByID", ctx, int64(5)).Return(nil, internalErr).Once()
-
-		category, err := service.GetByID(ctx, 5)
-
-		assert.Nil(t, category)
-		assert.Error(t, err)
-		assert.ErrorIs(t, err, errMsg.ErrGet)
-		assert.ErrorContains(t, err, "erro interno do banco")
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("ReturnCategoryNotFound_Duplicate", func(t *testing.T) {
-		mockRepo.On("GetByID", mock.Anything, int64(4)).Return((*models.ProductCategory)(nil), errMsg.ErrNotFound).Once()
-
-		category, err := service.GetByID(context.Background(), 4)
-
-		assert.ErrorIs(t, err, errMsg.ErrNotFound)
-		assert.Nil(t, category)
-		mockRepo.AssertExpectations(t)
-	})
-}
-
 func TestProductCategoryService_Update(t *testing.T) {
 	mockRepo := new(mockProductCat.MockProductCategory)
-	service := NewProductCategory(mockRepo)
+	service := NewProductCategoryService(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()
@@ -243,7 +151,7 @@ func TestProductCategoryService_Update(t *testing.T) {
 func TestProductCategoryService_Delete(t *testing.T) {
 
 	mockRepo := new(mockProductCat.MockProductCategory)
-	service := NewProductCategory(mockRepo)
+	service := NewProductCategoryService(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()
