@@ -9,13 +9,6 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-type Contact interface {
-	Create(ctx context.Context, contact *models.Contact) (*models.Contact, error)
-	GetByID(ctx context.Context, id int64) (*models.Contact, error)
-	Update(ctx context.Context, contact *models.Contact) error
-	Delete(ctx context.Context, id int64) error
-}
-
 func (s *contact) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
 
 	if err := contact.Validate(); err != nil {
@@ -35,22 +28,6 @@ func (s *contact) Create(ctx context.Context, contact *models.Contact) (*models.
 	}
 
 	return createdContact, nil
-}
-
-func (s *contact) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
-	if id <= 0 {
-		return nil, errMsg.ErrZeroID
-	}
-
-	contact, err := s.contactRepo.GetByID(ctx, id)
-	if err != nil {
-		if errors.Is(err, errMsg.ErrNotFound) {
-			return nil, errMsg.ErrNotFound
-		}
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-
-	return contact, nil
 }
 
 func (s *contact) Update(ctx context.Context, contact *models.Contact) error {

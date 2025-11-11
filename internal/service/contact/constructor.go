@@ -1,7 +1,9 @@
 package services
 
+import contactRepo "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
+
 type contact struct {
-	contactRepo Contact
+	contactRepo contactRepo.Contact
 }
 
 func NewContact(contactRepo Contact) Contact {
