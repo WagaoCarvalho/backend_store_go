@@ -28,7 +28,7 @@ func RegisterAddressRoutes(
 	repoClient := repoClient.NewClient(db)
 	repoUser := repoUser.NewUser(db)
 	repoSupplier := repoSupplier.NewSupplier(db)
-	service := service.NewAddress(repoAddress, repoClient, repoUser, repoSupplier)
+	service := service.NewAddressService(repoAddress, repoClient, repoUser, repoSupplier)
 	handler := handler.NewAddress(service, log)
 
 	jwtCfg := config.LoadJwtConfig()

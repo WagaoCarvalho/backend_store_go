@@ -16,7 +16,7 @@ func TestUserCategoryService_Create(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(mockUserCat.MockUserCategory)
-		service := NewUserCategory(mockRepo)
+		service := NewUserCategoryService(mockRepo)
 
 		input := &models.UserCategory{Name: "Admin", Description: "Admin access"}
 		expected := &models.UserCategory{ID: 1, Name: "Admin", Description: "Admin access"}
@@ -32,7 +32,7 @@ func TestUserCategoryService_Create(t *testing.T) {
 
 	t.Run("InvalidData", func(t *testing.T) {
 		mockRepo := new(mockUserCat.MockUserCategory)
-		service := NewUserCategory(mockRepo)
+		service := NewUserCategoryService(mockRepo)
 
 		invalid := &models.UserCategory{Name: ""} // inválido, falha na validação
 
@@ -45,7 +45,7 @@ func TestUserCategoryService_Create(t *testing.T) {
 
 	t.Run("RepositoryError", func(t *testing.T) {
 		mockRepo := new(mockUserCat.MockUserCategory)
-		service := NewUserCategory(mockRepo)
+		service := NewUserCategoryService(mockRepo)
 
 		input := &models.UserCategory{Name: "User", Description: "Default user"}
 
@@ -69,7 +69,7 @@ func TestUserCategoryService_GetAll(t *testing.T) {
 
 		mockRepo.On("GetAll", mock.Anything).Return(expectedCategories, nil)
 
-		service := NewUserCategory(mockRepo)
+		service := NewUserCategoryService(mockRepo)
 		categories, err := service.GetAll(context.Background())
 
 		assert.NoError(t, err)
@@ -81,7 +81,7 @@ func TestUserCategoryService_GetAll(t *testing.T) {
 		mockRepo := new(mockUserCat.MockUserCategory)
 		mockRepo.On("GetAll", mock.Anything).Return([]*models.UserCategory(nil), errors.New("db error"))
 
-		service := NewUserCategory(mockRepo)
+		service := NewUserCategoryService(mockRepo)
 		categories, err := service.GetAll(context.Background())
 
 		assert.Error(t, err)
@@ -95,7 +95,7 @@ func TestUserCategoryService_GetAll(t *testing.T) {
 func TestUserCategoryService_GetById(t *testing.T) {
 
 	mockRepo := new(mockUserCat.MockUserCategory)
-	service := NewUserCategory(mockRepo)
+	service := NewUserCategoryService(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {
 		expectedCategory := &models.UserCategory{ID: 1, Name: "Category1", Description: "Desc1"}
@@ -154,7 +154,7 @@ func TestUserCategoryService_GetById(t *testing.T) {
 func TestUserCategoryService_Update(t *testing.T) {
 
 	mockRepo := new(mockUserCat.MockUserCategory)
-	service := NewUserCategory(mockRepo)
+	service := NewUserCategoryService(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()
@@ -240,7 +240,7 @@ func TestUserCategoryService_Update(t *testing.T) {
 func TestUserCategoryService_Delete(t *testing.T) {
 
 	mockRepo := new(mockUserCat.MockUserCategory)
-	service := NewUserCategory(mockRepo)
+	service := NewUserCategoryService(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()

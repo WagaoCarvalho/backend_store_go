@@ -22,7 +22,7 @@ func RegisterSaleRoutes(
 	blacklist jwt.TokenBlacklist,
 ) {
 	repoSale := repo.NewSale(db)
-	saleService := service.NewSale(repoSale)
+	saleService := service.NewSaleService(repoSale)
 	handler := handler.NewSaleHandler(saleService, log)
 
 	// Config JWT

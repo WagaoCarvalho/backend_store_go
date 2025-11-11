@@ -16,7 +16,7 @@ func TestSaleItemChecker_ItemExists(t *testing.T) {
 
 	t.Run("id inválido retorna erro", func(t *testing.T) {
 		mockRepo := new(mock_item.MockSaleItem)
-		service := NewItemSale(mockRepo)
+		service := NewItemSaleService(mockRepo)
 
 		exists, err := service.ItemExists(ctx, 0)
 		assert.False(t, exists)
@@ -26,7 +26,7 @@ func TestSaleItemChecker_ItemExists(t *testing.T) {
 
 	t.Run("item existe", func(t *testing.T) {
 		mockRepo := new(mock_item.MockSaleItem)
-		service := NewItemSale(mockRepo)
+		service := NewItemSaleService(mockRepo)
 		mockRepo.On("ItemExists", ctx, int64(10)).Return(true, nil)
 
 		exists, err := service.ItemExists(ctx, 10)
@@ -37,7 +37,7 @@ func TestSaleItemChecker_ItemExists(t *testing.T) {
 
 	t.Run("item não existe", func(t *testing.T) {
 		mockRepo := new(mock_item.MockSaleItem)
-		service := NewItemSale(mockRepo)
+		service := NewItemSaleService(mockRepo)
 		mockRepo.On("ItemExists", ctx, int64(99)).Return(false, nil)
 
 		exists, err := service.ItemExists(ctx, 99)
@@ -48,7 +48,7 @@ func TestSaleItemChecker_ItemExists(t *testing.T) {
 
 	t.Run("erro no repositório", func(t *testing.T) {
 		mockRepo := new(mock_item.MockSaleItem)
-		service := NewItemSale(mockRepo)
+		service := NewItemSaleService(mockRepo)
 		mockRepo.On("ItemExists", ctx, int64(5)).Return(false, errors.New("db error"))
 
 		exists, err := service.ItemExists(ctx, 5)

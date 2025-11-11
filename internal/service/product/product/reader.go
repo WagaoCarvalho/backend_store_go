@@ -10,7 +10,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *product) GetAll(ctx context.Context, limit, offset int) ([]*models.Product, error) {
+func (s *productService) GetAll(ctx context.Context, limit, offset int) ([]*models.Product, error) {
 	if limit <= 0 {
 		return nil, errMsg.ErrInvalidLimit
 	}
@@ -26,7 +26,7 @@ func (s *product) GetAll(ctx context.Context, limit, offset int) ([]*models.Prod
 	return products, nil
 }
 
-func (s *product) GetByID(ctx context.Context, id int64) (*models.Product, error) {
+func (s *productService) GetByID(ctx context.Context, id int64) (*models.Product, error) {
 	if id <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -39,7 +39,7 @@ func (s *product) GetByID(ctx context.Context, id int64) (*models.Product, error
 	return product, nil
 }
 
-func (s *product) GetByName(ctx context.Context, name string) ([]*models.Product, error) {
+func (s *productService) GetByName(ctx context.Context, name string) ([]*models.Product, error) {
 	if strings.TrimSpace(name) == "" {
 		return nil, errors.New("nome inválido")
 	}
@@ -52,7 +52,7 @@ func (s *product) GetByName(ctx context.Context, name string) ([]*models.Product
 	return products, nil
 }
 
-func (s *product) GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error) {
+func (s *productService) GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error) {
 
 	if strings.TrimSpace(manufacturer) == "" {
 		return nil, errors.New("fabricante inválido")
@@ -66,7 +66,7 @@ func (s *product) GetByManufacturer(ctx context.Context, manufacturer string) ([
 	return products, nil
 }
 
-func (s *product) GetVersionByID(ctx context.Context, pid int64) (int64, error) {
+func (s *productService) GetVersionByID(ctx context.Context, pid int64) (int64, error) {
 
 	if pid <= 0 {
 		return 0, errMsg.ErrZeroID
@@ -84,7 +84,7 @@ func (s *product) GetVersionByID(ctx context.Context, pid int64) (int64, error) 
 	return version, nil
 }
 
-func (s *product) ProductExists(ctx context.Context, productID int64) (bool, error) {
+func (s *productService) ProductExists(ctx context.Context, productID int64) (bool, error) {
 	if productID <= 0 {
 		return false, errMsg.ErrZeroID
 	}

@@ -18,7 +18,7 @@ func Test_SupplierContactRelationServices_Create(t *testing.T) {
 
 	t.Run("Erro: relação nula", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		result, err := service.Create(ctx, nil)
 
@@ -29,7 +29,7 @@ func Test_SupplierContactRelationServices_Create(t *testing.T) {
 
 	t.Run("Erro: supplierID inválido", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		relation := &models.SupplierContactRelation{SupplierID: 0, ContactID: 2}
 		result, err := service.Create(ctx, relation)
@@ -41,7 +41,7 @@ func Test_SupplierContactRelationServices_Create(t *testing.T) {
 
 	t.Run("Erro: contactID inválido", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		relation := &models.SupplierContactRelation{SupplierID: 1, ContactID: 0}
 		result, err := service.Create(ctx, relation)
@@ -53,7 +53,7 @@ func Test_SupplierContactRelationServices_Create(t *testing.T) {
 
 	t.Run("Sucesso: relação criada com sucesso", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		expected := &models.SupplierContactRelation{SupplierID: 1, ContactID: 2}
 		mockRepo.On("Create", ctx, expected).Return(expected, nil).Once()
@@ -67,7 +67,7 @@ func Test_SupplierContactRelationServices_Create(t *testing.T) {
 
 	t.Run("Erro: relação já existe e GetAllRelationsBySupplierID retorna erro", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		relation := &models.SupplierContactRelation{SupplierID: 1, ContactID: 2}
 
@@ -84,7 +84,7 @@ func Test_SupplierContactRelationServices_Create(t *testing.T) {
 
 	t.Run("Erro: relação já existe e encontrada na lista", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		relation := &models.SupplierContactRelation{SupplierID: 1, ContactID: 2}
 
@@ -102,7 +102,7 @@ func Test_SupplierContactRelationServices_Create(t *testing.T) {
 
 	t.Run("Erro: relação já existe mas não encontrada", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		relation := &models.SupplierContactRelation{SupplierID: 1, ContactID: 2}
 
@@ -119,7 +119,7 @@ func Test_SupplierContactRelationServices_Create(t *testing.T) {
 
 	t.Run("Erro: chave estrangeira inválida", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		relation := &models.SupplierContactRelation{SupplierID: 1, ContactID: 2}
 
@@ -134,7 +134,7 @@ func Test_SupplierContactRelationServices_Create(t *testing.T) {
 
 	t.Run("Erro: erro genérico no Create", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		relation := &models.SupplierContactRelation{SupplierID: 1, ContactID: 2}
 		dbErr := errors.New("db error")
@@ -152,7 +152,7 @@ func Test_SupplierContactRelationServices_Create(t *testing.T) {
 func Test_SupplierContactRelationServices_Delete(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(nil)
 
@@ -164,7 +164,7 @@ func Test_SupplierContactRelationServices_Delete(t *testing.T) {
 
 	t.Run("Error", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		mockRepo.On("Delete", mock.Anything, int64(1), int64(2)).Return(errors.New("db error"))
 
@@ -176,7 +176,7 @@ func Test_SupplierContactRelationServices_Delete(t *testing.T) {
 
 	t.Run("Erro: supplierID inválido", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		err := service.Delete(context.Background(), 0, 2)
 
@@ -186,7 +186,7 @@ func Test_SupplierContactRelationServices_Delete(t *testing.T) {
 
 	t.Run("Erro: contactID inválido", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		err := service.Delete(context.Background(), 1, 0)
 
@@ -198,7 +198,7 @@ func Test_SupplierContactRelationServices_Delete(t *testing.T) {
 func Test_SupplierContactRelationServices_DeleteAll(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		mockRepo.On("DeleteAll", mock.Anything, int64(1)).Return(nil)
 
@@ -210,7 +210,7 @@ func Test_SupplierContactRelationServices_DeleteAll(t *testing.T) {
 
 	t.Run("Error", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		mockRepo.On("DeleteAll", mock.Anything, int64(1)).Return(errors.New("db error"))
 
@@ -222,7 +222,7 @@ func Test_SupplierContactRelationServices_DeleteAll(t *testing.T) {
 
 	t.Run("Erro: supplierID inválido", func(t *testing.T) {
 		mockRepo := new(repo.MockSupplierContactRelation)
-		service := NewSupplierContactRelation(mockRepo)
+		service := NewSupplierContactRelationService(mockRepo)
 
 		err := service.DeleteAll(context.Background(), 0)
 

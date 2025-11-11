@@ -25,7 +25,7 @@ type UserFull interface {
 	CreateFull(ctx context.Context, user *modelsUserFull.UserFull) (*modelsUserFull.UserFull, error)
 }
 
-type userFull struct {
+type userFullService struct {
 	repoUser             repoUserFull.UserFull
 	repoAddressTx        repoAddressTx.AddressTx
 	repoContactTx        repoContactTx.ContactTx
@@ -34,7 +34,7 @@ type userFull struct {
 	hasher               auth.PasswordHasher
 }
 
-func NewUserFull(
+func NewUserFullService(
 	repoUser repoUserFull.UserFull,
 	repoAddressTx repoAddressTx.AddressTx,
 	repoContactTx repoContactTx.ContactTx,
@@ -42,7 +42,7 @@ func NewUserFull(
 	repoUserContactRelTx repoUserContactRelTx.UserContactRelationTx,
 	hasher auth.PasswordHasher,
 ) UserFull {
-	return &userFull{
+	return &userFullService{
 		repoUser:             repoUser,
 		repoAddressTx:        repoAddressTx,
 		repoContactTx:        repoContactTx,
@@ -52,7 +52,7 @@ func NewUserFull(
 	}
 }
 
-func (s *userFull) CreateFull(ctx context.Context, userFull *modelsUserFull.UserFull) (*modelsUserFull.UserFull, error) {
+func (s *userFullService) CreateFull(ctx context.Context, userFull *modelsUserFull.UserFull) (*modelsUserFull.UserFull, error) {
 	if userFull == nil {
 		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}

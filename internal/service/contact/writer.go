@@ -9,7 +9,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *contact) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
+func (s *contactService) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
 
 	if err := contact.Validate(); err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
@@ -30,7 +30,7 @@ func (s *contact) Create(ctx context.Context, contact *models.Contact) (*models.
 	return createdContact, nil
 }
 
-func (s *contact) Update(ctx context.Context, contact *models.Contact) error {
+func (s *contactService) Update(ctx context.Context, contact *models.Contact) error {
 
 	if contact.ID <= 0 {
 		return errMsg.ErrZeroID
@@ -54,7 +54,7 @@ func (s *contact) Update(ctx context.Context, contact *models.Contact) error {
 	return nil
 }
 
-func (s *contact) Delete(ctx context.Context, id int64) error {
+func (s *contactService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}

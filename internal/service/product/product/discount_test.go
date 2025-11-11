@@ -17,7 +17,7 @@ func TestProductService_EnableDiscount(t *testing.T) {
 
 	setup := func() (*mockProduct.ProductMock, ProductService) {
 		mockRepo := new(mockProduct.ProductMock)
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 		return mockRepo, service
 	}
 
@@ -34,7 +34,7 @@ func TestProductService_EnableDiscount(t *testing.T) {
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
 		repoMock := new(mockProduct.ProductMock)
-		service := product{repo: repoMock}
+		service := productService{repo: repoMock}
 
 		ctx := context.Background() // ⚠️ necessário criar o contexto
 		err := service.EnableDiscount(ctx, 0)
@@ -60,7 +60,7 @@ func TestProductService_DisableDiscount(t *testing.T) {
 
 	setup := func() (*mockProduct.ProductMock, ProductService) {
 		mockRepo := new(mockProduct.ProductMock)
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 		return mockRepo, service
 	}
 
@@ -77,7 +77,7 @@ func TestProductService_DisableDiscount(t *testing.T) {
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
 		repoMock := new(mockProduct.ProductMock)
-		service := product{repo: repoMock}
+		service := productService{repo: repoMock}
 
 		ctx := context.Background() // ⚠️ necessário criar o contexto
 		err := service.DisableDiscount(ctx, 0)
@@ -115,7 +115,7 @@ func TestProductService_ApplyDiscount(t *testing.T) {
 
 	setup := func() (*mockProduct.ProductMock, ProductService) {
 		mockRepo := new(mockProduct.ProductMock)
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 		return mockRepo, service
 	}
 

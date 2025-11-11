@@ -13,7 +13,7 @@ import (
 
 func TestSaleService_Cancel(t *testing.T) {
 	mockRepo := new(mockSale.MockSale)
-	svc := NewSale(mockRepo)
+	svc := NewSaleService(mockRepo)
 	ctx := context.Background()
 
 	t.Run("id inválido", func(t *testing.T) {
@@ -61,7 +61,7 @@ func TestSaleService_Cancel(t *testing.T) {
 
 	t.Run("erro repo get", func(t *testing.T) {
 		mockRepo := new(mockSale.MockSale)
-		svc := NewSale(mockRepo)
+		svc := NewSaleService(mockRepo)
 		ctx := context.Background()
 
 		mockRepo.On("GetByID", ctx, int64(5)).Return(nil, errors.New("db error")).Once()
@@ -76,7 +76,7 @@ func TestSaleService_Cancel(t *testing.T) {
 
 func TestSaleService_Complete(t *testing.T) {
 	mockRepo := new(mockSale.MockSale)
-	svc := NewSale(mockRepo)
+	svc := NewSaleService(mockRepo)
 	ctx := context.Background()
 
 	t.Run("id inválido", func(t *testing.T) {
@@ -124,7 +124,7 @@ func TestSaleService_Complete(t *testing.T) {
 
 	t.Run("erro repo get genérico", func(t *testing.T) {
 		mockRepo := new(mockSale.MockSale)
-		svc := NewSale(mockRepo)
+		svc := NewSaleService(mockRepo)
 		ctx := context.Background()
 
 		mockRepo.On("GetByID", ctx, int64(10)).Return(nil, errors.New("erro de banco")).Once()

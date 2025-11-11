@@ -16,7 +16,7 @@ import (
 
 func TestSaleService_GetByID(t *testing.T) {
 	mockRepo := new(mockSale.MockSale)
-	svc := NewSale(mockRepo)
+	svc := NewSaleService(mockRepo)
 
 	t.Run("id inválido", func(t *testing.T) {
 		result, err := svc.GetByID(context.Background(), 0)
@@ -54,7 +54,7 @@ func TestSaleService_GetByID(t *testing.T) {
 
 func TestSaleService_GetByClientID(t *testing.T) {
 	mockRepo := new(mockSale.MockSale)
-	svc := NewSale(mockRepo)
+	svc := NewSaleService(mockRepo)
 
 	t.Run("clientID inválido", func(t *testing.T) {
 		result, err := svc.GetByClientID(context.Background(), 0, 10, 0, "sale_date", "asc")
@@ -102,7 +102,7 @@ func TestSaleService_GetByClientID(t *testing.T) {
 
 func TestSaleService_GetByUserID(t *testing.T) {
 	mockRepo := new(mockSale.MockSale)
-	svc := NewSale(mockRepo)
+	svc := NewSaleService(mockRepo)
 	ctx := context.Background()
 
 	t.Run("id inválido", func(t *testing.T) {
@@ -150,7 +150,7 @@ func TestSaleService_GetByUserID(t *testing.T) {
 
 func TestSaleService_GetByStatus(t *testing.T) {
 	mockRepo := new(mockSale.MockSale)
-	svc := NewSale(mockRepo)
+	svc := NewSaleService(mockRepo)
 	ctx := context.Background()
 
 	t.Run("status inválido", func(t *testing.T) {
@@ -198,7 +198,7 @@ func TestSaleService_GetByStatus(t *testing.T) {
 
 func TestSaleService_GetByDateRange(t *testing.T) {
 	mockRepo := new(mockSale.MockSale)
-	svc := NewSale(mockRepo)
+	svc := NewSaleService(mockRepo)
 	ctx := context.Background()
 	start := time.Now().Add(-24 * time.Hour)
 	end := time.Now()

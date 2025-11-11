@@ -33,7 +33,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 	// Grupo: Supplier
 	// ------------------------
 	t.Run("Supplier: falha quando supplierFull é nil", func(t *testing.T) {
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			new(mockSupplier.MockSupplierFull),
 			nil, nil, nil, nil,
 		)
@@ -45,7 +45,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("Supplier: falha ao validar supplier inválido", func(t *testing.T) {
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			new(mockSupplier.MockSupplierFull),
 			nil, nil, nil, nil,
 		)
@@ -67,7 +67,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			mockRepoContact,
@@ -135,7 +135,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("Transaction: falha ao iniciar transação", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFull)
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			new(mockAddress.MockAddress),
 			new(mockContact.MockContact),
@@ -180,7 +180,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 
 	t.Run("Transaction: falha quando transação é nil", func(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFull)
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			new(mockAddress.MockAddress),
 			new(mockContact.MockContact),
@@ -226,7 +226,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoSupplier := new(mockSupplier.MockSupplierFull)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			new(mockAddress.MockAddress),
 			new(mockContact.MockContact),
@@ -278,7 +278,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			mockRepoContact,
@@ -342,7 +342,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			mockRepoContact,
@@ -406,7 +406,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			mockRepoContact,
@@ -490,7 +490,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			mockRepoContact,
@@ -556,7 +556,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			nil, // não precisa do contact para este teste
@@ -628,7 +628,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			nil,
@@ -691,7 +691,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoContact := new(mockContact.MockContact)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			mockRepoContact,
@@ -757,7 +757,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoContact := new(mockContact.MockContact)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			mockRepoContact,
@@ -827,7 +827,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoContact := new(mockContact.MockContact)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			mockRepoContact,
@@ -900,7 +900,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			mockRepoContact,
@@ -984,7 +984,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			mockRepoContact,
@@ -1059,7 +1059,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			mockRepoContact,
@@ -1139,7 +1139,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			mockRepoContact,
@@ -1221,7 +1221,7 @@ func TestSupplierFullService_CreateFull(t *testing.T) {
 		mockRepoCatRel := new(mockCatRel.MockSupplierCategoryRelation)
 		tx := new(mockTX.MockTx)
 
-		service := NewSupplierFull(
+		service := NewSupplierFullService(
 			mockRepoSupplier,
 			mockRepoAddress,
 			mockRepoContact,

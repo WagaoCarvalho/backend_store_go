@@ -9,7 +9,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *contact) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
+func (s *contactService) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
 	if id <= 0 {
 		return nil, errMsg.ErrZeroID
 	}

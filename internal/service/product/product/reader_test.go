@@ -19,7 +19,7 @@ func TestProductService_GetAll(t *testing.T) {
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mockProduct.ProductMock)
 
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 
 		limit := 10
 		offset := 0
@@ -43,7 +43,7 @@ func TestProductService_GetAll(t *testing.T) {
 
 	t.Run("falha: limit inválido", func(t *testing.T) {
 		mockRepo := new(mockProduct.ProductMock)
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 
 		limit := 0   // inválido
 		offset := 10 // qualquer valor válido
@@ -57,7 +57,7 @@ func TestProductService_GetAll(t *testing.T) {
 
 	t.Run("falha: offset inválido", func(t *testing.T) {
 		mockRepo := new(mockProduct.ProductMock)
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 
 		result, err := service.GetAll(ctx, 10, -1)
 
@@ -69,7 +69,7 @@ func TestProductService_GetAll(t *testing.T) {
 	t.Run("erro do repositório", func(t *testing.T) {
 		mockRepo := new(mockProduct.ProductMock)
 
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 
 		limit := 10
 		offset := 0
@@ -91,7 +91,7 @@ func TestProductService_GetByID(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(mockProduct.ProductMock)
 
-	service := NewProduct(mockRepo)
+	service := NewProductService(mockRepo)
 
 	t.Run("GetByID com ID inválido", func(t *testing.T) {
 		result, err := service.GetByID(ctx, 0)
@@ -153,7 +153,7 @@ func TestProductService_GetByName(t *testing.T) {
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mockProduct.ProductMock)
 
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 
 		name := "Produto X"
 		expectedProducts := []*models.Product{
@@ -177,7 +177,7 @@ func TestProductService_GetByName(t *testing.T) {
 	t.Run("nome inválido (string vazia)", func(t *testing.T) {
 		mockRepo := new(mockProduct.ProductMock)
 
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 
 		name := "   "
 
@@ -192,7 +192,7 @@ func TestProductService_GetByName(t *testing.T) {
 	t.Run("erro no repositório", func(t *testing.T) {
 		mockRepo := new(mockProduct.ProductMock)
 
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 
 		name := "Produto X"
 		mockErr := errors.New("erro no banco")
@@ -215,7 +215,7 @@ func TestProductService_GetByManufacturer(t *testing.T) {
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mockProduct.ProductMock)
 
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 
 		manufacturer := "Fabricante X"
 		expectedProducts := []*models.Product{
@@ -239,7 +239,7 @@ func TestProductService_GetByManufacturer(t *testing.T) {
 	t.Run("fabricante inválido (string vazia)", func(t *testing.T) {
 		mockRepo := new(mockProduct.ProductMock)
 
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 
 		manufacturer := "   "
 
@@ -254,7 +254,7 @@ func TestProductService_GetByManufacturer(t *testing.T) {
 	t.Run("erro no repositório", func(t *testing.T) {
 		mockRepo := new(mockProduct.ProductMock)
 
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 
 		manufacturer := "Fabricante X"
 		mockErr := errors.New("erro no banco")
@@ -277,7 +277,7 @@ func TestProductService_GetVersionByID(t *testing.T) {
 	newService := func() (*mockProduct.ProductMock, ProductService) {
 		mr := new(mockProduct.ProductMock)
 
-		return mr, NewProduct(mr)
+		return mr, NewProductService(mr)
 	}
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
@@ -336,7 +336,7 @@ func TestProductService_GetVersionByID(t *testing.T) {
 func TestProductService_ProductExists(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(mockProduct.ProductMock)
-	service := NewProduct(mockRepo)
+	service := NewProductService(mockRepo)
 
 	t.Run("ProductExists com ID inválido", func(t *testing.T) {
 		exists, err := service.ProductExists(ctx, 0)

@@ -8,7 +8,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *product) DisableDiscount(ctx context.Context, id int64) error {
+func (s *productService) DisableDiscount(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -21,7 +21,7 @@ func (s *product) DisableDiscount(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *product) EnableDiscount(ctx context.Context, id int64) error {
+func (s *productService) EnableDiscount(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -34,7 +34,7 @@ func (s *product) EnableDiscount(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *product) ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error) {
+func (s *productService) ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error) {
 	if id <= 0 {
 		return nil, errMsg.ErrZeroID
 	}

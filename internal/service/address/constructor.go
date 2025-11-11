@@ -15,7 +15,7 @@ type addressService struct {
 }
 
 // Retorna a interface da camada de serviço
-func NewAddress(
+func NewAddressService(
 	addressRepo repoAddress.Address,
 	clientRepo repoClient.Client,
 	userRepo repoUser.User,

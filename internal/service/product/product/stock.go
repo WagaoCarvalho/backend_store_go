@@ -7,7 +7,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *product) UpdateStock(ctx context.Context, id int64, quantity int) error {
+func (s *productService) UpdateStock(ctx context.Context, id int64, quantity int) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -24,7 +24,7 @@ func (s *product) UpdateStock(ctx context.Context, id int64, quantity int) error
 	return nil
 }
 
-func (s *product) IncreaseStock(ctx context.Context, id int64, amount int) error {
+func (s *productService) IncreaseStock(ctx context.Context, id int64, amount int) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -42,7 +42,7 @@ func (s *product) IncreaseStock(ctx context.Context, id int64, amount int) error
 
 }
 
-func (s *product) DecreaseStock(ctx context.Context, id int64, amount int) error {
+func (s *productService) DecreaseStock(ctx context.Context, id int64, amount int) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -59,7 +59,7 @@ func (s *product) DecreaseStock(ctx context.Context, id int64, amount int) error
 	return nil
 }
 
-func (s *product) GetStock(ctx context.Context, id int64) (int, error) {
+func (s *productService) GetStock(ctx context.Context, id int64) (int, error) {
 	if id <= 0 {
 		return 0, errMsg.ErrZeroID
 	}

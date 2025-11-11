@@ -7,7 +7,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *product) DisableProduct(ctx context.Context, uid int64) error {
+func (s *productService) DisableProduct(ctx context.Context, uid int64) error {
 
 	if uid <= 0 {
 		return errMsg.ErrZeroID
@@ -21,7 +21,7 @@ func (s *product) DisableProduct(ctx context.Context, uid int64) error {
 	return nil
 }
 
-func (s *product) EnableProduct(ctx context.Context, uid int64) error {
+func (s *productService) EnableProduct(ctx context.Context, uid int64) error {
 	if uid <= 0 {
 		return errMsg.ErrZeroID
 	}

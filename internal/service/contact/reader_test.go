@@ -16,7 +16,7 @@ import (
 func TestContactService_GetByID(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockRepo := new(mockContact.MockContact)
-		service := NewContact(mockRepo)
+		service := NewContactService(mockRepo)
 
 		expectedContact := &model.Contact{
 			ID:          1,
@@ -41,7 +41,7 @@ func TestContactService_GetByID(t *testing.T) {
 
 	t.Run("not found", func(t *testing.T) {
 		mockRepo := new(mockContact.MockContact)
-		service := NewContact(mockRepo)
+		service := NewContactService(mockRepo)
 
 		mockRepo.On("GetByID", mock.Anything, int64(1)).
 			Return((*model.Contact)(nil), errMsg.ErrNotFound)
@@ -56,7 +56,7 @@ func TestContactService_GetByID(t *testing.T) {
 
 	t.Run("invalid id", func(t *testing.T) {
 		mockRepo := new(mockContact.MockContact)
-		service := NewContact(mockRepo)
+		service := NewContactService(mockRepo)
 
 		contact, err := service.GetByID(context.Background(), 0)
 
@@ -68,7 +68,7 @@ func TestContactService_GetByID(t *testing.T) {
 
 	t.Run("repository error", func(t *testing.T) {
 		mockRepo := new(mockContact.MockContact)
-		service := NewContact(mockRepo)
+		service := NewContactService(mockRepo)
 
 		mockRepo.On("GetByID", mock.Anything, int64(2)).
 			Return((*model.Contact)(nil), errors.New("erro inesperado"))

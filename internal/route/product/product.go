@@ -22,7 +22,7 @@ func RegisterProductRoutes(
 	blacklist jwt.TokenBlacklist,
 ) {
 	repo := repo.NewProduct(db)
-	productService := service.NewProduct(repo)
+	productService := service.NewProductService(repo)
 	handler := handler.NewProduct(productService, log)
 
 	// Config JWT

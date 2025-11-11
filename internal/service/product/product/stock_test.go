@@ -15,7 +15,7 @@ func TestProductService_UpdateStock(t *testing.T) {
 
 	setup := func() (*mockProduct.ProductMock, ProductService) {
 		mockRepo := new(mockProduct.ProductMock)
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 		return mockRepo, service
 	}
 
@@ -68,7 +68,7 @@ func TestProductService_IncreaseStock(t *testing.T) {
 	t.Run("Deve retornar erro quando repo retornar erro", func(t *testing.T) {
 		repoMock := new(mockProduct.ProductMock)
 
-		service := product{repo: repoMock}
+		service := productService{repo: repoMock}
 
 		repoMock.On("IncreaseStock", ctx, int64(1), 10).Return(errMsg.ErrNotFound)
 
@@ -81,7 +81,7 @@ func TestProductService_IncreaseStock(t *testing.T) {
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
 		repoMock := new(mockProduct.ProductMock)
-		service := product{repo: repoMock}
+		service := productService{repo: repoMock}
 
 		err := service.IncreaseStock(ctx, 0, 10)
 
@@ -91,7 +91,7 @@ func TestProductService_IncreaseStock(t *testing.T) {
 
 	t.Run("falha: quantidade inválida", func(t *testing.T) {
 		repoMock := new(mockProduct.ProductMock)
-		service := product{repo: repoMock}
+		service := productService{repo: repoMock}
 
 		err := service.IncreaseStock(ctx, 1, 0)
 
@@ -102,7 +102,7 @@ func TestProductService_IncreaseStock(t *testing.T) {
 	t.Run("Deve aumentar estoque com sucesso", func(t *testing.T) {
 		repoMock := new(mockProduct.ProductMock)
 
-		service := product{repo: repoMock}
+		service := productService{repo: repoMock}
 
 		repoMock.On("IncreaseStock", ctx, int64(1), 5).Return(nil)
 
@@ -119,7 +119,7 @@ func TestProductService_DecreaseStock(t *testing.T) {
 	t.Run("Deve retornar erro quando repo retornar erro", func(t *testing.T) {
 		repoMock := new(mockProduct.ProductMock)
 
-		service := product{repo: repoMock}
+		service := productService{repo: repoMock}
 
 		repoMock.On("DecreaseStock", ctx, int64(1), 10).Return(errMsg.ErrNotFound)
 
@@ -132,7 +132,7 @@ func TestProductService_DecreaseStock(t *testing.T) {
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
 		repoMock := new(mockProduct.ProductMock)
-		service := product{repo: repoMock}
+		service := productService{repo: repoMock}
 
 		err := service.DecreaseStock(ctx, 0, 10)
 
@@ -142,7 +142,7 @@ func TestProductService_DecreaseStock(t *testing.T) {
 
 	t.Run("falha: quantidade inválida", func(t *testing.T) {
 		repoMock := new(mockProduct.ProductMock)
-		service := product{repo: repoMock}
+		service := productService{repo: repoMock}
 
 		err := service.DecreaseStock(ctx, 1, 0)
 
@@ -153,7 +153,7 @@ func TestProductService_DecreaseStock(t *testing.T) {
 	t.Run("Deve diminuir estoque com sucesso", func(t *testing.T) {
 		repoMock := new(mockProduct.ProductMock)
 
-		service := product{repo: repoMock}
+		service := productService{repo: repoMock}
 
 		repoMock.On("DecreaseStock", ctx, int64(1), 10).Return(nil)
 
@@ -170,7 +170,7 @@ func TestProductService_GetStock(t *testing.T) {
 	t.Run("Deve retornar erro quando repo retornar erro", func(t *testing.T) {
 		repoMock := new(mockProduct.ProductMock)
 
-		service := product{repo: repoMock}
+		service := productService{repo: repoMock}
 
 		repoMock.On("GetStock", ctx, int64(1)).Return(0, fmt.Errorf("erro inesperado"))
 
@@ -184,7 +184,7 @@ func TestProductService_GetStock(t *testing.T) {
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
 		repoMock := new(mockProduct.ProductMock)
-		service := product{repo: repoMock}
+		service := productService{repo: repoMock}
 
 		stock, err := service.GetStock(ctx, 0)
 
@@ -196,7 +196,7 @@ func TestProductService_GetStock(t *testing.T) {
 	t.Run("Deve retornar estoque com sucesso", func(t *testing.T) {
 		repoMock := new(mockProduct.ProductMock)
 
-		service := product{repo: repoMock}
+		service := productService{repo: repoMock}
 
 		repoMock.On("GetStock", ctx, int64(1)).Return(25, nil)
 

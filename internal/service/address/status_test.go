@@ -19,7 +19,7 @@ func TestAddressService_DisableAddress(t *testing.T) {
 	mockRepoClient := new(mockClient.MockClient)
 	mockRepoUser := new(mockUser.MockUser)
 	mockSupplier := new(mockSupplier.MockSupplier)
-	service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+	service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 	t.Run("sucesso ao desabilitar endereço", func(t *testing.T) {
 		mockRepoAddress.On("Disable", mock.Anything, int64(1)).Return(nil)
@@ -59,7 +59,7 @@ func TestAddressService_EnableAddress(t *testing.T) {
 	mockRepoClient := new(mockClient.MockClient)
 	mockRepoUser := new(mockUser.MockUser)
 	mockSupplier := new(mockSupplier.MockSupplier)
-	service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+	service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 	t.Run("sucesso ao habilitar endereço", func(t *testing.T) {
 		mockRepoAddress.On("Enable", mock.Anything, int64(1)).Return(nil)

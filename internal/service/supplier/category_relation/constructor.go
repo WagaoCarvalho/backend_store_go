@@ -6,6 +6,6 @@ type supplierCategoryRelationService struct {
 	relationRepo repo.SupplierCategoryRelation
 }
 
-func NewSupplierCategoryRelation(repository repo.SupplierCategoryRelation) SupplierCategoryRelation {
+func NewSupplierCategoryRelationService(repository repo.SupplierCategoryRelation) SupplierCategoryRelation {
 	return &supplierCategoryRelationService{relationRepo: repository}
 }

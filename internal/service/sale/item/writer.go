@@ -8,7 +8,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *saleItem) Create(ctx context.Context, item *models.SaleItem) (*models.SaleItem, error) {
+func (s *saleItemService) Create(ctx context.Context, item *models.SaleItem) (*models.SaleItem, error) {
 	if item == nil {
 		return nil, errMsg.ErrInvalidData
 	}
@@ -29,7 +29,7 @@ func (s *saleItem) Create(ctx context.Context, item *models.SaleItem) (*models.S
 	return createdItem, nil
 }
 
-func (s *saleItem) Update(ctx context.Context, item *models.SaleItem) error {
+func (s *saleItemService) Update(ctx context.Context, item *models.SaleItem) error {
 	if item == nil {
 		return errMsg.ErrInvalidData
 	}
@@ -45,7 +45,7 @@ func (s *saleItem) Update(ctx context.Context, item *models.SaleItem) error {
 	return s.repo.Update(ctx, item)
 }
 
-func (s *saleItem) Delete(ctx context.Context, id int64) error {
+func (s *saleItemService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -53,7 +53,7 @@ func (s *saleItem) Delete(ctx context.Context, id int64) error {
 	return s.repo.Delete(ctx, id)
 }
 
-func (s *saleItem) DeleteBySaleID(ctx context.Context, saleID int64) error {
+func (s *saleItemService) DeleteBySaleID(ctx context.Context, saleID int64) error {
 	if saleID <= 0 {
 		return errMsg.ErrZeroID
 	}

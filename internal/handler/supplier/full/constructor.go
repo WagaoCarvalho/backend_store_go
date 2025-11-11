@@ -6,11 +6,11 @@ import (
 )
 
 type Supplier struct {
-	service service.SupplierFull
+	service service.SupplierFullService
 	logger  *logger.LogAdapter
 }
 
-func NewSupplierFull(service service.SupplierFull, logger *logger.LogAdapter) *Supplier {
+func NewSupplierFull(service service.SupplierFullService, logger *logger.LogAdapter) *Supplier {
 	return &Supplier{
 		service: service,
 		logger:  logger,

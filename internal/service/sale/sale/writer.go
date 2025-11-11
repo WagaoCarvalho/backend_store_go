@@ -8,7 +8,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *sale) Create(ctx context.Context, sale *models.Sale) (*models.Sale, error) {
+func (s *saleService) Create(ctx context.Context, sale *models.Sale) (*models.Sale, error) {
 	if sale == nil {
 		return nil, errMsg.ErrInvalidData
 	}
@@ -29,7 +29,7 @@ func (s *sale) Create(ctx context.Context, sale *models.Sale) (*models.Sale, err
 	return createdSale, nil
 }
 
-func (s *sale) Update(ctx context.Context, sale *models.Sale) error {
+func (s *saleService) Update(ctx context.Context, sale *models.Sale) error {
 	if sale == nil {
 		return errMsg.ErrInvalidData
 	}
@@ -55,7 +55,7 @@ func (s *sale) Update(ctx context.Context, sale *models.Sale) error {
 	return nil
 }
 
-func (s *sale) Delete(ctx context.Context, id int64) error {
+func (s *saleService) Delete(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}

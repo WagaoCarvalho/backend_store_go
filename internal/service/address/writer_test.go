@@ -25,7 +25,7 @@ func TestAddressService_Create(t *testing.T) {
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		// endereço inválido: nenhum ID preenchido, campos obrigatórios vazios
 		addressModel := &model.Address{}
@@ -44,7 +44,7 @@ func TestAddressService_Create(t *testing.T) {
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		addressModel := &model.Address{
 			UserID:       &userID,
@@ -71,7 +71,7 @@ func TestAddressService_Create(t *testing.T) {
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		userID := int64(1)
 		addressModel := &models.Address{
@@ -106,7 +106,7 @@ func TestAddressService_Update(t *testing.T) {
 
 	t.Run("falha por ID inválido", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		service := NewAddress(mockRepoAddress, nil, nil, nil)
+		service := NewAddressService(mockRepoAddress, nil, nil, nil)
 
 		addressModel := &model.Address{ID: 0} // ID inválido
 
@@ -118,7 +118,7 @@ func TestAddressService_Update(t *testing.T) {
 
 	t.Run("falha na validação do endereço", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		service := NewAddress(mockRepoAddress, nil, nil, nil)
+		service := NewAddressService(mockRepoAddress, nil, nil, nil)
 
 		addressModel := &model.Address{
 			ID:     1,       // ID válido
@@ -133,7 +133,7 @@ func TestAddressService_Update(t *testing.T) {
 
 	t.Run("erro do repositorio ao atualizar endereco", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		service := NewAddress(mockRepoAddress, nil, nil, nil)
+		service := NewAddressService(mockRepoAddress, nil, nil, nil)
 
 		addressModel := &model.Address{
 			ID:           1,
@@ -160,7 +160,7 @@ func TestAddressService_Update(t *testing.T) {
 
 	t.Run("sucesso no update do endereco", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		service := NewAddress(mockRepoAddress, nil, nil, nil)
+		service := NewAddressService(mockRepoAddress, nil, nil, nil)
 
 		addressModel := &model.Address{
 			ID:           1,
@@ -189,7 +189,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
 		mockRepoSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
 		addressID := int64(1)
 
@@ -209,7 +209,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
 		mockRepoSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
 		err := service.Delete(context.Background(), 0)
 
@@ -223,7 +223,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
 		mockRepoSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
 		addressID := int64(1)
 
@@ -240,7 +240,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
 		mockRepoSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
 		addressID := int64(2)
 		unexpectedErr := errors.New("erro no banco")
@@ -260,7 +260,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 		mockRepoClient := new(mockClient.MockClient)
 		mockRepoUser := new(mockUser.MockUser)
 		mockRepoSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddress(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
 
 		addressID := int64(3)
 		expectedErr := fmt.Errorf("erro no banco")

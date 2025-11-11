@@ -6,7 +6,7 @@ type supplierContactRelationService struct {
 	relationRepo repo.SupplierContactRelation
 }
 
-func NewSupplierContactRelation(repo repo.SupplierContactRelation) SupplierContactRelation {
+func NewSupplierContactRelationService(repo repo.SupplierContactRelation) SupplierContactRelation {
 	return &supplierContactRelationService{
 		relationRepo: repo,
 	}

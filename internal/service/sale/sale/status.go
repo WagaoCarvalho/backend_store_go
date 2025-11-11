@@ -8,7 +8,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *sale) Cancel(ctx context.Context, id int64) error {
+func (s *saleService) Cancel(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -33,7 +33,7 @@ func (s *sale) Cancel(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *sale) Complete(ctx context.Context, id int64) error {
+func (s *saleService) Complete(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}

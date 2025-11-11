@@ -17,7 +17,7 @@ import (
 	repoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/full"
 )
 
-type SupplierFull interface {
+type SupplierFullService interface {
 	CreateFull(ctx context.Context, supplierFull *modelsFull.SupplierFull) (*modelsFull.SupplierFull, error)
 }
 
@@ -29,13 +29,13 @@ type supplierFull struct {
 	repoContactRel       repoContactRel.SupplierContactRelation
 }
 
-func NewSupplierFull(
+func NewSupplierFullService(
 	repoSupplier repoSupplier.SupplierFull,
 	repoAddressTx repoAddressTx.AddressTx,
 	repoContactTx repoContactTx.ContactTx,
 	repoCatRel repoRelationTx.SupplierCategoryRelationTx,
 	repoContactRel repoContactRel.SupplierContactRelation,
-) SupplierFull {
+) SupplierFullService {
 	return &supplierFull{
 		repoSupplier:         repoSupplier,
 		repoAddressTx:        repoAddressTx,

@@ -35,7 +35,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	// Grupo: User
 	// ------------------------
 	t.Run("User: falha quando userFull é nil", func(t *testing.T) {
-		service := NewUserFull(
+		service := NewUserFullService(
 			new(mockUser.MockUserFullRepo),
 			nil, nil, nil, nil,
 			new(mockAuth.MockHasher),
@@ -48,7 +48,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 	})
 
 	t.Run("User: falha ao validar usuário inválido", func(t *testing.T) {
-		service := NewUserFull(
+		service := NewUserFullService(
 			new(mockUser.MockUserFullRepo),
 			nil, nil, nil, nil,
 			new(mockAuth.MockHasher),
@@ -68,7 +68,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockRepoUser := new(mockUser.MockUserFullRepo)
 		mockHasher := new(mockAuth.MockHasher)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			nil, nil, nil, nil,
 			mockHasher,
@@ -122,7 +122,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			mockRepoAddress,
 			mockRepoContact,
@@ -183,7 +183,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			mockRepoAddress,
 			nil, nil, nil,
@@ -241,7 +241,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			mockRepoAddress,
 			mockRepoContact,
@@ -303,7 +303,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			mockRepoAddress,
 			mockRepoContact,
@@ -366,7 +366,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			mockRepoAddress,
 			mockRepoContact,
@@ -431,7 +431,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			mockRepoAddress,
 			mockRepoContact,
@@ -506,7 +506,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			mockRepoAddress,
 			mockRepoContact,
@@ -573,7 +573,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			mockRepoAddress,
 			mockRepoContact,
@@ -641,7 +641,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			mockRepoAddress,
 			mockRepoContact,
@@ -709,7 +709,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			mockRepoAddress,
 			mockRepoContact,
@@ -778,7 +778,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockRepoUser := new(mockUser.MockUserFullRepo)
 		mockHasher := new(mockAuth.MockHasher)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			new(mockAddress.MockAddress),
 			new(mockContact.MockContact),
@@ -830,7 +830,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockRepoUser := new(mockUser.MockUserFullRepo)
 		mockHasher := new(mockAuth.MockHasher)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			new(mockAddress.MockAddress),
 			new(mockContact.MockContact),
@@ -883,7 +883,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			new(mockAddress.MockAddress),
 			new(mockContact.MockContact),
@@ -940,7 +940,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			mockRepoAddress,
 			new(mockContact.MockContact),
@@ -1015,7 +1015,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			mockRepoAddress,
 			mockRepoContact,
@@ -1100,7 +1100,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			mockRepoAddress,
 			mockRepoContact,
@@ -1186,7 +1186,7 @@ func TestUserFullService_CreateFull(t *testing.T) {
 		mockHasher := new(mockAuth.MockHasher)
 		tx := new(mockTX.MockTx)
 
-		service := NewUserFull(
+		service := NewUserFullService(
 			mockRepoUser,
 			mockRepoAddress,
 			mockRepoContact,

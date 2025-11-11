@@ -16,7 +16,7 @@ func TestSupplierService_Create(t *testing.T) {
 
 	setup := func() (*mock_supplier.MockSupplier, Supplier) {
 		mockRepo := new(mock_supplier.MockSupplier)
-		service := NewSupplier(mockRepo)
+		service := NewSupplierService(mockRepo)
 		return mockRepo, service
 	}
 
@@ -77,7 +77,7 @@ func TestSupplierService_Update(t *testing.T) {
 
 	t.Run("falha: ID inválido", func(t *testing.T) {
 		mockRepo := new(mock_supplier.MockSupplier)
-		service := NewSupplier(mockRepo)
+		service := NewSupplierService(mockRepo)
 
 		input := validSupplier()
 		input.ID = 0
@@ -90,7 +90,7 @@ func TestSupplierService_Update(t *testing.T) {
 
 	t.Run("falha: validação inválida", func(t *testing.T) {
 		mockRepo := new(mock_supplier.MockSupplier)
-		service := NewSupplier(mockRepo)
+		service := NewSupplierService(mockRepo)
 
 		input := validSupplier()
 		input.Name = ""
@@ -103,7 +103,7 @@ func TestSupplierService_Update(t *testing.T) {
 
 	t.Run("falha: versão inválida", func(t *testing.T) {
 		mockRepo := new(mock_supplier.MockSupplier)
-		service := NewSupplier(mockRepo)
+		service := NewSupplierService(mockRepo)
 
 		input := validSupplier()
 		input.Version = 0
@@ -116,7 +116,7 @@ func TestSupplierService_Update(t *testing.T) {
 
 	t.Run("falha: fornecedor não encontrado (SupplierExists = false)", func(t *testing.T) {
 		mockRepo := new(mock_supplier.MockSupplier)
-		service := NewSupplier(mockRepo)
+		service := NewSupplierService(mockRepo)
 
 		input := validSupplier()
 
@@ -131,7 +131,7 @@ func TestSupplierService_Update(t *testing.T) {
 
 	t.Run("falha: conflito de versão (SupplierExists = true)", func(t *testing.T) {
 		mockRepo := new(mock_supplier.MockSupplier)
-		service := NewSupplier(mockRepo)
+		service := NewSupplierService(mockRepo)
 
 		input := validSupplier()
 
@@ -146,7 +146,7 @@ func TestSupplierService_Update(t *testing.T) {
 
 	t.Run("falha: erro ao verificar existência", func(t *testing.T) {
 		mockRepo := new(mock_supplier.MockSupplier)
-		service := NewSupplier(mockRepo)
+		service := NewSupplierService(mockRepo)
 
 		input := validSupplier()
 
@@ -162,7 +162,7 @@ func TestSupplierService_Update(t *testing.T) {
 
 	t.Run("falha: erro genérico no repositório", func(t *testing.T) {
 		mockRepo := new(mock_supplier.MockSupplier)
-		service := NewSupplier(mockRepo)
+		service := NewSupplierService(mockRepo)
 
 		input := validSupplier()
 
@@ -177,7 +177,7 @@ func TestSupplierService_Update(t *testing.T) {
 
 	t.Run("sucesso", func(t *testing.T) {
 		mockRepo := new(mock_supplier.MockSupplier)
-		service := NewSupplier(mockRepo)
+		service := NewSupplierService(mockRepo)
 
 		input := validSupplier()
 
@@ -234,7 +234,7 @@ func TestSupplierService_Delete(t *testing.T) {
 				tt.mockRepo(mockRepo)
 			}
 
-			service := NewSupplier(mockRepo)
+			service := NewSupplierService(mockRepo)
 
 			err := service.Delete(context.Background(), tt.args.id)
 

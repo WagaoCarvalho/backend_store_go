@@ -6,7 +6,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *saleItem) ItemExists(ctx context.Context, id int64) (bool, error) {
+func (s *saleItemService) ItemExists(ctx context.Context, id int64) (bool, error) {
 	if id <= 0 {
 		return false, errMsg.ErrZeroID
 	}

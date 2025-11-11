@@ -6,7 +6,7 @@ type supplierService struct {
 	repo repo.Supplier
 }
 
-func NewSupplier(repo repo.Supplier) Supplier {
+func NewSupplierService(repo repo.Supplier) Supplier {
 	return &supplierService{
 		repo: repo,
 	}

@@ -21,7 +21,7 @@ func RegisterSupplierContactRelationRoutes(
 	blacklist jwt.TokenBlacklist,
 ) {
 	contactRepo := repo.NewSupplierContactRelation(db)
-	contactService := service.NewSupplierContactRelation(contactRepo)
+	contactService := service.NewSupplierContactRelationService(contactRepo)
 	contactHandler := handler.NewSupplierContactRelation(contactService, log)
 
 	// Carregar config JWT

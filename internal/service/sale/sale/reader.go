@@ -12,7 +12,7 @@ import (
 )
 
 // --- Sale Reader Service ---
-func (s *sale) GetByID(ctx context.Context, id int64) (*models.Sale, error) {
+func (s *saleService) GetByID(ctx context.Context, id int64) (*models.Sale, error) {
 	if id <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -28,7 +28,7 @@ func (s *sale) GetByID(ctx context.Context, id int64) (*models.Sale, error) {
 	return saleModel, nil
 }
 
-func (s *sale) GetByClientID(ctx context.Context, clientID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
+func (s *saleService) GetByClientID(ctx context.Context, clientID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	if clientID <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -48,7 +48,7 @@ func (s *sale) GetByClientID(ctx context.Context, clientID int64, limit, offset 
 	return s.repo.GetByClientID(ctx, clientID, limit, offset, orderBy, orderDir)
 }
 
-func (s *sale) GetByUserID(ctx context.Context, userID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
+func (s *saleService) GetByUserID(ctx context.Context, userID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	if userID <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -68,7 +68,7 @@ func (s *sale) GetByUserID(ctx context.Context, userID int64, limit, offset int,
 	return s.repo.GetByUserID(ctx, userID, limit, offset, orderBy, orderDir)
 }
 
-func (s *sale) GetByStatus(ctx context.Context, status string, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
+func (s *saleService) GetByStatus(ctx context.Context, status string, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	if strings.TrimSpace(status) == "" {
 		return nil, errMsg.ErrInvalidData
 	}
@@ -90,7 +90,7 @@ func (s *sale) GetByStatus(ctx context.Context, status string, limit, offset int
 	return s.repo.GetByStatus(ctx, status, limit, offset, orderBy, orderDir)
 }
 
-func (s *sale) GetByDateRange(ctx context.Context, start, end time.Time, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
+func (s *saleService) GetByDateRange(ctx context.Context, start, end time.Time, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	if start.IsZero() || end.IsZero() {
 		return nil, errMsg.ErrInvalidData
 	}

@@ -2,12 +2,12 @@ package services
 
 import repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 
-type contact struct {
+type contactService struct {
 	repo repo.Contact
 }
 
-func NewContact(repo repo.Contact) Contact {
-	return &contact{
+func NewContactService(repo repo.Contact) Contact {
+	return &contactService{
 		repo: repo,
 	}
 }

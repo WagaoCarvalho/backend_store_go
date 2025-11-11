@@ -15,7 +15,7 @@ func TestProductService_DisableProduct(t *testing.T) {
 
 	setup := func() (*mockProduct.ProductMock, ProductService) {
 		mockRepo := new(mockProduct.ProductMock)
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 		return mockRepo, service
 	}
 
@@ -56,7 +56,7 @@ func TestProductService_EnableProduct(t *testing.T) {
 
 	setup := func() (*mockProduct.ProductMock, ProductService) {
 		mockRepo := new(mockProduct.ProductMock)
-		service := NewProduct(mockRepo)
+		service := NewProductService(mockRepo)
 		return mockRepo, service
 	}
 

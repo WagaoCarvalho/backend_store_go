@@ -75,7 +75,7 @@ func TestSupplierService_Disable(t *testing.T) {
 				tt.mockRepo(mockRepo)
 			}
 
-			service := NewSupplier(mockRepo)
+			service := NewSupplierService(mockRepo)
 
 			err := service.Disable(context.Background(), tt.args.id)
 
@@ -153,7 +153,7 @@ func TestSupplierService_Enable(t *testing.T) {
 				tt.mockRepo(mockRepo)
 			}
 
-			service := NewSupplier(mockRepo)
+			service := NewSupplierService(mockRepo)
 
 			err := service.Enable(context.Background(), tt.args.id)
 

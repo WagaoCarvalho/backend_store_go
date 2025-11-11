@@ -2,12 +2,12 @@ package services
 
 import repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product/product"
 
-type product struct {
+type productService struct {
 	repo repo.Product
 }
 
-func NewProduct(repo repo.Product) ProductService {
-	return &product{
+func NewProductService(repo repo.Product) ProductService {
+	return &productService{
 		repo: repo,
 	}
 }

@@ -8,7 +8,7 @@ import (
 	validate "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
-func (s *saleItem) GetByID(ctx context.Context, id int64) (*models.SaleItem, error) {
+func (s *saleItemService) GetByID(ctx context.Context, id int64) (*models.SaleItem, error) {
 	if id <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -16,7 +16,7 @@ func (s *saleItem) GetByID(ctx context.Context, id int64) (*models.SaleItem, err
 	return s.repo.GetByID(ctx, id)
 }
 
-func (s *saleItem) GetBySaleID(ctx context.Context, saleID int64, limit, offset int) ([]*models.SaleItem, error) {
+func (s *saleItemService) GetBySaleID(ctx context.Context, saleID int64, limit, offset int) ([]*models.SaleItem, error) {
 	if saleID <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -28,7 +28,7 @@ func (s *saleItem) GetBySaleID(ctx context.Context, saleID int64, limit, offset 
 	return s.repo.GetBySaleID(ctx, saleID, limit, offset)
 }
 
-func (s *saleItem) GetByProductID(ctx context.Context, productID int64, limit, offset int) ([]*models.SaleItem, error) {
+func (s *saleItemService) GetByProductID(ctx context.Context, productID int64, limit, offset int) ([]*models.SaleItem, error) {
 	if productID <= 0 {
 		return nil, errMsg.ErrZeroID
 	}

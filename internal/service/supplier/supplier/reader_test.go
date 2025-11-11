@@ -17,7 +17,7 @@ func TestSupplierService_GetAll(t *testing.T) {
 
 	setup := func() (*mockSupplier.MockSupplier, Supplier) {
 		mockRepo := new(mockSupplier.MockSupplier)
-		service := NewSupplier(mockRepo)
+		service := NewSupplierService(mockRepo)
 		return mockRepo, service
 	}
 
@@ -61,7 +61,7 @@ func TestSupplierService_GetByID(t *testing.T) {
 
 	setup := func() (*mockSupplier.MockSupplier, Supplier) {
 		mockRepo := new(mockSupplier.MockSupplier)
-		service := NewSupplier(mockRepo)
+		service := NewSupplierService(mockRepo)
 		return mockRepo, service
 	}
 
@@ -125,7 +125,7 @@ func TestSupplierService_GetByName(t *testing.T) {
 
 	setup := func() (*mockSupplier.MockSupplier, Supplier) {
 		mockRepo := new(mockSupplier.MockSupplier)
-		service := NewSupplier(mockRepo)
+		service := NewSupplierService(mockRepo)
 		return mockRepo, service
 	}
 
@@ -239,7 +239,7 @@ func TestSupplierService_GetVersionByID(t *testing.T) {
 				tt.mockRepo(mockRepo)
 			}
 
-			service := NewSupplier(mockRepo)
+			service := NewSupplierService(mockRepo)
 
 			result, err := service.GetVersionByID(context.Background(), tt.args.id)
 
@@ -261,7 +261,7 @@ func TestSupplierService_SupplierExists(t *testing.T) {
 
 	setup := func() (*mockSupplier.MockSupplier, Supplier) {
 		mockRepo := new(mockSupplier.MockSupplier)
-		service := NewSupplier(mockRepo)
+		service := NewSupplierService(mockRepo)
 		return mockRepo, service
 	}
 

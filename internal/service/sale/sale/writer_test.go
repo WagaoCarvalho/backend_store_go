@@ -14,7 +14,7 @@ import (
 
 func TestSaleService_Create(t *testing.T) {
 	mockRepo := new(mockSale.MockSale)
-	svc := NewSale(mockRepo)
+	svc := NewSaleService(mockRepo)
 	ctx := context.Background()
 
 	t.Run("sale nil", func(t *testing.T) {
@@ -93,7 +93,7 @@ func TestSaleService_Create(t *testing.T) {
 
 func TestSaleService_Update(t *testing.T) {
 	mockRepo := new(mockSale.MockSale)
-	svc := NewSale(mockRepo)
+	svc := NewSaleService(mockRepo)
 	ctx := context.Background()
 
 	t.Run("sale nil", func(t *testing.T) {
@@ -195,7 +195,7 @@ func TestSaleService_Update(t *testing.T) {
 
 func TestSaleService_Delete(t *testing.T) {
 	mockRepo := new(mockSale.MockSale)
-	svc := NewSale(mockRepo)
+	svc := NewSaleService(mockRepo)
 	ctx := context.Background()
 
 	t.Run("id zero", func(t *testing.T) {
