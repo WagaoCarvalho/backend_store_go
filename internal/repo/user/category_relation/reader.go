@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *userCategoryRelation) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelation, error) {
+func (r *userCategoryRelationRepo) GetAllRelationsByUserID(ctx context.Context, userID int64) ([]*models.UserCategoryRelation, error) {
 	if userID <= 0 {
 		return []*models.UserCategoryRelation{}, errMsg.ErrZeroID
 	}
@@ -49,7 +49,7 @@ func (r *userCategoryRelation) GetAllRelationsByUserID(ctx context.Context, user
 	return relations, nil
 }
 
-func (r *userCategoryRelation) HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error) {
+func (r *userCategoryRelationRepo) HasUserCategoryRelation(ctx context.Context, userID, categoryID int64) (bool, error) {
 	const query = `
 		SELECT 1
 		FROM user_category_relations

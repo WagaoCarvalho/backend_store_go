@@ -4,10 +4,10 @@ import (
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
 )
 
-type sale struct {
+type saleRepo struct {
 	db repo.DBExecutor
 }
 
 func NewSale(db repo.DBExecutor) SaleRepo {
-	return &sale{db: db}
+	return &saleRepo{db: db}
 }

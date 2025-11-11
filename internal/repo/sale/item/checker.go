@@ -7,7 +7,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (r *saleItem) ItemExists(ctx context.Context, id int64) (bool, error) {
+func (r *saleItemRepo) ItemExists(ctx context.Context, id int64) (bool, error) {
 	const query = `SELECT EXISTS(SELECT 1 FROM sale_items WHERE id=$1)`
 
 	var exists bool

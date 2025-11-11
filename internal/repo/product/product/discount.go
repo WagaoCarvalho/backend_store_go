@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *product) EnableDiscount(ctx context.Context, id int64) error {
+func (r *productRepo) EnableDiscount(ctx context.Context, id int64) error {
 	const query = `
 		UPDATE products
 		SET allow_discount = TRUE, updated_at = NOW(), version = version + 1
@@ -31,7 +31,7 @@ func (r *product) EnableDiscount(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *product) DisableDiscount(ctx context.Context, id int64) error {
+func (r *productRepo) DisableDiscount(ctx context.Context, id int64) error {
 	const query = `
 		UPDATE products
 		SET allow_discount = FALSE, updated_at = NOW(), version = version + 1
@@ -51,7 +51,7 @@ func (r *product) DisableDiscount(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *product) ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error) {
+func (r *productRepo) ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error) {
 	const query = `
 		UPDATE products
 		SET max_discount_percent = $2, updated_at = NOW(), version = version + 1

@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *address) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
+func (r *addressRepo) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
 	const query = `
 		INSERT INTO addresses (
 			user_id, client_id, supplier_id,
@@ -46,7 +46,7 @@ func (r *address) Create(ctx context.Context, address *models.Address) (*models.
 	return address, nil
 }
 
-func (r *address) Update(ctx context.Context, address *models.Address) error {
+func (r *addressRepo) Update(ctx context.Context, address *models.Address) error {
 	const query = `
 		UPDATE addresses
 		SET 
@@ -94,7 +94,7 @@ func (r *address) Update(ctx context.Context, address *models.Address) error {
 	return nil
 }
 
-func (r *address) Delete(ctx context.Context, id int64) error {
+func (r *addressRepo) Delete(ctx context.Context, id int64) error {
 	const query = `
 		DELETE FROM addresses 
 		WHERE id = $1

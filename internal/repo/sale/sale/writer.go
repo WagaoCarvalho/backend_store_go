@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *sale) Create(ctx context.Context, sale *models.Sale) (*models.Sale, error) {
+func (r *saleRepo) Create(ctx context.Context, sale *models.Sale) (*models.Sale, error) {
 	const query = `
 		INSERT INTO sales (
 			client_id, user_id, sale_date, total_amount, total_discount,
@@ -44,7 +44,7 @@ func (r *sale) Create(ctx context.Context, sale *models.Sale) (*models.Sale, err
 	return sale, nil
 }
 
-func (r *sale) Update(ctx context.Context, sale *models.Sale) error {
+func (r *saleRepo) Update(ctx context.Context, sale *models.Sale) error {
 	const query = `
 		UPDATE sales
 		SET 
@@ -89,7 +89,7 @@ func (r *sale) Update(ctx context.Context, sale *models.Sale) error {
 	return nil
 }
 
-func (r *sale) Delete(ctx context.Context, id int64) error {
+func (r *saleRepo) Delete(ctx context.Context, id int64) error {
 	const query = `DELETE FROM sales WHERE id = $1;`
 
 	tag, err := r.db.Exec(ctx, query, id)

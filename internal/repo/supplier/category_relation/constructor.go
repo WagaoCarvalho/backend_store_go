@@ -2,10 +2,10 @@ package repo
 
 import repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
 
-type supplierCategoryRelation struct {
+type supplierCategoryRelationRepo struct {
 	db repo.DBExecutor
 }
 
 func NewSupplierCategoryRelation(db repo.DBExecutor) SupplierCategoryRelation {
-	return &supplierCategoryRelation{db: db}
+	return &supplierCategoryRelationRepo{db: db}
 }

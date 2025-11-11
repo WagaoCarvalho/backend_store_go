@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *user) Disable(ctx context.Context, uid int64) error {
+func (r *userRepo) Disable(ctx context.Context, uid int64) error {
 	const query = `
 		UPDATE users
 		SET status = FALSE, updated_at = NOW(), version = version + 1
@@ -31,7 +31,7 @@ func (r *user) Disable(ctx context.Context, uid int64) error {
 	return nil
 }
 
-func (r *user) Enable(ctx context.Context, uid int64) error {
+func (r *userRepo) Enable(ctx context.Context, uid int64) error {
 	const query = `
 		UPDATE users
 		SET status = TRUE, updated_at = NOW(), version = version + 1

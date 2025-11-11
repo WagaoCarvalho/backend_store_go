@@ -14,7 +14,7 @@ import (
 func TestClient_Disable(t *testing.T) {
 	t.Run("successfully disable client", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(1)
 
@@ -29,7 +29,7 @@ func TestClient_Disable(t *testing.T) {
 
 	t.Run("return ErrUpdate when database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(1)
 		dbError := errors.New("database connection failed")
@@ -47,7 +47,7 @@ func TestClient_Disable(t *testing.T) {
 func TestClient_Enable(t *testing.T) {
 	t.Run("successfully enable client", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(1)
 
@@ -62,7 +62,7 @@ func TestClient_Enable(t *testing.T) {
 
 	t.Run("return ErrUpdate when database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(1)
 		dbError := errors.New("database connection failed")

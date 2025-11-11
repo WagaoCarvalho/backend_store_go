@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *sale) listByField(ctx context.Context, field string, value any, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
+func (r *saleRepo) listByField(ctx context.Context, field string, value any, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	query := fmt.Sprintf(`
 		SELECT 
 			id, client_id, user_id, sale_date, total_amount, total_discount,

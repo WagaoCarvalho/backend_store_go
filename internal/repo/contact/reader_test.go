@@ -16,7 +16,7 @@ import (
 func TestContact_GetByID(t *testing.T) {
 	t.Run("successfully get contact by id", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		contactID := int64(1)
 		expectedTime := time.Now()
@@ -39,7 +39,7 @@ func TestContact_GetByID(t *testing.T) {
 
 	t.Run("return ErrNotFound when contact does not exist", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		contactID := int64(999)
 
@@ -55,7 +55,7 @@ func TestContact_GetByID(t *testing.T) {
 
 	t.Run("return ErrGet when database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		contactID := int64(1)
 		dbError := errors.New("connection lost")

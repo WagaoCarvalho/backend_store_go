@@ -2,10 +2,10 @@ package repo
 
 import repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
 
-type userCategoryRelation struct {
+type userCategoryRelationRepo struct {
 	db repo.DBExecutor
 }
 
 func NewUserCategoryRelation(db repo.DBExecutor) UserCategoryRelation {
-	return &userCategoryRelation{db: db}
+	return &userCategoryRelationRepo{db: db}
 }

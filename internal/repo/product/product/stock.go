@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *product) UpdateStock(ctx context.Context, id int64, quantity int) error {
+func (r *productRepo) UpdateStock(ctx context.Context, id int64, quantity int) error {
 	const query = `
 		UPDATE products
 		SET stock_quantity = $2, updated_at = NOW(), version = version + 1
@@ -29,7 +29,7 @@ func (r *product) UpdateStock(ctx context.Context, id int64, quantity int) error
 	return nil
 }
 
-func (r *product) IncreaseStock(ctx context.Context, id int64, amount int) error {
+func (r *productRepo) IncreaseStock(ctx context.Context, id int64, amount int) error {
 	const query = `
 		UPDATE products
 		SET stock_quantity = stock_quantity + $2, updated_at = NOW(), version = version + 1
@@ -49,7 +49,7 @@ func (r *product) IncreaseStock(ctx context.Context, id int64, amount int) error
 	return nil
 }
 
-func (r *product) DecreaseStock(ctx context.Context, id int64, amount int) error {
+func (r *productRepo) DecreaseStock(ctx context.Context, id int64, amount int) error {
 	const query = `
 		UPDATE products
 		SET stock_quantity = GREATEST(COALESCE(stock_quantity, 0) - $2, 0),
@@ -71,7 +71,7 @@ func (r *product) DecreaseStock(ctx context.Context, id int64, amount int) error
 	return nil
 }
 
-func (r *product) GetStock(ctx context.Context, id int64) (int, error) {
+func (r *productRepo) GetStock(ctx context.Context, id int64) (int, error) {
 	const query = `
 		SELECT COALESCE(stock_quantity, 0)
 		FROM products

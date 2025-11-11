@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *productCategoryRelation) GetAllRelationsByProductID(ctx context.Context, productID int64) ([]*models.ProductCategoryRelation, error) {
+func (r *productCategoryRelationRepo) GetAllRelationsByProductID(ctx context.Context, productID int64) ([]*models.ProductCategoryRelation, error) {
 	const query = `
 		SELECT product_id, category_id, created_at
 		FROM product_category_relations
@@ -39,7 +39,7 @@ func (r *productCategoryRelation) GetAllRelationsByProductID(ctx context.Context
 	return relations, nil
 }
 
-func (r *productCategoryRelation) HasProductCategoryRelation(ctx context.Context, productID, categoryID int64) (bool, error) {
+func (r *productCategoryRelationRepo) HasProductCategoryRelation(ctx context.Context, productID, categoryID int64) (bool, error) {
 	const query = `
 		SELECT 1
 		FROM product_category_relations

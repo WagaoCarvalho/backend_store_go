@@ -2,10 +2,10 @@ package repo
 
 import repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
 
-type userContactRelation struct {
+type userContactRelationRepo struct {
 	db repo.DBExecutor
 }
 
 func NewUserContactRelation(db repo.DBExecutor) UserContactRelation {
-	return &userContactRelation{db: db}
+	return &userContactRelationRepo{db: db}
 }

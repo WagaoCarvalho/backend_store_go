@@ -1,16 +1,11 @@
 package config
 
-import (
-	"log"
-
-	"github.com/joho/godotenv"
-)
-
 type Config struct {
-	Database Database
-	Jwt      Jwt
-	Server   Server
-	App      App
+	Database   Database
+	Jwt        Jwt
+	Server     Server
+	App        App
+	Pagination Pagination
 }
 
 type App struct {
@@ -19,14 +14,11 @@ type App struct {
 }
 
 func LoadConfig() Config {
-	if err := godotenv.Load(); err != nil {
-		log.Println("⚠️ Aviso: Nenhum arquivo .env encontrado. Usando variáveis de ambiente do sistema.")
-	}
-
 	return Config{
-		Database: LoadDatabaseConfig(),
-		Jwt:      LoadJwtConfig(),
-		Server:   LoadServerConfig(),
-		App:      LoadAppConfig(),
+		Database:   LoadDatabaseConfig(),
+		Jwt:        LoadJwtConfig(),
+		Server:     LoadServerConfig(),
+		App:        LoadAppConfig(),
+		Pagination: LoadPaginationConfig(),
 	}
 }

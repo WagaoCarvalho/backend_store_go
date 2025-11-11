@@ -9,7 +9,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *address) GetByID(ctx context.Context, id int64) (*models.Address, error) {
+func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address, error) {
 	if id <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -25,7 +25,7 @@ func (s *address) GetByID(ctx context.Context, id int64) (*models.Address, error
 	return addressModel, nil
 }
 
-func (s *address) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
+func (s *addressService) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
 	if userID <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -48,7 +48,7 @@ func (s *address) GetByUserID(ctx context.Context, userID int64) ([]*models.Addr
 	return addresses, nil
 }
 
-func (s *address) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
+func (s *addressService) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
 	if clientID <= 0 {
 		return nil, errMsg.ErrZeroID
 	}
@@ -71,7 +71,7 @@ func (s *address) GetByClientID(ctx context.Context, clientID int64) ([]*models.
 	return addresses, nil
 }
 
-func (s *address) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
+func (s *addressService) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
 	if supplierID <= 0 {
 		return nil, errMsg.ErrZeroID
 	}

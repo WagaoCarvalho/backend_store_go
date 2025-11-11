@@ -9,7 +9,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (r *productCategoryRelation) Create(ctx context.Context, relation *models.ProductCategoryRelation) (*models.ProductCategoryRelation, error) {
+func (r *productCategoryRelationRepo) Create(ctx context.Context, relation *models.ProductCategoryRelation) (*models.ProductCategoryRelation, error) {
 	const query = `
 		INSERT INTO product_category_relations (product_id, category_id, created_at)
 		VALUES ($1, $2, NOW());
@@ -30,7 +30,7 @@ func (r *productCategoryRelation) Create(ctx context.Context, relation *models.P
 	return relation, nil
 }
 
-func (r *productCategoryRelation) Delete(ctx context.Context, productID, categoryID int64) error {
+func (r *productCategoryRelationRepo) Delete(ctx context.Context, productID, categoryID int64) error {
 	const query = `
 		DELETE FROM product_category_relations 
 		WHERE product_id = $1 AND category_id = $2;
@@ -48,7 +48,7 @@ func (r *productCategoryRelation) Delete(ctx context.Context, productID, categor
 	return nil
 }
 
-func (r *productCategoryRelation) DeleteAll(ctx context.Context, productID int64) error {
+func (r *productCategoryRelationRepo) DeleteAll(ctx context.Context, productID int64) error {
 	const query = `
 		DELETE FROM product_category_relations
 		WHERE product_id = $1;

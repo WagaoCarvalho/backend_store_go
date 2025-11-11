@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *user) Create(ctx context.Context, user *models.User) (*models.User, error) {
+func (r *userRepo) Create(ctx context.Context, user *models.User) (*models.User, error) {
 	const query = `
 		INSERT INTO users (
 			username,
@@ -44,7 +44,7 @@ func (r *user) Create(ctx context.Context, user *models.User) (*models.User, err
 	return user, nil
 }
 
-func (r *user) Update(ctx context.Context, user *models.User) error {
+func (r *userRepo) Update(ctx context.Context, user *models.User) error {
 	const query = `
 		UPDATE users
 		SET 
@@ -77,7 +77,7 @@ func (r *user) Update(ctx context.Context, user *models.User) error {
 	return nil
 }
 
-func (r *user) Delete(ctx context.Context, uid int64) error {
+func (r *userRepo) Delete(ctx context.Context, uid int64) error {
 	const query = `DELETE FROM users WHERE id = $1`
 
 	result, err := r.db.Exec(ctx, query, uid)

@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *contact) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
+func (r *contactRepo) GetByID(ctx context.Context, id int64) (*models.Contact, error) {
 	const query = `
 		SELECT 
 			id, contact_name, contact_description,

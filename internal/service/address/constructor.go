@@ -6,7 +6,7 @@ import (
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/client/client"
 )
 
-type address struct {
+type addressService struct {
 	address  Address
 	client   service.Client
 	user     repoUser.User
@@ -19,7 +19,7 @@ func NewAddress(
 	repoUser repoUser.User,
 	repoSupplier repoSupplier.Supplier,
 ) Address {
-	return &address{
+	return &addressService{
 		address:  repoAddress,
 		client:   repoClient,
 		user:     repoUser,

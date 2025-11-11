@@ -7,7 +7,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *address) Disable(ctx context.Context, id int64) error {
+func (s *addressService) Disable(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}
@@ -19,7 +19,7 @@ func (s *address) Disable(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *address) Enable(ctx context.Context, id int64) error {
+func (s *addressService) Enable(ctx context.Context, id int64) error {
 	if id <= 0 {
 		return errMsg.ErrZeroID
 	}

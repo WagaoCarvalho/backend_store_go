@@ -22,8 +22,6 @@ type ClientFilterDTO struct {
 	Offset      int     `schema:"offset"`
 }
 
-// ToModel converte o DTO para o modelo de filtro.
-// Garante limite mínimo e parsing seguro das datas.
 func (d *ClientFilterDTO) ToModel() (*modelClient.ClientFilter, error) {
 	parseDate := func(s *string) *time.Time {
 		if s == nil || *s == "" {
@@ -36,20 +34,10 @@ func (d *ClientFilterDTO) ToModel() (*modelClient.ClientFilter, error) {
 		return &t
 	}
 
-	// Define limites padrão se não informados ou inválidos
-	limit := d.Limit
-	if limit <= 0 {
-		limit = 100
-	}
-	offset := d.Offset
-	if offset < 0 {
-		offset = 0
-	}
-
 	filter := &modelClient.ClientFilter{
 		BaseFilter: modelFilter.BaseFilter{
-			Limit:  limit,
-			Offset: offset,
+			Limit:  d.Limit,
+			Offset: d.Offset,
 		},
 		Name:        d.Name,
 		Email:       d.Email,

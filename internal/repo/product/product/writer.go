@@ -12,7 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *product) Create(ctx context.Context, product *models.Product) (*models.Product, error) {
+func (r *productRepo) Create(ctx context.Context, product *models.Product) (*models.Product, error) {
 	const query = `
 		INSERT INTO products (
 			supplier_id, product_name, manufacturer,
@@ -49,7 +49,7 @@ func (r *product) Create(ctx context.Context, product *models.Product) (*models.
 	return product, nil
 }
 
-func (r *product) Update(ctx context.Context, product *models.Product) error {
+func (r *productRepo) Update(ctx context.Context, product *models.Product) error {
 	const query = `
 		UPDATE products
 		SET
@@ -110,7 +110,7 @@ func (r *product) Update(ctx context.Context, product *models.Product) error {
 	return nil
 }
 
-func (r *product) Delete(ctx context.Context, id int64) error {
+func (r *productRepo) Delete(ctx context.Context, id int64) error {
 	const query = `DELETE FROM products WHERE id = $1;`
 
 	tag, err := r.db.Exec(ctx, query, id)

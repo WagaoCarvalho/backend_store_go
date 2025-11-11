@@ -20,7 +20,7 @@ import (
 func TestAddress_Create(t *testing.T) {
 	t.Run("successfully create address", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 
 		addr := &models.Address{
@@ -51,7 +51,7 @@ func TestAddress_Create(t *testing.T) {
 
 	t.Run("return ErrDBInvalidForeignKey on FK violation", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		addr := &models.Address{}
 
@@ -70,7 +70,7 @@ func TestAddress_Create(t *testing.T) {
 
 	t.Run("return ErrCreate when query fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		addr := &models.Address{}
 		dbErr := errors.New("database failure")
@@ -91,7 +91,7 @@ func TestAddress_Create(t *testing.T) {
 func TestAddress_Update(t *testing.T) {
 	t.Run("successfully update address", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		now := time.Now()
 
@@ -121,7 +121,7 @@ func TestAddress_Update(t *testing.T) {
 
 	t.Run("return ErrNotFound when address doesn't exist", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		addr := &models.Address{}
 
@@ -137,7 +137,7 @@ func TestAddress_Update(t *testing.T) {
 
 	t.Run("return ErrNotFound when no rows found", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 
 		address := &models.Address{
@@ -166,7 +166,7 @@ func TestAddress_Update(t *testing.T) {
 
 	t.Run("return ErrDBInvalidForeignKey when FK violation", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		addr := &models.Address{}
 
@@ -183,7 +183,7 @@ func TestAddress_Update(t *testing.T) {
 
 	t.Run("return ErrUpdate on database error", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		addr := &models.Address{}
 		dbErr := errors.New("timeout")
@@ -203,7 +203,7 @@ func TestAddress_Update(t *testing.T) {
 func TestAddress_Delete(t *testing.T) {
 	t.Run("successfully delete address", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 
 		cmdTag := pgconn.NewCommandTag("DELETE 1")
@@ -218,7 +218,7 @@ func TestAddress_Delete(t *testing.T) {
 
 	t.Run("return ErrNotFound when no rows deleted", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 
 		cmdTag := pgconn.NewCommandTag("DELETE 0")
@@ -233,7 +233,7 @@ func TestAddress_Delete(t *testing.T) {
 
 	t.Run("return ErrDelete on database error", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		dbErr := errors.New("connection lost")
 

@@ -15,21 +15,21 @@ type UserFull interface {
 	BeginTx(ctx context.Context) (pgx.Tx, error)
 }
 
-type userFull struct {
+type userFullRepo struct {
 	db repo.DBTransactor
 }
 
 func NewUserFull(db repo.DBTransactor) UserFull {
-	return &userFull{
+	return &userFullRepo{
 		db: db,
 	}
 }
 
-func (r *userFull) BeginTx(ctx context.Context) (pgx.Tx, error) {
+func (r *userFullRepo) BeginTx(ctx context.Context) (pgx.Tx, error) {
 	return r.db.BeginTx(ctx, pgx.TxOptions{})
 }
 
-func (r *userFull) CreateTx(ctx context.Context, tx pgx.Tx, user *models.User) (*models.User, error) {
+func (r *userFullRepo) CreateTx(ctx context.Context, tx pgx.Tx, user *models.User) (*models.User, error) {
 	const query = `
 		INSERT INTO users (username, email, password_hash, status, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, NOW(), NOW())

@@ -8,7 +8,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (r *saleItem) GetByID(ctx context.Context, id int64) (*models.SaleItem, error) {
+func (r *saleItemRepo) GetByID(ctx context.Context, id int64) (*models.SaleItem, error) {
 	const query = `
 		SELECT 
 			id, sale_id, product_id, quantity, unit_price, discount, tax,
@@ -39,7 +39,7 @@ func (r *saleItem) GetByID(ctx context.Context, id int64) (*models.SaleItem, err
 	return &item, nil
 }
 
-func (r *saleItem) GetBySaleID(ctx context.Context, saleID int64, limit, offset int) ([]*models.SaleItem, error) {
+func (r *saleItemRepo) GetBySaleID(ctx context.Context, saleID int64, limit, offset int) ([]*models.SaleItem, error) {
 	const query = `
 		SELECT 
 			id, sale_id, product_id, quantity, unit_price, discount, tax,
@@ -80,7 +80,7 @@ func (r *saleItem) GetBySaleID(ctx context.Context, saleID int64, limit, offset 
 	return items, nil
 }
 
-func (r *saleItem) GetByProductID(ctx context.Context, productID int64, limit, offset int) ([]*models.SaleItem, error) {
+func (r *saleItemRepo) GetByProductID(ctx context.Context, productID int64, limit, offset int) ([]*models.SaleItem, error) {
 	const query = `
 		SELECT 
 			id, sale_id, product_id, quantity, unit_price, discount, tax,

@@ -8,7 +8,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (r *clientCredit) GetByID(ctx context.Context, id int64) (*models.ClientCredit, error) {
+func (r *clientCreditRepo) GetByID(ctx context.Context, id int64) (*models.ClientCredit, error) {
 	const query = `
 		SELECT id, client_id, allow_credit, credit_limit, credit_balance, created_at, updated_at
 		FROM client_credits
@@ -33,7 +33,7 @@ func (r *clientCredit) GetByID(ctx context.Context, id int64) (*models.ClientCre
 	return &credit, nil
 }
 
-func (r *clientCredit) GetByClientID(ctx context.Context, clientID int64) (*models.ClientCredit, error) {
+func (r *clientCreditRepo) GetByClientID(ctx context.Context, clientID int64) (*models.ClientCredit, error) {
 	const query = `
 		SELECT id, client_id, allow_credit, credit_limit, credit_balance, created_at, updated_at
 		FROM client_credits
@@ -58,7 +58,7 @@ func (r *clientCredit) GetByClientID(ctx context.Context, clientID int64) (*mode
 	return &credit, nil
 }
 
-func (r *clientCredit) GetAll(ctx context.Context) ([]*models.ClientCredit, error) {
+func (r *clientCreditRepo) GetAll(ctx context.Context) ([]*models.ClientCredit, error) {
 	const query = `
 		SELECT id, client_id, allow_credit, credit_limit, credit_balance, created_at, updated_at
 		FROM client_credits
@@ -95,7 +95,7 @@ func (r *clientCredit) GetAll(ctx context.Context) ([]*models.ClientCredit, erro
 	return credits, nil
 }
 
-func (r *clientCredit) GetByName(ctx context.Context, name string) ([]*models.ClientCredit, error) {
+func (r *clientCreditRepo) GetByName(ctx context.Context, name string) ([]*models.ClientCredit, error) {
 	const query = `
 		SELECT cc.id, cc.client_id, cc.allow_credit, cc.credit_limit, cc.credit_balance, cc.created_at, cc.updated_at
 		FROM client_credits cc
@@ -134,7 +134,7 @@ func (r *clientCredit) GetByName(ctx context.Context, name string) ([]*models.Cl
 	return credits, nil
 }
 
-func (r *clientCredit) GetVersionByID(ctx context.Context, id int64) (int, error) {
+func (r *clientCreditRepo) GetVersionByID(ctx context.Context, id int64) (int, error) {
 	const query = `SELECT version FROM client_credits WHERE id = $1`
 	var version int
 	err := r.db.QueryRow(ctx, query, id).Scan(&version)

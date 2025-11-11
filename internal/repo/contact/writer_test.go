@@ -18,7 +18,7 @@ import (
 func TestContact_Create(t *testing.T) {
 	t.Run("successfully create contact", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 
 		cont := &models.Contact{
@@ -51,7 +51,7 @@ func TestContact_Create(t *testing.T) {
 
 	t.Run("return ErrDuplicate when unique constraint violation", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		cont := &models.Contact{}
 
@@ -75,7 +75,7 @@ func TestContact_Create(t *testing.T) {
 
 	t.Run("return ErrInvalidData when check constraint violation", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		cont := &models.Contact{}
 
@@ -99,7 +99,7 @@ func TestContact_Create(t *testing.T) {
 
 	t.Run("return ErrCreate when pg error different from known cases", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		cont := &models.Contact{}
 
@@ -124,7 +124,7 @@ func TestContact_Create(t *testing.T) {
 
 	t.Run("return ErrCreate when query fails with generic database error", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		cont := &models.Contact{}
 
@@ -148,7 +148,7 @@ func TestContact_Create(t *testing.T) {
 func TestContact_Update(t *testing.T) {
 	t.Run("successfully update contact", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 
 		cont := &models.Contact{
@@ -175,7 +175,7 @@ func TestContact_Update(t *testing.T) {
 
 	t.Run("return ErrNotFound when no rows updated", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		cont := &models.Contact{ID: 999}
 
@@ -191,7 +191,7 @@ func TestContact_Update(t *testing.T) {
 
 	t.Run("return ErrDuplicate when unique constraint violation", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		cont := &models.Contact{ID: 1}
 
@@ -211,7 +211,7 @@ func TestContact_Update(t *testing.T) {
 
 	t.Run("return ErrInvalidData when check constraint violation", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		cont := &models.Contact{ID: 1}
 
@@ -231,7 +231,7 @@ func TestContact_Update(t *testing.T) {
 
 	t.Run("return ErrUpdate when pg error different from known cases", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		cont := &models.Contact{ID: 1}
 
@@ -252,7 +252,7 @@ func TestContact_Update(t *testing.T) {
 
 	t.Run("return ErrUpdate when query fails with generic error", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		cont := &models.Contact{ID: 1}
 
@@ -272,7 +272,7 @@ func TestContact_Update(t *testing.T) {
 func TestContact_Delete(t *testing.T) {
 	t.Run("successfully delete contact", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		contactID := int64(1)
 
@@ -288,7 +288,7 @@ func TestContact_Delete(t *testing.T) {
 
 	t.Run("return ErrNotFound when contact not found", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		contactID := int64(999)
 
@@ -304,7 +304,7 @@ func TestContact_Delete(t *testing.T) {
 
 	t.Run("return ErrDelete when database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &contact{db: mockDB}
+		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		contactID := int64(1)
 

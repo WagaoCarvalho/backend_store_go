@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *supplierCategoryRelation) HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {
+func (r *supplierCategoryRelationRepo) HasRelation(ctx context.Context, supplierID, categoryID int64) (bool, error) {
 	const query = `
 		SELECT 1 FROM supplier_category_relations
 		WHERE supplier_id = $1 AND category_id = $2
@@ -29,7 +29,7 @@ func (r *supplierCategoryRelation) HasRelation(ctx context.Context, supplierID, 
 	return true, nil
 }
 
-func (r *supplierCategoryRelation) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelation, error) {
+func (r *supplierCategoryRelationRepo) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierCategoryRelation, error) {
 	const query = `
 		SELECT supplier_id, category_id, created_at
 		FROM supplier_category_relations
@@ -59,7 +59,7 @@ func (r *supplierCategoryRelation) GetBySupplierID(ctx context.Context, supplier
 	return rels, nil
 }
 
-func (r *supplierCategoryRelation) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelation, error) {
+func (r *supplierCategoryRelationRepo) GetByCategoryID(ctx context.Context, categoryID int64) ([]*models.SupplierCategoryRelation, error) {
 	const query = `
 		SELECT supplier_id, category_id, created_at
 		FROM supplier_category_relations

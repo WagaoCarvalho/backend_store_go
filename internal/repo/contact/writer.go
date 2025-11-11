@@ -13,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-func (r *contact) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
+func (r *contactRepo) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
 	const query = `
         INSERT INTO contacts (
             contact_name, contact_description,
@@ -55,7 +55,7 @@ func (r *contact) Create(ctx context.Context, contact *models.Contact) (*models.
 	return contact, nil
 }
 
-func (r *contact) Update(ctx context.Context, contact *models.Contact) error {
+func (r *contactRepo) Update(ctx context.Context, contact *models.Contact) error {
 	const query = `
 		UPDATE contacts
 		SET contact_name = $1,
@@ -105,7 +105,7 @@ func (r *contact) Update(ctx context.Context, contact *models.Contact) error {
 	return nil
 }
 
-func (r *contact) Delete(ctx context.Context, id int64) error {
+func (r *contactRepo) Delete(ctx context.Context, id int64) error {
 	const query = `DELETE FROM contacts WHERE id = $1 RETURNING id`
 
 	var deletedID int64

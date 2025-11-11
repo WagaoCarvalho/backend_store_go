@@ -8,7 +8,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (r *supplierContactRelation) HasSupplierContactRelation(ctx context.Context, supplierID, contactID int64) (bool, error) {
+func (r *supplierContactRelationRepo) HasSupplierContactRelation(ctx context.Context, supplierID, contactID int64) (bool, error) {
 	const query = `
 		SELECT 1
 		FROM supplier_contact_relations
@@ -28,7 +28,7 @@ func (r *supplierContactRelation) HasSupplierContactRelation(ctx context.Context
 	return true, nil
 }
 
-func (r *supplierContactRelation) GetAllRelationsBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierContactRelation, error) {
+func (r *supplierContactRelationRepo) GetAllRelationsBySupplierID(ctx context.Context, supplierID int64) ([]*models.SupplierContactRelation, error) {
 	const query = `
 		SELECT supplier_id, contact_id, created_at
 		FROM supplier_contact_relations

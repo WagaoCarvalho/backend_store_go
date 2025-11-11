@@ -12,7 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-func (r *client) Create(ctx context.Context, client *models.Client) (*models.Client, error) {
+func (r *clientRepo) Create(ctx context.Context, client *models.Client) (*models.Client, error) {
 	const query = `
 		INSERT INTO clients (name, email, cpf, cnpj, description, status, version)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -46,7 +46,7 @@ func (r *client) Create(ctx context.Context, client *models.Client) (*models.Cli
 	return client, nil
 }
 
-func (r *client) Update(ctx context.Context, client *models.Client) error {
+func (r *clientRepo) Update(ctx context.Context, client *models.Client) error {
 	const query = `
 		UPDATE clients
 		SET 
@@ -99,7 +99,7 @@ func (r *client) Update(ctx context.Context, client *models.Client) error {
 	return nil
 }
 
-func (r *client) Delete(ctx context.Context, id int64) error {
+func (r *clientRepo) Delete(ctx context.Context, id int64) error {
 	const query = `DELETE FROM clients WHERE id = $1`
 	_, err := r.db.Exec(ctx, query, id)
 	if err != nil {

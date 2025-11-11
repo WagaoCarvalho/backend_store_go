@@ -14,7 +14,7 @@ import (
 func TestClientCredit_Disable(t *testing.T) {
 	t.Run("successfully disable client credit", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		creditID := int64(1)
 
@@ -29,7 +29,7 @@ func TestClientCredit_Disable(t *testing.T) {
 
 	t.Run("return ErrUpdate when database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		creditID := int64(1)
 		dbError := errors.New("database connection failed")
@@ -47,7 +47,7 @@ func TestClientCredit_Disable(t *testing.T) {
 func TestClientCredit_Enable(t *testing.T) {
 	t.Run("successfully enable client credit", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		creditID := int64(1)
 
@@ -62,7 +62,7 @@ func TestClientCredit_Enable(t *testing.T) {
 
 	t.Run("return ErrUpdate when database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		creditID := int64(1)
 		dbError := errors.New("database connection failed")

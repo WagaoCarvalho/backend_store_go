@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *user) GetAll(ctx context.Context) ([]*models.User, error) {
+func (r *userRepo) GetAll(ctx context.Context) ([]*models.User, error) {
 	const query = `
 		SELECT 
 			id,
@@ -53,7 +53,7 @@ func (r *user) GetAll(ctx context.Context) ([]*models.User, error) {
 	return users, nil
 }
 
-func (r *user) GetByID(ctx context.Context, id int64) (*models.User, error) {
+func (r *userRepo) GetByID(ctx context.Context, id int64) (*models.User, error) {
 	const query = `
 		SELECT 
 			id,
@@ -88,7 +88,7 @@ func (r *user) GetByID(ctx context.Context, id int64) (*models.User, error) {
 	return user, nil
 }
 
-func (r *user) GetVersionByID(ctx context.Context, id int64) (int64, error) {
+func (r *userRepo) GetVersionByID(ctx context.Context, id int64) (int64, error) {
 	const query = `SELECT version FROM users WHERE id = $1`
 
 	var version int64
@@ -103,7 +103,7 @@ func (r *user) GetVersionByID(ctx context.Context, id int64) (int64, error) {
 	return version, nil
 }
 
-func (r *user) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+func (r *userRepo) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	const query = `
 		SELECT id, username, email, password_hash, status, created_at, updated_at
 		FROM users
@@ -131,7 +131,7 @@ func (r *user) GetByEmail(ctx context.Context, email string) (*models.User, erro
 	return user, nil
 }
 
-func (r *user) GetByName(ctx context.Context, name string) ([]*models.User, error) {
+func (r *userRepo) GetByName(ctx context.Context, name string) ([]*models.User, error) {
 	const query = `
 		SELECT 
 			id,
@@ -180,7 +180,7 @@ func (r *user) GetByName(ctx context.Context, name string) ([]*models.User, erro
 	return users, nil
 }
 
-func (r *user) UserExists(ctx context.Context, userID int64) (bool, error) {
+func (r *userRepo) UserExists(ctx context.Context, userID int64) (bool, error) {
 	const query = `
 		SELECT EXISTS (
 			SELECT 1

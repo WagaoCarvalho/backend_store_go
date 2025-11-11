@@ -7,7 +7,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (r *sale) Cancel(ctx context.Context, id int64) error {
+func (r *saleRepo) Cancel(ctx context.Context, id int64) error {
 	const query = `
 		UPDATE sales
 		SET status = 'cancelled', updated_at = NOW()
@@ -23,7 +23,7 @@ func (r *sale) Cancel(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *sale) Complete(ctx context.Context, id int64) error {
+func (r *saleRepo) Complete(ctx context.Context, id int64) error {
 	const query = `
 		UPDATE sales
 		SET status = 'completed', updated_at = NOW()

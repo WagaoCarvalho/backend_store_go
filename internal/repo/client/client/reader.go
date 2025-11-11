@@ -8,7 +8,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (r *client) GetByID(ctx context.Context, id int64) (*models.Client, error) {
+func (r *clientRepo) GetByID(ctx context.Context, id int64) (*models.Client, error) {
 	const query = `
 		SELECT id, name, email, cpf, cnpj, description, status, created_at, updated_at
 		FROM clients
@@ -32,7 +32,7 @@ func (r *client) GetByID(ctx context.Context, id int64) (*models.Client, error) 
 	return client, nil
 }
 
-func (r *client) GetByName(ctx context.Context, name string) ([]*models.Client, error) {
+func (r *clientRepo) GetByName(ctx context.Context, name string) ([]*models.Client, error) {
 	const query = `
 		SELECT id, name, email, cpf, cnpj, description, status, created_at, updated_at
 		FROM clients
@@ -65,7 +65,7 @@ func (r *client) GetByName(ctx context.Context, name string) ([]*models.Client, 
 	return clients, nil
 }
 
-func (r *client) GetVersionByID(ctx context.Context, id int64) (int, error) {
+func (r *clientRepo) GetVersionByID(ctx context.Context, id int64) (int, error) {
 	const query = `SELECT version FROM clients WHERE id = $1`
 	var version int
 	err := r.db.QueryRow(ctx, query, id).Scan(&version)
@@ -75,7 +75,7 @@ func (r *client) GetVersionByID(ctx context.Context, id int64) (int, error) {
 	return version, nil
 }
 
-func (r *client) ClientExists(ctx context.Context, clientID int64) (bool, error) {
+func (r *clientRepo) ClientExists(ctx context.Context, clientID int64) (bool, error) {
 	const query = `SELECT EXISTS(SELECT 1 FROM clients WHERE id=$1)`
 	var exists bool
 	err := r.db.QueryRow(ctx, query, clientID).Scan(&exists)

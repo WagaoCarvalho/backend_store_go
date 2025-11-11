@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *address) Disable(ctx context.Context, aid int64) error {
+func (r *addressRepo) Disable(ctx context.Context, aid int64) error {
 	const query = `
 		UPDATE addresses
 		SET is_active = FALSE, updated_at = NOW()
@@ -30,7 +30,7 @@ func (r *address) Disable(ctx context.Context, aid int64) error {
 	return nil
 }
 
-func (r *address) Enable(ctx context.Context, aid int64) error {
+func (r *addressRepo) Enable(ctx context.Context, aid int64) error {
 	const query = `
 		UPDATE addresses
 		SET is_active = TRUE, updated_at = NOW()

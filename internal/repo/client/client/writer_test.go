@@ -19,7 +19,7 @@ import (
 func TestClient_Create(t *testing.T) {
 	t.Run("successfully create client", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 
 		client := &models.Client{
@@ -53,7 +53,7 @@ func TestClient_Create(t *testing.T) {
 
 	t.Run("return ErrDuplicate when unique constraint violation", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		client := &models.Client{}
 
@@ -72,7 +72,7 @@ func TestClient_Create(t *testing.T) {
 
 	t.Run("return ErrInvalidData when check constraint violation", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		client := &models.Client{}
 
@@ -91,7 +91,7 @@ func TestClient_Create(t *testing.T) {
 
 	t.Run("return ErrCreate when database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		client := &models.Client{}
 
@@ -111,7 +111,7 @@ func TestClient_Create(t *testing.T) {
 
 	t.Run("return ErrCreate when other pg error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		client := &models.Client{}
 
@@ -133,7 +133,7 @@ func TestClient_Create(t *testing.T) {
 func TestClient_Update(t *testing.T) {
 	t.Run("successfully update client", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 
 		client := &models.Client{
@@ -160,7 +160,7 @@ func TestClient_Update(t *testing.T) {
 
 	t.Run("return ErrVersionConflict when no rows affected", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		client := &models.Client{ID: 1, Version: 1}
 
@@ -176,7 +176,7 @@ func TestClient_Update(t *testing.T) {
 
 	t.Run("return ErrDuplicate when unique constraint violation", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		client := &models.Client{ID: 1, Version: 1}
 
@@ -194,7 +194,7 @@ func TestClient_Update(t *testing.T) {
 
 	t.Run("return ErrInvalidData when check constraint violation", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		client := &models.Client{ID: 1, Version: 1}
 
@@ -212,7 +212,7 @@ func TestClient_Update(t *testing.T) {
 
 	t.Run("return ErrUpdate when other pg error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		client := &models.Client{ID: 1, Version: 1}
 
@@ -231,7 +231,7 @@ func TestClient_Update(t *testing.T) {
 
 	t.Run("return ErrUpdate when generic database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		client := &models.Client{ID: 1, Version: 1}
 
@@ -252,7 +252,7 @@ func TestClient_Update(t *testing.T) {
 func TestClient_Delete(t *testing.T) {
 	t.Run("successfully delete client", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(1)
 
@@ -267,7 +267,7 @@ func TestClient_Delete(t *testing.T) {
 
 	t.Run("return ErrDelete when database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(1)
 

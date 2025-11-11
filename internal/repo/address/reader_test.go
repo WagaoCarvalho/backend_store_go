@@ -17,7 +17,7 @@ import (
 func TestAddress_GetByID(t *testing.T) {
 	t.Run("successfully get address by id", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		addressID := int64(1)
 		expectedTime := time.Now()
@@ -40,7 +40,7 @@ func TestAddress_GetByID(t *testing.T) {
 
 	t.Run("return ErrNotFound when address does not exist", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		addressID := int64(999)
 
@@ -56,7 +56,7 @@ func TestAddress_GetByID(t *testing.T) {
 
 	t.Run("return ErrGet when database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		addressID := int64(1)
 		dbError := errors.New("connection lost")
@@ -76,7 +76,7 @@ func TestAddress_GetByID(t *testing.T) {
 func TestAddress_GetByUserID(t *testing.T) {
 	t.Run("successfully get addresses by user id", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		userID := int64(1)
 
@@ -105,7 +105,7 @@ func TestAddress_GetByUserID(t *testing.T) {
 	})
 	t.Run("return ErrGet when database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		userID := int64(1)
 		dbError := errors.New("db down")
@@ -128,7 +128,7 @@ func TestAddress_GetByUserID(t *testing.T) {
 func TestAddress_GetByClientID(t *testing.T) {
 	t.Run("successfully get addresses by client id", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(1)
 
@@ -158,7 +158,7 @@ func TestAddress_GetByClientID(t *testing.T) {
 
 	t.Run("return empty slice when no addresses found", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(1)
 
@@ -184,7 +184,7 @@ func TestAddress_GetByClientID(t *testing.T) {
 func TestAddress_GetBySupplierID(t *testing.T) {
 	t.Run("successfully get addresses by supplier id", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		supplierID := int64(1)
 
@@ -214,7 +214,7 @@ func TestAddress_GetBySupplierID(t *testing.T) {
 
 	t.Run("return ErrGet when scan fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		supplierID := int64(1)
 		scanErr := errors.New("scan failed")

@@ -17,7 +17,7 @@ import (
 func TestClientCredit_GetByID(t *testing.T) {
 	t.Run("successfully get client credit by id", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		creditID := int64(1)
 		expectedTime := time.Now()
@@ -40,7 +40,7 @@ func TestClientCredit_GetByID(t *testing.T) {
 
 	t.Run("return ErrGet when client credit not found", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		creditID := int64(999)
 
@@ -56,7 +56,7 @@ func TestClientCredit_GetByID(t *testing.T) {
 
 	t.Run("return ErrGet when database connection fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		creditID := int64(2)
 		dbErr := errors.New("connection lost")
@@ -74,7 +74,7 @@ func TestClientCredit_GetByID(t *testing.T) {
 
 	t.Run("return ErrGet when Scan returns pgconn.PgError", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		creditID := int64(3)
 		pgErr := &pgconn.PgError{Message: "syntax error"}
@@ -94,7 +94,7 @@ func TestClientCredit_GetByID(t *testing.T) {
 func TestClientCredit_GetByClientID(t *testing.T) {
 	t.Run("successfully get client credit by client id", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(10)
 		expectedTime := time.Now()
@@ -117,7 +117,7 @@ func TestClientCredit_GetByClientID(t *testing.T) {
 
 	t.Run("return ErrGet when client credit not found", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(999)
 
@@ -133,7 +133,7 @@ func TestClientCredit_GetByClientID(t *testing.T) {
 
 	t.Run("return ErrGet when database connection fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(2)
 		dbErr := errors.New("connection lost")
@@ -151,7 +151,7 @@ func TestClientCredit_GetByClientID(t *testing.T) {
 
 	t.Run("return ErrGet when Scan returns pgconn.PgError", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(3)
 		pgErr := &pgconn.PgError{Message: "syntax error"}
@@ -171,7 +171,7 @@ func TestClientCredit_GetByClientID(t *testing.T) {
 func TestClientCredit_GetAll(t *testing.T) {
 	t.Run("successfully get all client credits", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 
 		mockRows := new(mockDb.MockRows)
@@ -202,7 +202,7 @@ func TestClientCredit_GetAll(t *testing.T) {
 
 	t.Run("return ErrGet when query fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 
 		dbErr := errors.New("db fail")
@@ -221,7 +221,7 @@ func TestClientCredit_GetAll(t *testing.T) {
 
 	t.Run("return ErrScan when scan fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 
 		scanErr := errors.New("scan failed")
@@ -252,7 +252,7 @@ func TestClientCredit_GetAll(t *testing.T) {
 
 	t.Run("return ErrGet when rows error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 
 		rowsErr := errors.New("rows iteration error")
@@ -277,7 +277,7 @@ func TestClientCredit_GetAll(t *testing.T) {
 func TestClientCredit_GetByName(t *testing.T) {
 	t.Run("successfully get client credits by name", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		name := "John"
 
@@ -309,7 +309,7 @@ func TestClientCredit_GetByName(t *testing.T) {
 
 	t.Run("return ErrGet when query fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		name := "Maria"
 
@@ -328,7 +328,7 @@ func TestClientCredit_GetByName(t *testing.T) {
 
 	t.Run("return ErrScan when scan fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		name := "Lucas"
 
@@ -359,7 +359,7 @@ func TestClientCredit_GetByName(t *testing.T) {
 
 	t.Run("return ErrGet when rows iteration fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		name := "Ana"
 
@@ -384,7 +384,7 @@ func TestClientCredit_GetByName(t *testing.T) {
 func TestClientCredit_GetVersionByID(t *testing.T) {
 	t.Run("successfully get version by id", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 
 		// MockRow personalizado que retorna um int fixo
@@ -401,7 +401,7 @@ func TestClientCredit_GetVersionByID(t *testing.T) {
 
 	t.Run("return ErrGet when scan fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 
 		dbErr := errors.New("db error")

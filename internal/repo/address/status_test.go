@@ -17,7 +17,7 @@ func TestAddress_Disable(t *testing.T) {
 	t.Run("successfully disable address", func(t *testing.T) {
 
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		addressID := int64(1)
 		expectedUpdatedAt := time.Now()
@@ -34,7 +34,7 @@ func TestAddress_Disable(t *testing.T) {
 	t.Run("return ErrNotFound when address does not exist", func(t *testing.T) {
 
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		addressID := int64(999)
 
@@ -50,7 +50,7 @@ func TestAddress_Disable(t *testing.T) {
 	t.Run("return ErrDisable when database error occurs", func(t *testing.T) {
 
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		addressID := int64(1)
 		dbError := errors.New("database connection failed")
@@ -70,7 +70,7 @@ func TestAddress_Enable(t *testing.T) {
 	t.Run("successfully enable address", func(t *testing.T) {
 
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		addressID := int64(1)
 		expectedUpdatedAt := time.Now()
@@ -87,7 +87,7 @@ func TestAddress_Enable(t *testing.T) {
 	t.Run("return ErrNotFound when address does not exist", func(t *testing.T) {
 
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		addressID := int64(999)
 
@@ -103,7 +103,7 @@ func TestAddress_Enable(t *testing.T) {
 	t.Run("return ErrEnable when database error occurs", func(t *testing.T) {
 
 		mockDB := new(mockDb.MockDatabase)
-		repo := &address{db: mockDB}
+		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
 		addressID := int64(1)
 		dbError := errors.New("database connection failed")

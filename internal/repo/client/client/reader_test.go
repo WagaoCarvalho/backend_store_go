@@ -16,7 +16,7 @@ import (
 func TestClient_GetByID(t *testing.T) {
 	t.Run("successfully get client by id", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(1)
 		expectedTime := time.Now()
@@ -39,7 +39,7 @@ func TestClient_GetByID(t *testing.T) {
 
 	t.Run("return ErrNotFound when client does not exist", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(999)
 
@@ -55,7 +55,7 @@ func TestClient_GetByID(t *testing.T) {
 
 	t.Run("return ErrGet when database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 		clientID := int64(1)
 		dbError := errors.New("connection lost")
@@ -75,7 +75,7 @@ func TestClient_GetByID(t *testing.T) {
 func TestClient_GetByName(t *testing.T) {
 	t.Run("successfully get clients by name", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 
 		mockRows := new(mockDb.MockRows)
@@ -106,7 +106,7 @@ func TestClient_GetByName(t *testing.T) {
 
 	t.Run("return ErrGet when query fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 
 		dbErr := errors.New("db failure")
@@ -124,7 +124,7 @@ func TestClient_GetByName(t *testing.T) {
 
 	t.Run("return ErrGet when scan fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 
 		scanErr := errors.New("scan error")
@@ -160,7 +160,7 @@ func TestClient_GetByName(t *testing.T) {
 func TestClient_GetVersionByID(t *testing.T) {
 	t.Run("successfully get version by id", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 
 		// Criar um MockRow personalizado para int
@@ -177,7 +177,7 @@ func TestClient_GetVersionByID(t *testing.T) {
 
 	t.Run("return ErrGet when scan fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 
 		dbErr := errors.New("db error")
@@ -198,7 +198,7 @@ func TestClient_GetVersionByID(t *testing.T) {
 func TestClient_ClientExists(t *testing.T) {
 	t.Run("successfully check client exists", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 
 		// Usar bool diretamente
@@ -215,7 +215,7 @@ func TestClient_ClientExists(t *testing.T) {
 
 	t.Run("return ErrGet when scan fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &client{db: mockDB}
+		repo := &clientRepo{db: mockDB}
 		ctx := context.Background()
 
 		scanErr := errors.New("scan fail")

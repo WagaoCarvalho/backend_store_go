@@ -15,19 +15,19 @@ type SupplierFull interface {
 	BeginTx(ctx context.Context) (pgx.Tx, error)
 }
 
-type supplierFull struct {
+type supplierFullRepo struct {
 	db repo.DBTransactor
 }
 
 func NewSupplierFull(db repo.DBTransactor) SupplierFull {
-	return &supplierFull{db: db}
+	return &supplierFullRepo{db: db}
 }
 
-func (r *supplierFull) BeginTx(ctx context.Context) (pgx.Tx, error) {
+func (r *supplierFullRepo) BeginTx(ctx context.Context) (pgx.Tx, error) {
 	return r.db.BeginTx(ctx, pgx.TxOptions{})
 }
 
-func (r *supplierFull) CreateTx(ctx context.Context, tx pgx.Tx, supplier *models.Supplier) (*models.Supplier, error) {
+func (r *supplierFullRepo) CreateTx(ctx context.Context, tx pgx.Tx, supplier *models.Supplier) (*models.Supplier, error) {
 	const query = `
 		INSERT INTO suppliers (name, cnpj, cpf, status, version, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, 1, NOW(), NOW())

@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *supplier) GetByID(ctx context.Context, id int64) (*models.Supplier, error) {
+func (r *supplierRepo) GetByID(ctx context.Context, id int64) (*models.Supplier, error) {
 	const query = `
 		SELECT id, name, cnpj, cpf, status, description, created_at, updated_at
 		FROM suppliers
@@ -39,7 +39,7 @@ func (r *supplier) GetByID(ctx context.Context, id int64) (*models.Supplier, err
 	return &supplier, nil
 }
 
-func (r *supplier) GetByName(ctx context.Context, name string) ([]*models.Supplier, error) {
+func (r *supplierRepo) GetByName(ctx context.Context, name string) ([]*models.Supplier, error) {
 	const query = `
 		SELECT id, name, cnpj, cpf, description, status, created_at, updated_at
 		FROM suppliers
@@ -82,7 +82,7 @@ func (r *supplier) GetByName(ctx context.Context, name string) ([]*models.Suppli
 	return suppliers, nil
 }
 
-func (r *supplier) GetAll(ctx context.Context) ([]*models.Supplier, error) {
+func (r *supplierRepo) GetAll(ctx context.Context) ([]*models.Supplier, error) {
 	const query = `
 		SELECT id, name, cnpj, cpf, description, status, created_at, updated_at
 		FROM suppliers
@@ -124,7 +124,7 @@ func (r *supplier) GetAll(ctx context.Context) ([]*models.Supplier, error) {
 	return suppliers, nil
 }
 
-func (r *supplier) GetVersionByID(ctx context.Context, id int64) (int64, error) {
+func (r *supplierRepo) GetVersionByID(ctx context.Context, id int64) (int64, error) {
 	const query = `
 		SELECT version
 		FROM suppliers
@@ -143,7 +143,7 @@ func (r *supplier) GetVersionByID(ctx context.Context, id int64) (int64, error) 
 	return version, nil
 }
 
-func (r *supplier) SupplierExists(ctx context.Context, supplierID int64) (bool, error) {
+func (r *supplierRepo) SupplierExists(ctx context.Context, supplierID int64) (bool, error) {
 	const query = `
 		SELECT EXISTS (
 			SELECT 1

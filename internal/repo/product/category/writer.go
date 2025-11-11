@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *productCategory) Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error) {
+func (r *productCategoryRepo) Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error) {
 	const query = `
 		INSERT INTO product_categories (name, description, created_at, updated_at)
 		VALUES ($1, $2, NOW(), NOW())
@@ -26,7 +26,7 @@ func (r *productCategory) Create(ctx context.Context, category *models.ProductCa
 	return category, nil
 }
 
-func (r *productCategory) Update(ctx context.Context, category *models.ProductCategory) error {
+func (r *productCategoryRepo) Update(ctx context.Context, category *models.ProductCategory) error {
 	const query = `
 		UPDATE product_categories
 		SET name = $1,
@@ -48,7 +48,7 @@ func (r *productCategory) Update(ctx context.Context, category *models.ProductCa
 	return nil
 }
 
-func (r *productCategory) Delete(ctx context.Context, id int64) error {
+func (r *productCategoryRepo) Delete(ctx context.Context, id int64) error {
 	const query = `DELETE FROM product_categories WHERE id = $1`
 
 	result, err := r.db.Exec(ctx, query, id)

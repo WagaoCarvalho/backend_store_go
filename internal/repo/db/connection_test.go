@@ -71,16 +71,21 @@ func TestConnect_NewWithConfigError(t *testing.T) {
 }
 
 func TestConnect_DBConnURLNotDefined(t *testing.T) {
+	// Salva o carregador original e restaura no final
 	originalLoader := config.LoadDatabaseConfig
 	defer func() { config.LoadDatabaseConfig = originalLoader }()
 
+	// Força retorno de configuração sem URL
 	config.LoadDatabaseConfig = func() config.Database {
 		return config.Database{ConnURL: ""}
 	}
 
-	pool, err := Connect(&RealPgxPool{})
-	assert.Nil(t, pool)
-	assert.ErrorIs(t, err, errMsg.ErrDBConnURLNotDefined)
+	// Executa a função que deve falhar
+	pool, err := Connect(nil)
+
+	// Valida o comportamento esperado
+	assert.Nil(t, pool, "pool deve ser nulo quando DB_CONN_URL não está definido")
+	assert.ErrorIs(t, err, errMsg.ErrDBConnURLNotDefined, "erro esperado deve ser ErrDBConnURLNotDefined")
 }
 
 func TestRealPgxPool_ParseConfig(t *testing.T) {

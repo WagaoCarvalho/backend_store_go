@@ -2,12 +2,12 @@ package repo
 
 import repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
 
-type user struct {
+type userRepo struct {
 	db repo.DBExecutor
 }
 
 func NewUser(db repo.DBExecutor) User {
-	return &user{
+	return &userRepo{
 		db: db,
 	}
 }

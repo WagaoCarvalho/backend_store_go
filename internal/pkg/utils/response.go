@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/WagaoCarvalho/backend_store_go/config"
 	"github.com/gorilla/mux"
 )
 
@@ -76,29 +77,28 @@ func GetStringParam(r *http.Request, key string) (string, error) {
 }
 
 func GetPaginationParams(r *http.Request) (limit, offset int) {
-	const (
-		defaultLimit  = 10
-		defaultOffset = 0
-	)
+	cfg := config.LoadPaginationConfig()
+
+	limit = cfg.DefaultLimit
+	offset = cfg.DefaultOffset
 
 	query := r.URL.Query()
 
-	limitStr := query.Get("limit")
-	offsetStr := query.Get("offset")
-
-	limit = defaultLimit
-	offset = defaultOffset
-
-	if limitStr != "" {
+	if limitStr := query.Get("limit"); limitStr != "" {
 		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
 			limit = l
 		}
 	}
 
-	if offsetStr != "" {
+	if offsetStr := query.Get("offset"); offsetStr != "" {
 		if o, err := strconv.Atoi(offsetStr); err == nil && o >= 0 {
 			offset = o
 		}
+	}
+
+	// Garante que não passe do limite máximo definido no .env
+	if limit > cfg.MaxLimit {
+		limit = cfg.MaxLimit
 	}
 
 	return limit, offset
@@ -117,13 +117,29 @@ func ParseErrorResponse(body []byte) (DefaultResponse, error) {
 }
 
 func ParseLimitOffset(r *http.Request) (limit, offset int) {
+	cfg := config.LoadPaginationConfig()
 	query := r.URL.Query()
-	limit, _ = strconv.Atoi(query.Get("limit"))
-	if limit <= 0 {
-		limit = 10
+
+	limit = cfg.DefaultLimit
+	offset = cfg.DefaultOffset
+
+	if v := query.Get("limit"); v != "" {
+		if l, err := strconv.Atoi(v); err == nil && l > 0 {
+			limit = l
+		}
 	}
-	offset, _ = strconv.Atoi(query.Get("offset"))
-	return
+
+	if v := query.Get("offset"); v != "" {
+		if o, err := strconv.Atoi(v); err == nil && o >= 0 {
+			offset = o
+		}
+	}
+
+	if limit > cfg.MaxLimit {
+		limit = cfg.MaxLimit
+	}
+
+	return limit, offset
 }
 
 func ParseOrder(r *http.Request) (orderBy, orderDir string) {

@@ -2,10 +2,10 @@ package repo
 
 import repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
 
-type address struct {
+type addressRepo struct {
 	db repo.DBExecutor
 }
 
 func NewAddress(db repo.DBExecutor) Address {
-	return &address{db: db}
+	return &addressRepo{db: db}
 }

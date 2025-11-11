@@ -16,7 +16,7 @@ import (
 func TestClientCredit_Create(t *testing.T) {
 	t.Run("successfully create client credit", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 
 		credit := &models.ClientCredit{
@@ -47,7 +47,7 @@ func TestClientCredit_Create(t *testing.T) {
 
 	t.Run("return ErrCreate when database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 
 		credit := &models.ClientCredit{
@@ -72,7 +72,7 @@ func TestClientCredit_Create(t *testing.T) {
 func TestClientCredit_Update(t *testing.T) {
 	t.Run("successfully update client credit", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 
 		credit := &models.ClientCredit{
@@ -98,7 +98,7 @@ func TestClientCredit_Update(t *testing.T) {
 
 	t.Run("return ErrUpdate when database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 
 		credit := &models.ClientCredit{
@@ -127,7 +127,7 @@ func TestClientCredit_Update(t *testing.T) {
 func TestClientCredit_Delete(t *testing.T) {
 	t.Run("successfully delete client credit", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		creditID := int64(1)
 
@@ -142,7 +142,7 @@ func TestClientCredit_Delete(t *testing.T) {
 
 	t.Run("return ErrDelete when database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientCredit{db: mockDB}
+		repo := &clientCreditRepo{db: mockDB}
 		ctx := context.Background()
 		creditID := int64(1)
 		dbError := errors.New("database connection failed")

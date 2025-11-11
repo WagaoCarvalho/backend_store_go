@@ -7,7 +7,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (r *supplier) Disable(ctx context.Context, id int64) error {
+func (r *supplierRepo) Disable(ctx context.Context, id int64) error {
 	const query = `
 		UPDATE suppliers
 		SET status = false,
@@ -27,7 +27,7 @@ func (r *supplier) Disable(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *supplier) Enable(ctx context.Context, id int64) error {
+func (r *supplierRepo) Enable(ctx context.Context, id int64) error {
 	const query = `
 		UPDATE suppliers
 		SET status = true,

@@ -29,23 +29,11 @@ func (h *Client) GetAll(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if v := query.Get("limit"); v != "" {
-		if parsed, err := strconv.Atoi(v); err == nil {
-			dtoFilter.Limit = parsed
-		}
-	}
+	dtoFilter.Limit, dtoFilter.Offset = utils.GetPaginationParams(r)
 
-	if v := query.Get("offset"); v != "" {
-		if parsed, err := strconv.Atoi(v); err == nil {
-			dtoFilter.Offset = parsed
-		}
-	}
+	filter, _ := dtoFilter.ToModel()
 
-	filter, _ := dtoFilter.ToModel() // conversão do DTO para o modelo
-
-	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{
-		"filtro": dtoFilter,
-	})
+	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{"filtro": dtoFilter})
 
 	clients, err := h.service.GetAll(ctx, filter)
 	if err != nil {
@@ -54,7 +42,6 @@ func (h *Client) GetAll(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
 		}
-
 		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{"filtro": dtoFilter})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
@@ -62,13 +49,14 @@ func (h *Client) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	clientDTOs := dto.ToClientDTOs(clients)
 
-	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
-		"total_encontrados": len(clientDTOs),
-	})
+	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{"total_encontrados": len(clientDTOs)})
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Clientes listados com sucesso",
-		Data:    clientDTOs,
+		Data: map[string]any{
+			"total": len(clientDTOs),
+			"items": clientDTOs,
+		},
 	})
 }

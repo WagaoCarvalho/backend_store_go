@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *userCategory) GetByID(ctx context.Context, id int64) (*models.UserCategory, error) {
+func (r *userCategoryRepo) GetByID(ctx context.Context, id int64) (*models.UserCategory, error) {
 	const query = `
 		SELECT id, name, description, created_at, updated_at
 		FROM user_categories
@@ -35,7 +35,7 @@ func (r *userCategory) GetByID(ctx context.Context, id int64) (*models.UserCateg
 	return &category, nil
 }
 
-func (r *userCategory) GetAll(ctx context.Context) ([]*models.UserCategory, error) {
+func (r *userCategoryRepo) GetAll(ctx context.Context) ([]*models.UserCategory, error) {
 	const query = `
 		SELECT id, name, description, created_at, updated_at
 		FROM user_categories

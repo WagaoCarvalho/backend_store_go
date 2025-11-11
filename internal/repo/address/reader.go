@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *address) GetByID(ctx context.Context, id int64) (*models.Address, error) {
+func (r *addressRepo) GetByID(ctx context.Context, id int64) (*models.Address, error) {
 	const query = `
 		SELECT 
 			id, user_id, client_id, supplier_id,
@@ -31,19 +31,19 @@ func (r *address) GetByID(ctx context.Context, id int64) (*models.Address, error
 	return addr, nil
 }
 
-func (r *address) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
+func (r *addressRepo) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
 	return r.getByField(ctx, "user_id", userID)
 }
 
-func (r *address) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
+func (r *addressRepo) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
 	return r.getByField(ctx, "client_id", clientID)
 }
 
-func (r *address) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
+func (r *addressRepo) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
 	return r.getByField(ctx, "supplier_id", supplierID)
 }
 
-func (r *address) getByField(ctx context.Context, field string, value any) ([]*models.Address, error) {
+func (r *addressRepo) getByField(ctx context.Context, field string, value any) ([]*models.Address, error) {
 	query := fmt.Sprintf(`
 		SELECT 
 			id, user_id, client_id, supplier_id,

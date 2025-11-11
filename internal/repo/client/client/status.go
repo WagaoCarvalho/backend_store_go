@@ -7,7 +7,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (r *client) Disable(ctx context.Context, id int64) error {
+func (r *clientRepo) Disable(ctx context.Context, id int64) error {
 	const query = `UPDATE clients SET status=false, updated_at=NOW() WHERE id=$1`
 	_, err := r.db.Exec(ctx, query, id)
 	if err != nil {
@@ -16,7 +16,7 @@ func (r *client) Disable(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *client) Enable(ctx context.Context, id int64) error {
+func (r *clientRepo) Enable(ctx context.Context, id int64) error {
 	const query = `UPDATE clients SET status=true, updated_at=NOW() WHERE id=$1`
 	_, err := r.db.Exec(ctx, query, id)
 	if err != nil {

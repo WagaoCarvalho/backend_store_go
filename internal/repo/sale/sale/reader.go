@@ -12,7 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *sale) GetByID(ctx context.Context, id int64) (*models.Sale, error) {
+func (r *saleRepo) GetByID(ctx context.Context, id int64) (*models.Sale, error) {
 	const query = `
 		SELECT 
 			id, client_id, user_id, sale_date, total_amount, total_discount,
@@ -47,19 +47,19 @@ func (r *sale) GetByID(ctx context.Context, id int64) (*models.Sale, error) {
 	return &sale, nil
 }
 
-func (r *sale) GetByClientID(ctx context.Context, clientID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
+func (r *saleRepo) GetByClientID(ctx context.Context, clientID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	return r.listByField(ctx, "client_id", clientID, limit, offset, orderBy, orderDir)
 }
 
-func (r *sale) GetByUserID(ctx context.Context, userID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
+func (r *saleRepo) GetByUserID(ctx context.Context, userID int64, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	return r.listByField(ctx, "user_id", userID, limit, offset, orderBy, orderDir)
 }
 
-func (r *sale) GetByStatus(ctx context.Context, status string, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
+func (r *saleRepo) GetByStatus(ctx context.Context, status string, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	return r.listByField(ctx, "status", status, limit, offset, orderBy, orderDir)
 }
 
-func (r *sale) GetByDateRange(ctx context.Context, start, end time.Time, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
+func (r *saleRepo) GetByDateRange(ctx context.Context, start, end time.Time, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	query := fmt.Sprintf(`
 		SELECT 
 			id, client_id, user_id, sale_date, total_amount, total_discount,

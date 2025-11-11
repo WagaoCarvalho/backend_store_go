@@ -8,7 +8,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (r *clientCredit) Create(ctx context.Context, credit *models.ClientCredit) (*models.ClientCredit, error) {
+func (r *clientCreditRepo) Create(ctx context.Context, credit *models.ClientCredit) (*models.ClientCredit, error) {
 	const query = `
 		INSERT INTO client_credits (client_id, allow_credit, credit_limit, credit_balance, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, NOW(), NOW())
@@ -29,7 +29,7 @@ func (r *clientCredit) Create(ctx context.Context, credit *models.ClientCredit) 
 	return credit, nil
 }
 
-func (r *clientCredit) Update(ctx context.Context, credit *models.ClientCredit) error {
+func (r *clientCreditRepo) Update(ctx context.Context, credit *models.ClientCredit) error {
 	const query = `
 		UPDATE client_credits
 		SET allow_credit = $1, credit_limit = $2, credit_balance = $3, updated_at = NOW()
@@ -50,7 +50,7 @@ func (r *clientCredit) Update(ctx context.Context, credit *models.ClientCredit) 
 	return nil
 }
 
-func (r *clientCredit) Delete(ctx context.Context, id int64) error {
+func (r *clientCreditRepo) Delete(ctx context.Context, id int64) error {
 	const query = `
 		DELETE FROM client_credits WHERE id = $1
 	`

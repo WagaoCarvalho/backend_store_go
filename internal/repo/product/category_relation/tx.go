@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *productCategoryRelation) CreateTx(ctx context.Context, tx pgx.Tx, relation *models.ProductCategoryRelation) (*models.ProductCategoryRelation, error) {
+func (r *productCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, relation *models.ProductCategoryRelation) (*models.ProductCategoryRelation, error) {
 	const query = `
 		INSERT INTO product_category_relations (product_id, category_id, created_at)
 		VALUES ($1, $2, NOW());
