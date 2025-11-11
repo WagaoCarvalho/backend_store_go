@@ -16,7 +16,6 @@ type SupplierReader interface {
 
 type SupplierWriter interface {
 	Create(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error)
-
 	Update(ctx context.Context, supplier *models.Supplier) error
 	Delete(ctx context.Context, id int64) error
 }
