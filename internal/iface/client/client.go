@@ -10,7 +10,6 @@ type ClientReader interface {
 	GetByID(ctx context.Context, id int64) (*models.Client, error)
 	GetByName(ctx context.Context, name string) ([]*models.Client, error)
 	GetVersionByID(ctx context.Context, id int64) (int, error)
-	ClientExists(ctx context.Context, clientID int64) (bool, error)
 }
 
 type ClientWriter interface {
@@ -22,6 +21,10 @@ type ClientWriter interface {
 type ClientStatus interface {
 	Disable(ctx context.Context, id int64) error
 	Enable(ctx context.Context, id int64) error
+}
+
+type ClientChecker interface {
+	ClientExists(ctx context.Context, clientID int64) (bool, error)
 }
 
 type ClientFilter interface {

@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/client/client"
@@ -126,41 +125,6 @@ func (h *clientHandler) GetVersionByID(w http.ResponseWriter, r *http.Request) {
 		Data: map[string]any{
 			"client_id": uid,
 			"version":   version,
-		},
-	})
-}
-
-func (h *clientHandler) ClientExists(w http.ResponseWriter, r *http.Request) {
-	const ref = "[clientHandler - ClientExists] "
-	ctx := r.Context()
-
-	h.logger.Info(ctx, ref+logger.LogGetInit, nil)
-
-	clientID, err := utils.GetIDParam(r, "id")
-	if err != nil {
-		h.logger.Warn(ctx, ref+"ID inválido", map[string]any{"erro": err.Error()})
-		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
-		return
-	}
-
-	exists, err := h.service.ClientExists(ctx, clientID)
-	if err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogNotFound, map[string]any{"client_id": clientID})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	h.logger.Info(ctx, ref+"Verificação concluída", map[string]any{
-		"client_id": clientID,
-		"exists":    exists,
-	})
-
-	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
-		Message: "Verificação concluída com sucesso",
-		Data: map[string]any{
-			"client_id": clientID,
-			"exists":    exists,
 		},
 	})
 }

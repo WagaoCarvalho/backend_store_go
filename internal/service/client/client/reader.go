@@ -43,15 +43,3 @@ func (s *clientService) GetVersionByID(ctx context.Context, id int64) (int, erro
 	}
 	return version, nil
 }
-
-func (s *clientService) ClientExists(ctx context.Context, clientID int64) (bool, error) {
-	if clientID <= 0 {
-		return false, errMsg.ErrZeroID
-	}
-
-	exists, err := s.repo.ClientExists(ctx, clientID)
-	if err != nil {
-		return false, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-	return exists, nil
-}

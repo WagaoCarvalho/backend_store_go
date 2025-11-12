@@ -74,13 +74,3 @@ func (r *clientRepo) GetVersionByID(ctx context.Context, id int64) (int, error) 
 	}
 	return version, nil
 }
-
-func (r *clientRepo) ClientExists(ctx context.Context, clientID int64) (bool, error) {
-	const query = `SELECT EXISTS(SELECT 1 FROM clients WHERE id=$1)`
-	var exists bool
-	err := r.db.QueryRow(ctx, query, clientID).Scan(&exists)
-	if err != nil {
-		return false, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-	return exists, nil
-}
