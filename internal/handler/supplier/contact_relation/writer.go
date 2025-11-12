@@ -7,46 +7,39 @@ import (
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/contact_relation"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
 func (h *supplierContactRelationHandler) Create(w http.ResponseWriter, r *http.Request) {
-	const ref = "[SupplierContactRelationHandler - Create] "
+	const ref = "[SupplierContactRelationHandler - Create]"
 	ctx := r.Context()
 
 	if r.Method != http.MethodPost {
-		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+		h.logger.Warn(ctx, ref+" método não permitido", map[string]any{
 			"method": r.Method,
 		})
 		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
+	h.logger.Info(ctx, ref+" - início da criação", nil)
 
-	var requestData struct {
-		Relation *dto.ContactSupplierRelationDTO `json:"relation"`
-	}
-
-	if err := utils.FromJSON(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
+	var relationDTO dto.ContactSupplierRelationDTO
+	if err := utils.FromJSON(r.Body, &relationDTO); err != nil {
+		h.logger.Warn(ctx, ref+" erro ao decodificar JSON", map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	if requestData.Relation == nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
-			"erro": "relation não fornecida",
-		})
-		utils.ErrorResponse(w, fmt.Errorf("relation não fornecida"), http.StatusBadRequest)
+	// Valida se veio algo no corpo
+	if relationDTO.SupplierID <= 0 || relationDTO.ContactID <= 0 {
+		utils.ErrorResponse(w, errMsg.ErrZeroID, http.StatusBadRequest)
 		return
 	}
 
-	// converte DTO para Model
-	modelRelation := dto.ToContactSupplierRelationModel(*requestData.Relation)
+	modelRelation := dto.ToContactSupplierRelationModel(relationDTO)
 
 	createdRelation, err := h.service.Create(ctx, modelRelation)
 	if err != nil {
@@ -61,15 +54,15 @@ func (h *supplierContactRelationHandler) Create(w http.ResponseWriter, r *http.R
 			status = http.StatusBadRequest
 		}
 
-		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"supplier_id": modelRelation.SupplierID,
-			"contact_id":  modelRelation.ContactID,
+		h.logger.Error(ctx, err, ref+" erro ao criar relação", map[string]any{
+			"supplier_id": relationDTO.SupplierID,
+			"contact_id":  relationDTO.ContactID,
 		})
 		utils.ErrorResponse(w, err, status)
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
+	h.logger.Info(ctx, ref+" relação criada com sucesso", map[string]any{
 		"supplier_id": createdRelation.SupplierID,
 		"contact_id":  createdRelation.ContactID,
 	})

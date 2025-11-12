@@ -50,9 +50,7 @@ func TestSupplierContactRelationHandler_Create(t *testing.T) {
 			return r.SupplierID == 1 && r.ContactID == 2
 		})).Return(expectedModel, nil).Once()
 
-		body, _ := json.Marshal(struct {
-			Relation *dto.ContactSupplierRelationDTO `json:"relation"`
-		}{Relation: &relationDTO})
+		body, _ := json.Marshal(relationDTO)
 
 		req := httptest.NewRequest(http.MethodPost, "/supplier-contact-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -86,7 +84,6 @@ func TestSupplierContactRelationHandler_Create(t *testing.T) {
 		rec := httptest.NewRecorder()
 
 		handler.Create(rec, req)
-
 		resp := rec.Result()
 		defer resp.Body.Close()
 
@@ -107,25 +104,7 @@ func TestSupplierContactRelationHandler_Create(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
-	t.Run("error - relation não fornecida", func(t *testing.T) {
-		_, handler := setupSupplierContact()
-
-		body, _ := json.Marshal(struct {
-			Relation *dto.ContactSupplierRelationDTO `json:"relation"`
-		}{Relation: nil})
-
-		req := httptest.NewRequest(http.MethodPost, "/supplier-contact-relations", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
-		rec := httptest.NewRecorder()
-
-		handler.Create(rec, req)
-		resp := rec.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	})
-
-	t.Run("error - ID zero", func(t *testing.T) {
+	t.Run("error - IDs zero", func(t *testing.T) {
 		mockService, handler := setupSupplierContact()
 
 		relationDTO := dto.ContactSupplierRelationDTO{
@@ -133,12 +112,7 @@ func TestSupplierContactRelationHandler_Create(t *testing.T) {
 			ContactID:  2,
 		}
 
-		mockService.On("Create", mock.Anything, mock.Anything).
-			Return(nil, errMsg.ErrZeroID).Once()
-
-		body, _ := json.Marshal(struct {
-			Relation *dto.ContactSupplierRelationDTO `json:"relation"`
-		}{Relation: &relationDTO})
+		body, _ := json.Marshal(relationDTO)
 
 		req := httptest.NewRequest(http.MethodPost, "/supplier-contact-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -163,9 +137,7 @@ func TestSupplierContactRelationHandler_Create(t *testing.T) {
 		mockService.On("Create", mock.Anything, mock.Anything).
 			Return(nil, errMsg.ErrRelationExists).Once()
 
-		body, _ := json.Marshal(struct {
-			Relation *dto.ContactSupplierRelationDTO `json:"relation"`
-		}{Relation: &relationDTO})
+		body, _ := json.Marshal(relationDTO)
 
 		req := httptest.NewRequest(http.MethodPost, "/supplier-contact-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -190,9 +162,7 @@ func TestSupplierContactRelationHandler_Create(t *testing.T) {
 		mockService.On("Create", mock.Anything, mock.Anything).
 			Return(nil, errMsg.ErrDBInvalidForeignKey).Once()
 
-		body, _ := json.Marshal(struct {
-			Relation *dto.ContactSupplierRelationDTO `json:"relation"`
-		}{Relation: &relationDTO})
+		body, _ := json.Marshal(relationDTO)
 
 		req := httptest.NewRequest(http.MethodPost, "/supplier-contact-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -217,9 +187,7 @@ func TestSupplierContactRelationHandler_Create(t *testing.T) {
 		mockService.On("Create", mock.Anything, mock.Anything).
 			Return(nil, errors.New("db error")).Once()
 
-		body, _ := json.Marshal(struct {
-			Relation *dto.ContactSupplierRelationDTO `json:"relation"`
-		}{Relation: &relationDTO})
+		body, _ := json.Marshal(relationDTO)
 
 		req := httptest.NewRequest(http.MethodPost, "/supplier-contact-relations", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -232,6 +200,91 @@ func TestSupplierContactRelationHandler_Create(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 		mockService.AssertExpectations(t)
 	})
+
+	t.Run("error - service returns ErrZeroID", func(t *testing.T) {
+		mockService, handler := setupSupplierContact()
+
+		relationDTO := dto.ContactSupplierRelationDTO{
+			SupplierID: 1,
+			ContactID:  2,
+		}
+
+		// Service retorna ErrZeroID
+		mockService.On("Create", mock.Anything, mock.MatchedBy(func(r *model.SupplierContactRelation) bool {
+			return r.SupplierID == 1 && r.ContactID == 2
+		})).Return(nil, errMsg.ErrZeroID).Once()
+
+		body, _ := json.Marshal(relationDTO)
+
+		req := httptest.NewRequest(http.MethodPost, "/supplier-contact-relations", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+		resp := rec.Result()
+		defer resp.Body.Close()
+
+		// Deve retornar 400 BadRequest quando service retorna ErrZeroID
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var response utils.DefaultResponse
+		err := json.NewDecoder(resp.Body).Decode(&response)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, response.Message)
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("error - relação já existente", func(t *testing.T) {
+		mockService, handler := setupSupplierContact()
+
+		relationDTO := dto.ContactSupplierRelationDTO{
+			SupplierID: 1,
+			ContactID:  2,
+		}
+
+		mockService.On("Create", mock.Anything, mock.Anything).
+			Return(nil, errMsg.ErrRelationExists).Once()
+
+		body, _ := json.Marshal(relationDTO)
+
+		req := httptest.NewRequest(http.MethodPost, "/supplier-contact-relations", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+		resp := rec.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusConflict, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("error - foreign key inválida", func(t *testing.T) {
+		mockService, handler := setupSupplierContact()
+
+		relationDTO := dto.ContactSupplierRelationDTO{
+			SupplierID: 1,
+			ContactID:  999, // contato inexistente para simular FK inválida
+		}
+
+		mockService.On("Create", mock.Anything, mock.Anything).
+			Return(nil, errMsg.ErrDBInvalidForeignKey).Once()
+
+		body, _ := json.Marshal(relationDTO)
+
+		req := httptest.NewRequest(http.MethodPost, "/supplier-contact-relations", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+
+		handler.Create(rec, req)
+		resp := rec.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
 }
 
 func TestSupplierContactRelationHandler_Delete(t *testing.T) {
