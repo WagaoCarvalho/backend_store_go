@@ -40,7 +40,6 @@ func RegisterProductCategoryRelationRoutes(
 
 	s.HandleFunc("/product-category-relation", relationHandler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/product-category-relations/{product_id:[0-9]+}", relationHandler.GetAllRelationsByProductID).Methods(http.MethodGet)
-	s.HandleFunc("/product-category-relation/{product_id:[0-9]+}/category/{category_id:[0-9]+}/exists", relationHandler.HasProductCategoryRelation).Methods(http.MethodGet)
 	s.HandleFunc("/product-category-relation/{product_id:[0-9]+}/category/{category_id:[0-9]+}", relationHandler.Delete).Methods(http.MethodDelete)
 	s.HandleFunc("/product-category-relation/{product_id:[0-9]+}", relationHandler.DeleteAll).Methods(http.MethodDelete)
 }

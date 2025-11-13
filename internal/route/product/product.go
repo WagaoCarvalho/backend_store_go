@@ -39,12 +39,11 @@ func RegisterProductRoutes(
 	s.Use(jwt.IsAuthByBearerToken(blacklist, log, jwtManager))
 
 	s.HandleFunc("/product", handler.Create).Methods(http.MethodPost)
-	s.HandleFunc("/products", handler.GetAll).Methods(http.MethodGet)
 	s.HandleFunc("/product/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)
-	s.HandleFunc("/product/name/{name}", handler.GetByName).Methods(http.MethodGet)
-	s.HandleFunc("/product/manufacturer/{manufacturer}", handler.GetByManufacturer).Methods(http.MethodGet)
 	s.HandleFunc("/product/update/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
 	s.HandleFunc("/product/delete/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
+
+	s.HandleFunc("/products/filter", handler.Filter).Methods(http.MethodGet)
 
 	s.HandleFunc("/product/enable/{id:[0-9]+}", handler.EnableProduct).Methods(http.MethodPatch)
 	s.HandleFunc("/product/disable/{id:[0-9]+}", handler.DisableProduct).Methods(http.MethodPatch)

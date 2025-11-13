@@ -8,9 +8,22 @@ import (
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func (r *productCategoryRelationRepo) CreateTx(ctx context.Context, tx pgx.Tx, relation *models.ProductCategoryRelation) (*models.ProductCategoryRelation, error) {
+type ProductCategoryRelationRepoTx interface {
+	CreateTx(ctx context.Context, tx pgx.Tx, relation *models.ProductCategoryRelation) (*models.ProductCategoryRelation, error)
+}
+
+type productCategoryRelationRepoTx struct {
+	db *pgxpool.Pool
+}
+
+func NewProductCategoryRelationRepoTx(db *pgxpool.Pool) ProductCategoryRelationRepoTx {
+	return &productCategoryRelationRepoTx{db: db}
+}
+
+func (r *productCategoryRelationRepoTx) CreateTx(ctx context.Context, tx pgx.Tx, relation *models.ProductCategoryRelation) (*models.ProductCategoryRelation, error) {
 	const query = `
 		INSERT INTO product_category_relations (product_id, category_id, created_at)
 		VALUES ($1, $2, NOW());

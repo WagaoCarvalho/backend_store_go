@@ -9,6 +9,25 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+func (r *productRepo) GetStock(ctx context.Context, id int64) (int, error) {
+	const query = `
+		SELECT COALESCE(stock_quantity, 0)
+		FROM products
+		WHERE id = $1;
+	`
+
+	var stock int
+	err := r.db.QueryRow(ctx, query, id).Scan(&stock)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, errMsg.ErrNotFound
+		}
+		return 0, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+	}
+
+	return stock, nil
+}
+
 func (r *productRepo) UpdateStock(ctx context.Context, id int64, quantity int) error {
 	const query = `
 		UPDATE products
@@ -69,23 +88,4 @@ func (r *productRepo) DecreaseStock(ctx context.Context, id int64, amount int) e
 	}
 
 	return nil
-}
-
-func (r *productRepo) GetStock(ctx context.Context, id int64) (int, error) {
-	const query = `
-		SELECT COALESCE(stock_quantity, 0)
-		FROM products
-		WHERE id = $1;
-	`
-
-	var stock int
-	err := r.db.QueryRow(ctx, query, id).Scan(&stock)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, errMsg.ErrNotFound
-		}
-		return 0, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-
-	return stock, nil
 }

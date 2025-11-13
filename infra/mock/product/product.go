@@ -19,8 +19,8 @@ func (m *ProductMock) Create(ctx context.Context, product *models.Product) (*mod
 	return nil, args.Error(1)
 }
 
-func (m *ProductMock) GetAll(ctx context.Context, limit, offset int) ([]*models.Product, error) {
-	args := m.Called(ctx, limit, offset)
+func (m *ProductMock) GetAll(ctx context.Context) ([]*models.Product, error) {
+	args := m.Called(ctx)
 	if prods, ok := args.Get(0).([]*models.Product); ok {
 		return prods, args.Error(1)
 	}
@@ -31,22 +31,6 @@ func (m *ProductMock) GetByID(ctx context.Context, id int64) (*models.Product, e
 	args := m.Called(ctx, id)
 	if prod, ok := args.Get(0).(*models.Product); ok {
 		return prod, args.Error(1)
-	}
-	return nil, args.Error(1)
-}
-
-func (m *ProductMock) GetByName(ctx context.Context, name string) ([]*models.Product, error) {
-	args := m.Called(ctx, name)
-	if prods, ok := args.Get(0).([]*models.Product); ok {
-		return prods, args.Error(1)
-	}
-	return nil, args.Error(1)
-}
-
-func (m *ProductMock) GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error) {
-	args := m.Called(ctx, manufacturer)
-	if prods, ok := args.Get(0).([]*models.Product); ok {
-		return prods, args.Error(1)
 	}
 	return nil, args.Error(1)
 }
@@ -122,4 +106,12 @@ func (m *ProductMock) ApplyDiscount(ctx context.Context, id int64, percent float
 func (m *ProductMock) ProductExists(ctx context.Context, productID int64) (bool, error) {
 	args := m.Called(ctx, productID)
 	return args.Bool(0), args.Error(1)
+}
+
+func (m *ProductMock) Filter(ctx context.Context, filterData *models.ProductFilter) ([]*models.Product, error) {
+	args := m.Called(ctx, filterData)
+	if prods, ok := args.Get(0).([]*models.Product); ok {
+		return prods, args.Error(1)
+	}
+	return nil, args.Error(1)
 }

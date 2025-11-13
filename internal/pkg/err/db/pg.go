@@ -39,3 +39,19 @@ func NewForeignKeyViolation(constraint string) *pgconn.PgError {
 		Message:        "violação de chave estrangeira",
 	}
 }
+
+func NewUniqueViolation(constraint string) *pgconn.PgError {
+	return &pgconn.PgError{
+		Code:           "23505",
+		ConstraintName: constraint,
+		Message:        "violação de constraint única",
+	}
+}
+
+func NewCheckViolation(constraint string) *pgconn.PgError {
+	return &pgconn.PgError{
+		Code:           "23514",
+		ConstraintName: constraint,
+		Message:        "violação de constraint check",
+	}
+}

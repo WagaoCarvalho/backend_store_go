@@ -20,19 +20,3 @@ func (s *productCategoryRelationService) GetAllRelationsByProductID(ctx context.
 
 	return relationsPtr, nil
 }
-
-func (s *productCategoryRelationService) HasProductCategoryRelation(ctx context.Context, productID, categoryID int64) (bool, error) {
-	if productID <= 0 {
-		return false, errMsg.ErrZeroID
-	}
-	if categoryID <= 0 {
-		return false, errMsg.ErrZeroID
-	}
-
-	exists, err := s.repo.HasProductCategoryRelation(ctx, productID, categoryID)
-	if err != nil {
-		return false, fmt.Errorf("%w: %v", errMsg.ErrRelationCheck, err)
-	}
-
-	return exists, nil
-}

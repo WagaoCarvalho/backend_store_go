@@ -59,3 +59,23 @@ func (m *MockDatabase) Query(ctx context.Context, query string, args ...interfac
 	}
 	return nil, call.Error(1)
 }
+
+func (m *MockDatabase) QueryNoArgs(ctx context.Context, query string) (pgx.Rows, error) {
+	args := m.Called(ctx, query)
+	return args.Get(0).(pgx.Rows), args.Error(1)
+}
+
+type Scanner interface {
+	Next() bool
+	Scan(dest ...interface{}) error
+	Err() error
+	Close()
+}
+
+func (m *MockRows) QueryWithScanner(ctx context.Context, query string, args ...any) (Scanner, error) {
+	argsCalled := m.Called(ctx, query, args)
+	if argsCalled.Get(0) != nil {
+		return argsCalled.Get(0).(Scanner), argsCalled.Error(1)
+	}
+	return nil, argsCalled.Error(1)
+}

@@ -7,18 +7,22 @@ import (
 )
 
 type ProductReader interface {
-	GetAll(ctx context.Context, limit, offset int) ([]*models.Product, error)
 	GetByID(ctx context.Context, id int64) (*models.Product, error)
-	GetByName(ctx context.Context, name string) ([]*models.Product, error)
-	GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error)
 	GetVersionByID(ctx context.Context, id int64) (int64, error)
-	ProductExists(ctx context.Context, productID int64) (bool, error)
+}
+
+type ProductGetAll interface {
+	GetAll(ctx context.Context) ([]*models.Product, error)
 }
 
 type ProductWriter interface {
 	Create(ctx context.Context, product *models.Product) (*models.Product, error)
 	Update(ctx context.Context, product *models.Product) error
 	Delete(ctx context.Context, id int64) error
+}
+
+type ProductFilter interface {
+	Filter(ctx context.Context, f *models.ProductFilter) ([]*models.Product, error)
 }
 
 type ProductStock interface {
@@ -37,4 +41,8 @@ type ProductDiscount interface {
 type ProductStatus interface {
 	EnableProduct(ctx context.Context, uid int64) error
 	DisableProduct(ctx context.Context, uid int64) error
+}
+
+type ProductChecker interface {
+	ProductExists(ctx context.Context, productID int64) (bool, error)
 }

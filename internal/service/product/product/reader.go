@@ -4,27 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
-
-func (s *productService) GetAll(ctx context.Context, limit, offset int) ([]*models.Product, error) {
-	if limit <= 0 {
-		return nil, errMsg.ErrInvalidLimit
-	}
-	if offset < 0 {
-		return nil, errMsg.ErrInvalidOffset
-	}
-
-	products, err := s.repo.GetAll(ctx, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-
-	return products, nil
-}
 
 func (s *productService) GetByID(ctx context.Context, id int64) (*models.Product, error) {
 	if id <= 0 {
@@ -37,33 +20,6 @@ func (s *productService) GetByID(ctx context.Context, id int64) (*models.Product
 	}
 
 	return product, nil
-}
-
-func (s *productService) GetByName(ctx context.Context, name string) ([]*models.Product, error) {
-	if strings.TrimSpace(name) == "" {
-		return nil, errors.New("nome inválido")
-	}
-
-	products, err := s.repo.GetByName(ctx, name)
-	if err != nil {
-		return nil, err
-	}
-
-	return products, nil
-}
-
-func (s *productService) GetByManufacturer(ctx context.Context, manufacturer string) ([]*models.Product, error) {
-
-	if strings.TrimSpace(manufacturer) == "" {
-		return nil, errors.New("fabricante inválido")
-	}
-
-	products, err := s.repo.GetByManufacturer(ctx, manufacturer)
-	if err != nil {
-		return nil, err
-	}
-
-	return products, nil
 }
 
 func (s *productService) GetVersionByID(ctx context.Context, pid int64) (int64, error) {
@@ -82,17 +38,4 @@ func (s *productService) GetVersionByID(ctx context.Context, pid int64) (int64, 
 	}
 
 	return version, nil
-}
-
-func (s *productService) ProductExists(ctx context.Context, productID int64) (bool, error) {
-	if productID <= 0 {
-		return false, errMsg.ErrZeroID
-	}
-
-	exists, err := s.repo.ProductExists(ctx, productID)
-	if err != nil {
-		return false, err
-	}
-
-	return exists, nil
 }
