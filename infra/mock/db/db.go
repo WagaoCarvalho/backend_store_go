@@ -31,6 +31,10 @@ func (m *MockDatabase) QueryRow(ctx context.Context, query string, args ...inter
 		return row
 	case MockRowWithID:
 		return &row
+	case *MockRowWithIDArgs:
+		return row
+	case MockRowWithIDArgs:
+		return &row
 	default:
 		panic("unexpected type returned from mock")
 	}

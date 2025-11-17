@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewClientCredit(t *testing.T) {
-	t.Run("successfully create new clientCredit instance", func(t *testing.T) {
+func TestNewItemSale(t *testing.T) {
+	t.Run("successfully create new item sale instance", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 
-		result := NewClientCredit(mockDB)
+		result := NewItemSale(mockDB)
 
 		assert.NotNil(t, result)
 	})
@@ -19,7 +19,7 @@ func TestNewClientCredit(t *testing.T) {
 	t.Run("return instance with provided db executor", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 
-		result := NewClientCredit(mockDB)
+		result := NewItemSale(mockDB)
 
 		assert.NotNil(t, result)
 	})
@@ -27,8 +27,8 @@ func TestNewClientCredit(t *testing.T) {
 	t.Run("return different instances for different calls", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 
-		instance1 := NewClientCredit(mockDB)
-		instance2 := NewClientCredit(mockDB)
+		instance1 := NewItemSale(mockDB)
+		instance2 := NewItemSale(mockDB)
 
 		assert.NotSame(t, instance1, instance2)
 		assert.NotNil(t, instance1)

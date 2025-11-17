@@ -67,7 +67,8 @@ func sanitizeOrderBy(orderBy string) string {
 }
 
 func sanitizeOrderDir(orderDir string) string {
-	if strings.ToLower(orderDir) == "desc" {
+	cleanedDir := strings.TrimSpace(orderDir)
+	if strings.ToLower(cleanedDir) == "desc" {
 		return "DESC"
 	}
 	return "ASC"

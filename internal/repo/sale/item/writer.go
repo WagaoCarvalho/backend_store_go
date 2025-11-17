@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *saleItemRepo) Create(ctx context.Context, item *models.SaleItem) (*models.SaleItem, error) {
+func (r *itemSaleRepo) Create(ctx context.Context, item *models.SaleItem) (*models.SaleItem, error) {
 	const query = `
 		INSERT INTO sale_items (
 			sale_id, product_id, quantity, unit_price, discount, tax, subtotal, description, created_at, updated_at
@@ -43,7 +43,7 @@ func (r *saleItemRepo) Create(ctx context.Context, item *models.SaleItem) (*mode
 	return item, nil
 }
 
-func (r *saleItemRepo) Update(ctx context.Context, item *models.SaleItem) error {
+func (r *itemSaleRepo) Update(ctx context.Context, item *models.SaleItem) error {
 	const query = `
 		UPDATE sale_items
 		SET 
@@ -86,7 +86,7 @@ func (r *saleItemRepo) Update(ctx context.Context, item *models.SaleItem) error 
 	return nil
 }
 
-func (r *saleItemRepo) Delete(ctx context.Context, id int64) error {
+func (r *itemSaleRepo) Delete(ctx context.Context, id int64) error {
 	const query = `DELETE FROM sale_items WHERE id = $1;`
 
 	tag, err := r.db.Exec(ctx, query, id)
@@ -101,7 +101,7 @@ func (r *saleItemRepo) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *saleItemRepo) DeleteBySaleID(ctx context.Context, saleID int64) error {
+func (r *itemSaleRepo) DeleteBySaleID(ctx context.Context, saleID int64) error {
 	const query = `DELETE FROM sale_items WHERE sale_id = $1;`
 
 	_, err := r.db.Exec(ctx, query, saleID)
