@@ -48,7 +48,9 @@ func (r *supplierCategoryRepo) GetAll(ctx context.Context) ([]*models.SupplierCa
 	}
 	defer rows.Close()
 
-	var categories []*models.SupplierCategory
+	// Inicializa com slice vazia em vez de nil
+	categories := make([]*models.SupplierCategory, 0)
+
 	for rows.Next() {
 		category := new(models.SupplierCategory)
 		if err := rows.Scan(
