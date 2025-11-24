@@ -95,7 +95,7 @@ func (r *supplierRepo) GetAll(ctx context.Context) ([]*models.Supplier, error) {
 	}
 	defer rows.Close()
 
-	suppliers := make([]*models.Supplier, 0, 10)
+	var suppliers []*models.Supplier
 	for rows.Next() {
 		var s models.Supplier
 		if err := rows.Scan(
@@ -108,17 +108,13 @@ func (r *supplierRepo) GetAll(ctx context.Context) ([]*models.Supplier, error) {
 			&s.CreatedAt,
 			&s.UpdatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 		}
 		suppliers = append(suppliers, &s)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-
-	if len(suppliers) == 0 {
-		return nil, errMsg.ErrNotFound
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrIterate, err)
 	}
 
 	return suppliers, nil

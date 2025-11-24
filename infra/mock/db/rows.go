@@ -8,13 +8,14 @@ import (
 
 type MockRows struct {
 	mock.Mock
-	Rows   []*MockRow // novo
-	cursor int        // interno
+
+	Rows    []*MockRow
+	cursor  int
+	RowsErr error // usado no modo predefinido
 }
 
 func (m *MockRows) Next() bool {
 	if len(m.Rows) > 0 {
-		// Modo com Rows predefinidos
 		if m.cursor < len(m.Rows) {
 			m.cursor++
 			return true
@@ -22,31 +23,25 @@ func (m *MockRows) Next() bool {
 		return false
 	}
 
-	// Modo tradicional com mock
 	args := m.Called()
 	return args.Bool(0)
 }
 
 func (m *MockRows) Scan(dest ...interface{}) error {
 	if len(m.Rows) > 0 && m.cursor > 0 {
-		// Modo com Rows predefinidos - usa o MockRow atual
 		row := m.Rows[m.cursor-1]
 		return row.Scan(dest...)
 	}
 
-	// Modo tradicional com mock
 	args := m.Called(dest...)
 	return args.Error(0)
 }
 
 func (m *MockRows) Close() {
 	if len(m.Rows) > 0 {
-		// Modo com Rows predefinidos - apenas reseta o cursor
 		m.cursor = 0
 		return
 	}
-
-	// Modo tradicional com mock
 	m.Called()
 }
 
@@ -81,6 +76,10 @@ func (m *MockRows) RawValues() [][]byte {
 }
 
 func (m *MockRows) Err() error {
+	if len(m.Rows) > 0 {
+		return m.RowsErr
+	}
+
 	args := m.Called()
 	if len(args) == 0 {
 		return nil

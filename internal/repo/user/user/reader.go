@@ -10,49 +10,6 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *userRepo) GetAll(ctx context.Context) ([]*models.User, error) {
-	const query = `
-		SELECT 
-			id,
-			username,
-			email,
-			description,
-			status,
-			created_at,
-			updated_at
-		FROM users
-	`
-
-	rows, err := r.db.Query(ctx, query)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-	defer rows.Close()
-
-	var users []*models.User
-	for rows.Next() {
-		var user models.User
-		if err := rows.Scan(
-			&user.UID,
-			&user.Username,
-			&user.Email,
-			&user.Description,
-			&user.Status,
-			&user.CreatedAt,
-			&user.UpdatedAt,
-		); err != nil {
-			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
-		}
-		users = append(users, &user)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrIterate, err)
-	}
-
-	return users, nil
-}
-
 func (r *userRepo) GetByID(ctx context.Context, id int64) (*models.User, error) {
 	const query = `
 		SELECT 
@@ -101,6 +58,49 @@ func (r *userRepo) GetVersionByID(ctx context.Context, id int64) (int64, error) 
 	}
 
 	return version, nil
+}
+
+func (r *userRepo) GetAll(ctx context.Context) ([]*models.User, error) {
+	const query = `
+		SELECT 
+			id,
+			username,
+			email,
+			description,
+			status,
+			created_at,
+			updated_at
+		FROM users
+	`
+
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+	}
+	defer rows.Close()
+
+	var users []*models.User
+	for rows.Next() {
+		var user models.User
+		if err := rows.Scan(
+			&user.UID,
+			&user.Username,
+			&user.Email,
+			&user.Description,
+			&user.Status,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
+		}
+		users = append(users, &user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrIterate, err)
+	}
+
+	return users, nil
 }
 
 func (r *userRepo) GetByEmail(ctx context.Context, email string) (*models.User, error) {
@@ -178,22 +178,4 @@ func (r *userRepo) GetByName(ctx context.Context, name string) ([]*models.User, 
 	}
 
 	return users, nil
-}
-
-func (r *userRepo) UserExists(ctx context.Context, userID int64) (bool, error) {
-	const query = `
-		SELECT EXISTS (
-			SELECT 1
-			FROM users
-			WHERE id = $1
-		)
-	`
-
-	var exists bool
-	err := r.db.QueryRow(ctx, query, userID).Scan(&exists)
-	if err != nil {
-		return false, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-
-	return exists, nil
 }

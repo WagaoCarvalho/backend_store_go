@@ -20,6 +20,7 @@ func TestSaleRepo_GetByID(t *testing.T) {
 		ctx := context.Background()
 		saleID := int64(1)
 
+		// Usar valores diretos para campos obrigatórios
 		clientID := int64(100)
 		userID := int64(200)
 		saleDate := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
@@ -32,8 +33,8 @@ func TestSaleRepo_GetByID(t *testing.T) {
 			Return(&mockDb.MockRowWithIDArgs{
 				Values: []any{
 					saleID,            // id - int64
-					&clientID,         // client_id - *int64
-					&userID,           // user_id - *int64
+					clientID,          // client_id - int64 (valor direto)
+					userID,            // user_id - int64 (valor direto)
 					saleDate,          // sale_date - time.Time
 					totalAmount,       // total_amount - float64
 					float64(10.00),    // total_discount - float64
@@ -51,8 +52,8 @@ func TestSaleRepo_GetByID(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, saleID, result.ID)
-		assert.Equal(t, &clientID, result.ClientID)
-		assert.Equal(t, &userID, result.UserID)
+		assert.Equal(t, &clientID, result.ClientID) // A struct espera *int64
+		assert.Equal(t, &userID, result.UserID)     // A struct espera *int64
 		assert.Equal(t, saleDate, result.SaleDate)
 		assert.Equal(t, totalAmount, result.TotalAmount)
 		assert.Equal(t, float64(10.00), result.TotalDiscount)
