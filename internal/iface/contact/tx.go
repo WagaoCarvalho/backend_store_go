@@ -8,5 +8,5 @@ import (
 )
 
 type ContactTx interface {
-	CreateTx(ctx context.Context, tx pgx.Tx, address *models.Contact) (*models.Contact, error)
+	CreateTx(ctx context.Context, tx pgx.Tx, contact *models.Contact) (*models.Contact, error)
 }

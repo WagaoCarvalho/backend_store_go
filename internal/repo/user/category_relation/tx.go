@@ -33,7 +33,7 @@ func (r *userCategoryRelationTx) CreateTx(ctx context.Context, tx pgx.Tx, relati
 		case errMsgPg.IsDuplicateKey(err):
 			return nil, errMsg.ErrRelationExists
 		case errMsgPg.IsForeignKeyViolation(err):
-			return nil, errMsg.ErrDBInvalidForeignKey
+			return nil, fmt.Errorf("userCategoryRelationTx: %w", errMsg.ErrDBInvalidForeignKey)
 		default:
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 		}

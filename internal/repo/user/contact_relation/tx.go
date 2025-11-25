@@ -33,7 +33,7 @@ func (r *userContactRelationTx) CreateTx(ctx context.Context, tx pgx.Tx, relatio
 		case errMsgPg.IsDuplicateKey(err):
 			return nil, errMsg.ErrRelationExists
 		case errMsgPg.IsForeignKeyViolation(err):
-			return nil, errMsg.ErrDBInvalidForeignKey
+			return nil, fmt.Errorf("userContactRelationTx: %w", errMsg.ErrDBInvalidForeignKey)
 		default:
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 		}
