@@ -45,7 +45,28 @@ func (r *userRepo) Create(ctx context.Context, user *models.User) (*models.User,
 }
 
 func (r *userRepo) Update(ctx context.Context, user *models.User) error {
-	const query = `
+
+	const querySelect = `
+		SELECT version
+		FROM users
+		WHERE id = $1
+	`
+
+	var currentVersion int
+	err := r.db.QueryRow(ctx, querySelect, user.UID).Scan(&currentVersion)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return errMsg.ErrNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w: erro ao consultar usuário: %v", errMsg.ErrUpdate, err)
+	}
+
+	if currentVersion != user.Version {
+		return errMsg.ErrVersionConflict
+	}
+
+	const queryUpdate = `
 		UPDATE users
 		SET 
 			username = $1,
@@ -54,24 +75,20 @@ func (r *userRepo) Update(ctx context.Context, user *models.User) error {
 			status = $4,
 			updated_at = NOW(),
 			version = version + 1
-		WHERE id = $5 AND version = $6
+		WHERE id = $5
 		RETURNING updated_at, version
 	`
 
-	err := r.db.QueryRow(ctx, query,
+	err = r.db.QueryRow(ctx, queryUpdate,
 		user.Username,
 		user.Email,
 		user.Description,
 		user.Status,
 		user.UID,
-		user.Version,
 	).Scan(&user.UpdatedAt, &user.Version)
 
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return errMsg.ErrVersionConflict
-		}
-		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+		return fmt.Errorf("%w: erro ao atualizar usuário: %v", errMsg.ErrUpdate, err)
 	}
 
 	return nil

@@ -48,19 +48,6 @@ func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, err
 	return version, nil
 }
 
-func (s *userService) UserExists(ctx context.Context, userID int64) (bool, error) {
-	if userID <= 0 {
-		return false, errMsg.ErrZeroID
-	}
-
-	exists, err := s.repo.UserExists(ctx, userID)
-	if err != nil {
-		return false, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-
-	return exists, nil
-}
-
 func (s *userService) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	if strings.TrimSpace(email) == "" {
 		return nil, errors.New("email inválido")

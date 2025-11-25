@@ -34,11 +34,11 @@ func TestUserRepo_Create(t *testing.T) {
 		updatedAt := time.Now()
 		mockRow := &mockDb.MockRow{
 			Values: []interface{}{
-				int64(1),                // UID (id)
-				2,                       // version (incrementado)
-				"Test user description", // description
-				createdAt,               // created_at
-				updatedAt,               // updated_at
+				int64(1),
+				2,
+				"Test user description",
+				createdAt,
+				updatedAt,
 			},
 		}
 
@@ -49,9 +49,9 @@ func TestUserRepo_Create(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
-		assert.Equal(t, user, result) // O mesmo objeto é retornado
+		assert.Equal(t, user, result)
 		assert.Equal(t, int64(1), user.UID)
-		assert.Equal(t, 2, user.Version) // Version foi incrementado
+		assert.Equal(t, 2, user.Version)
 		assert.Equal(t, "Test user description", user.Description)
 		assert.Equal(t, createdAt, user.CreatedAt)
 		assert.Equal(t, updatedAt, user.UpdatedAt)
@@ -106,11 +106,11 @@ func TestUserRepo_Create(t *testing.T) {
 		updatedAt := time.Now()
 		mockRow := &mockDb.MockRow{
 			Values: []interface{}{
-				int64(2),                    // UID
-				1,                           // version
-				"Inactive user description", // description
-				createdAt,                   // created_at
-				updatedAt,                   // updated_at
+				int64(2),
+				1,
+				"Inactive user description",
+				createdAt,
+				updatedAt,
 			},
 		}
 
@@ -145,11 +145,11 @@ func TestUserRepo_Create(t *testing.T) {
 		updatedAt := time.Now()
 		mockRow := &mockDb.MockRow{
 			Values: []interface{}{
-				int64(3),  // UID
-				2,         // version
-				"",        // empty description
-				createdAt, // created_at
-				updatedAt, // updated_at
+				int64(3),
+				2,
+				"",
+				createdAt,
+				updatedAt,
 			},
 		}
 
@@ -184,11 +184,11 @@ func TestUserRepo_Create(t *testing.T) {
 		updatedAt := time.Now()
 		mockRow := &mockDb.MockRow{
 			Values: []interface{}{
-				int64(4),            // UID
-				1,                   // version (incrementado de 0 para 1)
-				"Version test user", // description
-				createdAt,           // created_at
-				updatedAt,           // updated_at
+				int64(4),
+				1,
+				"Version test user",
+				createdAt,
+				updatedAt,
 			},
 		}
 
@@ -200,7 +200,7 @@ func TestUserRepo_Create(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, int64(4), user.UID)
-		assert.Equal(t, 1, user.Version) // Version foi incrementado
+		assert.Equal(t, 1, user.Version)
 		mockDB.AssertExpectations(t)
 	})
 }
@@ -220,32 +220,86 @@ func TestUserRepo_Update(t *testing.T) {
 			Version:     1,
 		}
 
+		// Mock da PRIMEIRA chamada (SELECT version)
+		mockRowSelect := &mockDb.MockRow{
+			Values: []interface{}{1}, // currentVersion = 1 (igual ao user.Version)
+		}
+
+		// Mock da SEGUNDA chamada (UPDATE)
 		updatedAt := time.Now()
-		mockRow := &mockDb.MockRow{
+		mockRowUpdate := &mockDb.MockRow{
 			Values: []interface{}{
 				updatedAt, // updated_at
 				2,         // version (incrementado)
 			},
 		}
 
-		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{
+		// Primeira chamada: SELECT version
+		selectQuery := `
+		SELECT version
+		FROM users
+		WHERE id = $1
+	`
+		mockDB.On("QueryRow", ctx, selectQuery, []interface{}{user.UID}).Return(mockRowSelect)
+
+		// Segunda chamada: UPDATE
+		updateQuery := `
+		UPDATE users
+		SET 
+			username = $1,
+			email = $2,
+			description = $3,
+			status = $4,
+			updated_at = NOW(),
+			version = version + 1
+		WHERE id = $5
+		RETURNING updated_at, version
+	`
+		mockDB.On("QueryRow", ctx, updateQuery, []interface{}{
 			user.Username,
 			user.Email,
 			user.Description,
 			user.Status,
 			user.UID,
-			user.Version,
-		}).Return(mockRow)
+		}).Return(mockRowUpdate)
 
 		err := repo.Update(ctx, user)
 
 		assert.NoError(t, err)
 		assert.Equal(t, updatedAt, user.UpdatedAt)
-		assert.Equal(t, 2, user.Version) // Version foi incrementado
+		assert.Equal(t, 2, user.Version)
 		mockDB.AssertExpectations(t)
 	})
 
-	t.Run("return ErrVersionConflict when no rows affected", func(t *testing.T) {
+	t.Run("return error when user not found", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &userRepo{db: mockDB}
+		ctx := context.Background()
+
+		user := &models.User{
+			UID:     999,
+			Version: 1,
+		}
+
+		// Mock da PRIMEIRA chamada (SELECT version) - usuário não existe
+		mockRowSelect := &mockDb.MockRow{
+			Err: pgx.ErrNoRows,
+		}
+
+		selectQuery := `
+		SELECT version
+		FROM users
+		WHERE id = $1
+	`
+		mockDB.On("QueryRow", ctx, selectQuery, []interface{}{user.UID}).Return(mockRowSelect)
+
+		err := repo.Update(ctx, user)
+
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return error when version conflict occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &userRepo{db: mockDB}
 		ctx := context.Background()
@@ -256,19 +310,20 @@ func TestUserRepo_Update(t *testing.T) {
 			Email:       "updated@example.com",
 			Description: "Updated description",
 			Status:      true,
-			Version:     1,
+			Version:     1, // Versão local
 		}
 
-		mockRow := &mockDb.MockRow{Err: pgx.ErrNoRows}
+		// Mock da PRIMEIRA chamada (SELECT version) - versão diferente no banco
+		mockRowSelect := &mockDb.MockRow{
+			Values: []interface{}{2}, // currentVersion = 2 (diferente da local)
+		}
 
-		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{
-			user.Username,
-			user.Email,
-			user.Description,
-			user.Status,
-			user.UID,
-			user.Version,
-		}).Return(mockRow)
+		selectQuery := `
+		SELECT version
+		FROM users
+		WHERE id = $1
+	`
+		mockDB.On("QueryRow", ctx, selectQuery, []interface{}{user.UID}).Return(mockRowSelect)
 
 		err := repo.Update(ctx, user)
 
@@ -276,7 +331,39 @@ func TestUserRepo_Update(t *testing.T) {
 		mockDB.AssertExpectations(t)
 	})
 
-	t.Run("return ErrUpdate when database error occurs", func(t *testing.T) {
+	t.Run("return error when SELECT query fails", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &userRepo{db: mockDB}
+		ctx := context.Background()
+
+		user := &models.User{
+			UID:     1,
+			Version: 1,
+		}
+
+		// Mock da PRIMEIRA chamada (SELECT version) - erro no banco
+		dbError := errors.New("database connection error")
+		mockRowSelect := &mockDb.MockRow{
+			Err: dbError,
+		}
+
+		selectQuery := `
+		SELECT version
+		FROM users
+		WHERE id = $1
+	`
+		mockDB.On("QueryRow", ctx, selectQuery, []interface{}{user.UID}).Return(mockRowSelect)
+
+		err := repo.Update(ctx, user)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrUpdate)
+		assert.Contains(t, err.Error(), "erro ao consultar usuário")
+		assert.Contains(t, err.Error(), dbError.Error())
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return error when UPDATE query fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &userRepo{db: mockDB}
 		ctx := context.Background()
@@ -290,24 +377,50 @@ func TestUserRepo_Update(t *testing.T) {
 			Version:     1,
 		}
 
-		dbError := errors.New("database error")
-		mockRow := &mockDb.MockRow{Err: dbError}
+		// Mock da PRIMEIRA chamada (SELECT version) - sucesso
+		mockRowSelect := &mockDb.MockRow{
+			Values: []interface{}{1},
+		}
 
-		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{
+		// Mock da SEGUNDA chamada (UPDATE) - erro no banco
+		dbError := errors.New("update constraint violation")
+		mockRowUpdate := &mockDb.MockRow{
+			Err: dbError,
+		}
+
+		selectQuery := `
+		SELECT version
+		FROM users
+		WHERE id = $1
+	`
+		mockDB.On("QueryRow", ctx, selectQuery, []interface{}{user.UID}).Return(mockRowSelect)
+
+		updateQuery := `
+		UPDATE users
+		SET 
+			username = $1,
+			email = $2,
+			description = $3,
+			status = $4,
+			updated_at = NOW(),
+			version = version + 1
+		WHERE id = $5
+		RETURNING updated_at, version
+	`
+		mockDB.On("QueryRow", ctx, updateQuery, []interface{}{
 			user.Username,
 			user.Email,
 			user.Description,
 			user.Status,
 			user.UID,
-			user.Version,
-		}).Return(mockRow)
+		}).Return(mockRowUpdate)
 
 		err := repo.Update(ctx, user)
 
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errMsg.ErrUpdate)
+		assert.Contains(t, err.Error(), "erro ao atualizar usuário")
 		assert.Contains(t, err.Error(), dbError.Error())
-		assert.Contains(t, err.Error(), errMsg.ErrUpdate.Error())
 		mockDB.AssertExpectations(t)
 	})
 
@@ -325,29 +438,53 @@ func TestUserRepo_Update(t *testing.T) {
 			Version:     3,
 		}
 
+		// Mock da PRIMEIRA chamada (SELECT version)
+		mockRowSelect := &mockDb.MockRow{
+			Values: []interface{}{3},
+		}
+
+		// Mock da SEGUNDA chamada (UPDATE)
 		updatedAt := time.Now()
-		mockRow := &mockDb.MockRow{
+		mockRowUpdate := &mockDb.MockRow{
 			Values: []interface{}{
-				updatedAt, // updated_at
-				4,         // version (incrementado)
+				updatedAt,
+				4,
 			},
 		}
 
-		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{
+		selectQuery := `
+		SELECT version
+		FROM users
+		WHERE id = $1
+	`
+		mockDB.On("QueryRow", ctx, selectQuery, []interface{}{user.UID}).Return(mockRowSelect)
+
+		updateQuery := `
+		UPDATE users
+		SET 
+			username = $1,
+			email = $2,
+			description = $3,
+			status = $4,
+			updated_at = NOW(),
+			version = version + 1
+		WHERE id = $5
+		RETURNING updated_at, version
+	`
+		mockDB.On("QueryRow", ctx, updateQuery, []interface{}{
 			user.Username,
 			user.Email,
 			user.Description,
 			user.Status,
 			user.UID,
-			user.Version,
-		}).Return(mockRow)
+		}).Return(mockRowUpdate)
 
 		err := repo.Update(ctx, user)
 
 		assert.NoError(t, err)
 		assert.Equal(t, updatedAt, user.UpdatedAt)
 		assert.Equal(t, 4, user.Version)
-		assert.Equal(t, false, user.Status)
+		assert.False(t, user.Status)
 		mockDB.AssertExpectations(t)
 	})
 
@@ -365,60 +502,53 @@ func TestUserRepo_Update(t *testing.T) {
 			Version:     2,
 		}
 
+		// Mock da PRIMEIRA chamada (SELECT version)
+		mockRowSelect := &mockDb.MockRow{
+			Values: []interface{}{2},
+		}
+
+		// Mock da SEGUNDA chamada (UPDATE)
 		updatedAt := time.Now()
-		mockRow := &mockDb.MockRow{
+		mockRowUpdate := &mockDb.MockRow{
 			Values: []interface{}{
-				updatedAt, // updated_at
-				3,         // version (incrementado)
+				updatedAt,
+				3,
 			},
 		}
 
-		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{
+		selectQuery := `
+		SELECT version
+		FROM users
+		WHERE id = $1
+	`
+		mockDB.On("QueryRow", ctx, selectQuery, []interface{}{user.UID}).Return(mockRowSelect)
+
+		updateQuery := `
+		UPDATE users
+		SET 
+			username = $1,
+			email = $2,
+			description = $3,
+			status = $4,
+			updated_at = NOW(),
+			version = version + 1
+		WHERE id = $5
+		RETURNING updated_at, version
+	`
+		mockDB.On("QueryRow", ctx, updateQuery, []interface{}{
 			user.Username,
 			user.Email,
 			user.Description,
 			user.Status,
 			user.UID,
-			user.Version,
-		}).Return(mockRow)
+		}).Return(mockRowUpdate)
 
 		err := repo.Update(ctx, user)
 
 		assert.NoError(t, err)
 		assert.Equal(t, updatedAt, user.UpdatedAt)
 		assert.Equal(t, 3, user.Version)
-		assert.Equal(t, "", user.Description)
-		mockDB.AssertExpectations(t)
-	})
-
-	t.Run("return ErrVersionConflict with outdated version", func(t *testing.T) {
-		mockDB := new(mockDb.MockDatabase)
-		repo := &userRepo{db: mockDB}
-		ctx := context.Background()
-
-		user := &models.User{
-			UID:         1,
-			Username:    "outdateduser",
-			Email:       "outdated@example.com",
-			Description: "Outdated description",
-			Status:      true,
-			Version:     1, // Versão desatualizada no banco
-		}
-
-		mockRow := &mockDb.MockRow{Err: pgx.ErrNoRows}
-
-		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{
-			user.Username,
-			user.Email,
-			user.Description,
-			user.Status,
-			user.UID,
-			user.Version,
-		}).Return(mockRow)
-
-		err := repo.Update(ctx, user)
-
-		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		assert.Empty(t, user.Description)
 		mockDB.AssertExpectations(t)
 	})
 }
@@ -508,7 +638,7 @@ func TestUserRepo_Delete(t *testing.T) {
 		ctx := context.Background()
 		userID := int64(5)
 
-		mockResult := pgconn.NewCommandTag("DELETE 1") // Apenas 1 linha afetada mesmo com múltiplas tentativas
+		mockResult := pgconn.NewCommandTag("DELETE 1")
 		mockDB.On("Exec", ctx, mock.Anything, []interface{}{userID}).Return(mockResult, nil)
 
 		err := repo.Delete(ctx, userID)
