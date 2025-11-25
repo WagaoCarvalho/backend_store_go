@@ -26,6 +26,7 @@ func (r *userCategoryRelationRepo) GetAllRelationsByUserID(ctx context.Context, 
 	defer rows.Close()
 
 	var relations []*models.UserCategoryRelation
+
 	for rows.Next() {
 		var rel models.UserCategoryRelation
 		if err := rows.Scan(&rel.UserID, &rel.CategoryID, &rel.CreatedAt); err != nil {
@@ -36,11 +37,6 @@ func (r *userCategoryRelationRepo) GetAllRelationsByUserID(ctx context.Context, 
 
 	if err := rows.Err(); err != nil {
 		return []*models.UserCategoryRelation{}, fmt.Errorf("%w: %v", errMsg.ErrIterate, err)
-	}
-
-	// Garantir que nunca retorne nil
-	if relations == nil {
-		relations = []*models.UserCategoryRelation{}
 	}
 
 	return relations, nil

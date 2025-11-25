@@ -31,3 +31,16 @@ func ToUserCategoryRelationsDTO(m *models.UserCategoryRelation) UserCategoryRela
 		CreatedAt:  m.CreatedAt.Format(time.RFC3339),
 	}
 }
+
+func ToUserCategoryRelationsDTOs(models []*models.UserCategoryRelation) []UserCategoryRelationsDTO {
+	if models == nil {
+		return []UserCategoryRelationsDTO{}
+	}
+
+	dtos := make([]UserCategoryRelationsDTO, 0, len(models))
+	for _, m := range models {
+		dtos = append(dtos, ToUserCategoryRelationsDTO(m))
+	}
+
+	return dtos
+}

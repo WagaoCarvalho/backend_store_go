@@ -165,26 +165,4 @@ func TestUserCategoryRelationRepo_GetAllRelationsByUserID(t *testing.T) {
 		mockRows.AssertExpectations(t)
 	})
 
-	t.Run("return empty slice when no relations found", func(t *testing.T) {
-		mockDB := new(mockDb.MockDatabase)
-		repo := &userCategoryRelationRepo{db: mockDB}
-		ctx := context.Background()
-		userID := int64(1)
-
-		mockRows := new(mockDb.MockRows)
-		mockRows.On("Next").Return(false).Once()
-		mockRows.On("Err").Return(nil).Once()
-		mockRows.On("Close").Return().Once()
-
-		// CORREÇÃO: Usar mock.Anything para os argumentos varargs
-		mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(mockRows, nil)
-
-		result, err := repo.GetAllRelationsByUserID(ctx, userID)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
-		assert.Len(t, result, 0)
-		mockDB.AssertExpectations(t)
-		mockRows.AssertExpectations(t)
-	})
 }
