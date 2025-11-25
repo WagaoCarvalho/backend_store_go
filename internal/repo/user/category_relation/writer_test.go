@@ -215,7 +215,7 @@ func TestUserCategoryRelationRepo_Delete(t *testing.T) {
 		mockDB.AssertExpectations(t)
 	})
 
-	t.Run("error - relation not found", func(t *testing.T) {
+	t.Run("error - relation ID not found", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &userCategoryRelationRepo{db: mockDB}
 
@@ -224,7 +224,7 @@ func TestUserCategoryRelationRepo_Delete(t *testing.T) {
 		).Return(pgconn.NewCommandTag("DELETE 0"), nil).Once()
 
 		err := repo.Delete(ctx, userID, categoryID)
-		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		assert.ErrorIs(t, err, errMsg.ErrIDNotFound)
 		mockDB.AssertExpectations(t)
 	})
 
@@ -250,7 +250,7 @@ func TestUserCategoryRelationRepo_Delete(t *testing.T) {
 		).Return(pgconn.NewCommandTag("DELETE 0"), nil).Once()
 
 		err := repo.Delete(ctx, 0, categoryID)
-		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		assert.ErrorIs(t, err, errMsg.ErrIDNotFound)
 		mockDB.AssertExpectations(t)
 	})
 

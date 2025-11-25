@@ -42,7 +42,7 @@ func (r *userCategoryRelationRepo) Delete(ctx context.Context, userID, categoryI
 	}
 
 	if result.RowsAffected() == 0 {
-		return errMsg.ErrNotFound
+		return errMsg.ErrIDNotFound
 	}
 
 	return nil
