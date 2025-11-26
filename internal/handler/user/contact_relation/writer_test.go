@@ -318,7 +318,8 @@ func TestUserContactRelationHandler_Create(t *testing.T) {
 }
 
 func TestUserContactRelationHandler_Delete(t *testing.T) {
-	t.Run("success - relação deletada", func(t *testing.T) {
+
+	t.Run("success - relação deletada com sucesso", func(t *testing.T) {
 		mockService, handler := setupUserContact()
 
 		mockService.On("Delete", mock.Anything, int64(1), int64(2)).Return(nil).Once()
@@ -328,20 +329,15 @@ func TestUserContactRelationHandler_Delete(t *testing.T) {
 			"user_id":    "1",
 			"contact_id": "2",
 		})
-		rec := httptest.NewRecorder()
 
+		rec := httptest.NewRecorder()
 		handler.Delete(rec, req)
 
 		resp := rec.Result()
 		defer resp.Body.Close()
 
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		var response utils.DefaultResponse
-		err := json.NewDecoder(resp.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, "Relação deletada com sucesso", response.Message)
-
+		assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+		assert.Equal(t, 0, rec.Body.Len()) // Verifica que não há corpo na resposta
 		mockService.AssertExpectations(t)
 	})
 
@@ -405,7 +401,8 @@ func TestUserContactRelationHandler_Delete(t *testing.T) {
 }
 
 func TestUserContactRelationHandler_DeleteAll(t *testing.T) {
-	t.Run("success - todas relações deletadas", func(t *testing.T) {
+
+	t.Run("success - relações deletadas com sucesso", func(t *testing.T) {
 		mockService, handler := setupUserContact()
 
 		mockService.On("DeleteAll", mock.Anything, int64(1)).Return(nil).Once()
@@ -421,13 +418,8 @@ func TestUserContactRelationHandler_DeleteAll(t *testing.T) {
 		resp := rec.Result()
 		defer resp.Body.Close()
 
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		var response utils.DefaultResponse
-		err := json.NewDecoder(resp.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, "Relações deletadas com sucesso", response.Message)
-
+		assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+		assert.Equal(t, 0, rec.Body.Len())
 		mockService.AssertExpectations(t)
 	})
 

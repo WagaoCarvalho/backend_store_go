@@ -110,11 +110,7 @@ func (h *userContactRelationHandler) Delete(w http.ResponseWriter, r *http.Reque
 		"contact_id": contactID,
 	})
 
-	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    nil,
-		Message: "Relação deletada com sucesso",
-		Status:  http.StatusOK,
-	})
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // --- DELETE ALL ---
@@ -141,9 +137,5 @@ func (h *userContactRelationHandler) DeleteAll(w http.ResponseWriter, r *http.Re
 		"user_id": userID,
 	})
 
-	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    nil,
-		Message: "Relações deletadas com sucesso",
-		Status:  http.StatusOK,
-	})
+	w.WriteHeader(http.StatusNoContent)
 }

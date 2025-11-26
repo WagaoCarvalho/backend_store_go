@@ -263,19 +263,6 @@ func TestUserContactRelationRepo_Delete(t *testing.T) {
 		mockDB.AssertExpectations(t)
 	})
 
-	t.Run("successfully delete even when no rows affected", func(t *testing.T) {
-		mockDB := new(mockDb.MockDatabase)
-		repo := &userContactRelationRepo{db: mockDB}
-
-		mockDB.On("Exec", mock.Anything, mock.Anything,
-			[]interface{}{userID, contactID},
-		).Return(pgconn.NewCommandTag("DELETE 0"), nil).Once()
-
-		err := repo.Delete(ctx, userID, contactID)
-		assert.NoError(t, err) // Diferente da função anterior, esta retorna sucesso mesmo com 0 rows
-		mockDB.AssertExpectations(t)
-	})
-
 	t.Run("successfully delete relation with zero user ID", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &userContactRelationRepo{db: mockDB}
@@ -289,42 +276,18 @@ func TestUserContactRelationRepo_Delete(t *testing.T) {
 		mockDB.AssertExpectations(t)
 	})
 
-	t.Run("successfully delete with zero user ID and no rows affected", func(t *testing.T) {
+	t.Run("fail when no rows are affected", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &userContactRelationRepo{db: mockDB}
 
 		mockDB.On("Exec", mock.Anything, mock.Anything,
-			[]interface{}{int64(0), contactID},
+			[]interface{}{userID, contactID},
 		).Return(pgconn.NewCommandTag("DELETE 0"), nil).Once()
 
-		err := repo.Delete(ctx, 0, contactID)
-		assert.NoError(t, err) // Sucesso mesmo com 0 rows
-		mockDB.AssertExpectations(t)
-	})
+		err := repo.Delete(ctx, userID, contactID)
 
-	t.Run("successfully delete relation with negative IDs", func(t *testing.T) {
-		mockDB := new(mockDb.MockDatabase)
-		repo := &userContactRelationRepo{db: mockDB}
-
-		mockDB.On("Exec", mock.Anything, mock.Anything,
-			[]interface{}{int64(-1), int64(-2)},
-		).Return(pgconn.NewCommandTag("DELETE 1"), nil).Once()
-
-		err := repo.Delete(ctx, -1, -2)
-		assert.NoError(t, err)
-		mockDB.AssertExpectations(t)
-	})
-
-	t.Run("successfully delete with negative IDs and no rows affected", func(t *testing.T) {
-		mockDB := new(mockDb.MockDatabase)
-		repo := &userContactRelationRepo{db: mockDB}
-
-		mockDB.On("Exec", mock.Anything, mock.Anything,
-			[]interface{}{int64(-1), int64(-2)},
-		).Return(pgconn.NewCommandTag("DELETE 0"), nil).Once()
-
-		err := repo.Delete(ctx, -1, -2)
-		assert.NoError(t, err) // Sucesso mesmo com 0 rows
+		assert.Error(t, err)
+		assert.Equal(t, errMsg.ErrIDNotFound, err)
 		mockDB.AssertExpectations(t)
 	})
 

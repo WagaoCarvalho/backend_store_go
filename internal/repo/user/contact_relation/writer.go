@@ -36,9 +36,13 @@ func (r *userContactRelationRepo) Delete(ctx context.Context, userID, contactID 
 		WHERE user_id = $1 AND contact_id = $2;
 	`
 
-	_, err := r.db.Exec(ctx, query, userID, contactID)
+	result, err := r.db.Exec(ctx, query, userID, contactID)
 	if err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return errMsg.ErrIDNotFound
 	}
 
 	return nil
