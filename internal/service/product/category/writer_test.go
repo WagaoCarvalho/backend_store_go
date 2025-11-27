@@ -69,81 +69,75 @@ func TestProductCategoryService_Update(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()
-		updatedCategory := &models.ProductCategory{ID: 1, Name: "UpdatedCategory", Description: "UpdatedDesc"}
+		category := &models.ProductCategory{
+			ID:          1,
+			Name:        "UpdatedCategory",
+			Description: "UpdatedDesc",
+		}
 
-		mockRepo.On("GetByID", ctx, int64(1)).Return(updatedCategory, nil).Once()
-		mockRepo.On("Update", ctx, updatedCategory).Return(nil).Once()
+		mockRepo.On("Update", ctx, category).Return(nil).Once()
 
-		err := service.Update(ctx, updatedCategory)
+		err := service.Update(ctx, category)
 
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("ErrorWhileFetchingBeforeUpdate", func(t *testing.T) {
+	t.Run("RepositoryError", func(t *testing.T) {
 		ctx := context.Background()
 		category := &models.ProductCategory{
-			ID:          7,
-			Name:        "ErroDB",
-			Description: "Erro simulado no GetByID",
+			ID:          2,
+			Name:        "Fail",
+			Description: "Desc",
 		}
 
-		dbErr := errors.New("erro no banco")
+		dbErr := errors.New("falha ao atualizar")
 
-		mockRepo.On("GetByID", ctx, int64(7)).Return(nil, dbErr).Once()
+		mockRepo.On("Update", ctx, category).Return(dbErr).Once()
 
 		err := service.Update(ctx, category)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, errMsg.ErrGet)
-		assert.ErrorContains(t, err, "erro no banco")
+		assert.ErrorIs(t, err, errMsg.ErrUpdate)
+		assert.Contains(t, err.Error(), "falha ao atualizar")
 		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("RepositoryError", func(t *testing.T) {
-		ctx := context.Background()
-		updatedCategory := &models.ProductCategory{ID: 2, Name: "FailCategory", Description: "FailDesc"}
-		repoErr := errors.New("erro ao atualizar categoria")
-
-		mockRepo.On("GetByID", ctx, int64(2)).Return(updatedCategory, nil).Once()
-		mockRepo.On("Update", ctx, updatedCategory).Return(repoErr).Once()
-
-		err := service.Update(ctx, updatedCategory)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "erro ao atualizar categoria")
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("ValidationError", func(t *testing.T) {
-		ctx := context.Background()
-		invalidCategory := &models.ProductCategory{
-			ID:          9,
-			Name:        "", // Deve causar falha de validação
-			Description: "Sem nome",
-		}
-
-		err := service.Update(ctx, invalidCategory)
-
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "campo obrigatório")
 	})
 
 	t.Run("CategoryNotFound", func(t *testing.T) {
 		ctx := context.Background()
-		missingCategory := &models.ProductCategory{ID: 4, Name: "NotFound", Description: "NoDesc"}
+		category := &models.ProductCategory{
+			ID:          3,
+			Name:        "Missing",
+			Description: "Missing Desc",
+		}
 
-		mockRepo.On("GetByID", ctx, int64(4)).Return(nil, errMsg.ErrNotFound).Once()
+		mockRepo.On("Update", ctx, category).Return(errMsg.ErrNotFound).Once()
 
-		err := service.Update(ctx, missingCategory)
+		err := service.Update(ctx, category)
 
 		assert.ErrorIs(t, err, errMsg.ErrNotFound)
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("ValidationError", func(t *testing.T) {
+		ctx := context.Background()
+		category := &models.ProductCategory{
+			ID:          4,
+			Name:        "",
+			Description: "Sem nome",
+		}
+
+		err := service.Update(ctx, category)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "campo obrigatório")
+	})
+
 	t.Run("InvalidCategoryID", func(t *testing.T) {
 		category := &models.ProductCategory{ID: 0}
+
 		err := service.Update(context.Background(), category)
+
 		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 	})
 }

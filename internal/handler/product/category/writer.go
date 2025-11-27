@@ -52,64 +52,47 @@ func (h *productCategoryHandler) Update(w http.ResponseWriter, r *http.Request) 
 	const ref = "[ProductCategoryHandler - Update] "
 	ctx := r.Context()
 
-	h.logger.Info(ctx, ref+logger.LogUpdateInit, map[string]any{})
+	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
-			"erro": err.Error(),
-		})
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
 		return
 	}
 
 	var requestDTO dto.ProductCategoryDTO
-
 	if err := utils.FromJSON(r.Body, &requestDTO); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
-			"erro": err.Error(),
-		})
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	modelCategory := dto.ToProductCategoryModel(requestDTO)
-	modelCategory.ID = uint(id)
+	category := dto.ToProductCategoryModel(requestDTO)
+	category.ID = uint(id)
 
-	err = h.service.Update(ctx, modelCategory)
+	err = h.service.Update(ctx, category)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrNotFound) {
-			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-				"id": id,
-			})
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"id": id})
 			utils.ErrorResponse(w, fmt.Errorf("categoria não encontrada"), http.StatusNotFound)
-			return
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{"id": id})
+			utils.ErrorResponse(w, fmt.Errorf("erro ao atualizar categoria: %v", err), http.StatusInternalServerError)
 		}
-
-		h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-			"id": id,
-		})
-		utils.ErrorResponse(w, fmt.Errorf("erro ao atualizar categoria: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	updatedCategory, err := h.service.GetByID(ctx, int64(id))
 	if err != nil {
-		h.logger.Error(ctx, err, ref+"erro ao buscar categoria atualizada", map[string]any{
-			"id": id,
-		})
+		h.logger.Error(ctx, err, ref+"erro ao buscar categoria atualizada", map[string]any{"id": id})
 		utils.ErrorResponse(w, fmt.Errorf("erro ao buscar categoria atualizada"), http.StatusInternalServerError)
 		return
 	}
 
-	updatedDTO := dto.ToProductCategoryDTO(updatedCategory)
-
-	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
-		"id": id,
-	})
-
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Data:    updatedDTO,
+		Data:    dto.ToProductCategoryDTO(updatedCategory),
 		Message: "Categoria atualizada com sucesso",
 		Status:  http.StatusOK,
 	})

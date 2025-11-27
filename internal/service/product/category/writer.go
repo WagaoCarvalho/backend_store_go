@@ -31,14 +31,10 @@ func (s *productCategoryService) Update(ctx context.Context, category *models.Pr
 		return err
 	}
 
-	if _, err := s.repo.GetByID(ctx, int64(category.ID)); err != nil {
+	if err := s.repo.Update(ctx, category); err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
 			return errMsg.ErrNotFound
 		}
-		return fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-
-	if err := s.repo.Update(ctx, category); err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
