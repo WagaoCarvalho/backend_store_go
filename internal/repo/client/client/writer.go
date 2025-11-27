@@ -2,7 +2,6 @@ package repo
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
@@ -47,7 +46,28 @@ func (r *clientRepo) Create(ctx context.Context, client *models.Client) (*models
 }
 
 func (r *clientRepo) Update(ctx context.Context, client *models.Client) error {
-	const query = `
+
+	const querySelect = `
+		SELECT version
+		FROM clients
+		WHERE id = $1
+	`
+
+	var currentVersion int
+	err := r.db.QueryRow(ctx, querySelect, client.ID).Scan(&currentVersion)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return errMsg.ErrNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w: erro ao consultar cliente: %v", errMsg.ErrUpdate, err)
+	}
+
+	if currentVersion != client.Version {
+		return errMsg.ErrVersionConflict
+	}
+
+	const queryUpdate = `
 		UPDATE clients
 		SET 
 			name = $1,
@@ -58,11 +78,11 @@ func (r *clientRepo) Update(ctx context.Context, client *models.Client) error {
 			description = $6,
 			version = version + 1,
 			updated_at = NOW()
-		WHERE id = $7 AND version = $8
-		RETURNING version
+		WHERE id = $7
+		RETURNING updated_at, version
 	`
 
-	err := r.db.QueryRow(ctx, query,
+	err = r.db.QueryRow(ctx, queryUpdate,
 		client.Name,
 		client.Email,
 		client.CPF,
@@ -70,30 +90,22 @@ func (r *clientRepo) Update(ctx context.Context, client *models.Client) error {
 		client.Status,
 		client.Description,
 		client.ID,
-		client.Version,
-	).Scan(&client.Version)
+	).Scan(&client.UpdatedAt, &client.Version)
 
 	if err != nil {
 		var pgErr *pgconn.PgError
 
-		switch {
-		case errors.Is(err, pgx.ErrNoRows), errors.Is(err, sql.ErrNoRows):
-			// Conflito de versão
-			return errMsg.ErrVersionConflict
-
-		case errors.As(err, &pgErr):
+		// Erros de banco que fazem sentido manter
+		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
 			case "23505":
 				return errMsg.ErrDuplicate
 			case "23514":
 				return errMsg.ErrInvalidData
-			default:
-				return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 			}
-
-		default:
-			return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 		}
+
+		return fmt.Errorf("%w: erro ao atualizar cliente: %v", errMsg.ErrUpdate, err)
 	}
 
 	return nil
@@ -101,9 +113,14 @@ func (r *clientRepo) Update(ctx context.Context, client *models.Client) error {
 
 func (r *clientRepo) Delete(ctx context.Context, id int64) error {
 	const query = `DELETE FROM clients WHERE id = $1`
-	_, err := r.db.Exec(ctx, query, id)
+	result, err := r.db.Exec(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
+
+	if result.RowsAffected() == 0 {
+		return errMsg.ErrNotFound
+	}
+
 	return nil
 }

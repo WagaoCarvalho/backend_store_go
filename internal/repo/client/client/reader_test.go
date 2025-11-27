@@ -49,7 +49,7 @@ func TestClient_GetByID(t *testing.T) {
 		result, err := repo.GetByID(ctx, clientID)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrGet)
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
 		mockDB.AssertExpectations(t)
 	})
 
@@ -187,8 +187,25 @@ func TestClient_GetVersionByID(t *testing.T) {
 		version, err := repo.GetVersionByID(ctx, 1)
 
 		assert.Zero(t, version)
-		assert.ErrorIs(t, err, errMsg.ErrGet)
+		assert.ErrorIs(t, err, errMsg.ErrGetVersion)
 		assert.ErrorContains(t, err, dbErr.Error())
 		mockDB.AssertExpectations(t)
 	})
+
+	t.Run("return ErrNotFound when no rows are found", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &clientRepo{db: mockDB}
+		ctx := context.Background()
+
+		// Mock para simular QueryRow.Scan retornando pgx.ErrNoRows
+		mockRow := &mockDb.MockRow{Err: pgx.ErrNoRows}
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{int64(1)}).Return(mockRow)
+
+		version, err := repo.GetVersionByID(ctx, 1)
+
+		assert.Zero(t, version)
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		mockDB.AssertExpectations(t)
+	})
+
 }
