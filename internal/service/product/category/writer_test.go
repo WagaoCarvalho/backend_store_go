@@ -61,6 +61,29 @@ func TestProductCategoryService_Create(t *testing.T) {
 
 		mockRepo.AssertExpectations(t)
 	})
+
+	t.Run("ErrAlreadyExists", func(t *testing.T) {
+		mockRepo := new(mockProductCat.MockProductCategory)
+		service := NewProductCategoryService(mockRepo)
+
+		inputCategory := &models.ProductCategory{
+			Name:        "Duplicated",
+			Description: "Desc",
+		}
+
+		mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(cat *models.ProductCategory) bool {
+			return cat.Name == inputCategory.Name &&
+				cat.Description == inputCategory.Description
+		})).Return(nil, errMsg.ErrAlreadyExists)
+
+		category, err := service.Create(context.Background(), inputCategory)
+
+		assert.Nil(t, category)
+		assert.ErrorIs(t, err, errMsg.ErrAlreadyExists)
+
+		mockRepo.AssertExpectations(t)
+	})
+
 }
 
 func TestProductCategoryService_Update(t *testing.T) {

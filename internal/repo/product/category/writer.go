@@ -8,6 +8,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/category"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func (r *productCategoryRepo) Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error) {
@@ -20,6 +21,10 @@ func (r *productCategoryRepo) Create(ctx context.Context, category *models.Produ
 	err := r.db.QueryRow(ctx, query, category.Name, category.Description).
 		Scan(&category.ID, &category.CreatedAt, &category.UpdatedAt)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, errMsg.ErrAlreadyExists
+		}
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 

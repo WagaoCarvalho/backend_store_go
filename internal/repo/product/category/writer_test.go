@@ -58,6 +58,32 @@ func TestProductCategoryRepo_Create(t *testing.T) {
 		assert.Contains(t, err.Error(), dbError.Error())
 		mockDB.AssertExpectations(t)
 	})
+
+	t.Run("return ErrAlreadyExists on duplicate key", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &productCategoryRepo{db: mockDB}
+		ctx := context.Background()
+
+		category := &models.ProductCategory{
+			Name:        "Duplicated",
+			Description: "Already exists",
+		}
+
+		pgErr := &pgconn.PgError{Code: "23505"}
+
+		mockRow := &mockDb.MockRow{Err: pgErr}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{category.Name, category.Description}).
+			Return(mockRow)
+
+		result, err := repo.Create(ctx, category)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrAlreadyExists)
+
+		mockDB.AssertExpectations(t)
+	})
+
 }
 
 func TestProductCategoryRepo_Update(t *testing.T) {

@@ -30,14 +30,16 @@ func (h *productCategoryHandler) Create(w http.ResponseWriter, r *http.Request) 
 
 	createdCategory, err := h.service.Create(ctx, categoryModel)
 	if err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{})
+		if errors.Is(err, errMsg.ErrAlreadyExists) {
+			h.logger.Warn(ctx, ref+"categoria já existe", nil)
+			utils.ErrorResponse(w, fmt.Errorf("categoria já existe"), http.StatusConflict)
+			return
+		}
+
+		h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
-
-	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
-		"category_id": createdCategory.ID,
-	})
 
 	createdDTO := dto.ToProductCategoryDTO(createdCategory)
 

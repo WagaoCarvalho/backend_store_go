@@ -11,11 +11,14 @@ import (
 
 func (s *productCategoryService) Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error) {
 	if err := category.Validate(); err != nil {
-		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
+		return nil, errMsg.ErrInvalidData
 	}
 
 	createdCategory, err := s.repo.Create(ctx, category)
 	if err != nil {
+		if errors.Is(err, errMsg.ErrAlreadyExists) {
+			return nil, errMsg.ErrAlreadyExists
+		}
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 

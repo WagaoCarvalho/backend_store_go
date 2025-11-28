@@ -33,8 +33,8 @@ func (h *productCategoryRelationHandler) GetAllRelationsByProductID(w http.Respo
 		return
 	}
 
-	// 🔹 Conversão para DTO
-	var relationsDTO []dto.ProductCategoryRelationsDTO
+	// slice nunca será nil
+	relationsDTO := make([]dto.ProductCategoryRelationsDTO, 0, len(relations))
 	for _, rel := range relations {
 		relationsDTO = append(relationsDTO, dto.ToProductCategoryRelationsDTO(rel))
 	}

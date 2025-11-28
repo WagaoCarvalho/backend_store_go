@@ -132,6 +132,48 @@ func TestProductCategoryHandler_Create(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
+	t.Run("Erro - Categoria já existe", func(t *testing.T) {
+		t.Parallel()
+
+		base := logrus.New()
+		base.Out = &bytes.Buffer{}
+		logAdapter := logger.NewLoggerAdapter(base)
+
+		mockSvc := new(mockService.MockProductCategory)
+		h := NewProductCategoryHandler(mockSvc, logAdapter)
+
+		input := dto.ProductCategoryDTO{Name: "Categoria X"}
+
+		body, _ := json.Marshal(input)
+		req := httptest.NewRequest(http.MethodPost, "/categories", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		// Simula retorno de conflito
+		mockSvc.
+			On("Create", mock.Anything, mock.MatchedBy(func(m *models.ProductCategory) bool {
+				return m.Name == input.Name
+			})).
+			Return(nil, errMsg.ErrAlreadyExists).
+			Once()
+
+		h.Create(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusConflict, resp.StatusCode)
+
+		var response utils.DefaultResponse
+		err := json.NewDecoder(resp.Body).Decode(&response)
+		assert.NoError(t, err)
+
+		assert.Equal(t, http.StatusConflict, response.Status)
+		assert.Equal(t, "categoria já existe", response.Message)
+
+		mockSvc.AssertExpectations(t)
+	})
+
 }
 
 func TestProductCategoryHandler_Update(t *testing.T) {

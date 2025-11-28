@@ -32,8 +32,10 @@ var (
 	ErrEnable          = errors.New("erro ao ativar")
 
 	ErrRelationExists = errors.New("relação já existe")
-	ErrNilRelation    = errors.New("relação nula")
-	ErrRelationCheck  = errors.New("erro ao verificar relação")
+	ErrAlreadyExists  = errors.New("registro já existe")
+
+	ErrNilRelation   = errors.New("relação nula")
+	ErrRelationCheck = errors.New("erro ao verificar relação")
 
 	ErrInvalidData = errors.New("erro na validação dos dados")
 )
