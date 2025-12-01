@@ -141,6 +141,74 @@ func TestProductService_Update(t *testing.T) {
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
+	t.Run("falha: not found", func(t *testing.T) {
+		mockRepo := new(mockProduct.ProductMock)
+		service := NewProductService(mockRepo)
+
+		input := validProduct()
+
+		mockRepo.
+			On("Update", ctx, input).
+			Return(errMsg.ErrNotFound).
+			Once()
+
+		err := service.Update(ctx, input)
+
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha: version conflict", func(t *testing.T) {
+		mockRepo := new(mockProduct.ProductMock)
+		service := NewProductService(mockRepo)
+
+		input := validProduct()
+
+		mockRepo.
+			On("Update", ctx, input).
+			Return(errMsg.ErrVersionConflict).
+			Once()
+
+		err := service.Update(ctx, input)
+
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha: foreign key violation retorna ErrInvalidData", func(t *testing.T) {
+		mockRepo := new(mockProduct.ProductMock)
+		service := NewProductService(mockRepo)
+
+		input := validProduct()
+
+		mockRepo.
+			On("Update", ctx, input).
+			Return(errMsg.ErrDBInvalidForeignKey).
+			Once()
+
+		err := service.Update(ctx, input)
+
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha: conflito (unique violation)", func(t *testing.T) {
+		mockRepo := new(mockProduct.ProductMock)
+		service := NewProductService(mockRepo)
+
+		input := validProduct()
+
+		mockRepo.
+			On("Update", ctx, input).
+			Return(errMsg.ErrConflict).
+			Once()
+
+		err := service.Update(ctx, input)
+
+		assert.ErrorIs(t, err, errMsg.ErrConflict)
+		mockRepo.AssertExpectations(t)
+	})
+
 	t.Run("falha: versão inválida", func(t *testing.T) {
 		mockRepo := new(mockProduct.ProductMock)
 		service := NewProductService(mockRepo)
@@ -152,55 +220,6 @@ func TestProductService_Update(t *testing.T) {
 
 		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		mockRepo.AssertNotCalled(t, "Update")
-	})
-
-	t.Run("falha: produto não encontrado (ProductExists = false)", func(t *testing.T) {
-		mockRepo := new(mockProduct.ProductMock)
-		service := NewProductService(mockRepo)
-
-		input := validProduct()
-
-		// Simula o update retornando ErrNotFound
-		mockRepo.On("Update", ctx, input).Return(errMsg.ErrNotFound).Once()
-		// Simula o ProductExists retornando false
-		mockRepo.On("ProductExists", ctx, input.ID).Return(false, nil).Once()
-
-		err := service.Update(ctx, input)
-
-		assert.ErrorIs(t, err, errMsg.ErrNotFound)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("falha: conflito de versão (ProductExists = true)", func(t *testing.T) {
-		mockRepo := new(mockProduct.ProductMock)
-		service := NewProductService(mockRepo)
-
-		input := validProduct()
-
-		mockRepo.On("Update", ctx, input).Return(errMsg.ErrNotFound).Once()
-		mockRepo.On("ProductExists", ctx, input.ID).Return(true, nil).Once()
-
-		err := service.Update(ctx, input)
-
-		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("falha: erro ao verificar existência", func(t *testing.T) {
-		mockRepo := new(mockProduct.ProductMock)
-		service := NewProductService(mockRepo)
-
-		input := validProduct()
-		expectedErr := errors.New("erro no banco")
-
-		mockRepo.On("Update", ctx, input).Return(errMsg.ErrNotFound).Once()
-		mockRepo.On("ProductExists", ctx, input.ID).Return(false, expectedErr).Once()
-
-		err := service.Update(ctx, input)
-
-		assert.ErrorContains(t, err, errMsg.ErrGet.Error())
-		assert.ErrorContains(t, err, expectedErr.Error())
-		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("falha: erro genérico no Update", func(t *testing.T) {

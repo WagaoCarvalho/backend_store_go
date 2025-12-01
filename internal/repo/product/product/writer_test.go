@@ -80,6 +80,41 @@ func TestProductRepo_Create(t *testing.T) {
 		mockDB.AssertExpectations(t)
 	})
 
+	t.Run("return ErrDuplicate on unique violation", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &productRepo{db: mockDB}
+		ctx := context.Background()
+
+		product := &models.Product{
+			SupplierID:         utils.Int64Ptr(1),
+			ProductName:        "Test Product",
+			Manufacturer:       "Test Manufacturer",
+			Description:        "Test Description",
+			CostPrice:          10.50,
+			SalePrice:          15.99,
+			StockQuantity:      100,
+			Barcode:            utils.StrToPtr("1234567890123"), // Barcode duplicado
+			Status:             true,
+			AllowDiscount:      true,
+			MaxDiscountPercent: 10.0,
+		}
+
+		// Mock do erro de violação única (ex: barcode duplicado)
+		uniqueErr := errMsgPg.NewUniqueViolation("products_barcode_key")
+		mockRow := &mockDb.MockRow{
+			Err: uniqueErr,
+		}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+			Return(mockRow)
+
+		result, err := repo.Create(ctx, product)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrDuplicate)
+		mockDB.AssertExpectations(t)
+	})
+
 	t.Run("return ErrCreate when query fails with generic database error", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &productRepo{db: mockDB}

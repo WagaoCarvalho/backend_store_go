@@ -12,12 +12,12 @@ func IsForeignKeyViolation(err error) bool {
 	return errors.As(err, &pgErr) && pgErr.Code == "23503"
 }
 
-func IsUniqueViolation(err error) bool {
+func IsUniqueViolation(err error) (bool, string) {
 	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
-		return pgErr.Code == "23505"
+	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		return true, pgErr.ConstraintName
 	}
-	return false
+	return false, ""
 }
 
 func IsCheckViolation(err error) bool {
@@ -26,7 +26,7 @@ func IsCheckViolation(err error) bool {
 }
 
 func IsDuplicateKey(err error) bool {
-	if IsUniqueViolation(err) {
+	if ok, _ := IsUniqueViolation(err); ok {
 		return true
 	}
 	return err != nil && strings.Contains(err.Error(), "duplicate key")

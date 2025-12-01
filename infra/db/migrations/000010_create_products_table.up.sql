@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
     supplier_id INTEGER REFERENCES suppliers(id) ON DELETE SET NULL,
-    product_name VARCHAR(255) NOT NULL,
+    product_name VARCHAR(255) NOT NULL UNIQUE,
     manufacturer VARCHAR(255) NOT NULL,
     product_description TEXT,
     cost_price DECIMAL(10, 2) NOT NULL CHECK (cost_price >= 0),

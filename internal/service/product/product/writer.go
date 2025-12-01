@@ -27,10 +27,10 @@ func (s *productService) Create(ctx context.Context, product *models.Product) (*
 }
 
 func (s *productService) Update(ctx context.Context, product *models.Product) error {
-
 	if product.ID <= 0 {
 		return errMsg.ErrZeroID
 	}
+
 	if err := product.Validate(); err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
@@ -41,18 +41,18 @@ func (s *productService) Update(ctx context.Context, product *models.Product) er
 
 	err := s.repo.Update(ctx, product)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrNotFound) {
-			exists, errCheck := s.repo.ProductExists(ctx, product.ID)
-			if errCheck != nil {
-				return fmt.Errorf("%w: %v", errMsg.ErrGet, errCheck)
-			}
-
-			if !exists {
-				return errMsg.ErrNotFound
-			}
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			return errMsg.ErrNotFound
+		case errors.Is(err, errMsg.ErrVersionConflict):
 			return errMsg.ErrVersionConflict
+		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
+			return errMsg.ErrInvalidData
+		case errors.Is(err, errMsg.ErrConflict):
+			return errMsg.ErrConflict
+		default:
+			return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 		}
-		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	return nil

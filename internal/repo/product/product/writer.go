@@ -43,6 +43,11 @@ func (r *productRepo) Create(ctx context.Context, product *models.Product) (*mod
 		if errMsgPg.IsForeignKeyViolation(err) {
 			return nil, errMsg.ErrDBInvalidForeignKey
 		}
+
+		if ok, constraint := errMsgPg.IsUniqueViolation(err); ok {
+			return nil, fmt.Errorf("%w: %s", errMsg.ErrDuplicate, constraint)
+		}
+
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 
@@ -93,18 +98,28 @@ func (r *productRepo) Update(ctx context.Context, product *models.Product) error
 	).Scan(&product.UpdatedAt, &product.Version)
 
 	if err != nil {
-		switch {
-		case errors.Is(err, pgx.ErrNoRows):
-			return errMsg.ErrNotFound
-		case errMsgPg.IsForeignKeyViolation(err):
-			return errMsg.ErrDBInvalidForeignKey
-		case errMsgPg.IsUniqueViolation(err):
+		// Unique
+		if ok, _ := errMsgPg.IsUniqueViolation(err); ok {
 			return errMsg.ErrConflict
-		case errMsgPg.IsCheckViolation(err):
-			return errMsg.ErrInvalidData
-		default:
-			return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 		}
+
+		// Foreign key
+		if errMsgPg.IsForeignKeyViolation(err) {
+			return errMsg.ErrDBInvalidForeignKey
+		}
+
+		// Check constraint
+		if errMsgPg.IsCheckViolation(err) {
+			return errMsg.ErrInvalidData
+		}
+
+		// Not found
+		if errors.Is(err, pgx.ErrNoRows) {
+			return errMsg.ErrNotFound
+		}
+
+		// Default
+		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
 	return nil

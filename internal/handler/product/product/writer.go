@@ -13,12 +13,13 @@ import (
 
 func (h *productHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const ref = "[ProductHandler - Create] "
+	ctx := r.Context()
 
-	h.logger.Info(r.Context(), ref+logger.LogCreateInit, nil)
+	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
 	var productDTO dto.ProductDTO
 	if err := utils.FromJSON(r.Body, &productDTO); err != nil {
-		h.logger.Warn(r.Context(), ref+logger.LogParseJSONError, map[string]any{
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
 		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
@@ -27,31 +28,32 @@ func (h *productHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	product := dto.ToProductModel(productDTO)
 
-	createdProduct, err := h.service.Create(r.Context(), product)
+	createdProduct, err := h.service.Create(ctx, product)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrDBInvalidForeignKey) {
-			h.logger.Warn(r.Context(), ref+logger.LogForeignKeyViolation, map[string]any{
-				"erro": err.Error(),
-			})
+
+		switch {
+		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+
+		case errors.Is(err, errMsg.ErrDuplicate):
+			utils.ErrorResponse(w, err, http.StatusConflict)
 			return
 		}
 
-		h.logger.Error(r.Context(), err, ref+logger.LogCreateError, nil)
+		h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	createdProductDTO := dto.ToProductDTO(createdProduct)
-
-	h.logger.Info(r.Context(), ref+logger.LogCreateSuccess, map[string]any{
+	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
 		"product_id": createdProduct.ID,
 	})
 
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Produto criado com sucesso",
-		Data:    createdProductDTO,
+		Data:    dto.ToProductDTO(createdProduct),
 	})
 }
 
@@ -95,7 +97,8 @@ func (h *productHandler) Update(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorResponse(w, err, http.StatusNotFound)
 			return
 
-		case errors.Is(err, errMsg.ErrVersionConflict):
+		case errors.Is(err, errMsg.ErrVersionConflict),
+			errors.Is(err, errMsg.ErrConflict):
 			utils.ErrorResponse(w, err, http.StatusConflict)
 			return
 

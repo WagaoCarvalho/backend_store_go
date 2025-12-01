@@ -80,6 +80,50 @@ func TestProductHandler_Create(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
+	t.Run("Erro - Produto duplicado (Conflict)", func(t *testing.T) {
+		t.Parallel()
+		mockService := new(mockProduct.ProductMock)
+		handler := NewProductHandler(mockService, logAdapter)
+
+		input := dto.ProductDTO{
+			ProductName:   "ProdutoX",
+			Manufacturer:  "Marca",
+			CostPrice:     10,
+			SalePrice:     20,
+			StockQuantity: 5,
+		}
+
+		mockService.
+			On("Create", mock.Anything, mock.Anything).
+			Return(nil, errMsg.ErrDuplicate).
+			Once()
+
+		body, _ := json.Marshal(input)
+		req := httptest.NewRequest(http.MethodPost, "/products", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		handler.Create(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusConflict, resp.StatusCode)
+
+		var response struct {
+			Status  int    `json:"status"`
+			Message string `json:"message"`
+			Data    any    `json:"data"`
+		}
+
+		err := json.NewDecoder(resp.Body).Decode(&response)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusConflict, response.Status)
+		assert.Contains(t, response.Message, errMsg.ErrDuplicate.Error())
+
+		mockService.AssertExpectations(t)
+	})
+
 	t.Run("JSON inválido deve retornar 400", func(t *testing.T) {
 		t.Parallel()
 		mockService := new(mockProduct.ProductMock)
