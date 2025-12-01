@@ -7,6 +7,7 @@ import (
 	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
+	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 
 	"github.com/jackc/pgx/v5"
@@ -38,17 +39,14 @@ func (r *contactRepo) Create(ctx context.Context, contact *models.Contact) (*mod
 	).Scan(&contact.ID, &contact.CreatedAt, &contact.UpdatedAt)
 
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			switch pgErr.Code {
-			case "23505":
-				return nil, errMsg.ErrDuplicate
-			case "23514":
-				return nil, errMsg.ErrInvalidData
-			default:
-				return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
-			}
+		if errMsgPg.IsForeignKeyViolation(err) {
+			return nil, errMsg.ErrDBInvalidForeignKey
 		}
+
+		if ok, constraint := errMsgPg.IsUniqueViolation(err); ok {
+			return nil, fmt.Errorf("%w: %s", errMsg.ErrDuplicate, constraint)
+		}
+
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 

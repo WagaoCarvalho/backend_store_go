@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	dtoContact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
@@ -21,48 +22,46 @@ func (h *contactHandler) Create(w http.ResponseWriter, r *http.Request) {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
 		return
 	}
 
-	contactModel := dtoContact.ToContactModel(contactDTO)
+	contact := dtoContact.ToContactModel(contactDTO)
 
-	createdContact, err := h.service.Create(ctx, contactModel)
+	created, err := h.service.Create(ctx, contact)
 	if err != nil {
+
 		switch {
 		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
-			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{"erro": err.Error()})
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
+
 		case errors.Is(err, errMsg.ErrInvalidData):
-			h.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{"erro": err.Error()})
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
+
 		case errors.Is(err, errMsg.ErrDuplicate):
-			h.logger.Warn(ctx, ref+logger.LogErrDuplicate, map[string]any{"erro": err.Error()})
 			utils.ErrorResponse(w, err, http.StatusConflict)
 			return
+
 		case errors.Is(err, errMsg.ErrNotFound):
-			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"erro": err.Error()})
 			utils.ErrorResponse(w, err, http.StatusNotFound)
 			return
-		default:
-			h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
-			utils.ErrorResponse(w, err, http.StatusInternalServerError)
-			return
 		}
+
+		h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
 	}
 
-	createdDTO := dtoContact.ToContactDTO(createdContact)
-
 	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
-		"contact_id": createdDTO.ID,
+		"contact_id": created.ID,
 	})
 
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Contato criado com sucesso",
-		Data:    createdDTO,
+		Data:    dtoContact.ToContactDTO(created),
 	})
 }
 

@@ -39,6 +39,18 @@ func TestContactService_Create(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("falha quando contact é nil", func(t *testing.T) {
+		mockRepo := new(mockContact.MockContact)
+		service := NewContactService(mockRepo)
+
+		result, err := service.Create(context.Background(), nil)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		mockRepo.AssertNotCalled(t, "Create")
+	})
+
 	t.Run("falha na validação do contato", func(t *testing.T) {
 		mockRepo := new(mockContact.MockContact)
 		service := NewContactService(mockRepo)
@@ -64,6 +76,7 @@ func TestContactService_Create(t *testing.T) {
 		}
 
 		expectedErr := errors.New("erro no banco")
+
 		mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(m *model.Contact) bool {
 			return m.ContactName == contact.ContactName &&
 				m.Email == contact.Email &&
@@ -74,8 +87,7 @@ func TestContactService_Create(t *testing.T) {
 
 		assert.Nil(t, createdContact)
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, errMsg.ErrCreate)
-		assert.Contains(t, err.Error(), expectedErr.Error())
+		assert.EqualError(t, err, expectedErr.Error()) // erro é repassado diretamente
 		mockRepo.AssertExpectations(t)
 	})
 

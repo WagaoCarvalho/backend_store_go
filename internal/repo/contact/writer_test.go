@@ -72,8 +72,7 @@ func TestContact_Create(t *testing.T) {
 		assert.ErrorIs(t, err, errMsg.ErrDuplicate)
 		mockDB.AssertExpectations(t)
 	})
-
-	t.Run("return ErrInvalidData when check constraint violation", func(t *testing.T) {
+	t.Run("return ErrCreate when check constraint violation", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
@@ -83,33 +82,8 @@ func TestContact_Create(t *testing.T) {
 			Code:    "23514",
 			Message: "check constraint violation",
 		}
-		mockRow := &mockDb.MockRow{
-			Err: pgErr,
-		}
 
-		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
-			Return(mockRow)
-
-		result, err := repo.Create(ctx, cont)
-
-		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
-		mockDB.AssertExpectations(t)
-	})
-
-	t.Run("return ErrCreate when pg error different from known cases", func(t *testing.T) {
-		mockDB := new(mockDb.MockDatabase)
-		repo := &contactRepo{db: mockDB}
-		ctx := context.Background()
-		cont := &models.Contact{}
-
-		pgErr := &pgconn.PgError{
-			Code:    "23503",
-			Message: "foreign key violation",
-		}
-		mockRow := &mockDb.MockRow{
-			Err: pgErr,
-		}
+		mockRow := &mockDb.MockRow{Err: pgErr}
 
 		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
 			Return(mockRow)
@@ -122,16 +96,18 @@ func TestContact_Create(t *testing.T) {
 		mockDB.AssertExpectations(t)
 	})
 
-	t.Run("return ErrCreate when query fails with generic database error", func(t *testing.T) {
+	t.Run("return ErrDBInvalidForeignKey when foreign key violation", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &contactRepo{db: mockDB}
 		ctx := context.Background()
 		cont := &models.Contact{}
 
-		dbErr := errors.New("database connection failed")
-		mockRow := &mockDb.MockRow{
-			Err: dbErr,
+		pgErr := &pgconn.PgError{
+			Code:    "23503",
+			Message: "foreign key violation",
 		}
+
+		mockRow := &mockDb.MockRow{Err: pgErr}
 
 		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
 			Return(mockRow)
@@ -139,10 +115,10 @@ func TestContact_Create(t *testing.T) {
 		result, err := repo.Create(ctx, cont)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrCreate)
-		assert.ErrorContains(t, err, dbErr.Error())
+		assert.ErrorIs(t, err, errMsg.ErrDBInvalidForeignKey)
 		mockDB.AssertExpectations(t)
 	})
+
 }
 
 func TestContact_Update(t *testing.T) {

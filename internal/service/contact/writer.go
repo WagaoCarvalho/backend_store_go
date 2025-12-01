@@ -10,6 +10,9 @@ import (
 )
 
 func (s *contactService) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
+	if contact == nil {
+		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
+	}
 
 	if err := contact.Validate(); err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
@@ -17,14 +20,7 @@ func (s *contactService) Create(ctx context.Context, contact *models.Contact) (*
 
 	createdContact, err := s.repo.Create(ctx, contact)
 	if err != nil {
-		switch {
-		case errors.Is(err, errMsg.ErrNotFound):
-			return nil, errMsg.ErrNotFound
-		case errors.Is(err, errMsg.ErrDuplicate):
-			return nil, errMsg.ErrDuplicate
-		default:
-			return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
-		}
+		return nil, err
 	}
 
 	return createdContact, nil
