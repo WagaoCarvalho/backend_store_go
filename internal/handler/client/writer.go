@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/client/client"
@@ -21,46 +22,38 @@ func (h *clientHandler) Create(w http.ResponseWriter, r *http.Request) {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
 		return
 	}
 
-	clientModel := dto.ToClientModel(clientDTO)
+	client := dto.ToClientModel(clientDTO)
 
-	createdModel, err := h.service.Create(ctx, clientModel)
+	createdClient, err := h.service.Create(ctx, client)
 	if err != nil {
+
 		switch {
 		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
-			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
-				"erro": err.Error(),
-			})
-			utils.ErrorResponse(w, errMsg.ErrDBInvalidForeignKey, http.StatusBadRequest)
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
 
 		case errors.Is(err, errMsg.ErrDuplicate):
-			h.logger.Warn(ctx, ref+"Cliente duplicado", map[string]any{
-				"erro": err.Error(),
-			})
-			utils.ErrorResponse(w, errMsg.ErrDuplicate, http.StatusConflict)
-			return
-
-		default:
-			h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
-			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			utils.ErrorResponse(w, err, http.StatusConflict)
 			return
 		}
+
+		h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
 	}
 
-	createdDTO := dto.ToClientDTO(createdModel)
-
 	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
-		"client_id": createdDTO.ID,
+		"client_id": createdClient.ID,
 	})
 
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Cliente criado com sucesso",
-		Data:    createdDTO,
+		Data:    dto.ToClientDTO(createdClient),
 	})
 }
 

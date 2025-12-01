@@ -10,22 +10,17 @@ import (
 )
 
 func (s *clientService) Create(ctx context.Context, client *models.Client) (*models.Client, error) {
+	if client == nil {
+		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
+	}
+
 	if err := client.Validate(); err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
 	created, err := s.repo.Create(ctx, client)
 	if err != nil {
-		switch {
-		case errors.Is(err, errMsg.ErrDuplicate):
-			return nil, errMsg.ErrDuplicate
-
-		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
-			return nil, errMsg.ErrDBInvalidForeignKey
-
-		default:
-			return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
-		}
+		return nil, err
 	}
 
 	return created, nil

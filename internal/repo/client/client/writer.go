@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client"
+	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -29,14 +30,16 @@ func (r *clientRepo) Create(ctx context.Context, client *models.Client) (*models
 	).Scan(&client.ID, &client.CreatedAt, &client.UpdatedAt)
 
 	if err != nil {
+		if errMsgPg.IsForeignKeyViolation(err) {
+			return nil, errMsg.ErrDBInvalidForeignKey
+		}
 
-		if pgErr, ok := err.(*pgconn.PgError); ok {
-			switch pgErr.Code {
-			case "23505":
-				return nil, errMsg.ErrDuplicate
-			case "23514":
-				return nil, errMsg.ErrInvalidData
-			}
+		if ok, constraint := errMsgPg.IsUniqueViolation(err); ok {
+			return nil, fmt.Errorf("%w: %s", errMsg.ErrDuplicate, constraint)
+		}
+
+		if errMsgPg.IsCheckViolation(err) {
+			return nil, errMsg.ErrInvalidData
 		}
 
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)

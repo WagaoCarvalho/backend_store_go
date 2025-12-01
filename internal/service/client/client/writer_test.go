@@ -71,7 +71,7 @@ func TestClientService_Create(t *testing.T) {
 
 		cpf := "12345678901"
 		client := &models.Client{ID: 1, Name: "Teste", CPF: &cpf}
-		expectedErr := errors.New("db error")
+		expectedErr := errors.New("erro ao criar")
 
 		mockRepo.
 			On("Create", mock.Anything, client).
@@ -101,6 +101,18 @@ func TestClientService_Create(t *testing.T) {
 		assert.Equal(t, client, result)
 		mockRepo.AssertExpectations(t)
 	})
+
+	t.Run("falha quando client é nil", func(t *testing.T) {
+		mockRepo := new(mockClient.MockClient)
+		service := NewClientService(mockRepo)
+
+		result, err := service.Create(context.Background(), nil)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		mockRepo.AssertNotCalled(t, "Create")
+	})
+
 }
 
 func TestClientService_Update(t *testing.T) {

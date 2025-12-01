@@ -115,7 +115,7 @@ func TestClient_Create(t *testing.T) {
 		ctx := context.Background()
 		client := &models.Client{}
 
-		pgErr := &pgconn.PgError{Code: "23503", Message: "foreign key violation"}
+		pgErr := &pgconn.PgError{Code: "99999", Message: "generic pg error"}
 		mockRow := &mockDb.MockRow{Err: pgErr}
 
 		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
@@ -128,6 +128,33 @@ func TestClient_Create(t *testing.T) {
 		assert.ErrorContains(t, err, pgErr.Message)
 		mockDB.AssertExpectations(t)
 	})
+
+	t.Run("retorna ErrDBInvalidForeignKey quando ocorre violação de chave estrangeira", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &clientRepo{db: mockDB}
+		ctx := context.Background()
+
+		client := &models.Client{}
+
+		// Erro de FK → código 23503
+		pgErr := &pgconn.PgError{
+			Code:    "23503",
+			Message: "foreign key violation",
+		}
+
+		mockRow := &mockDb.MockRow{Err: pgErr}
+
+		mockDB.
+			On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+			Return(mockRow)
+
+		result, err := repo.Create(ctx, client)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrDBInvalidForeignKey)
+		mockDB.AssertExpectations(t)
+	})
+
 }
 
 func TestClientRepo_Update(t *testing.T) {
