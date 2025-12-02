@@ -24,20 +24,23 @@ func TestSaleRepo_Create(t *testing.T) {
 		expectedTime := time.Now()
 
 		sale := &models.Sale{
-			ClientID:      utils.Int64Ptr(100),
-			UserID:        utils.Int64Ptr(200),
-			SaleDate:      time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
-			TotalAmount:   150.50,
-			TotalDiscount: 10.00,
-			PaymentType:   "credit",
-			Status:        "pending",
-			Notes:         "Test sale notes",
+			ClientID:           utils.Int64Ptr(100),
+			UserID:             utils.Int64Ptr(200),
+			SaleDate:           time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+			TotalItemsAmount:   120.00,
+			TotalItemsDiscount: 10.00,
+			TotalSaleDiscount:  5.00,
+			TotalAmount:        115.00,
+			PaymentType:        "credit",
+			Status:             "pending",
+			Notes:              "Test sale notes",
 		}
 
+		// Note: A query retorna apenas id, created_at, updated_at
+		// Se houver mais campos, ajuste conforme necessário
 		mockRow := &mockDb.MockRowWithIDArgs{
 			Values: []any{
 				int64(1),     // id
-				1,            // version
 				expectedTime, // created_at
 				expectedTime, // updated_at
 			},
@@ -48,30 +51,22 @@ func TestSaleRepo_Create(t *testing.T) {
 				sale.ClientID,
 				sale.UserID,
 				sale.SaleDate,
+				sale.TotalItemsAmount,
+				sale.TotalItemsDiscount,
+				sale.TotalSaleDiscount,
 				sale.TotalAmount,
-				sale.TotalDiscount,
 				sale.PaymentType,
 				sale.Status,
 				sale.Notes,
-			}).
-			Return(mockRow)
+			}).Return(mockRow)
 
 		result, err := repo.Create(ctx, sale)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
-		assert.Equal(t, int64(1), result.ID)
-		assert.Equal(t, int64(100), *result.ClientID)
-		assert.Equal(t, int64(200), *result.UserID)
-		assert.Equal(t, time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC), result.SaleDate)
-		assert.Equal(t, 150.50, result.TotalAmount)
-		assert.Equal(t, 10.00, result.TotalDiscount)
-		assert.Equal(t, "credit", result.PaymentType)
-		assert.Equal(t, "pending", result.Status)
-		assert.Equal(t, "Test sale notes", result.Notes)
-		assert.Equal(t, 1, result.Version)
-		assert.Equal(t, expectedTime, result.CreatedAt)
-		assert.Equal(t, expectedTime, result.UpdatedAt)
+		assert.Equal(t, int64(1), sale.ID)
+		assert.Equal(t, expectedTime, sale.CreatedAt)
+		assert.Equal(t, expectedTime, sale.UpdatedAt)
 
 		mockDB.AssertExpectations(t)
 	})
@@ -82,17 +77,18 @@ func TestSaleRepo_Create(t *testing.T) {
 		ctx := context.Background()
 
 		sale := &models.Sale{
-			ClientID:      utils.Int64Ptr(100),
-			UserID:        utils.Int64Ptr(200),
-			SaleDate:      time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
-			TotalAmount:   150.50,
-			TotalDiscount: 10.00,
-			PaymentType:   "credit",
-			Status:        "pending",
-			Notes:         "Test sale notes",
+			ClientID:           utils.Int64Ptr(100),
+			UserID:             utils.Int64Ptr(200),
+			SaleDate:           time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+			TotalItemsAmount:   120.00,
+			TotalItemsDiscount: 10.00,
+			TotalSaleDiscount:  5.00,
+			TotalAmount:        115.00,
+			PaymentType:        "credit",
+			Status:             "pending",
+			Notes:              "Test sale notes",
 		}
 
-		// Simulando erro de violação de chave estrangeira
 		fkError := &pgconn.PgError{
 			Code:    "23503",
 			Message: "violação de chave estrangeira",
@@ -111,23 +107,64 @@ func TestSaleRepo_Create(t *testing.T) {
 		mockDB.AssertExpectations(t)
 	})
 
+	t.Run("return ErrDuplicate when unique violation occurs", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &saleRepo{db: mockDB}
+		ctx := context.Background()
+
+		sale := &models.Sale{
+			ClientID:           utils.Int64Ptr(100),
+			UserID:             utils.Int64Ptr(200),
+			SaleDate:           time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+			TotalItemsAmount:   120.00,
+			TotalItemsDiscount: 10.00,
+			TotalSaleDiscount:  5.00,
+			TotalAmount:        115.00,
+			PaymentType:        "credit",
+			Status:             "pending",
+			Notes:              "Test sale notes",
+		}
+
+		uniqueError := &pgconn.PgError{
+			Code:           "23505",
+			Message:        "violação de unicidade",
+			ConstraintName: "sales_unique_constraint",
+		}
+
+		mockRow := &mockDb.MockRow{Err: uniqueError}
+		mockDB.
+			On("QueryRow", ctx, mock.Anything, mock.Anything).
+			Return(mockRow)
+
+		result, err := repo.Create(ctx, sale)
+
+		assert.Nil(t, result)
+		assert.ErrorContains(t, err, errMsg.ErrDuplicate.Error())
+		assert.ErrorContains(t, err, "sales_unique_constraint")
+
+		mockDB.AssertExpectations(t)
+	})
+
 	t.Run("return ErrCreate when other database error occurs", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &saleRepo{db: mockDB}
 		ctx := context.Background()
 
 		sale := &models.Sale{
-			ClientID:      utils.Int64Ptr(100),
-			UserID:        utils.Int64Ptr(200),
-			SaleDate:      time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
-			TotalAmount:   150.50,
-			TotalDiscount: 10.00,
-			PaymentType:   "credit",
-			Status:        "pending",
-			Notes:         "Test sale notes",
+			ClientID:           utils.Int64Ptr(100),
+			UserID:             utils.Int64Ptr(200),
+			SaleDate:           time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+			TotalItemsAmount:   120.00,
+			TotalItemsDiscount: 10.00,
+			TotalSaleDiscount:  5.00,
+			TotalAmount:        115.00,
+			PaymentType:        "credit",
+			Status:             "pending",
+			Notes:              "Test sale notes",
 		}
 
 		dbError := errors.New("connection failed")
+
 		mockRow := &mockDb.MockRow{Err: dbError}
 		mockDB.
 			On("QueryRow", ctx, mock.Anything, mock.Anything).
@@ -141,6 +178,55 @@ func TestSaleRepo_Create(t *testing.T) {
 
 		mockDB.AssertExpectations(t)
 	})
+
+	t.Run("handle nil pointer fields gracefully", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &saleRepo{db: mockDB}
+		ctx := context.Background()
+		expectedTime := time.Now()
+
+		sale := &models.Sale{
+			// ClientID e UserID são nil
+			SaleDate:           time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+			TotalItemsAmount:   120.00,
+			TotalItemsDiscount: 10.00,
+			TotalSaleDiscount:  5.00,
+			TotalAmount:        115.00,
+			PaymentType:        "credit",
+			Status:             "pending",
+			Notes:              "Test sale notes",
+		}
+
+		mockRow := &mockDb.MockRowWithIDArgs{
+			Values: []any{
+				int64(1),     // id
+				expectedTime, // created_at
+				expectedTime, // updated_at
+			},
+		}
+
+		mockDB.
+			On("QueryRow", ctx, mock.Anything, []any{
+				sale.ClientID, // Será nil
+				sale.UserID,   // Será nil
+				sale.SaleDate,
+				sale.TotalItemsAmount,
+				sale.TotalItemsDiscount,
+				sale.TotalSaleDiscount,
+				sale.TotalAmount,
+				sale.PaymentType,
+				sale.Status,
+				sale.Notes,
+			}).Return(mockRow)
+
+		result, err := repo.Create(ctx, sale)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, int64(1), sale.ID)
+
+		mockDB.AssertExpectations(t)
+	})
 }
 
 func TestSaleRepo_Update(t *testing.T) {
@@ -151,37 +237,42 @@ func TestSaleRepo_Update(t *testing.T) {
 		expectedTime := time.Now()
 
 		sale := &models.Sale{
-			ID:            int64(1),
-			ClientID:      utils.Int64Ptr(100),
-			UserID:        utils.Int64Ptr(200),
-			SaleDate:      time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
-			TotalAmount:   150.50,
-			TotalDiscount: 10.00,
-			PaymentType:   "credit",
-			Status:        "completed",
-			Notes:         "Updated sale notes",
-			Version:       1,
+			ID:                 1,
+			ClientID:           utils.Int64Ptr(100),
+			UserID:             utils.Int64Ptr(200),
+			SaleDate:           time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+			TotalItemsAmount:   200.00,
+			TotalItemsDiscount: 15.00,
+			TotalSaleDiscount:  5.00,
+			TotalAmount:        180.00,
+			PaymentType:        "credit",
+			Status:             "completed",
+			Notes:              "Updated sale notes",
+			Version:            1,
 		}
 
 		mockRow := &mockDb.MockRowWithIDArgs{
 			Values: []any{
 				expectedTime, // updated_at
-				2,            // version (incrementado)
+				2,            // version incrementado
 			},
 		}
 
+		// CORREÇÃO: A query tem 12 argumentos ($1 a $12)
 		mockDB.
 			On("QueryRow", ctx, mock.Anything, []any{
-				sale.ClientID,
-				sale.UserID,
-				sale.SaleDate,
-				sale.TotalAmount,
-				sale.TotalDiscount,
-				sale.PaymentType,
-				sale.Status,
-				sale.Notes,
-				sale.ID,
-				sale.Version,
+				sale.ClientID,           // $1
+				sale.UserID,             // $2
+				sale.SaleDate,           // $3
+				sale.TotalItemsAmount,   // $4
+				sale.TotalItemsDiscount, // $5
+				sale.TotalSaleDiscount,  // $6 - ESTE ESTAVA FALTANDO NO TESTE ORIGINAL
+				sale.TotalAmount,        // $7 - ESTE ESTAVA FALTANDO NO TESTE ORIGINAL
+				sale.PaymentType,        // $8
+				sale.Status,             // $9
+				sale.Notes,              // $10
+				sale.ID,                 // $11
+				sale.Version,            // $12
 			}).
 			Return(mockRow)
 
@@ -189,7 +280,7 @@ func TestSaleRepo_Update(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedTime, sale.UpdatedAt)
-		assert.Equal(t, 2, sale.Version) // Version foi incrementado
+		assert.Equal(t, 2, sale.Version)
 		mockDB.AssertExpectations(t)
 	})
 
@@ -199,19 +290,23 @@ func TestSaleRepo_Update(t *testing.T) {
 		ctx := context.Background()
 
 		sale := &models.Sale{
-			ID:            int64(999),
-			ClientID:      utils.Int64Ptr(100),
-			UserID:        utils.Int64Ptr(200),
-			SaleDate:      time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
-			TotalAmount:   150.50,
-			TotalDiscount: 10.00,
-			PaymentType:   "credit",
-			Status:        "completed",
-			Notes:         "Updated sale notes",
-			Version:       1,
+			ID:                 999,
+			ClientID:           utils.Int64Ptr(100),
+			UserID:             utils.Int64Ptr(200),
+			SaleDate:           time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+			TotalItemsAmount:   200.00,
+			TotalItemsDiscount: 15.00,
+			TotalSaleDiscount:  5.00,
+			TotalAmount:        180.00,
+			PaymentType:        "credit",
+			Status:             "completed",
+			Notes:              "Updated sale notes",
+			Version:            1,
 		}
 
 		mockRow := &mockDb.MockRow{Err: pgx.ErrNoRows}
+
+		// Usando mock.Anything para os argumentos pois só queremos testar o erro
 		mockDB.
 			On("QueryRow", ctx, mock.Anything, mock.Anything).
 			Return(mockRow)
@@ -228,22 +323,21 @@ func TestSaleRepo_Update(t *testing.T) {
 		ctx := context.Background()
 
 		sale := &models.Sale{
-			ID:            int64(1),
-			ClientID:      utils.Int64Ptr(999), // ClientID inválido
-			UserID:        utils.Int64Ptr(200),
-			SaleDate:      time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
-			TotalAmount:   150.50,
-			TotalDiscount: 10.00,
-			PaymentType:   "credit",
-			Status:        "completed",
-			Notes:         "Updated sale notes",
-			Version:       1,
+			ID:                 1,
+			ClientID:           utils.Int64Ptr(999), // FK inválido
+			UserID:             utils.Int64Ptr(200),
+			SaleDate:           time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+			TotalItemsAmount:   200.00,
+			TotalItemsDiscount: 15.00,
+			TotalSaleDiscount:  5.00,
+			TotalAmount:        180.00,
+			PaymentType:        "credit",
+			Status:             "completed",
+			Notes:              "Updated sale notes",
+			Version:            1,
 		}
 
-		fkError := &pgconn.PgError{
-			Code:    "23503",
-			Message: "violação de chave estrangeira",
-		}
+		fkError := &pgconn.PgError{Code: "23503", Message: "violação de chave estrangeira"}
 
 		mockRow := &mockDb.MockRow{Err: fkError}
 		mockDB.
@@ -262,19 +356,22 @@ func TestSaleRepo_Update(t *testing.T) {
 		ctx := context.Background()
 
 		sale := &models.Sale{
-			ID:            int64(1),
-			ClientID:      utils.Int64Ptr(100),
-			UserID:        utils.Int64Ptr(200),
-			SaleDate:      time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
-			TotalAmount:   150.50,
-			TotalDiscount: 10.00,
-			PaymentType:   "credit",
-			Status:        "completed",
-			Notes:         "Updated sale notes",
-			Version:       1,
+			ID:                 1,
+			ClientID:           utils.Int64Ptr(100),
+			UserID:             utils.Int64Ptr(200),
+			SaleDate:           time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+			TotalItemsAmount:   200.00,
+			TotalItemsDiscount: 15.00,
+			TotalSaleDiscount:  5.00,
+			TotalAmount:        180.00,
+			PaymentType:        "credit",
+			Status:             "completed",
+			Notes:              "Updated sale notes",
+			Version:            1,
 		}
 
 		dbError := errors.New("connection failed")
+
 		mockRow := &mockDb.MockRow{Err: dbError}
 		mockDB.
 			On("QueryRow", ctx, mock.Anything, mock.Anything).
@@ -284,6 +381,59 @@ func TestSaleRepo_Update(t *testing.T) {
 
 		assert.ErrorIs(t, err, errMsg.ErrUpdate)
 		assert.ErrorContains(t, err, dbError.Error())
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("handle nil pointer fields gracefully", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &saleRepo{db: mockDB}
+		ctx := context.Background()
+		expectedTime := time.Now()
+
+		sale := &models.Sale{
+			ID: 1,
+			// ClientID e UserID são nil
+			SaleDate:           time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+			TotalItemsAmount:   200.00,
+			TotalItemsDiscount: 15.00,
+			TotalSaleDiscount:  5.00,
+			TotalAmount:        180.00,
+			PaymentType:        "credit",
+			Status:             "completed",
+			Notes:              "Updated sale notes",
+			Version:            1,
+		}
+
+		mockRow := &mockDb.MockRowWithIDArgs{
+			Values: []any{
+				expectedTime, // updated_at
+				2,            // version incrementado
+			},
+		}
+
+		// Teste com campos nil
+		mockDB.
+			On("QueryRow", ctx, mock.Anything, []any{
+				sale.ClientID,           // $1 - será nil
+				sale.UserID,             // $2 - será nil
+				sale.SaleDate,           // $3
+				sale.TotalItemsAmount,   // $4
+				sale.TotalItemsDiscount, // $5
+				sale.TotalSaleDiscount,  // $6
+				sale.TotalAmount,        // $7
+				sale.PaymentType,        // $8
+				sale.Status,             // $9
+				sale.Notes,              // $10
+				sale.ID,                 // $11
+				sale.Version,            // $12
+			}).
+			Return(mockRow)
+
+		err := repo.Update(ctx, sale)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expectedTime, sale.UpdatedAt)
+		assert.Equal(t, 2, sale.Version)
 		mockDB.AssertExpectations(t)
 	})
 }

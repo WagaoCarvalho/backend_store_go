@@ -18,18 +18,18 @@ import (
 // Função auxiliar para criar uma sale de teste
 func createTestSale() *models.Sale {
 	return &models.Sale{
-		ID:            1,
-		ClientID:      utils.Int64Ptr(100),
-		UserID:        utils.Int64Ptr(200),
-		SaleDate:      *utils.TimePtrFromString("2024-01-15"),
-		TotalAmount:   *utils.Float64Ptr(150.50),
-		TotalDiscount: 10.00,
-		PaymentType:   "credit",
-		Status:        "completed",
-		Notes:         "Test sale",
-		Version:       1,
-		CreatedAt:     *utils.TimePtrFromString("2024-01-15T10:00:00Z"),
-		UpdatedAt:     *utils.TimePtrFromString("2024-01-15T10:00:00Z"),
+		ID:                1,
+		ClientID:          utils.Int64Ptr(100),
+		UserID:            utils.Int64Ptr(200),
+		SaleDate:          *utils.TimePtrFromString("2024-01-15"),
+		TotalAmount:       *utils.Float64Ptr(150.50),
+		TotalSaleDiscount: 10.00,
+		PaymentType:       "credit",
+		Status:            "completed",
+		Notes:             "Test sale",
+		Version:           1,
+		CreatedAt:         *utils.TimePtrFromString("2024-01-15T10:00:00Z"),
+		UpdatedAt:         *utils.TimePtrFromString("2024-01-15T10:00:00Z"),
 	}
 }
 
@@ -75,7 +75,7 @@ func TestSaleRepo_ListByField(t *testing.T) {
 					*ptr = expectedSales[0].TotalAmount
 				}
 				if ptr, ok := args.Get(5).(*float64); ok { // TotalDiscount é float64 (não ponteiro)
-					*ptr = expectedSales[0].TotalDiscount
+					*ptr = expectedSales[0].TotalSaleDiscount
 				}
 				if ptr, ok := args.Get(6).(*string); ok { // PaymentType é string
 					*ptr = string(expectedSales[0].PaymentType)

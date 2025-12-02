@@ -15,23 +15,34 @@ import (
 func (r *saleRepo) GetByID(ctx context.Context, id int64) (*models.Sale, error) {
 	const query = `
 		SELECT 
-			id, client_id, user_id, sale_date, total_amount, total_discount,
-			payment_type, status, notes, version, created_at, updated_at
+			id,
+			client_id,
+			user_id,
+			sale_date,
+			total_amount,
+			total_discount,
+			/payment_type,
+			status,
+			notes,
+			version,
+			created_at,
+			updated_at
 		FROM sales
 		WHERE id = $1;
 	`
 
 	var sale models.Sale
+
 	err := r.db.QueryRow(ctx, query, id).Scan(
 		&sale.ID,
-		&sale.ClientID,
-		&sale.UserID,
+		&sale.ClientID, // *int64 — NULL OK
+		&sale.UserID,   // *int64 — NULL OK
 		&sale.SaleDate,
 		&sale.TotalAmount,
-		&sale.TotalDiscount,
+		&sale.TotalSaleDiscount,
 		&sale.PaymentType,
 		&sale.Status,
-		&sale.Notes,
+		&sale.Notes, // string — NULL vira ""
 		&sale.Version,
 		&sale.CreatedAt,
 		&sale.UpdatedAt,

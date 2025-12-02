@@ -8,31 +8,35 @@ import (
 )
 
 type SaleDTO struct {
-	ID            *int64  `json:"id,omitempty"`
-	ClientID      *int64  `json:"client_id,omitempty"`
-	UserID        *int64  `json:"user_id,omitempty"`
-	SaleDate      *string `json:"sale_date,omitempty"`
-	TotalAmount   float64 `json:"total_amount"`
-	TotalDiscount float64 `json:"total_discount,omitempty"`
-	PaymentType   string  `json:"payment_type"`
-	Status        string  `json:"status,omitempty"`
-	Notes         string  `json:"notes,omitempty"`
-	Version       int     `json:"version,omitempty"`
-	CreatedAt     *string `json:"created_at,omitempty"`
-	UpdatedAt     *string `json:"updated_at,omitempty"`
+	ID                 *int64  `json:"id,omitempty"`
+	ClientID           *int64  `json:"client_id,omitempty"`
+	UserID             *int64  `json:"user_id,omitempty"`
+	SaleDate           *string `json:"sale_date,omitempty"`
+	TotalItemsAmount   float64 `json:"total_items_amount"`
+	TotalItemsDiscount float64 `json:"total_items_discount,omitempty"`
+	TotalSaleDiscount  float64 `json:"total_sale_discount,omitempty"`
+	TotalAmount        float64 `json:"total_amount"`
+	PaymentType        string  `json:"payment_type"`
+	Status             string  `json:"status,omitempty"`
+	Notes              string  `json:"notes,omitempty"`
+	Version            int     `json:"version,omitempty"`
+	CreatedAt          *string `json:"created_at,omitempty"`
+	UpdatedAt          *string `json:"updated_at,omitempty"`
 }
 
 func ToSaleModel(dto SaleDTO) *models.Sale {
 	model := &models.Sale{
-		ID:            utils.NilToZero(dto.ID),
-		ClientID:      dto.ClientID,
-		UserID:        dto.UserID,
-		TotalAmount:   dto.TotalAmount,
-		TotalDiscount: dto.TotalDiscount,
-		PaymentType:   dto.PaymentType,
-		Status:        utils.DefaultString(dto.Status, "active"),
-		Notes:         dto.Notes,
-		Version:       dto.Version,
+		ID:                 utils.NilToZero(dto.ID),
+		ClientID:           dto.ClientID,
+		UserID:             dto.UserID,
+		TotalItemsAmount:   dto.TotalItemsAmount,
+		TotalItemsDiscount: dto.TotalItemsDiscount,
+		TotalSaleDiscount:  dto.TotalSaleDiscount,
+		TotalAmount:        dto.TotalAmount,
+		PaymentType:        dto.PaymentType,
+		Status:             utils.DefaultString(dto.Status, "active"),
+		Notes:              dto.Notes,
+		Version:            dto.Version,
 	}
 
 	if dto.SaleDate != nil {
@@ -60,18 +64,20 @@ func ToSaleDTO(model *models.Sale) SaleDTO {
 	updatedAt := model.UpdatedAt.Format(time.RFC3339)
 
 	return SaleDTO{
-		ID:            &model.ID,
-		ClientID:      model.ClientID,
-		UserID:        model.UserID,
-		SaleDate:      &saleDate,
-		TotalAmount:   model.TotalAmount,
-		TotalDiscount: model.TotalDiscount,
-		PaymentType:   model.PaymentType,
-		Status:        model.Status,
-		Notes:         model.Notes,
-		Version:       model.Version,
-		CreatedAt:     &createdAt,
-		UpdatedAt:     &updatedAt,
+		ID:                 &model.ID,
+		ClientID:           model.ClientID,
+		UserID:             model.UserID,
+		SaleDate:           &saleDate,
+		TotalItemsAmount:   model.TotalItemsAmount,
+		TotalItemsDiscount: model.TotalItemsDiscount,
+		TotalSaleDiscount:  model.TotalSaleDiscount,
+		TotalAmount:        model.TotalAmount,
+		PaymentType:        model.PaymentType,
+		Status:             model.Status,
+		Notes:              model.Notes,
+		Version:            model.Version,
+		CreatedAt:          &createdAt,
+		UpdatedAt:          &updatedAt,
 	}
 }
 

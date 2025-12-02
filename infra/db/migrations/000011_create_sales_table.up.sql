@@ -1,13 +1,25 @@
 CREATE TABLE IF NOT EXISTS sales (
     id SERIAL PRIMARY KEY,
+
     client_id INTEGER REFERENCES clients(id) ON DELETE SET NULL,
-    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    sale_date TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,    
+    total_items_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 CHECK (total_items_amount >= 0),    
+    total_items_discount DECIMAL(12,2) NOT NULL DEFAULT 0.00 CHECK (total_items_discount >= 0),    
+    total_sale_discount DECIMAL(12,2) NOT NULL DEFAULT 0.00 CHECK (total_sale_discount >= 0),    
     total_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 CHECK (total_amount >= 0),
-    total_discount DECIMAL(12,2) DEFAULT 0.00 CHECK (total_discount >= 0),
-    payment_type VARCHAR(50) NOT NULL CHECK (payment_type IN ('cash', 'card', 'credit')),
-    status VARCHAR(50) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'canceled', 'returned')),
+
+    sale_date TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+
+    payment_type VARCHAR(50) NOT NULL CHECK (
+        payment_type IN ('cash', 'card', 'credit', 'pix')
+    ),
+
+    status VARCHAR(50) NOT NULL DEFAULT 'active' CHECK (
+        status IN ('active', 'canceled', 'returned', 'completed')
+    ),
+
     notes TEXT CHECK (char_length(notes) <= 500),
+
     version INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()

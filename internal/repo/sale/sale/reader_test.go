@@ -56,7 +56,7 @@ func TestSaleRepo_GetByID(t *testing.T) {
 		assert.Equal(t, &userID, result.UserID)     // A struct espera *int64
 		assert.Equal(t, saleDate, result.SaleDate)
 		assert.Equal(t, totalAmount, result.TotalAmount)
-		assert.Equal(t, float64(10.00), result.TotalDiscount)
+		assert.Equal(t, float64(10.00), result.TotalSaleDiscount)
 		assert.Equal(t, "credit", result.PaymentType)
 		assert.Equal(t, "completed", result.Status)
 		assert.Equal(t, "Test sale notes", result.Notes)

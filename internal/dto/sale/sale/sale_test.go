@@ -14,17 +14,19 @@ func TestSaleDTO_ToSaleModel(t *testing.T) {
 	userID := int64(2)
 
 	dtoInput := SaleDTO{
-		ClientID:      nil,
-		UserID:        &userID,
-		SaleDate:      &now,
-		TotalAmount:   200.0,
-		TotalDiscount: 20.0,
-		PaymentType:   "card",
-		Status:        "active",
-		Notes:         "Pedido teste",
-		Version:       1,
-		CreatedAt:     &now,
-		UpdatedAt:     &now,
+		ClientID:           nil,
+		UserID:             &userID,
+		SaleDate:           &now,
+		TotalItemsAmount:   100.0,
+		TotalItemsDiscount: 10.0,
+		TotalSaleDiscount:  5.0,
+		TotalAmount:        200.0,
+		PaymentType:        "card",
+		Status:             "active",
+		Notes:              "Pedido teste",
+		Version:            1,
+		CreatedAt:          &now,
+		UpdatedAt:          &now,
 	}
 
 	model := ToSaleModel(dtoInput)
@@ -32,8 +34,10 @@ func TestSaleDTO_ToSaleModel(t *testing.T) {
 	assert.NotNil(t, model)
 	assert.Equal(t, dtoInput.ClientID, model.ClientID)
 	assert.Equal(t, dtoInput.UserID, model.UserID)
+	assert.Equal(t, dtoInput.TotalItemsAmount, model.TotalItemsAmount)
+	assert.Equal(t, dtoInput.TotalItemsDiscount, model.TotalItemsDiscount)
+	assert.Equal(t, dtoInput.TotalSaleDiscount, model.TotalSaleDiscount)
 	assert.Equal(t, dtoInput.TotalAmount, model.TotalAmount)
-	assert.Equal(t, dtoInput.TotalDiscount, model.TotalDiscount)
 	assert.Equal(t, dtoInput.PaymentType, model.PaymentType)
 	assert.Equal(t, dtoInput.Status, model.Status)
 	assert.Equal(t, dtoInput.Notes, model.Notes)
@@ -45,14 +49,17 @@ func TestSaleDTO_ToSaleModel(t *testing.T) {
 
 func TestSaleDTO_ToSaleModel_DefaultStatus(t *testing.T) {
 	userID := int64(1)
+
 	dtoInput := SaleDTO{
-		UserID:      &userID,
-		TotalAmount: 100,
-		PaymentType: "cash",
-		// Status vazio → deve virar "active"
+		UserID:           &userID,
+		TotalItemsAmount: 50,
+		TotalAmount:      100,
+		PaymentType:      "cash",
+		// Status vazio → vira "active"
 	}
 
 	model := ToSaleModel(dtoInput)
+
 	assert.Equal(t, "active", model.Status)
 }
 
@@ -61,18 +68,20 @@ func TestSaleDTO_ToSaleDTO(t *testing.T) {
 	userID := int64(3)
 
 	model := &models.Sale{
-		ID:            1,
-		ClientID:      nil,
-		UserID:        &userID,
-		SaleDate:      now,
-		TotalAmount:   300.0,
-		TotalDiscount: 30.0,
-		PaymentType:   "credit",
-		Status:        "active",
-		Notes:         "Outro teste",
-		Version:       2,
-		CreatedAt:     now,
-		UpdatedAt:     now,
+		ID:                 1,
+		ClientID:           nil,
+		UserID:             &userID,
+		SaleDate:           now,
+		TotalItemsAmount:   120.0,
+		TotalItemsDiscount: 15.0,
+		TotalSaleDiscount:  7.0,
+		TotalAmount:        300.0,
+		PaymentType:        "credit",
+		Status:             "active",
+		Notes:              "Outro teste",
+		Version:            2,
+		CreatedAt:          now,
+		UpdatedAt:          now,
 	}
 
 	dtoOutput := ToSaleDTO(model)
@@ -80,8 +89,10 @@ func TestSaleDTO_ToSaleDTO(t *testing.T) {
 	assert.NotNil(t, dtoOutput)
 	assert.NotNil(t, dtoOutput.ID)
 	assert.Equal(t, model.UserID, dtoOutput.UserID)
+	assert.Equal(t, model.TotalItemsAmount, dtoOutput.TotalItemsAmount)
+	assert.Equal(t, model.TotalItemsDiscount, dtoOutput.TotalItemsDiscount)
+	assert.Equal(t, model.TotalSaleDiscount, dtoOutput.TotalSaleDiscount)
 	assert.Equal(t, model.TotalAmount, dtoOutput.TotalAmount)
-	assert.Equal(t, model.TotalDiscount, dtoOutput.TotalDiscount)
 	assert.Equal(t, model.PaymentType, dtoOutput.PaymentType)
 	assert.Equal(t, model.Status, dtoOutput.Status)
 	assert.Equal(t, model.Notes, dtoOutput.Notes)
@@ -97,36 +108,41 @@ func TestSaleDTO_ToSaleDTOList(t *testing.T) {
 
 	modelsList := []*models.Sale{
 		{
-			ID:            10,
-			ClientID:      nil,
-			UserID:        &userID,
-			SaleDate:      now,
-			TotalAmount:   150.0,
-			TotalDiscount: 5.0,
-			PaymentType:   "cash",
-			Status:        "active",
-			Notes:         "Lista 1",
-			Version:       1,
-			CreatedAt:     now,
-			UpdatedAt:     now,
+			ID:                 10,
+			ClientID:           nil,
+			UserID:             &userID,
+			SaleDate:           now,
+			TotalItemsAmount:   50.0,
+			TotalItemsDiscount: 2.0,
+			TotalSaleDiscount:  1.0,
+			TotalAmount:        150.0,
+			PaymentType:        "cash",
+			Status:             "active",
+			Notes:              "Lista 1",
+			Version:            1,
+			CreatedAt:          now,
+			UpdatedAt:          now,
 		},
 		{
-			ID:            11,
-			ClientID:      nil,
-			UserID:        &userID,
-			SaleDate:      now,
-			TotalAmount:   250.0,
-			TotalDiscount: 10.0,
-			PaymentType:   "card",
-			Status:        "active",
-			Notes:         "Lista 2",
-			Version:       1,
-			CreatedAt:     now,
-			UpdatedAt:     now,
+			ID:                 11,
+			ClientID:           nil,
+			UserID:             &userID,
+			SaleDate:           now,
+			TotalItemsAmount:   100.0,
+			TotalItemsDiscount: 4.0,
+			TotalSaleDiscount:  2.0,
+			TotalAmount:        250.0,
+			PaymentType:        "card",
+			Status:             "active",
+			Notes:              "Lista 2",
+			Version:            1,
+			CreatedAt:          now,
+			UpdatedAt:          now,
 		},
 	}
 
 	dtoList := ToSaleDTOList(modelsList)
+
 	assert.Len(t, dtoList, 2)
 	assert.Equal(t, modelsList[0].TotalAmount, dtoList[0].TotalAmount)
 	assert.Equal(t, modelsList[1].PaymentType, dtoList[1].PaymentType)
@@ -141,32 +157,36 @@ func TestSaleDTO_SaleDTOListToModelList(t *testing.T) {
 
 	dtoList := []*SaleDTO{
 		{
-			ID:            nil,
-			ClientID:      nil,
-			UserID:        &userID1,
-			SaleDate:      &now,
-			TotalAmount:   100.0,
-			TotalDiscount: 10.0,
-			PaymentType:   "cash",
-			Status:        "active",
-			Notes:         "Venda 1",
-			Version:       1,
-			CreatedAt:     &now,
-			UpdatedAt:     &now,
+			ID:                 nil,
+			ClientID:           nil,
+			UserID:             &userID1,
+			SaleDate:           &now,
+			TotalItemsAmount:   30.0,
+			TotalItemsDiscount: 3.0,
+			TotalSaleDiscount:  1.0,
+			TotalAmount:        100.0,
+			PaymentType:        "cash",
+			Status:             "active",
+			Notes:              "Venda 1",
+			Version:            1,
+			CreatedAt:          &now,
+			UpdatedAt:          &now,
 		},
 		{
-			ID:            nil,
-			ClientID:      nil,
-			UserID:        &userID2,
-			SaleDate:      &now,
-			TotalAmount:   200.0,
-			TotalDiscount: 20.0,
-			PaymentType:   "card",
-			Status:        "active",
-			Notes:         "Venda 2",
-			Version:       2,
-			CreatedAt:     &now,
-			UpdatedAt:     &now,
+			ID:                 nil,
+			ClientID:           nil,
+			UserID:             &userID2,
+			SaleDate:           &now,
+			TotalItemsAmount:   80.0,
+			TotalItemsDiscount: 8.0,
+			TotalSaleDiscount:  2.0,
+			TotalAmount:        200.0,
+			PaymentType:        "card",
+			Status:             "active",
+			Notes:              "Venda 2",
+			Version:            2,
+			CreatedAt:          &now,
+			UpdatedAt:          &now,
 		},
 	}
 
