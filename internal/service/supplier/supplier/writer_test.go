@@ -110,7 +110,7 @@ func TestSupplierService_Update(t *testing.T) {
 
 		err := service.Update(ctx, input)
 
-		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
@@ -140,7 +140,7 @@ func TestSupplierService_Update(t *testing.T) {
 
 		err := service.Update(ctx, input)
 
-		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
 		mockRepo.AssertExpectations(t)
 	})
 

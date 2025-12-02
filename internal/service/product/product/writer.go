@@ -36,7 +36,7 @@ func (s *productService) Update(ctx context.Context, product *models.Product) er
 	}
 
 	if product.Version <= 0 {
-		return errMsg.ErrVersionConflict
+		return errMsg.ErrZeroVersion
 	}
 
 	err := s.repo.Update(ctx, product)
@@ -44,8 +44,8 @@ func (s *productService) Update(ctx context.Context, product *models.Product) er
 		switch {
 		case errors.Is(err, errMsg.ErrNotFound):
 			return errMsg.ErrNotFound
-		case errors.Is(err, errMsg.ErrVersionConflict):
-			return errMsg.ErrVersionConflict
+		case errors.Is(err, errMsg.ErrZeroVersion):
+			return errMsg.ErrZeroVersion
 		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
 			return errMsg.ErrInvalidData
 		case errors.Is(err, errMsg.ErrConflict):

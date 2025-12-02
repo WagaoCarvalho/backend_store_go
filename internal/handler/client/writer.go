@@ -104,7 +104,7 @@ func (h *clientHandler) Update(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorResponse(w, err, http.StatusConflict)
 			return
 
-		case errors.Is(err, errMsg.ErrVersionConflict):
+		case errors.Is(err, errMsg.ErrZeroVersion):
 			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"client_id": uid,
 			})

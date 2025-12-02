@@ -353,7 +353,7 @@ func TestProductHandler_Update(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 
-		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrVersionConflict).Once()
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrZeroVersion).Once()
 
 		handler.Update(w, req)
 

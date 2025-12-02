@@ -327,7 +327,7 @@ func TestUserRepo_Update(t *testing.T) {
 
 		err := repo.Update(ctx, user)
 
-		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
 		mockDB.AssertExpectations(t)
 	})
 

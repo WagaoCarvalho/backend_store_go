@@ -58,7 +58,7 @@ func (r *supplierRepo) Update(ctx context.Context, supplier *models.Supplier) er
 	}
 
 	if result.RowsAffected() == 0 {
-		return errMsg.ErrVersionConflict
+		return errMsg.ErrZeroVersion
 	}
 
 	return nil

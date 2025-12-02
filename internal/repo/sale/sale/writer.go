@@ -60,7 +60,31 @@ func (r *saleRepo) Create(ctx context.Context, sale *models.Sale) (*models.Sale,
 }
 
 func (r *saleRepo) Update(ctx context.Context, sale *models.Sale) error {
-	const query = `
+
+	// 1) Seleciona versão atual
+	const querySelect = `
+		SELECT version
+		FROM sales
+		WHERE id = $1
+	`
+
+	var currentVersion int
+	err := r.db.QueryRow(ctx, querySelect, sale.ID).Scan(&currentVersion)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return errMsg.ErrNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w: erro ao consultar venda: %v", errMsg.ErrUpdate, err)
+	}
+
+	// 2) Confere version (optimistic lock)
+	if currentVersion != sale.Version {
+		return errMsg.ErrZeroVersion
+	}
+
+	// 3) Atualiza
+	const queryUpdate = `
 		UPDATE sales
 		SET 
 			client_id            = $1,
@@ -73,13 +97,13 @@ func (r *saleRepo) Update(ctx context.Context, sale *models.Sale) error {
 			payment_type         = $8,
 			status               = $9,
 			notes                = $10,
-			version              = version + 1,
-			updated_at           = NOW()
-		WHERE id = $11 AND version = $12
-		RETURNING updated_at, version;
+			updated_at           = NOW(),
+			version              = version + 1
+		WHERE id = $11
+		RETURNING updated_at, version
 	`
 
-	err := r.db.QueryRow(ctx, query,
+	err = r.db.QueryRow(ctx, queryUpdate,
 		sale.ClientID,
 		sale.UserID,
 		sale.SaleDate,
@@ -91,17 +115,14 @@ func (r *saleRepo) Update(ctx context.Context, sale *models.Sale) error {
 		sale.Status,
 		sale.Notes,
 		sale.ID,
-		sale.Version,
 	).Scan(&sale.UpdatedAt, &sale.Version)
 
 	if err != nil {
 		switch {
-		case errors.Is(err, pgx.ErrNoRows):
-			return errMsg.ErrNotFound
 		case errMsgPg.IsForeignKeyViolation(err):
 			return errMsg.ErrDBInvalidForeignKey
 		default:
-			return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+			return fmt.Errorf("%w: erro ao atualizar venda: %v", errMsg.ErrUpdate, err)
 		}
 	}
 

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
@@ -14,11 +15,11 @@ func (s *saleService) Create(ctx context.Context, sale *models.Sale) (*models.Sa
 	}
 
 	if err := sale.ValidateStructural(); err != nil {
-		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
 	if err := sale.ValidateBusinessRules(); err != nil {
-		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
 	createdSale, err := s.repo.Create(ctx, sale)
@@ -37,19 +38,27 @@ func (s *saleService) Update(ctx context.Context, sale *models.Sale) error {
 		return errMsg.ErrZeroID
 	}
 	if sale.Version <= 0 {
-		return errMsg.ErrVersionConflict
+		return errMsg.ErrZeroVersion
 	}
 
 	if err := sale.ValidateStructural(); err != nil {
-		return fmt.Errorf("%w", errMsg.ErrInvalidData)
+		return fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
 	if err := sale.ValidateBusinessRules(); err != nil {
-		return fmt.Errorf("%w", errMsg.ErrInvalidData)
+		return fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
-	if err := s.repo.Update(ctx, sale); err != nil {
-		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+	err := s.repo.Update(ctx, sale)
+	if err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			return errMsg.ErrNotFound
+		case errors.Is(err, errMsg.ErrZeroVersion):
+			return errMsg.ErrZeroVersion
+		default:
+			return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+		}
 	}
 
 	return nil

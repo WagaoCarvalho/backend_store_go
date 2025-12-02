@@ -15,6 +15,31 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+func TestSanitizeField(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"valid client_id", "client_id", "client_id"},
+		{"valid user_id", "user_id", "user_id"},
+		{"valid status", "status", "status"},
+		{"valid payment_type", "payment_type", "payment_type"},
+		{"invalid field", "invalid_field", "client_id"},
+		{"empty field", "", "client_id"},
+		{"case insensitive", "CLIENT_ID", "client_id"}, // Note: como está implementado, isso retornaria "CLIENT_ID"
+		{"sql injection attempt", "1; DROP TABLE sales; --", "client_id"},
+		{"field with spaces", "client id", "client_id"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := sanitizeField(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 // Função auxiliar para criar uma sale de teste
 func createTestSale() *models.Sale {
 	return &models.Sale{

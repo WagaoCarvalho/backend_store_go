@@ -187,7 +187,7 @@ func TestUserHandler_Update(t *testing.T) {
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(u *model.User) bool {
 			return u.UID == userID && u.Version == 2
-		})).Return(errMsg.ErrVersionConflict).Once()
+		})).Return(errMsg.ErrZeroVersion).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(body))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})

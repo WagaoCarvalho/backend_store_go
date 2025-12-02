@@ -395,7 +395,7 @@ func TestSaleService_Update(t *testing.T) {
 			SaleDate:          time.Now(),
 		}
 		err := svc.Update(ctx, s)
-		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
 	})
 
 	t.Run("structural validation fails", func(t *testing.T) {

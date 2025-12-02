@@ -134,7 +134,7 @@ func TestClientService_Update(t *testing.T) {
 		client := &models.Client{ID: 1, Name: "Teste", Version: 0}
 
 		err := service.Update(context.Background(), client)
-		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
@@ -170,10 +170,10 @@ func TestClientService_Update(t *testing.T) {
 
 		client := &models.Client{ID: 1, Name: "Teste", Version: 1, CNPJ: utils.StrToPtr("12135135000158")}
 
-		mockRepo.On("Update", mock.Anything, client).Return(errMsg.ErrVersionConflict).Once()
+		mockRepo.On("Update", mock.Anything, client).Return(errMsg.ErrZeroVersion).Once()
 
 		err := service.Update(context.Background(), client)
-		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
 		mockRepo.AssertExpectations(t)
 	})
 

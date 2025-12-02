@@ -106,7 +106,7 @@ func (h *userHandler) Update(w http.ResponseWriter, r *http.Request) {
 	// Valida e atualiza via service
 	if err := h.service.Update(ctx, userModel); err != nil {
 		switch {
-		case errors.Is(err, errMsg.ErrVersionConflict):
+		case errors.Is(err, errMsg.ErrZeroVersion):
 			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{"user_id": id})
 			utils.ErrorResponse(w, err, http.StatusConflict)
 			return

@@ -287,7 +287,7 @@ func TestClientRepo_Update(t *testing.T) {
 
 		err := repo.Update(ctx, client)
 
-		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
 		mockDB.AssertExpectations(t)
 	})
 

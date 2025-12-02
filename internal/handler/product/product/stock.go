@@ -54,7 +54,7 @@ func (h *productHandler) UpdateStock(w http.ResponseWriter, r *http.Request) {
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, errMsg.ErrVersionConflict):
+		case errors.Is(err, errMsg.ErrZeroVersion):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"product_id": uid,
 			})
@@ -120,7 +120,7 @@ func (h *productHandler) IncreaseStock(w http.ResponseWriter, r *http.Request) {
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, errMsg.ErrVersionConflict):
+		case errors.Is(err, errMsg.ErrZeroVersion):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"product_id": uid,
 			})
@@ -186,7 +186,7 @@ func (h *productHandler) DecreaseStock(w http.ResponseWriter, r *http.Request) {
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, errMsg.ErrVersionConflict):
+		case errors.Is(err, errMsg.ErrZeroVersion):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"product_id": uid,
 			})

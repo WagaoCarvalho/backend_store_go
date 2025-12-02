@@ -31,19 +31,33 @@ func (h *saleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	saleModel := dtoSale.ToSaleModel(saleDTO)
+
 	createdModel, err := h.service.Create(ctx, saleModel)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogCreateError, nil)
-		if errors.Is(err, errMsg.ErrDBInvalidForeignKey) {
+
+		switch {
+		case errors.Is(err, errMsg.ErrInvalidData):
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
+
+		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+
+		case errors.Is(err, errMsg.ErrDuplicate):
+			utils.ErrorResponse(w, err, http.StatusConflict)
+			return
 		}
+
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	createdDTO := dtoSale.ToSaleDTO(createdModel)
+
 	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{"sale_id": createdDTO.ID})
+
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
 		Message: "Venda criada com sucesso",
@@ -82,11 +96,35 @@ func (h *saleHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.service.Update(ctx, saleModel); err != nil {
 		h.logger.Error(ctx, err, ref+"Erro ao atualizar venda", nil)
+
+		switch {
+		case errors.Is(err, errMsg.ErrInvalidData):
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+
+		case errors.Is(err, errMsg.ErrZeroID):
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+
+		case errors.Is(err, errMsg.ErrZeroVersion):
+			utils.ErrorResponse(w, err, http.StatusConflict)
+			return
+
+		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
+			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			return
+
+		case errors.Is(err, errMsg.ErrNotFound):
+			utils.ErrorResponse(w, err, http.StatusNotFound)
+			return
+		}
+
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	h.logger.Info(ctx, ref+"Venda atualizada com sucesso", map[string]any{"sale_id": id})
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Venda atualizada com sucesso",

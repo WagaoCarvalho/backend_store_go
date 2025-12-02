@@ -39,7 +39,7 @@ func (s *userService) Update(ctx context.Context, user *models.User) error {
 	}
 
 	if user.Version <= 0 {
-		return errMsg.ErrVersionConflict
+		return errMsg.ErrZeroVersion
 	}
 
 	err := s.repo.Update(ctx, user)
@@ -47,8 +47,8 @@ func (s *userService) Update(ctx context.Context, user *models.User) error {
 		switch {
 		case errors.Is(err, errMsg.ErrNotFound):
 			return errMsg.ErrNotFound
-		case errors.Is(err, errMsg.ErrVersionConflict):
-			return errMsg.ErrVersionConflict
+		case errors.Is(err, errMsg.ErrZeroVersion):
+			return errMsg.ErrZeroVersion
 		default:
 			return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 		}

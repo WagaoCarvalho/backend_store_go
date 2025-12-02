@@ -85,7 +85,7 @@ func TestProductHandler_EnableProduct(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(3)
 
-		mockService.On("EnableProduct", mock.Anything, productID).Return(errMsg.ErrVersionConflict).Once()
+		mockService.On("EnableProduct", mock.Anything, productID).Return(errMsg.ErrZeroVersion).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/enable/3", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "3"})
@@ -206,7 +206,7 @@ func TestProductHandler_DisableProduct(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(3)
 
-		mockService.On("DisableProduct", mock.Anything, productID).Return(errMsg.ErrVersionConflict).Once()
+		mockService.On("DisableProduct", mock.Anything, productID).Return(errMsg.ErrZeroVersion).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/product/disable/3", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "3"})

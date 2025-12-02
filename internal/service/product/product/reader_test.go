@@ -127,7 +127,7 @@ func TestProductService_GetVersionByID(t *testing.T) {
 		version, err := service.GetVersionByID(context.Background(), 3)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "db failure")
-		assert.True(t, errors.Is(err, errMsg.ErrVersionConflict))
+		assert.True(t, errors.Is(err, errMsg.ErrZeroVersion))
 		assert.Equal(t, int64(0), version)
 
 		mockRepo.AssertExpectations(t)

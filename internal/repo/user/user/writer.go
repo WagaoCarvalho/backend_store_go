@@ -63,7 +63,7 @@ func (r *userRepo) Update(ctx context.Context, user *models.User) error {
 	}
 
 	if currentVersion != user.Version {
-		return errMsg.ErrVersionConflict
+		return errMsg.ErrZeroVersion
 	}
 
 	const queryUpdate = `

@@ -268,7 +268,7 @@ func TestSaleItemHandler_Update(t *testing.T) {
 	})
 
 	t.Run("erro - serviço retorna ErrVersionConflict", func(t *testing.T) {
-		mockService.On("Update", mock.Anything, mock.AnythingOfType("*model.SaleItem")).Return(errMsg.ErrVersionConflict).Once()
+		mockService.On("Update", mock.Anything, mock.AnythingOfType("*model.SaleItem")).Return(errMsg.ErrZeroVersion).Once()
 
 		itemDTO := dto.SaleItemDTO{
 			SaleID:    int64(10),

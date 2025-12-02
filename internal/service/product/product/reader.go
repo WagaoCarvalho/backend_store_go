@@ -34,7 +34,7 @@ func (s *productService) GetVersionByID(ctx context.Context, pid int64) (int64, 
 			return 0, errMsg.ErrNotFound
 		}
 
-		return 0, fmt.Errorf("%w: %v", errMsg.ErrVersionConflict, err)
+		return 0, fmt.Errorf("%w: %v", errMsg.ErrZeroVersion, err)
 	}
 
 	return version, nil

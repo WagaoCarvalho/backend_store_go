@@ -70,7 +70,7 @@ func (h *supplierHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	err = h.service.Update(ctx, supplier)
 	if err != nil {
 		switch {
-		case errors.Is(err, errMsg.ErrVersionConflict):
+		case errors.Is(err, errMsg.ErrZeroVersion):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"supplier_id": id,
 			})
@@ -148,7 +148,7 @@ func (h *supplierHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	supplier.Version = payload.Version
 
 	if err := h.service.Update(ctx, supplier); err != nil {
-		if errors.Is(err, errMsg.ErrVersionConflict) {
+		if errors.Is(err, errMsg.ErrZeroVersion) {
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"supplier_id": id,
 			})

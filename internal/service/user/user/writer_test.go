@@ -189,7 +189,7 @@ func TestUserService_Update(t *testing.T) {
 
 		err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
 	})
 
 	t.Run("Deve retornar erro de usuário não encontrado", func(t *testing.T) {
@@ -218,11 +218,11 @@ func TestUserService_Update(t *testing.T) {
 			Version: 2,
 		}
 
-		mockRepo.On("Update", mock.Anything, user).Return(errMsg.ErrVersionConflict)
+		mockRepo.On("Update", mock.Anything, user).Return(errMsg.ErrZeroVersion)
 
 		err := service.Update(context.Background(), user)
 
-		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
+		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
 		mockRepo.AssertExpectations(t)
 	})
 

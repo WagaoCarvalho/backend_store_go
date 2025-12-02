@@ -323,7 +323,7 @@ func TestSupplierHandler_Update(t *testing.T) {
 		mockService.ExpectedCalls = nil
 		body := `{"supplier": {"name": "Fornecedor", "version": 2}}`
 
-		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrVersionConflict).Once()
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrZeroVersion).Once()
 
 		req := httptest.NewRequest(http.MethodPut, "/suppliers/1", bytes.NewReader([]byte(body)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})

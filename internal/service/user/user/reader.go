@@ -43,7 +43,7 @@ func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, err
 		if errors.Is(err, errMsg.ErrNotFound) {
 			return 0, errMsg.ErrNotFound
 		}
-		return 0, fmt.Errorf("%w: %v", errMsg.ErrVersionConflict, err)
+		return 0, fmt.Errorf("%w: %v", errMsg.ErrZeroVersion, err)
 	}
 	return version, nil
 }
