@@ -22,6 +22,8 @@ type SaleWriter interface {
 }
 
 type SaleStatus interface {
+	Activate(ctx context.Context, id int64) error
 	Cancel(ctx context.Context, id int64) error
 	Complete(ctx context.Context, id int64) error
+	Returned(ctx context.Context, id int64) error
 }

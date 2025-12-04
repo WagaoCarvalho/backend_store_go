@@ -24,7 +24,6 @@ func TestSaleRepo_GetByID(t *testing.T) {
 		clientID := int64(100)
 		userID := int64(200)
 		saleDate := time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC)
-		totalAmount := 150.50
 		createdAt := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
 		updatedAt := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
 
@@ -36,8 +35,10 @@ func TestSaleRepo_GetByID(t *testing.T) {
 					clientID,          // client_id - int64 (valor direto)
 					userID,            // user_id - int64 (valor direto)
 					saleDate,          // sale_date - time.Time
-					totalAmount,       // total_amount - float64
-					float64(10.00),    // total_discount - float64
+					200.00,            // total_items_amount - float64
+					20.00,             // total_items_discount - float64
+					10.00,             // total_sale_discount - float64
+					170.00,            // total_amount - float64 (200 - 20 - 10)
 					"credit",          // payment_type - string
 					"completed",       // status - string
 					"Test sale notes", // notes - string
@@ -55,8 +56,10 @@ func TestSaleRepo_GetByID(t *testing.T) {
 		assert.Equal(t, &clientID, result.ClientID) // A struct espera *int64
 		assert.Equal(t, &userID, result.UserID)     // A struct espera *int64
 		assert.Equal(t, saleDate, result.SaleDate)
-		assert.Equal(t, totalAmount, result.TotalAmount)
-		assert.Equal(t, float64(10.00), result.TotalSaleDiscount)
+		assert.Equal(t, 200.00, result.TotalItemsAmount)
+		assert.Equal(t, 20.00, result.TotalItemsDiscount)
+		assert.Equal(t, 10.00, result.TotalSaleDiscount)
+		assert.Equal(t, 170.00, result.TotalAmount)
 		assert.Equal(t, "credit", result.PaymentType)
 		assert.Equal(t, "completed", result.Status)
 		assert.Equal(t, "Test sale notes", result.Notes)
@@ -119,7 +122,6 @@ func TestSaleRepo_GetByID(t *testing.T) {
 		saleID := int64(2)
 
 		saleDate := time.Date(2024, 1, 16, 0, 0, 0, 0, time.UTC)
-		totalAmount := 200.00
 		createdAt := time.Date(2024, 1, 16, 10, 0, 0, 0, time.UTC)
 		updatedAt := time.Date(2024, 1, 16, 10, 0, 0, 0, time.UTC)
 
@@ -127,18 +129,20 @@ func TestSaleRepo_GetByID(t *testing.T) {
 			On("QueryRow", ctx, mock.Anything, []any{saleID}).
 			Return(&mockDb.MockRowWithIDArgs{
 				Values: []any{
-					saleID,        // id - int64
-					nil,           // client_id - nil
-					nil,           // user_id - nil
-					saleDate,      // sale_date - time.Time
-					totalAmount,   // total_amount - float64
-					float64(0.00), // total_discount - float64
-					"cash",        // payment_type - string
-					"pending",     // status - string
-					"",            // notes - string vazio
-					1,             // version - int
-					createdAt,     // created_at - time.Time
-					updatedAt,     // updated_at - time.Time
+					saleID,    // id - int64
+					nil,       // client_id - nil
+					nil,       // user_id - nil
+					saleDate,  // sale_date - time.Time
+					150.00,    // total_items_amount - float64
+					15.00,     // total_items_discount - float64
+					5.00,      // total_sale_discount - float64
+					130.00,    // total_amount - float64 (150 - 15 - 5)
+					"cash",    // payment_type - string
+					"pending", // status - string
+					"",        // notes - string vazio
+					1,         // version - int
+					createdAt, // created_at - time.Time
+					updatedAt, // updated_at - time.Time
 				},
 			})
 
@@ -149,8 +153,62 @@ func TestSaleRepo_GetByID(t *testing.T) {
 		assert.Equal(t, saleID, result.ID)
 		assert.Nil(t, result.ClientID)
 		assert.Nil(t, result.UserID)
+		assert.Equal(t, 150.00, result.TotalItemsAmount)
+		assert.Equal(t, 15.00, result.TotalItemsDiscount)
+		assert.Equal(t, 5.00, result.TotalSaleDiscount)
+		assert.Equal(t, 130.00, result.TotalAmount)
 		assert.Equal(t, "", result.Notes)
 		assert.Equal(t, "pending", result.Status)
+
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("handle zero values for discounts correctly", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &saleRepo{db: mockDB}
+		ctx := context.Background()
+		saleID := int64(3)
+
+		clientID := int64(300)
+		userID := int64(400)
+		saleDate := time.Date(2024, 1, 17, 0, 0, 0, 0, time.UTC)
+		createdAt := time.Date(2024, 1, 17, 10, 0, 0, 0, time.UTC)
+		updatedAt := time.Date(2024, 1, 17, 10, 0, 0, 0, time.UTC)
+
+		mockDB.
+			On("QueryRow", ctx, mock.Anything, []any{saleID}).
+			Return(&mockDb.MockRowWithIDArgs{
+				Values: []any{
+					saleID,         // id - int64
+					clientID,       // client_id - int64
+					userID,         // user_id - int64
+					saleDate,       // sale_date - time.Time
+					100.00,         // total_items_amount - float64
+					0.00,           // total_items_discount - float64 (zero)
+					0.00,           // total_sale_discount - float64 (zero)
+					100.00,         // total_amount - float64 (igual ao items amount)
+					"debit",        // payment_type - string
+					"completed",    // status - string
+					"Sem desconto", // notes - string
+					1,              // version - int
+					createdAt,      // created_at - time.Time
+					updatedAt,      // updated_at - time.Time
+				},
+			})
+
+		result, err := repo.GetByID(ctx, saleID)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, saleID, result.ID)
+		assert.Equal(t, &clientID, result.ClientID)
+		assert.Equal(t, &userID, result.UserID)
+		assert.Equal(t, 100.00, result.TotalItemsAmount)
+		assert.Equal(t, 0.00, result.TotalItemsDiscount)
+		assert.Equal(t, 0.00, result.TotalSaleDiscount)
+		assert.Equal(t, 100.00, result.TotalAmount)
+		assert.Equal(t, "debit", result.PaymentType)
+		assert.Equal(t, "Sem desconto", result.Notes)
 
 		mockDB.AssertExpectations(t)
 	})
@@ -245,22 +303,68 @@ func TestSaleRepo_GetByDateRange(t *testing.T) {
 
 		mockRows := new(mockDb.MockRows)
 
-		// CORREÇÃO: Passar os args como slice de interface
 		mockDB.On("Query", ctx, mock.Anything, []interface{}{start, end, limit, offset}).
 			Return(mockRows, nil)
 
+		// Agora temos 14 campos no SELECT (vs 12 antes)
 		mockRows.On("Next").Return(true).Once()
 		mockRows.On("Next").Return(false).Once()
-		mockRows.On("Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
-			mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-			Return(nil)
+		mockRows.On("Scan",
+			mock.Anything, // id (1)
+			mock.Anything, // client_id (2)
+			mock.Anything, // user_id (3)
+			mock.Anything, // sale_date (4)
+			mock.Anything, // total_items_amount (5) ← NOVO
+			mock.Anything, // total_items_discount (6) ← NOVO
+			mock.Anything, // total_sale_discount (7)
+			mock.Anything, // total_amount (8)
+			mock.Anything, // payment_type (9)
+			mock.Anything, // status (10)
+			mock.Anything, // notes (11)
+			mock.Anything, // version (12)
+			mock.Anything, // created_at (13)
+			mock.Anything, // updated_at (14)
+		).Return(nil)
 		mockRows.On("Close").Return(nil)
 
 		sales, err := repo.GetByDateRange(ctx, start, end, limit, offset, "sale_date", "DESC")
 
 		assert.NoError(t, err)
 		assert.Len(t, sales, 1)
+		mockDB.AssertExpectations(t)
+		mockRows.AssertExpectations(t)
+	})
+
+	t.Run("successfully get sales by date range with multiple rows", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &saleRepo{db: mockDB}
+		ctx := context.Background()
+
+		start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+		end := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
+		limit := 10
+		offset := 0
+
+		mockRows := new(mockDb.MockRows)
+
+		mockDB.On("Query", ctx, mock.Anything, []interface{}{start, end, limit, offset}).
+			Return(mockRows, nil)
+
+		// Simular 3 linhas
+		mockRows.On("Next").Return(true).Times(3)
+		mockRows.On("Next").Return(false).Once()
+		mockRows.On("Scan",
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything,
+		).Return(nil).Times(3)
+		mockRows.On("Close").Return(nil)
+
+		sales, err := repo.GetByDateRange(ctx, start, end, limit, offset, "sale_date", "DESC")
+
+		assert.NoError(t, err)
+		assert.Len(t, sales, 3)
 		mockDB.AssertExpectations(t)
 		mockRows.AssertExpectations(t)
 	})
@@ -284,5 +388,37 @@ func TestSaleRepo_GetByDateRange(t *testing.T) {
 		assert.ErrorIs(t, err, errMsg.ErrGet)
 		assert.ErrorContains(t, err, dbError.Error())
 		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return error when scan fails", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &saleRepo{db: mockDB}
+		ctx := context.Background()
+
+		start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+		end := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
+
+		mockRows := new(mockDb.MockRows)
+
+		mockDB.On("Query", ctx, mock.Anything, []interface{}{start, end, 10, 0}).
+			Return(mockRows, nil)
+
+		mockRows.On("Next").Return(true).Once()
+		mockRows.On("Scan",
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything,
+		).Return(errors.New("scan error"))
+		mockRows.On("Close").Return(nil)
+
+		sales, err := repo.GetByDateRange(ctx, start, end, 10, 0, "sale_date", "DESC")
+
+		assert.Error(t, err)
+		assert.Nil(t, sales)
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+		assert.Contains(t, err.Error(), "scan error")
+		mockDB.AssertExpectations(t)
+		mockRows.AssertExpectations(t)
 	})
 }

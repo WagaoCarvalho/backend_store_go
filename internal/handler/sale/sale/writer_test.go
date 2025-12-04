@@ -115,6 +115,118 @@ func TestSaleHandler_Create(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
+	t.Run("erro de dados inválidos - ErrInvalidData", func(t *testing.T) {
+		mockService, h := setupHandler()
+		saleDTO := dtoSale.SaleDTO{
+			UserID:      utils.Int64Ptr(1),
+			SaleDate:    &now,
+			TotalAmount: 100.0,
+			PaymentType: "cash",
+			Status:      "active",
+		}
+		body, _ := json.Marshal(saleDTO)
+		req := httptest.NewRequest(http.MethodPost, "/sale", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
+
+		saleModel := dtoSale.ToSaleModel(saleDTO)
+
+		// mock retorna erro de dados inválidos
+		mockService.On("Create", mock.Anything, saleModel).Return(nil, errMsg.ErrInvalidData)
+
+		h.Create(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var resp map[string]interface{}
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Equal(t, errMsg.ErrInvalidData.Error(), resp["message"])
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("erro de foreign key - ErrDBInvalidForeignKey", func(t *testing.T) {
+		mockService, h := setupHandler()
+		saleDTO := dtoSale.SaleDTO{
+			UserID:      utils.Int64Ptr(1),
+			SaleDate:    &now,
+			TotalAmount: 100.0,
+			PaymentType: "cash",
+			Status:      "active",
+		}
+		body, _ := json.Marshal(saleDTO)
+		req := httptest.NewRequest(http.MethodPost, "/sale", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
+
+		saleModel := dtoSale.ToSaleModel(saleDTO)
+
+		// mock retorna erro de foreign key
+		mockService.On("Create", mock.Anything, saleModel).Return(nil, errMsg.ErrDBInvalidForeignKey)
+
+		h.Create(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var resp map[string]interface{}
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Equal(t, errMsg.ErrDBInvalidForeignKey.Error(), resp["message"])
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("erro de duplicidade - ErrDuplicate", func(t *testing.T) {
+		mockService, h := setupHandler()
+		saleDTO := dtoSale.SaleDTO{
+			UserID:      utils.Int64Ptr(1),
+			SaleDate:    &now,
+			TotalAmount: 100.0,
+			PaymentType: "cash",
+			Status:      "active",
+		}
+		body, _ := json.Marshal(saleDTO)
+		req := httptest.NewRequest(http.MethodPost, "/sale", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
+
+		saleModel := dtoSale.ToSaleModel(saleDTO)
+
+		// mock retorna erro de duplicidade
+		mockService.On("Create", mock.Anything, saleModel).Return(nil, errMsg.ErrDuplicate)
+
+		h.Create(w, req)
+
+		assert.Equal(t, http.StatusConflict, w.Code)
+
+		var resp map[string]interface{}
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Equal(t, errMsg.ErrDuplicate.Error(), resp["message"])
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("erro genérico do serviço (fora do switch)", func(t *testing.T) {
+		mockService, h := setupHandler()
+		saleDTO := dtoSale.SaleDTO{
+			UserID:      utils.Int64Ptr(1),
+			SaleDate:    &now,
+			TotalAmount: 100.0,
+			PaymentType: "cash",
+			Status:      "active",
+		}
+		body, _ := json.Marshal(saleDTO)
+		req := httptest.NewRequest(http.MethodPost, "/sale", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
+
+		saleModel := dtoSale.ToSaleModel(saleDTO)
+
+		// mock retorna erro genérico (não capturado pelo switch)
+		genericErr := errors.New("erro genérico do banco de dados")
+		mockService.On("Create", mock.Anything, saleModel).Return(nil, genericErr)
+
+		h.Create(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var resp map[string]interface{}
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Equal(t, genericErr.Error(), resp["message"])
+		mockService.AssertExpectations(t)
+	})
 }
 
 func TestSaleHandler_Update(t *testing.T) {
@@ -228,6 +340,199 @@ func TestSaleHandler_Update(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w3.Code)
 	})
 
+	t.Run("erro de dados inválidos - ErrInvalidData", func(t *testing.T) {
+		mockService, h := setupHandler()
+
+		saleDTO := dtoSale.SaleDTO{
+			UserID:      utils.Int64Ptr(1),
+			SaleDate:    &now,
+			TotalAmount: 100.0,
+			PaymentType: "cash",
+			Status:      "active",
+		}
+
+		body, _ := json.Marshal(saleDTO)
+		req := httptest.NewRequest(http.MethodPut, "/sale/1", bytes.NewBuffer(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		saleModel := dtoSale.ToSaleModel(saleDTO)
+		saleModel.ID = 1 // Set ID from URL param
+		saleDTO.ID = utils.Int64Ptr(1)
+
+		mockService.On("Update", mock.Anything, saleModel).Return(errMsg.ErrInvalidData)
+
+		h.Update(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var resp map[string]interface{}
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Equal(t, errMsg.ErrInvalidData.Error(), resp["message"])
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("erro de ID zero - ErrZeroID", func(t *testing.T) {
+		mockService, h := setupHandler()
+
+		saleDTO := dtoSale.SaleDTO{
+			UserID:      utils.Int64Ptr(1),
+			SaleDate:    &now,
+			TotalAmount: 100.0,
+			PaymentType: "cash",
+			Status:      "active",
+		}
+
+		body, _ := json.Marshal(saleDTO)
+		req := httptest.NewRequest(http.MethodPut, "/sale/1", bytes.NewBuffer(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		saleModel := dtoSale.ToSaleModel(saleDTO)
+		saleModel.ID = 1
+		saleDTO.ID = utils.Int64Ptr(1)
+
+		mockService.On("Update", mock.Anything, saleModel).Return(errMsg.ErrZeroID)
+
+		h.Update(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var resp map[string]interface{}
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Equal(t, errMsg.ErrZeroID.Error(), resp["message"])
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("erro de versão zero - ErrZeroVersion", func(t *testing.T) {
+		mockService, h := setupHandler()
+
+		saleDTO := dtoSale.SaleDTO{
+			UserID:      utils.Int64Ptr(1),
+			SaleDate:    &now,
+			TotalAmount: 100.0,
+			PaymentType: "cash",
+			Status:      "active",
+		}
+
+		body, _ := json.Marshal(saleDTO)
+		req := httptest.NewRequest(http.MethodPut, "/sale/1", bytes.NewBuffer(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		saleModel := dtoSale.ToSaleModel(saleDTO)
+		saleModel.ID = 1
+		saleDTO.ID = utils.Int64Ptr(1)
+
+		mockService.On("Update", mock.Anything, saleModel).Return(errMsg.ErrZeroVersion)
+
+		h.Update(w, req)
+
+		assert.Equal(t, http.StatusConflict, w.Code)
+
+		var resp map[string]interface{}
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Equal(t, errMsg.ErrZeroVersion.Error(), resp["message"])
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("erro de foreign key - ErrDBInvalidForeignKey", func(t *testing.T) {
+		mockService, h := setupHandler()
+
+		saleDTO := dtoSale.SaleDTO{
+			UserID:      utils.Int64Ptr(1),
+			SaleDate:    &now,
+			TotalAmount: 100.0,
+			PaymentType: "cash",
+			Status:      "active",
+		}
+
+		body, _ := json.Marshal(saleDTO)
+		req := httptest.NewRequest(http.MethodPut, "/sale/1", bytes.NewBuffer(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		saleModel := dtoSale.ToSaleModel(saleDTO)
+		saleModel.ID = 1
+		saleDTO.ID = utils.Int64Ptr(1)
+
+		mockService.On("Update", mock.Anything, saleModel).Return(errMsg.ErrDBInvalidForeignKey)
+
+		h.Update(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var resp map[string]interface{}
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Equal(t, errMsg.ErrDBInvalidForeignKey.Error(), resp["message"])
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("venda não encontrada - ErrNotFound", func(t *testing.T) {
+		mockService, h := setupHandler()
+
+		saleDTO := dtoSale.SaleDTO{
+			UserID:      utils.Int64Ptr(1),
+			SaleDate:    &now,
+			TotalAmount: 100.0,
+			PaymentType: "cash",
+			Status:      "active",
+		}
+
+		body, _ := json.Marshal(saleDTO)
+		req := httptest.NewRequest(http.MethodPut, "/sale/1", bytes.NewBuffer(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		saleModel := dtoSale.ToSaleModel(saleDTO)
+		saleModel.ID = 1
+		saleDTO.ID = utils.Int64Ptr(1)
+
+		mockService.On("Update", mock.Anything, saleModel).Return(errMsg.ErrNotFound)
+
+		h.Update(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		var resp map[string]interface{}
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Equal(t, errMsg.ErrNotFound.Error(), resp["message"])
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("erro genérico do serviço (fora do switch)", func(t *testing.T) {
+		mockService, h := setupHandler()
+
+		saleDTO := dtoSale.SaleDTO{
+			UserID:      utils.Int64Ptr(1),
+			SaleDate:    &now,
+			TotalAmount: 100.0,
+			PaymentType: "cash",
+			Status:      "active",
+		}
+
+		body, _ := json.Marshal(saleDTO)
+		req := httptest.NewRequest(http.MethodPut, "/sale/1", bytes.NewBuffer(body))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		saleModel := dtoSale.ToSaleModel(saleDTO)
+		saleModel.ID = 1
+		saleDTO.ID = utils.Int64Ptr(1)
+
+		genericErr := errors.New("erro genérico do banco de dados")
+		mockService.On("Update", mock.Anything, saleModel).Return(genericErr)
+
+		h.Update(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var resp map[string]interface{}
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Equal(t, genericErr.Error(), resp["message"])
+		mockService.AssertExpectations(t)
+	})
+
 }
 
 func TestSaleHandler_Delete(t *testing.T) {
@@ -284,109 +589,5 @@ func TestSaleHandler_Delete(t *testing.T) {
 		assert.Empty(t, w.Body.String())
 
 		mockService.AssertExpectations(t)
-	})
-}
-
-func TestSaleHandler_Cancel(t *testing.T) {
-	t.Run("ID inválido", func(t *testing.T) {
-		_, h := setupHandler()
-		req := httptest.NewRequest(http.MethodPatch, "/sale/cancel/abc", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
-		w := httptest.NewRecorder()
-
-		h.Cancel(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-	})
-
-	t.Run("method not allowed", func(t *testing.T) {
-		_, h := setupHandler()
-		req := httptest.NewRequest(http.MethodGet, "/sale/cancel/1", nil) // GET em vez de PATCH
-		req = mux.SetURLVars(req, map[string]string{
-			"id": "1",
-		})
-		w := httptest.NewRecorder()
-
-		h.Cancel(w, req)
-
-		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
-		assert.Contains(t, w.Body.String(), "método GET não permitido")
-	})
-
-	t.Run("erro do serviço", func(t *testing.T) {
-		svc, h := setupHandler()
-		svc.On("Cancel", mock.Anything, int64(1)).Return(errors.New("erro do serviço")).Once()
-
-		req := httptest.NewRequest(http.MethodPatch, "/sale/cancel/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		w := httptest.NewRecorder()
-
-		h.Cancel(w, req)
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		svc.AssertExpectations(t)
-	})
-
-	t.Run("sucesso", func(t *testing.T) {
-		svc, h := setupHandler()
-		svc.On("Cancel", mock.Anything, int64(2)).Return(nil).Once()
-
-		req := httptest.NewRequest(http.MethodPatch, "/sale/cancel/2", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "2"})
-		w := httptest.NewRecorder()
-
-		h.Cancel(w, req)
-		assert.Equal(t, http.StatusNoContent, w.Code)
-		svc.AssertExpectations(t)
-	})
-}
-
-func TestSaleHandler_Complete(t *testing.T) {
-	t.Run("ID inválido", func(t *testing.T) {
-		_, h := setupHandler()
-		req := httptest.NewRequest(http.MethodPatch, "/sale/complete/abc", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
-		w := httptest.NewRecorder()
-
-		h.Complete(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-	})
-
-	t.Run("method not allowed", func(t *testing.T) {
-		_, h := setupHandler()
-		req := httptest.NewRequest(http.MethodGet, "/sale/complete/1", nil) // GET em vez de PATCH
-		req = mux.SetURLVars(req, map[string]string{
-			"id": "1",
-		})
-		w := httptest.NewRecorder()
-
-		h.Complete(w, req)
-
-		assert.Equal(t, http.StatusMethodNotAllowed, w.Code)
-		assert.Contains(t, w.Body.String(), "método GET não permitido")
-	})
-
-	t.Run("erro do serviço", func(t *testing.T) {
-		svc, h := setupHandler()
-		svc.On("Complete", mock.Anything, int64(1)).Return(errors.New("erro do serviço")).Once()
-
-		req := httptest.NewRequest(http.MethodPatch, "/sale/complete/1", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		w := httptest.NewRecorder()
-
-		h.Complete(w, req)
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		svc.AssertExpectations(t)
-	})
-
-	t.Run("sucesso", func(t *testing.T) {
-		svc, h := setupHandler()
-		svc.On("Complete", mock.Anything, int64(2)).Return(nil).Once()
-
-		req := httptest.NewRequest(http.MethodPatch, "/sale/complete/2", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "2"})
-		w := httptest.NewRecorder()
-
-		h.Complete(w, req)
-		assert.Equal(t, http.StatusNoContent, w.Code)
-		svc.AssertExpectations(t)
 	})
 }

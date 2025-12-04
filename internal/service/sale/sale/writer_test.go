@@ -360,6 +360,25 @@ func TestSaleService_Create(t *testing.T) {
 	})
 }
 
+func createValidSaleForTest(id int64) *models.Sale {
+	return &models.Sale{
+		ID:                 id,
+		Version:            1,
+		ClientID:           utils.Int64Ptr(100),
+		UserID:             utils.Int64Ptr(200),
+		SaleDate:           time.Now(),
+		TotalItemsAmount:   300.00,
+		TotalItemsDiscount: 30.00,
+		TotalSaleDiscount:  10.00,
+		TotalAmount:        260.00,   // 300 - 30 - 10
+		PaymentType:        "cash",   // válido
+		Status:             "active", // válido
+		Notes:              "Test sale",
+		CreatedAt:          time.Now(),
+		UpdatedAt:          time.Now(),
+	}
+}
+
 func TestSaleService_Update(t *testing.T) {
 	mockRepo := new(mockSale.MockSale)
 	svc := NewSaleService(mockRepo)
@@ -458,6 +477,38 @@ func TestSaleService_Update(t *testing.T) {
 
 		err := svc.Update(ctx, s)
 		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("repo retorna ErrNotFound", func(t *testing.T) {
+		s := createValidSaleForTest(1)
+		mockRepo.On("Update", ctx, s).Return(errMsg.ErrNotFound).Once()
+
+		err := svc.Update(ctx, s)
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		assert.NotErrorIs(t, err, errMsg.ErrUpdate)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("repo retorna ErrZeroVersion", func(t *testing.T) {
+		s := createValidSaleForTest(2)
+		mockRepo.On("Update", ctx, s).Return(errMsg.ErrZeroVersion).Once()
+
+		err := svc.Update(ctx, s)
+		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
+		assert.NotErrorIs(t, err, errMsg.ErrUpdate)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("repo retorna erro genérico", func(t *testing.T) {
+		s := createValidSaleForTest(3)
+		repoErr := errors.New("database error")
+		mockRepo.On("Update", ctx, s).Return(repoErr).Once()
+
+		err := svc.Update(ctx, s)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrUpdate)
+		assert.Contains(t, err.Error(), repoErr.Error())
 		mockRepo.AssertExpectations(t)
 	})
 }

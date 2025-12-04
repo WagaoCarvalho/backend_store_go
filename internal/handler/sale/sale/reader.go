@@ -113,41 +113,6 @@ func (h *saleHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *saleHandler) GetByStatus(w http.ResponseWriter, r *http.Request) {
-	const ref = "[SaleHandler - GetByStatus] "
-	ctx := r.Context()
-
-	if r.Method != http.MethodGet {
-		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{"method": r.Method})
-		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
-		return
-	}
-
-	status, err := utils.GetStringParam(r, "status")
-	if err != nil {
-		h.logger.Warn(ctx, ref+"status inválido", map[string]any{"erro": err.Error()})
-		utils.ErrorResponse(w, errMsg.ErrInvalidData, http.StatusBadRequest)
-		return
-	}
-
-	limit, offset := utils.ParseLimitOffset(r)
-	orderBy, orderDir := utils.ParseOrder(r)
-
-	sales, err := h.service.GetByStatus(ctx, status, limit, offset, orderBy, orderDir)
-	if err != nil {
-		h.logger.Error(ctx, err, ref+"Erro ao buscar vendas por status", map[string]any{"status": status})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	salesDTO := dtoSale.ToSaleDTOList(sales)
-	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
-		Message: "Vendas por status recuperadas",
-		Data:    salesDTO,
-	})
-}
-
 func (h *saleHandler) GetByDateRange(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SaleHandler - GetByDateRange] "
 	ctx := r.Context()

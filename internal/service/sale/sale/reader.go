@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"strings"
 	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
@@ -66,28 +65,6 @@ func (s *saleService) GetByUserID(ctx context.Context, userID int64, limit, offs
 	}
 
 	return s.repo.GetByUserID(ctx, userID, limit, offset, orderBy, orderDir)
-}
-
-func (s *saleService) GetByStatus(ctx context.Context, status string, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
-	if strings.TrimSpace(status) == "" {
-		return nil, errMsg.ErrInvalidData
-	}
-
-	if err := validate.ValidatePagination(limit, offset); err != nil {
-		return nil, err
-	}
-
-	orderDir, err := validate.ValidateOrder(orderBy, map[string]bool{
-		"id":        true,
-		"sale_date": true,
-		"total":     true,
-		"status":    true,
-	}, orderDir)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.repo.GetByStatus(ctx, status, limit, offset, orderBy, orderDir)
 }
 
 func (s *saleService) GetByDateRange(ctx context.Context, start, end time.Time, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {

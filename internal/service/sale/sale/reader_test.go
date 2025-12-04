@@ -148,54 +148,6 @@ func TestSaleService_GetByUserID(t *testing.T) {
 	})
 }
 
-func TestSaleService_GetByStatus(t *testing.T) {
-	mockRepo := new(mockSale.MockSale)
-	svc := NewSaleService(mockRepo)
-	ctx := context.Background()
-
-	t.Run("status inválido", func(t *testing.T) {
-		result, err := svc.GetByStatus(ctx, "", 10, 0, "id", "asc")
-		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
-	})
-
-	t.Run("erro paginação", func(t *testing.T) {
-		result, err := svc.GetByStatus(ctx, "active", 0, 0, "id", "asc")
-		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrInvalidLimit)
-	})
-
-	t.Run("erro order field", func(t *testing.T) {
-		result, err := svc.GetByStatus(ctx, "active", 10, 0, "invalid", "asc")
-		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrInvalidOrderField)
-	})
-
-	t.Run("erro order direction", func(t *testing.T) {
-		result, err := svc.GetByStatus(ctx, "active", 10, 0, "id", "invalid")
-		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrInvalidOrderDirection)
-	})
-
-	t.Run("erro genérico do repo", func(t *testing.T) {
-		expectedErr := errors.New("repo error")
-		mockRepo.On("GetByStatus", ctx, "active", 10, 0, "id", "asc").Return(nil, expectedErr).Once()
-		result, err := svc.GetByStatus(ctx, "active", 10, 0, "id", "asc")
-		assert.Nil(t, result)
-		assert.Equal(t, expectedErr, err)
-		mockRepo.AssertExpectations(t)
-	})
-
-	t.Run("sucesso", func(t *testing.T) {
-		expectedSales := []*models.Sale{{ID: 1}, {ID: 2}}
-		mockRepo.On("GetByStatus", ctx, "active", 10, 0, "id", "asc").Return(expectedSales, nil).Once()
-		result, err := svc.GetByStatus(ctx, "active", 10, 0, "id", "asc")
-		assert.NoError(t, err)
-		assert.Equal(t, expectedSales, result)
-		mockRepo.AssertExpectations(t)
-	})
-}
-
 func TestSaleService_GetByDateRange(t *testing.T) {
 	mockRepo := new(mockSale.MockSale)
 	svc := NewSaleService(mockRepo)

@@ -24,8 +24,10 @@ func (r *saleRepo) listByField(
 			client_id,
 			user_id,
 			sale_date,
+			total_items_amount,    -- ADICIONADO
+			total_items_discount,  -- ADICIONADO
+			total_sale_discount,
 			total_amount,
-			total_discount,
 			payment_type,
 			status,
 			notes,
@@ -58,8 +60,10 @@ func scanSales(rows pgx.Rows) ([]*models.Sale, error) {
 			&sale.ClientID, // *int64
 			&sale.UserID,   // *int64
 			&sale.SaleDate,
-			&sale.TotalAmount,
+			&sale.TotalItemsAmount,   // ADICIONADO
+			&sale.TotalItemsDiscount, // ADICIONADO
 			&sale.TotalSaleDiscount,
+			&sale.TotalAmount,
 			&sale.PaymentType,
 			&sale.Status,
 			&sale.Notes, // string, NULL vira ""
@@ -67,7 +71,7 @@ func scanSales(rows pgx.Rows) ([]*models.Sale, error) {
 			&sale.CreatedAt,
 			&sale.UpdatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+			return nil, fmt.Errorf("%w: erro ao scanear vendas: %v", errMsg.ErrGet, err)
 		}
 
 		result = append(result, &sale)
@@ -87,7 +91,7 @@ func sanitizeField(field string) string {
 
 func sanitizeOrderBy(orderBy string) string {
 	switch orderBy {
-	case "sale_date", "total_amount", "created_at":
+	case "sale_date", "total_amount", "created_at", "total_items_amount":
 		return orderBy
 	default:
 		return "sale_date"

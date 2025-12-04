@@ -19,9 +19,11 @@ func (r *saleRepo) GetByID(ctx context.Context, id int64) (*models.Sale, error) 
 			client_id,
 			user_id,
 			sale_date,
+			total_items_amount,
+			total_items_discount,
+			total_sale_discount,
 			total_amount,
-			total_discount,
-			/payment_type,
+			payment_type,
 			status,
 			notes,
 			version,
@@ -35,14 +37,16 @@ func (r *saleRepo) GetByID(ctx context.Context, id int64) (*models.Sale, error) 
 
 	err := r.db.QueryRow(ctx, query, id).Scan(
 		&sale.ID,
-		&sale.ClientID, // *int64 — NULL OK
-		&sale.UserID,   // *int64 — NULL OK
+		&sale.ClientID,
+		&sale.UserID,
 		&sale.SaleDate,
-		&sale.TotalAmount,
+		&sale.TotalItemsAmount,
+		&sale.TotalItemsDiscount,
 		&sale.TotalSaleDiscount,
+		&sale.TotalAmount,
 		&sale.PaymentType,
 		&sale.Status,
-		&sale.Notes, // string — NULL vira ""
+		&sale.Notes,
 		&sale.Version,
 		&sale.CreatedAt,
 		&sale.UpdatedAt,
@@ -73,8 +77,20 @@ func (r *saleRepo) GetByStatus(ctx context.Context, status string, limit, offset
 func (r *saleRepo) GetByDateRange(ctx context.Context, start, end time.Time, limit, offset int, orderBy, orderDir string) ([]*models.Sale, error) {
 	query := fmt.Sprintf(`
 		SELECT 
-			id, client_id, user_id, sale_date, total_amount, total_discount,
-			payment_type, status, notes, version, created_at, updated_at
+			id,
+			client_id,
+			user_id,
+			sale_date,
+			total_items_amount,
+			total_items_discount,
+			total_sale_discount,
+			total_amount,
+			payment_type,
+			status,
+			notes,
+			version,
+			created_at,
+			updated_at
 		FROM sales
 		WHERE sale_date BETWEEN $1 AND $2
 		ORDER BY %s %s
