@@ -38,7 +38,7 @@ func (s *saleService) Update(ctx context.Context, sale *models.Sale) error {
 		return errMsg.ErrZeroID
 	}
 	if sale.Version <= 0 {
-		return errMsg.ErrZeroVersion
+		return errMsg.ErrVersionConflict
 	}
 
 	if err := sale.ValidateStructural(); err != nil {
@@ -54,8 +54,8 @@ func (s *saleService) Update(ctx context.Context, sale *models.Sale) error {
 		switch {
 		case errors.Is(err, errMsg.ErrNotFound):
 			return errMsg.ErrNotFound
-		case errors.Is(err, errMsg.ErrZeroVersion):
-			return errMsg.ErrZeroVersion
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			return errMsg.ErrVersionConflict
 		default:
 			return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 		}

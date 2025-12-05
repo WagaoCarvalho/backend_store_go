@@ -106,7 +106,7 @@ func (h *saleHandler) Update(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
 
-		case errors.Is(err, errMsg.ErrZeroVersion):
+		case errors.Is(err, errMsg.ErrVersionConflict):
 			utils.ErrorResponse(w, err, http.StatusConflict)
 			return
 

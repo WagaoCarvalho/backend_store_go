@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/category"
+	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func (r *productCategoryRepo) Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error) {
@@ -21,9 +21,8 @@ func (r *productCategoryRepo) Create(ctx context.Context, category *models.Produ
 	err := r.db.QueryRow(ctx, query, category.Name, category.Description).
 		Scan(&category.ID, &category.CreatedAt, &category.UpdatedAt)
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return nil, errMsg.ErrAlreadyExists
+		if ok, constraint := errMsgPg.IsUniqueViolation(err); ok {
+			return nil, fmt.Errorf("%w: %s", errMsg.ErrDuplicate, constraint)
 		}
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}

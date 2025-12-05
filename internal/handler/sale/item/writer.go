@@ -100,7 +100,7 @@ func (h *saleItemHandler) Update(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorResponse(w, err, http.StatusNotFound)
 			return
 
-		case errors.Is(err, errMsg.ErrZeroVersion):
+		case errors.Is(err, errMsg.ErrVersionConflict):
 			utils.ErrorResponse(w, err, http.StatusConflict)
 			return
 

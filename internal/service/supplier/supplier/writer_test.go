@@ -44,7 +44,7 @@ func TestSupplierService_Create(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrInvalidData) // em vez de Contains na string
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
 		mockRepo.AssertNotCalled(t, "Create")
 	})
 
@@ -110,7 +110,7 @@ func TestSupplierService_Update(t *testing.T) {
 
 		err := service.Update(ctx, input)
 
-		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 
@@ -140,7 +140,7 @@ func TestSupplierService_Update(t *testing.T) {
 
 		err := service.Update(ctx, input)
 
-		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		mockRepo.AssertExpectations(t)
 	})
 

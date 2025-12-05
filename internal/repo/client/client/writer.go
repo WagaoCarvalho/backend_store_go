@@ -67,7 +67,7 @@ func (r *clientRepo) Update(ctx context.Context, client *models.Client) error {
 	}
 
 	if currentVersion != client.Version {
-		return errMsg.ErrZeroVersion
+		return errMsg.ErrVersionConflict
 	}
 
 	const queryUpdate = `
@@ -98,7 +98,6 @@ func (r *clientRepo) Update(ctx context.Context, client *models.Client) error {
 	if err != nil {
 		var pgErr *pgconn.PgError
 
-		// Erros de banco que fazem sentido manter
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
 			case "23505":

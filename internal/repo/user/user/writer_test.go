@@ -203,6 +203,237 @@ func TestUserRepo_Create(t *testing.T) {
 		assert.Equal(t, 1, user.Version)
 		mockDB.AssertExpectations(t)
 	})
+
+	t.Run("return ErrInvalidData for duplicate key (username)", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &userRepo{db: mockDB}
+		ctx := context.Background()
+
+		user := &models.User{
+			Username:    "existinguser",
+			Email:       "test@example.com",
+			Password:    "hashedpassword123",
+			Description: "Test user",
+			Status:      true,
+			Version:     1,
+		}
+
+		// Simular erro de chave duplicada do PostgreSQL
+		dbError := &pgconn.PgError{
+			Code:    "23505", // unique_violation
+			Message: "duplicate key value violates unique constraint \"users_username_key\"",
+		}
+		mockRow := &mockDb.MockRow{Err: dbError}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+			Return(mockRow)
+
+		result, err := repo.Create(ctx, user)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		assert.Contains(t, err.Error(), "dados já existem no sistema")
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrInvalidData for duplicate key (email)", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &userRepo{db: mockDB}
+		ctx := context.Background()
+
+		user := &models.User{
+			Username:    "newuser",
+			Email:       "existing@example.com",
+			Password:    "hashedpassword123",
+			Description: "Test user",
+			Status:      true,
+			Version:     1,
+		}
+
+		// Simular erro de chave duplicada para email
+		dbError := &pgconn.PgError{
+			Code:    "23505", // unique_violation
+			Message: "duplicate key value violates unique constraint \"users_email_key\"",
+		}
+		mockRow := &mockDb.MockRow{Err: dbError}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+			Return(mockRow)
+
+		result, err := repo.Create(ctx, user)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		assert.Contains(t, err.Error(), "dados já existem no sistema")
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrInvalidData for check constraint violation", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &userRepo{db: mockDB}
+		ctx := context.Background()
+
+		user := &models.User{
+			Username:    "testuser",
+			Email:       "invalid-email",
+			Password:    "short",
+			Description: "Test user",
+			Status:      true,
+			Version:     1,
+		}
+
+		// Simular erro de constraint check
+		dbError := &pgconn.PgError{
+			Code:    "23514", // check_violation
+			Message: "new row for relation \"users\" violates check constraint \"users_email_check\"",
+		}
+		mockRow := &mockDb.MockRow{Err: dbError}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+			Return(mockRow)
+
+		result, err := repo.Create(ctx, user)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		assert.Contains(t, err.Error(), "dados inválidos")
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrCreate for other database errors", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &userRepo{db: mockDB}
+		ctx := context.Background()
+
+		user := &models.User{
+			Username:    "testuser",
+			Email:       "test@example.com",
+			Password:    "hashedpassword123",
+			Description: "Test user",
+			Status:      true,
+			Version:     1,
+		}
+
+		// Erro genérico que não é duplicate key nem check violation
+		dbError := &pgconn.PgError{
+			Code:    "08000", // connection_exception
+			Message: "connection to server lost",
+		}
+		mockRow := &mockDb.MockRow{Err: dbError}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+			Return(mockRow)
+
+		result, err := repo.Create(ctx, user)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrCreate)
+		assert.NotContains(t, err.Error(), "dados já existem no sistema")
+		assert.NotContains(t, err.Error(), "dados inválidos")
+		assert.Contains(t, err.Error(), "connection to server lost")
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrCreate for non-pgconn errors", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &userRepo{db: mockDB}
+		ctx := context.Background()
+
+		user := &models.User{
+			Username:    "testuser",
+			Email:       "test@example.com",
+			Password:    "hashedpassword123",
+			Description: "Test user",
+			Status:      true,
+			Version:     1,
+		}
+
+		// Erro que não é pgconn.PgError
+		dbError := errors.New("network error")
+		mockRow := &mockDb.MockRow{Err: dbError}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+			Return(mockRow)
+
+		result, err := repo.Create(ctx, user)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrCreate)
+		assert.Contains(t, err.Error(), "network error")
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("handle multiple duplicate key constraints", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &userRepo{db: mockDB}
+		ctx := context.Background()
+
+		user := &models.User{
+			Username:    "existinguser",
+			Email:       "existing@example.com",
+			Password:    "hashedpassword123",
+			Description: "Test user",
+			Status:      true,
+			Version:     1,
+		}
+
+		// Erro com constraint name diferente
+		dbError := &pgconn.PgError{
+			Code:    "23505",
+			Message: "duplicate key value violates unique constraint \"users_some_other_constraint\"",
+		}
+		mockRow := &mockDb.MockRow{Err: dbError}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+			Return(mockRow)
+
+		result, err := repo.Create(ctx, user)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		assert.Contains(t, err.Error(), "dados já existem no sistema")
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("handle different check constraint violations", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &userRepo{db: mockDB}
+		ctx := context.Background()
+
+		user := &models.User{
+			Username:    "testuser",
+			Email:       "test@example.com",
+			Password:    "hashedpassword123",
+			Description: "Test user",
+			Status:      true,
+			Version:     1,
+		}
+
+		// Outro tipo de constraint check
+		dbError := &pgconn.PgError{
+			Code:    "23514",
+			Message: "new row for relation \"users\" violates check constraint \"users_status_check\"",
+		}
+		mockRow := &mockDb.MockRow{Err: dbError}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+			Return(mockRow)
+
+		result, err := repo.Create(ctx, user)
+
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		assert.Contains(t, err.Error(), "dados inválidos")
+		mockDB.AssertExpectations(t)
+	})
+
 }
 
 func TestUserRepo_Update(t *testing.T) {
@@ -327,7 +558,7 @@ func TestUserRepo_Update(t *testing.T) {
 
 		err := repo.Update(ctx, user)
 
-		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		mockDB.AssertExpectations(t)
 	})
 

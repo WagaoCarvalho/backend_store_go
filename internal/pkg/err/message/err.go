@@ -26,10 +26,10 @@ var (
 	ErrInvalidFilter         = errors.New("filtro inválido")
 
 	// version
-	ErrGetVersion  = errors.New("erro ao buscar versão")
-	ErrZeroVersion = errors.New("erro de conflito de versão")
-	ErrDisable     = errors.New("erro ao desabilitar")
-	ErrEnable      = errors.New("erro ao ativar")
+	ErrGetVersion      = errors.New("erro ao buscar versão")
+	ErrVersionConflict = errors.New("erro de conflito de versão")
+	ErrDisable         = errors.New("erro ao desabilitar")
+	ErrEnable          = errors.New("erro ao ativar")
 
 	ErrRelationExists = errors.New("relação já existe")
 	ErrAlreadyExists  = errors.New("registro já existe")
@@ -38,4 +38,5 @@ var (
 	ErrRelationCheck = errors.New("erro ao verificar relação")
 
 	ErrInvalidData = errors.New("erro na validação dos dados")
+	ErrInternal    = errors.New("erro interno")
 )

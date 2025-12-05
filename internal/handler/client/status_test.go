@@ -92,7 +92,7 @@ func TestClientHandler_Disable(t *testing.T) {
 	t.Run("ErrVersionConflict", func(t *testing.T) {
 		mockService, handler := setup()
 		clientID := int64(1)
-		mockService.On("Disable", mock.Anything, clientID).Return(errMsg.ErrZeroVersion).Once()
+		mockService.On("Disable", mock.Anything, clientID).Return(errMsg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/clients/disable/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -200,7 +200,7 @@ func TestClientHandler_Enable(t *testing.T) {
 	t.Run("ErrVersionConflict", func(t *testing.T) {
 		mockService, handler := setup()
 		clientID := int64(1)
-		mockService.On("Enable", mock.Anything, clientID).Return(errMsg.ErrZeroVersion).Once()
+		mockService.On("Enable", mock.Anything, clientID).Return(errMsg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/clients/enable/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})

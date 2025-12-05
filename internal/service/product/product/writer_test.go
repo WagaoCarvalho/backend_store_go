@@ -31,7 +31,6 @@ func TestProductService_Create(t *testing.T) {
 		mockRepo := new(mockProduct.ProductMock)
 		service := NewProductService(mockRepo)
 
-		// Chama com produto nulo
 		created, err := service.Create(ctx, nil)
 
 		assert.Nil(t, created)
@@ -70,7 +69,7 @@ func TestProductService_Create(t *testing.T) {
 		service := NewProductService(mockRepo)
 
 		input := &models.Product{
-			Status: true, // faltando campos obrigatórios
+			Status: true,
 		}
 
 		created, err := service.Create(ctx, input)
@@ -133,7 +132,7 @@ func TestProductService_Update(t *testing.T) {
 		service := NewProductService(mockRepo)
 
 		input := validProduct()
-		input.ProductName = "" // invalida a validação
+		input.ProductName = ""
 
 		err := service.Update(ctx, input)
 
@@ -166,12 +165,12 @@ func TestProductService_Update(t *testing.T) {
 
 		mockRepo.
 			On("Update", ctx, input).
-			Return(errMsg.ErrZeroVersion).
+			Return(errMsg.ErrVersionConflict).
 			Once()
 
 		err := service.Update(ctx, input)
 
-		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -218,7 +217,7 @@ func TestProductService_Update(t *testing.T) {
 
 		err := service.Update(ctx, input)
 
-		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		mockRepo.AssertNotCalled(t, "Update")
 	})
 

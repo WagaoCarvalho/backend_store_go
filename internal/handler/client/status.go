@@ -42,7 +42,7 @@ func (h *clientHandler) Disable(w http.ResponseWriter, r *http.Request) {
 			})
 			utils.ErrorResponse(w, fmt.Errorf("cliente não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, errMsg.ErrZeroVersion):
+		case errors.Is(err, errMsg.ErrVersionConflict):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"client_id": uid,
 			})
@@ -95,7 +95,7 @@ func (h *clientHandler) Enable(w http.ResponseWriter, r *http.Request) {
 			})
 			utils.ErrorResponse(w, fmt.Errorf("cliente não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, errMsg.ErrZeroVersion):
+		case errors.Is(err, errMsg.ErrVersionConflict):
 			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
 				"client_id": uid,
 			})

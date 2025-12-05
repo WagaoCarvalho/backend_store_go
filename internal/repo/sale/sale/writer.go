@@ -80,7 +80,7 @@ func (r *saleRepo) Update(ctx context.Context, sale *models.Sale) error {
 
 	// 2) Confere version (optimistic lock)
 	if currentVersion != sale.Version {
-		return errMsg.ErrZeroVersion
+		return errMsg.ErrVersionConflict
 	}
 
 	// 3) Atualiza

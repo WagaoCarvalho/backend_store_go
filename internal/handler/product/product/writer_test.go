@@ -41,7 +41,7 @@ func TestProductHandler_Create(t *testing.T) {
 		}
 
 		expectedModel := dto.ToProductModel(input)
-		expectedModel.ID = 123 // simula ID atribuído pelo banco
+		expectedModel.ID = 123
 
 		mockService.
 			On("Create", mock.Anything, mock.MatchedBy(func(m *models.Product) bool {
@@ -249,7 +249,6 @@ func TestProductHandler_Update(t *testing.T) {
 		mockService := new(mockProduct.ProductMock)
 		handler := NewProductHandler(mockService, logAdapter)
 
-		// Corpo JSON inválido
 		req := httptest.NewRequest(http.MethodPut, "/products/1", bytes.NewBufferString(`{ invalido `))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		req.Header.Set("Content-Type", "application/json")
@@ -353,7 +352,7 @@ func TestProductHandler_Update(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 
-		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrZeroVersion).Once()
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrVersionConflict).Once()
 
 		handler.Update(w, req)
 
@@ -448,10 +447,8 @@ func TestProductHandler_Delete(t *testing.T) {
 		resp := w.Result()
 		defer resp.Body.Close()
 
-		// Corrigido: Delete retorna 204 No Content, não 200 OK
 		assert.Equal(t, http.StatusNoContent, resp.StatusCode)
 
-		// Verifica que não há corpo de resposta (como esperado para 204)
 		body, err := io.ReadAll(resp.Body)
 		assert.NoError(t, err)
 		assert.Empty(t, body)

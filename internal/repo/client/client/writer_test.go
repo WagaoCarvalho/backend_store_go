@@ -136,7 +136,6 @@ func TestClient_Create(t *testing.T) {
 
 		client := &models.Client{}
 
-		// Erro de FK → código 23503
 		pgErr := &pgconn.PgError{
 			Code:    "23503",
 			Message: "foreign key violation",
@@ -174,21 +173,18 @@ func TestClientRepo_Update(t *testing.T) {
 			Version:     1,
 		}
 
-		// Mock da PRIMEIRA chamada (SELECT version)
 		mockRowSelect := &mockDb.MockRow{
-			Values: []interface{}{1}, // currentVersion = 1 (igual ao client.Version)
+			Values: []interface{}{1},
 		}
 
-		// Mock da SEGUNDA chamada (UPDATE)
 		updatedAt := time.Now()
 		mockRowUpdate := &mockDb.MockRow{
 			Values: []interface{}{
-				updatedAt, // updated_at
-				2,         // version (incrementado)
+				updatedAt,
+				2,
 			},
 		}
 
-		// Primeira chamada: SELECT version
 		selectQuery := `
 		SELECT version
 		FROM clients
@@ -196,7 +192,6 @@ func TestClientRepo_Update(t *testing.T) {
 	`
 		mockDB.On("QueryRow", ctx, selectQuery, []interface{}{client.ID}).Return(mockRowSelect)
 
-		// Segunda chamada: UPDATE
 		updateQuery := `
 		UPDATE clients
 		SET 
@@ -239,7 +234,6 @@ func TestClientRepo_Update(t *testing.T) {
 			Version: 1,
 		}
 
-		// Mock da PRIMEIRA chamada (SELECT version) - cliente não existe
 		mockRowSelect := &mockDb.MockRow{
 			Err: pgx.ErrNoRows,
 		}
@@ -270,12 +264,11 @@ func TestClientRepo_Update(t *testing.T) {
 			CNPJ:        utils.StrToPtr(""),
 			Status:      true,
 			Description: "Updated description",
-			Version:     1, // Versão local
+			Version:     1,
 		}
 
-		// Mock da PRIMEIRA chamada (SELECT version) - versão diferente no banco
 		mockRowSelect := &mockDb.MockRow{
-			Values: []interface{}{2}, // currentVersion = 2 (diferente da local)
+			Values: []interface{}{2},
 		}
 
 		selectQuery := `
@@ -287,7 +280,7 @@ func TestClientRepo_Update(t *testing.T) {
 
 		err := repo.Update(ctx, client)
 
-		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		mockDB.AssertExpectations(t)
 	})
 
@@ -301,7 +294,6 @@ func TestClientRepo_Update(t *testing.T) {
 			Version: 1,
 		}
 
-		// Mock da PRIMEIRA chamada (SELECT version) - erro no banco
 		dbError := errors.New("database connection error")
 		mockRowSelect := &mockDb.MockRow{
 			Err: dbError,
@@ -339,14 +331,12 @@ func TestClientRepo_Update(t *testing.T) {
 			Version:     1,
 		}
 
-		// Mock da PRIMEIRA chamada (SELECT version) - sucesso
 		mockRowSelect := &mockDb.MockRow{
 			Values: []interface{}{1},
 		}
 
-		// Mock da SEGUNDA chamada (UPDATE) - erro de constraint única
 		pgErr := &pgconn.PgError{
-			Code: "23505", // unique_violation
+			Code: "23505",
 		}
 		mockRowUpdate := &mockDb.MockRow{
 			Err: pgErr,
@@ -405,14 +395,12 @@ func TestClientRepo_Update(t *testing.T) {
 			Version:     1,
 		}
 
-		// Mock da PRIMEIRA chamada (SELECT version) - sucesso
 		mockRowSelect := &mockDb.MockRow{
 			Values: []interface{}{1},
 		}
 
-		// Mock da SEGUNDA chamada (UPDATE) - erro de constraint de verificação
 		pgErr := &pgconn.PgError{
-			Code: "23514", // check_violation
+			Code: "23514",
 		}
 		mockRowUpdate := &mockDb.MockRow{
 			Err: pgErr,
@@ -471,12 +459,10 @@ func TestClientRepo_Update(t *testing.T) {
 			Version:     1,
 		}
 
-		// Mock da PRIMEIRA chamada (SELECT version) - sucesso
 		mockRowSelect := &mockDb.MockRow{
 			Values: []interface{}{1},
 		}
 
-		// Mock da SEGUNDA chamada (UPDATE) - erro genérico no banco
 		dbError := errors.New("generic database error")
 		mockRowUpdate := &mockDb.MockRow{
 			Err: dbError,
@@ -538,12 +524,10 @@ func TestClientRepo_Update(t *testing.T) {
 			Version:     2,
 		}
 
-		// Mock da PRIMEIRA chamada (SELECT version)
 		mockRowSelect := &mockDb.MockRow{
 			Values: []interface{}{2},
 		}
 
-		// Mock da SEGUNDA chamada (UPDATE)
 		updatedAt := time.Now()
 		mockRowUpdate := &mockDb.MockRow{
 			Values: []interface{}{
@@ -631,7 +615,6 @@ func TestClient_Delete(t *testing.T) {
 		ctx := context.Background()
 		clientID := int64(1)
 
-		// DELETE 0 => nenhuma linha removida
 		cmdTag := pgconn.NewCommandTag("DELETE 0")
 		mockDB.On("Exec", ctx, mock.Anything, []interface{}{clientID}).Return(cmdTag, nil)
 

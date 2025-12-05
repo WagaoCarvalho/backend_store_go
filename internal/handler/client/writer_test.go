@@ -255,7 +255,7 @@ func TestClientHandler_Update(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
-		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrZeroVersion).Once()
+		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrVersionConflict).Once()
 
 		handler.Update(w, req)
 

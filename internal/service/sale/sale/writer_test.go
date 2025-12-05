@@ -28,19 +28,19 @@ func TestSaleService_Create(t *testing.T) {
 	})
 
 	t.Run("should return ErrInvalidData when structural validation fails", func(t *testing.T) {
-		// Criando uma venda com dados inválidos para falhar na validação estrutural
+
 		sale := &models.Sale{
 			ClientID:           utils.Int64Ptr(1),
 			UserID:             utils.Int64Ptr(1),
 			SaleDate:           time.Now(),
 			TotalItemsAmount:   100.00,
-			TotalItemsDiscount: -10.00, // Valor negativo - falha na validação estrutural
+			TotalItemsDiscount: -10.00,
 			TotalSaleDiscount:  5.00,
 			TotalAmount:        95.00,
-			PaymentType:        "invalid_payment", // Tipo de pagamento inválido
+			PaymentType:        "invalid_payment",
 			Status:             "active",
 			Notes:              "Test sale",
-			Version:            0, // Version < 1 - falha na validação
+			Version:            0,
 		}
 
 		result, err := svc.Create(ctx, sale)
@@ -50,14 +50,14 @@ func TestSaleService_Create(t *testing.T) {
 	})
 
 	t.Run("should return ErrInvalidData when business validation fails", func(t *testing.T) {
-		// Criando uma venda que falha nas regras de negócio
+
 		sale := &models.Sale{
 			ClientID:           utils.Int64Ptr(1),
 			UserID:             utils.Int64Ptr(1),
-			SaleDate:           time.Time{}, // Data zero - falha na validação de negócio
+			SaleDate:           time.Time{},
 			TotalItemsAmount:   100.00,
 			TotalItemsDiscount: 50.00,
-			TotalSaleDiscount:  60.00, // Total de descontos (110) > TotalAmount (95) - falha
+			TotalSaleDiscount:  60.00,
 			TotalAmount:        95.00,
 			PaymentType:        "cash",
 			Status:             "active",
@@ -72,7 +72,7 @@ func TestSaleService_Create(t *testing.T) {
 	})
 
 	t.Run("should propagate repository error", func(t *testing.T) {
-		// Criando uma venda válida
+
 		sale := &models.Sale{
 			ClientID:           utils.Int64Ptr(1),
 			UserID:             utils.Int64Ptr(1),
@@ -87,7 +87,6 @@ func TestSaleService_Create(t *testing.T) {
 			Version:            1,
 		}
 
-		// Configurando o mock para retornar um erro
 		expectedErr := fmt.Errorf("%w: database error", errMsg.ErrCreate)
 		mockRepo.On("Create", ctx, sale).Return(nil, expectedErr).Once()
 
@@ -101,7 +100,7 @@ func TestSaleService_Create(t *testing.T) {
 	})
 
 	t.Run("should return ErrDBInvalidForeignKey when repository returns foreign key error", func(t *testing.T) {
-		// Criando uma venda válida
+
 		sale := &models.Sale{
 			ClientID:           utils.Int64Ptr(1),
 			UserID:             utils.Int64Ptr(1),
@@ -116,7 +115,6 @@ func TestSaleService_Create(t *testing.T) {
 			Version:            1,
 		}
 
-		// Configurando o mock para retornar erro de chave estrangeira
 		expectedErr := errMsg.ErrDBInvalidForeignKey
 		mockRepo.On("Create", ctx, sale).Return(nil, expectedErr).Once()
 
@@ -137,14 +135,13 @@ func TestSaleService_Create(t *testing.T) {
 			TotalItemsAmount:   200.00,
 			TotalItemsDiscount: 20.00,
 			TotalSaleDiscount:  10.00,
-			TotalAmount:        170.00, // 200 - 20 - 10 = 170 (válido)
+			TotalAmount:        170.00,
 			PaymentType:        "cash",
 			Status:             "active",
 			Notes:              "Test sale with valid data",
 			Version:            1,
 		}
 
-		// Criando o objeto que será retornado pelo repositório
 		createdSale := &models.Sale{
 			ID:                 1,
 			ClientID:           sale.ClientID,
@@ -162,7 +159,6 @@ func TestSaleService_Create(t *testing.T) {
 			UpdatedAt:          now,
 		}
 
-		// Configurando o mock para retornar sucesso
 		mockRepo.On("Create", ctx, sale).Return(createdSale, nil).Once()
 
 		result, err := svc.Create(ctx, sale)
@@ -209,7 +205,6 @@ func TestSaleService_Create(t *testing.T) {
 					ID:       2,
 					ClientID: sale.ClientID,
 					UserID:   sale.UserID,
-					// ... outros campos copiados
 				}
 
 				mockRepo.On("Create", ctx, sale).Return(createdSale, nil).Once()
@@ -255,7 +250,6 @@ func TestSaleService_Create(t *testing.T) {
 					ID:       3,
 					ClientID: sale.ClientID,
 					UserID:   sale.UserID,
-					// ... outros campos copiados
 				}
 
 				mockRepo.On("Create", ctx, sale).Return(createdSale, nil).Once()
@@ -281,7 +275,7 @@ func TestSaleService_Create(t *testing.T) {
 			TotalAmount:        85.00,
 			PaymentType:        "cash",
 			Status:             "active",
-			Notes:              "", // Notes vazio é permitido
+			Notes:              "",
 			Version:            1,
 		}
 
@@ -289,7 +283,6 @@ func TestSaleService_Create(t *testing.T) {
 			ID:       4,
 			ClientID: sale.ClientID,
 			UserID:   sale.UserID,
-			// ... outros campos copiados
 		}
 
 		mockRepo.On("Create", ctx, sale).Return(createdSale, nil).Once()
@@ -303,7 +296,7 @@ func TestSaleService_Create(t *testing.T) {
 	})
 
 	t.Run("should handle sale with long notes (up to 500 characters)", func(t *testing.T) {
-		longNotes := strings.Repeat("a", 500) // Máximo permitido
+		longNotes := strings.Repeat("a", 500)
 
 		sale := &models.Sale{
 			ClientID:           utils.Int64Ptr(1),
@@ -323,7 +316,6 @@ func TestSaleService_Create(t *testing.T) {
 			ID:       5,
 			ClientID: sale.ClientID,
 			UserID:   sale.UserID,
-			// ... outros campos copiados
 		}
 
 		mockRepo.On("Create", ctx, sale).Return(createdSale, nil).Once()
@@ -337,7 +329,7 @@ func TestSaleService_Create(t *testing.T) {
 	})
 
 	t.Run("should fail when notes exceed 500 characters", func(t *testing.T) {
-		longNotes := strings.Repeat("a", 501) // Excede o máximo permitido
+		longNotes := strings.Repeat("a", 501)
 
 		sale := &models.Sale{
 			ClientID:           utils.Int64Ptr(1),
@@ -370,9 +362,9 @@ func createValidSaleForTest(id int64) *models.Sale {
 		TotalItemsAmount:   300.00,
 		TotalItemsDiscount: 30.00,
 		TotalSaleDiscount:  10.00,
-		TotalAmount:        260.00,   // 300 - 30 - 10
-		PaymentType:        "cash",   // válido
-		Status:             "active", // válido
+		TotalAmount:        260.00,
+		PaymentType:        "cash",
+		Status:             "active",
 		Notes:              "Test sale",
 		CreatedAt:          time.Now(),
 		UpdatedAt:          time.Now(),
@@ -414,7 +406,7 @@ func TestSaleService_Update(t *testing.T) {
 			SaleDate:          time.Now(),
 		}
 		err := svc.Update(ctx, s)
-		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 	})
 
 	t.Run("structural validation fails", func(t *testing.T) {
@@ -435,7 +427,7 @@ func TestSaleService_Update(t *testing.T) {
 			ID:                1,
 			Version:           1,
 			TotalAmount:       10,
-			TotalSaleDiscount: 20, // maior que o total
+			TotalSaleDiscount: 20,
 			PaymentType:       "cash",
 			Status:            "active",
 			SaleDate:          time.Now(),
@@ -492,10 +484,10 @@ func TestSaleService_Update(t *testing.T) {
 
 	t.Run("repo retorna ErrZeroVersion", func(t *testing.T) {
 		s := createValidSaleForTest(2)
-		mockRepo.On("Update", ctx, s).Return(errMsg.ErrZeroVersion).Once()
+		mockRepo.On("Update", ctx, s).Return(errMsg.ErrVersionConflict).Once()
 
 		err := svc.Update(ctx, s)
-		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		assert.NotErrorIs(t, err, errMsg.ErrUpdate)
 		mockRepo.AssertExpectations(t)
 	})

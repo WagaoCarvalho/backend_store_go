@@ -51,7 +51,7 @@ func TestProductService_GetByID(t *testing.T) {
 		result, err := service.GetByID(ctx, id)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrZeroID) // ✅ usa ErrorIs
+		assert.ErrorIs(t, err, errMsg.ErrZeroID)
 		mockRepo.AssertNotCalled(t, "GetByID")
 	})
 
@@ -84,7 +84,7 @@ func TestProductService_GetVersionByID(t *testing.T) {
 	t.Run("falha: ID inválido", func(t *testing.T) {
 		mockRepo, service := newService()
 
-		invalidID := int64(0) // inválido
+		invalidID := int64(0)
 		version, err := service.GetVersionByID(context.Background(), invalidID)
 
 		assert.Equal(t, int64(0), version)
@@ -127,7 +127,7 @@ func TestProductService_GetVersionByID(t *testing.T) {
 		version, err := service.GetVersionByID(context.Background(), 3)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "db failure")
-		assert.True(t, errors.Is(err, errMsg.ErrZeroVersion))
+		assert.True(t, errors.Is(err, errMsg.ErrVersionConflict))
 		assert.Equal(t, int64(0), version)
 
 		mockRepo.AssertExpectations(t)

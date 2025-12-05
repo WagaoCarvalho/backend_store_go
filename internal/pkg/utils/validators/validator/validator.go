@@ -45,3 +45,11 @@ func ValidateSingleNonNil(fields ...*int64) bool {
 	}
 	return count == 1
 }
+
+// NewValidationErrors cria um novo erro de validação a partir de uma lista de ValidationError
+func NewValidationErrors(errors []ValidationError) error {
+	if len(errors) == 0 {
+		return nil
+	}
+	return ValidationErrors(errors)
+}

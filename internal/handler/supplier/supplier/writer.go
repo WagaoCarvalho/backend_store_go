@@ -26,7 +26,7 @@ func (h *supplierHandler) Create(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
 	var requestData struct {
-		Supplier *dto.SupplierDTO `json:"supplier"` // agora DTO
+		Supplier *dto.SupplierDTO `json:"supplier"`
 	}
 
 	if err := utils.FromJSON(r.Body, &requestData); err != nil {
@@ -45,7 +45,6 @@ func (h *supplierHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// converte DTO para Model
 	modelSupplier := dto.ToSupplierModel(*requestData.Supplier)
 
 	createdSupplier, err := h.service.Create(ctx, modelSupplier)
@@ -89,7 +88,6 @@ func (h *supplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
 
-	// ID da URL
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
@@ -99,7 +97,6 @@ func (h *supplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Decodificar JSON
 	var requestData struct {
 		Supplier *dto.SupplierDTO `json:"supplier"`
 	}
@@ -118,7 +115,6 @@ func (h *supplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Setar ID vindo da URL
 	if requestData.Supplier.ID == nil {
 		requestData.Supplier.ID = new(int64)
 	}
@@ -126,7 +122,6 @@ func (h *supplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	supplierModel := dto.ToSupplierModel(*requestData.Supplier)
 
-	// Chamar service
 	err = h.service.Update(ctx, supplierModel)
 	if err != nil {
 		switch {
@@ -155,7 +150,7 @@ func (h *supplierHandler) Update(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorResponse(w, err, http.StatusConflict)
 			return
 
-		case errors.Is(err, errMsg.ErrZeroVersion):
+		case errors.Is(err, errMsg.ErrVersionConflict):
 			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
 				"supplier_id": id,
 			})

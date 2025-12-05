@@ -134,7 +134,7 @@ func TestSupplierRepo_Update(t *testing.T) {
 
 		err := repo.Update(ctx, supplier)
 
-		assert.ErrorIs(t, err, errMsg.ErrZeroVersion)
+		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		mockDB.AssertExpectations(t)
 	})
 

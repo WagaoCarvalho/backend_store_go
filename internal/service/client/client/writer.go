@@ -32,7 +32,7 @@ func (s *clientService) Update(ctx context.Context, client *models.Client) error
 	}
 
 	if client.Version <= 0 {
-		return errMsg.ErrZeroVersion
+		return errMsg.ErrVersionConflict
 	}
 
 	if err := client.Validate(); err != nil {
@@ -40,7 +40,7 @@ func (s *clientService) Update(ctx context.Context, client *models.Client) error
 	}
 
 	if err := s.repo.Update(ctx, client); err != nil {
-		if errors.Is(err, errMsg.ErrZeroVersion) ||
+		if errors.Is(err, errMsg.ErrVersionConflict) ||
 			errors.Is(err, errMsg.ErrDuplicate) ||
 			errors.Is(err, errMsg.ErrInvalidData) {
 			return err

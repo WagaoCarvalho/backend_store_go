@@ -97,7 +97,7 @@ func (h *productHandler) Update(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorResponse(w, err, http.StatusNotFound)
 			return
 
-		case errors.Is(err, errMsg.ErrZeroVersion),
+		case errors.Is(err, errMsg.ErrVersionConflict),
 			errors.Is(err, errMsg.ErrConflict):
 			utils.ErrorResponse(w, err, http.StatusConflict)
 			return

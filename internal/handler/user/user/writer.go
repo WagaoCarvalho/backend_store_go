@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
@@ -25,33 +26,55 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
 
-	var requestData struct {
-		User *dto.UserDTO `json:"user"`
-	}
-
-	if err := utils.FromJSON(r.Body, &requestData); err != nil {
+	var userDTO dto.UserDTO
+	if err := utils.FromJSON(r.Body, &userDTO); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
 		return
 	}
 
-	userModel := dto.ToUserModel(*requestData.User)
+	userModel := dto.ToUserModel(userDTO)
 
 	createdUser, err := h.service.Create(ctx, userModel)
 	if err != nil {
+		// CORREÇÃO: Verificar se o erro contém ErrInvalidData na string
+		errStr := err.Error()
+		if strings.Contains(errStr, errMsg.ErrInvalidData.Error()) {
+			h.logger.Warn(ctx, ref+"Dados inválidos", map[string]any{
+				"username": userModel.Username,
+				"erro":     errStr,
+			})
+
+			// Extrai a mensagem após o prefixo do erro
+			responseErr := errStr
+			if strings.Contains(errStr, errMsg.ErrInvalidData.Error()+": ") {
+				responseErr = strings.TrimPrefix(errStr, errMsg.ErrInvalidData.Error()+": ")
+			}
+			utils.ErrorResponse(w, fmt.Errorf(responseErr), http.StatusBadRequest)
+			return
+		}
+
 		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"email": userModel.Email,
+			"username": userModel.Username,
 		})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		utils.ErrorResponse(w, fmt.Errorf("erro interno do servidor"), http.StatusInternalServerError)
+		return
+	}
+
+	// CORREÇÃO: Verificar se createdUser é nil antes de usar
+	if createdUser == nil {
+		h.logger.Error(ctx, errors.New("usuário criado é nulo"), ref+logger.LogCreateError, map[string]any{
+			"username": userModel.Username,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("erro interno do servidor"), http.StatusInternalServerError)
 		return
 	}
 
 	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
 		"user_id":  createdUser.UID,
 		"username": createdUser.Username,
-		"email":    createdUser.Email,
 	})
 
 	createdDTO := dto.ToUserDTO(createdUser)
@@ -79,53 +102,75 @@ func (h *userHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{"erro": err.Error()})
+		h.logger.Warn(ctx, ref+"ID inválido", map[string]any{
+			"id_param": r.PathValue("id"),
+			"erro":     err.Error(),
+		})
 		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
 		return
 	}
 
-	var requestData struct {
-		User *dto.UserDTO `json:"user"`
-	}
-	if err := utils.FromJSON(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": err.Error()})
+	var userDTO dto.UserDTO
+	if err := utils.FromJSON(r.Body, &userDTO); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
+			"erro": err.Error(),
+		})
 		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
 		return
 	}
 
-	if requestData.User == nil {
-		h.logger.Warn(ctx, ref+logger.LogMissingBodyData, nil)
-		utils.ErrorResponse(w, fmt.Errorf("dados do usuário são obrigatórios"), http.StatusBadRequest)
-		return
-	}
-
-	// Converte DTO para model
-	userModel := dto.ToUserModel(*requestData.User)
+	userModel := dto.ToUserModel(userDTO)
 	userModel.UID = id
 
-	// Valida e atualiza via service
+	h.logger.Info(ctx, ref+"Atualizando usuário", map[string]any{
+		"user_id":  id,
+		"username": userModel.Username,
+		"version":  userModel.Version,
+	})
+
 	if err := h.service.Update(ctx, userModel); err != nil {
+		errStr := err.Error()
+
 		switch {
-		case errors.Is(err, errMsg.ErrZeroVersion):
-			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{"user_id": id})
-			utils.ErrorResponse(w, err, http.StatusConflict)
+		case errors.Is(err, errMsg.ErrVersionConflict):
+			h.logger.Warn(ctx, ref+"Conflito de versão", map[string]any{
+				"user_id": id,
+				"erro":    errStr,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("versão desatualizada"), http.StatusConflict)
 			return
 		case errors.Is(err, errMsg.ErrInvalidData):
-			h.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{"user_id": id, "erro": err.Error()})
-			utils.ErrorResponse(w, err, http.StatusBadRequest)
+			h.logger.Warn(ctx, ref+"Dados inválidos", map[string]any{
+				"user_id": id,
+				"erro":    errStr,
+			})
+			// Extrai apenas a mensagem após o prefixo, se houver
+			responseErr := errStr
+			if strings.Contains(errStr, errMsg.ErrInvalidData.Error()+": ") {
+				responseErr = strings.TrimPrefix(errStr, errMsg.ErrInvalidData.Error()+": ")
+			}
+			utils.ErrorResponse(w, fmt.Errorf(responseErr), http.StatusBadRequest)
 			return
 		case errors.Is(err, errMsg.ErrNotFound):
-			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"user_id": id})
-			utils.ErrorResponse(w, err, http.StatusNotFound)
+			h.logger.Warn(ctx, ref+"Usuário não encontrado", map[string]any{
+				"user_id": id,
+				"erro":    errStr,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("usuário não encontrado"), http.StatusNotFound)
 			return
 		default:
-			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{"user_id": id})
-			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"user_id": id,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("erro interno do servidor"), http.StatusInternalServerError)
 			return
 		}
 	}
 
-	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{"user_id": id})
+	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+		"user_id": id,
+	})
+
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Usuário atualizado com sucesso",

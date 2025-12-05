@@ -79,7 +79,7 @@ func TestProductCategoryRepo_Create(t *testing.T) {
 		result, err := repo.Create(ctx, category)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrAlreadyExists)
+		assert.ErrorIs(t, err, errMsg.ErrDuplicate)
 
 		mockDB.AssertExpectations(t)
 	})

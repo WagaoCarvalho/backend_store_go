@@ -32,7 +32,7 @@ func (s *supplierService) Update(ctx context.Context, supplier *models.Supplier)
 	}
 
 	if supplier.Version == 0 {
-		return errMsg.ErrZeroVersion
+		return errMsg.ErrVersionConflict
 	}
 
 	err := s.repo.Update(ctx, supplier)
@@ -46,7 +46,7 @@ func (s *supplierService) Update(ctx context.Context, supplier *models.Supplier)
 			if !exists {
 				return errMsg.ErrNotFound
 			}
-			return errMsg.ErrZeroVersion
+			return errMsg.ErrVersionConflict
 		}
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}

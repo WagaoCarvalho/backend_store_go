@@ -128,7 +128,7 @@ func TestSupplierHandler_Enable(t *testing.T) {
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == 1 && s.Version == 1
-		})).Return(errMsg.ErrZeroVersion).Once()
+		})).Return(errMsg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/enable", bytes.NewReader([]byte(`{"version":1}`)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -269,7 +269,7 @@ func TestSupplierHandler_Disable(t *testing.T) {
 
 		mockService.On("Update", mock.Anything, mock.MatchedBy(func(s *models.Supplier) bool {
 			return s.ID == 1 && !s.Status && s.Version == 1
-		})).Return(errMsg.ErrZeroVersion).Once()
+		})).Return(errMsg.ErrVersionConflict).Once()
 
 		req := httptest.NewRequest(http.MethodPatch, "/suppliers/1/disable", bytes.NewReader([]byte(`{"version":1}`)))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})

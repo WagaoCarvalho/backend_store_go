@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
+	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/jackc/pgx/v5"
 )
@@ -38,6 +39,18 @@ func (r *userRepo) Create(ctx context.Context, user *models.User) (*models.User,
 	).Scan(&user.UID, &user.Version, &user.Description, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
+		// Verificar se é erro de duplicidade (username ou email)
+		if errMsgPg.IsDuplicateKey(err) {
+			// Mensagem genérica por segurança
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, "dados já existem no sistema")
+		}
+
+		// Verificar se é erro de violação de constraint check
+		if errMsgPg.IsCheckViolation(err) {
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, "dados inválidos")
+		}
+
+		// Erro genérico
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
 
@@ -63,7 +76,7 @@ func (r *userRepo) Update(ctx context.Context, user *models.User) error {
 	}
 
 	if currentVersion != user.Version {
-		return errMsg.ErrZeroVersion
+		return errMsg.ErrVersionConflict
 	}
 
 	const queryUpdate = `

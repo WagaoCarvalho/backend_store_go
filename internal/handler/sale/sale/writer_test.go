@@ -424,7 +424,7 @@ func TestSaleHandler_Update(t *testing.T) {
 		saleModel.ID = 1
 		saleDTO.ID = utils.Int64Ptr(1)
 
-		mockService.On("Update", mock.Anything, saleModel).Return(errMsg.ErrZeroVersion)
+		mockService.On("Update", mock.Anything, saleModel).Return(errMsg.ErrVersionConflict)
 
 		h.Update(w, req)
 
@@ -432,7 +432,7 @@ func TestSaleHandler_Update(t *testing.T) {
 
 		var resp map[string]interface{}
 		_ = json.Unmarshal(w.Body.Bytes(), &resp)
-		assert.Equal(t, errMsg.ErrZeroVersion.Error(), resp["message"])
+		assert.Equal(t, errMsg.ErrVersionConflict.Error(), resp["message"])
 		mockService.AssertExpectations(t)
 	})
 
