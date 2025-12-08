@@ -9,7 +9,6 @@ import (
 type SupplierReader interface {
 	GetByID(ctx context.Context, id int64) (*models.Supplier, error)
 	GetByName(ctx context.Context, name string) ([]*models.Supplier, error)
-	GetVersionByID(ctx context.Context, id int64) (int64, error)
 	GetAll(ctx context.Context) ([]*models.Supplier, error)
 	SupplierExists(ctx context.Context, supplierID int64) (bool, error)
 }
@@ -23,4 +22,8 @@ type SupplierWriter interface {
 type SupplierStatus interface {
 	Disable(ctx context.Context, id int64) error
 	Enable(ctx context.Context, id int64) error
+}
+
+type SupplierVersion interface {
+	GetVersionByID(ctx context.Context, id int64) (int64, error)
 }

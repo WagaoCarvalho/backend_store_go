@@ -9,7 +9,6 @@ import (
 type ClientReader interface {
 	GetByID(ctx context.Context, id int64) (*models.Client, error)
 	GetByName(ctx context.Context, name string) ([]*models.Client, error)
-	GetVersionByID(ctx context.Context, id int64) (int, error)
 }
 
 type ClientWriter interface {
@@ -29,4 +28,8 @@ type ClientChecker interface {
 
 type ClientFilter interface {
 	GetAll(ctx context.Context, f *models.ClientFilter) ([]*models.Client, error)
+}
+
+type ClientVersion interface {
+	GetVersionByID(ctx context.Context, id int64) (int, error)
 }

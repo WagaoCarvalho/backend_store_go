@@ -6,4 +6,5 @@ type SaleService interface {
 	sale_iface.SaleReader
 	sale_iface.SaleWriter
 	sale_iface.SaleStatus
+	sale_iface.SaleVersion
 }

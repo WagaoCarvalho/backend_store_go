@@ -6,4 +6,5 @@ type Supplier interface {
 	iface.SupplierReader
 	iface.SupplierWriter
 	iface.SupplierStatus
+	iface.SupplierVersion
 }

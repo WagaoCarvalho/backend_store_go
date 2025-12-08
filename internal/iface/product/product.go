@@ -8,7 +8,6 @@ import (
 
 type ProductReader interface {
 	GetByID(ctx context.Context, id int64) (*models.Product, error)
-	GetVersionByID(ctx context.Context, id int64) (int64, error)
 }
 
 type ProductGetAll interface {
@@ -45,4 +44,8 @@ type ProductStatus interface {
 
 type ProductChecker interface {
 	ProductExists(ctx context.Context, productID int64) (bool, error)
+}
+
+type ProductVersion interface {
+	GetVersionByID(ctx context.Context, id int64) (int64, error)
 }

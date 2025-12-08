@@ -7,4 +7,5 @@ type Client interface {
 	iface.ClientWriter
 	iface.ClientStatus
 	iface.ClientFilter
+	iface.ClientVersion
 }

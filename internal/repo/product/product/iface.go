@@ -11,4 +11,5 @@ type Product interface {
 	iface.ProductStatus
 	iface.ProductGetAll
 	iface.ProductChecker
+	iface.ProductVersion
 }

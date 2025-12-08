@@ -27,3 +27,7 @@ type SaleStatus interface {
 	Complete(ctx context.Context, id int64) error
 	Returned(ctx context.Context, id int64) error
 }
+
+type SaleVersion interface {
+	GetVersionByID(ctx context.Context, uid int64) (int64, error)
+}

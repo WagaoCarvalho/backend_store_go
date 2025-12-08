@@ -6,4 +6,5 @@ type SaleRepo interface {
 	iface.SaleReader
 	iface.SaleWriter
 	iface.SaleStatus
+	iface.SaleVersion
 }

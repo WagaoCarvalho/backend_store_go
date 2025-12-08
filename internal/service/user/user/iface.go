@@ -6,4 +6,5 @@ type User interface {
 	iface.UserReader
 	iface.UserWriter
 	iface.UserStatus
+	iface.UserVersion
 }

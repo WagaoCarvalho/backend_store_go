@@ -8,4 +8,5 @@ type Client interface {
 	iface.ClientStatus
 	iface.ClientFilter
 	iface.ClientChecker
+	iface.ClientVersion
 }

@@ -69,6 +69,11 @@ func (m *MockSale) GetByDateRange(ctx context.Context, start, end time.Time, lim
 	return nil, args.Error(1)
 }
 
+func (m *MockSale) GetVersionByID(ctx context.Context, uid int64) (int64, error) {
+	args := m.Called(ctx, uid)
+	return args.Get(0).(int64), args.Error(1)
+}
+
 func (m *MockSale) Update(ctx context.Context, sale *models.Sale) error {
 	args := m.Called(ctx, sale)
 	return args.Error(0)
