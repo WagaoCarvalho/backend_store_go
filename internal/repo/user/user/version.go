@@ -2,51 +2,24 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	"github.com/jackc/pgx/v5"
 )
 
-func (r *userRepo) GetAll(ctx context.Context) ([]*models.User, error) {
-	const query = `
-		SELECT 
-			id,
-			username,
-			email,
-			description,
-			status,
-			created_at,
-			updated_at
-		FROM users
-	`
+func (r *userRepo) GetVersionByID(ctx context.Context, id int64) (int64, error) {
+	const query = `SELECT version FROM users WHERE id = $1`
 
-	rows, err := r.db.Query(ctx, query)
+	var version int64
+	err := r.db.QueryRow(ctx, query, id).Scan(&version)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-	defer rows.Close()
-
-	var users []*models.User
-	for rows.Next() {
-		var user models.User
-		if err := rows.Scan(
-			&user.UID,
-			&user.Username,
-			&user.Email,
-			&user.Description,
-			&user.Status,
-			&user.CreatedAt,
-			&user.UpdatedAt,
-		); err != nil {
-			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, errMsg.ErrNotFound
 		}
-		users = append(users, &user)
+		return 0, fmt.Errorf("%w: %v", errMsg.ErrGetVersion, err)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrIterate, err)
-	}
-
-	return users, nil
+	return version, nil
 }

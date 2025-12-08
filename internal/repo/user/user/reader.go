@@ -45,19 +45,47 @@ func (r *userRepo) GetByID(ctx context.Context, id int64) (*models.User, error) 
 	return user, nil
 }
 
-func (r *userRepo) GetVersionByID(ctx context.Context, id int64) (int64, error) {
-	const query = `SELECT version FROM users WHERE id = $1`
+func (r *userRepo) GetAll(ctx context.Context) ([]*models.User, error) {
+	const query = `
+		SELECT 
+			id,
+			username,
+			email,
+			description,
+			status,
+			created_at,
+			updated_at
+		FROM users
+	`
 
-	var version int64
-	err := r.db.QueryRow(ctx, query, id).Scan(&version)
+	rows, err := r.db.Query(ctx, query)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, errMsg.ErrNotFound
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+	}
+	defer rows.Close()
+
+	var users []*models.User
+	for rows.Next() {
+		var user models.User
+		if err := rows.Scan(
+			&user.UID,
+			&user.Username,
+			&user.Email,
+			&user.Description,
+			&user.Status,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 		}
-		return 0, fmt.Errorf("%w: %v", errMsg.ErrGetVersion, err)
+		users = append(users, &user)
 	}
 
-	return version, nil
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrIterate, err)
+	}
+
+	return users, nil
 }
 
 func (r *userRepo) GetByEmail(ctx context.Context, email string) (*models.User, error) {
