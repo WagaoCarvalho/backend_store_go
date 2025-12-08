@@ -70,16 +70,3 @@ func (r *clientRepo) GetByName(ctx context.Context, name string) ([]*models.Clie
 	}
 	return clients, nil
 }
-
-func (r *clientRepo) GetVersionByID(ctx context.Context, id int64) (int, error) {
-	const query = `SELECT version FROM clients WHERE id = $1`
-	var version int
-	err := r.db.QueryRow(ctx, query, id).Scan(&version)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, errMsg.ErrNotFound
-		}
-		return 0, fmt.Errorf("%w: %v", errMsg.ErrGetVersion, err)
-	}
-	return version, nil
-}
