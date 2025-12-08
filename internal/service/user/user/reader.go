@@ -32,22 +32,6 @@ func (s *userService) GetByID(ctx context.Context, uid int64) (*models.User, err
 	return user, nil
 }
 
-func (s *userService) GetVersionByID(ctx context.Context, uid int64) (int64, error) {
-
-	if uid <= 0 {
-		return 0, errMsg.ErrZeroID
-	}
-
-	version, err := s.repo.GetVersionByID(ctx, uid)
-	if err != nil {
-		if errors.Is(err, errMsg.ErrNotFound) {
-			return 0, errMsg.ErrNotFound
-		}
-		return 0, fmt.Errorf("%w: %v", errMsg.ErrVersionConflict, err)
-	}
-	return version, nil
-}
-
 func (s *userService) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	if strings.TrimSpace(email) == "" {
 		return nil, errors.New("email inválido")
