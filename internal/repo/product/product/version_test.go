@@ -12,21 +12,24 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestProductRepo_GetByID(t *testing.T) {
-	t.Run("successfully get product by ID", func(t *testing.T) {
+func TestProductRepo_GetVersionByID(t *testing.T) {
+	t.Run("successfully get version by ID", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &productRepo{db: mockDB}
 		ctx := context.Background()
 		productID := int64(1)
 
-		mockRow := &mockDb.MockRow{}
+		// MockRow com valor específico
+		mockRow := &mockDb.MockRow{
+			Value: int64(5), // Valor que será retornado no Scan
+		}
 
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{productID}).Return(mockRow)
 
-		product, err := repo.GetByID(ctx, productID)
+		version, err := repo.GetVersionByID(ctx, productID)
 
 		assert.NoError(t, err)
-		assert.NotNil(t, product)
+		assert.Equal(t, int64(5), version)
 		mockDB.AssertExpectations(t)
 	})
 
@@ -40,10 +43,10 @@ func TestProductRepo_GetByID(t *testing.T) {
 
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{productID}).Return(mockRow)
 
-		product, err := repo.GetByID(ctx, productID)
+		version, err := repo.GetVersionByID(ctx, productID)
 
 		assert.ErrorIs(t, err, errMsg.ErrNotFound)
-		assert.Nil(t, product)
+		assert.Zero(t, version)
 		mockDB.AssertExpectations(t)
 	})
 
@@ -58,11 +61,11 @@ func TestProductRepo_GetByID(t *testing.T) {
 
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{productID}).Return(mockRow)
 
-		product, err := repo.GetByID(ctx, productID)
+		version, err := repo.GetVersionByID(ctx, productID)
 
 		assert.Error(t, err)
-		assert.Nil(t, product)
-		assert.Contains(t, err.Error(), "erro ao buscar")
+		assert.Zero(t, version)
+		assert.Contains(t, err.Error(), "erro ao buscar versão")
 		mockDB.AssertExpectations(t)
 	})
 }

@@ -45,17 +45,56 @@ func (r *productRepo) GetByID(ctx context.Context, id int64) (*models.Product, e
 	return &p, nil
 }
 
-func (r *productRepo) GetVersionByID(ctx context.Context, id int64) (int64, error) {
-	const query = `SELECT version FROM products WHERE id = $1`
+func scanProductRow(row pgx.Row, p *models.Product) error {
+	return row.Scan(
+		&p.ID,
+		&p.SupplierID,
+		&p.ProductName,
+		&p.Manufacturer,
+		&p.Description,
+		&p.CostPrice,
+		&p.SalePrice,
+		&p.StockQuantity,
+		&p.MinStock,
+		&p.MaxStock,
+		&p.Barcode,
+		&p.Status,
+		&p.Version,
+		&p.AllowDiscount,
+		&p.MinDiscountPercent,
+		&p.MaxDiscountPercent,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+	)
+}
 
-	var version int64
-	err := r.db.QueryRow(ctx, query, id).Scan(&version)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, errMsg.ErrNotFound
-		}
-		return 0, fmt.Errorf("%w: %v", errMsg.ErrGetVersion, err)
-	}
+func scanProductRowLimited(row pgx.Row, p *models.Product) error {
+	return row.Scan(
+		&p.ID,
+		&p.SupplierID,
+		&p.ProductName,
+		&p.Manufacturer,
+		&p.Description,
+		&p.CostPrice,
+		&p.SalePrice,
+		&p.StockQuantity,
+		&p.Barcode,
+		&p.Status,
+		&p.AllowDiscount,
+		&p.MaxDiscountPercent,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+	)
+}
 
-	return version, nil
+func scanProductDiscountRow(row pgx.Row, p *models.Product) error {
+	return row.Scan(
+		&p.ID,
+		&p.ProductName,
+		&p.SalePrice,
+		&p.MaxDiscountPercent,
+		&p.AllowDiscount,
+		&p.Version,
+		&p.UpdatedAt,
+	)
 }
