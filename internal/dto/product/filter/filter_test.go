@@ -3,7 +3,7 @@ package dto
 import (
 	"testing"
 
-	modelFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/filter"
+	modelFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/common/filter"
 	"github.com/stretchr/testify/assert"
 )
 

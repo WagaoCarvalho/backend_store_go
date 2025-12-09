@@ -7,8 +7,8 @@ import (
 	"time"
 
 	mockDb "github.com/WagaoCarvalho/backend_store_go/infra/mock/db"
-	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/filter"
-	model "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
+	commonFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/common/filter"
+	modelFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/product/filter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -32,8 +32,8 @@ func TestProductRepo_Filter_AllFilters(t *testing.T) {
 		createdFrom := time.Now().AddDate(0, -1, 0)
 		createdTo := time.Now()
 
-		filterData := &model.ProductFilter{
-			BaseFilter: filter.BaseFilter{
+		filterData := &modelFilter.ProductFilter{
+			BaseFilter: commonFilter.BaseFilter{
 				Limit:  20,
 				Offset: 0,
 			},
@@ -103,8 +103,8 @@ func TestProductRepo_Filter_TextFilters(t *testing.T) {
 		ctx := context.Background()
 		repo := &productRepo{db: mockDB}
 
-		filterData := &model.ProductFilter{
-			BaseFilter: filter.BaseFilter{
+		filterData := &modelFilter.ProductFilter{
+			BaseFilter: commonFilter.BaseFilter{
 				Limit:  10,
 				Offset: 0,
 			},
@@ -164,8 +164,8 @@ func TestProductRepo_Filter_EqualFilters(t *testing.T) {
 		repo := &productRepo{db: mockDB}
 
 		version := 2
-		filterData := &model.ProductFilter{
-			BaseFilter: filter.BaseFilter{
+		filterData := &modelFilter.ProductFilter{
+			BaseFilter: commonFilter.BaseFilter{
 				Limit:  10,
 				Offset: 0,
 			},
@@ -223,8 +223,8 @@ func TestProductRepo_Filter_EqualFilters(t *testing.T) {
 		repo := &productRepo{db: mockDB}
 
 		allowDiscount := true
-		filterData := &model.ProductFilter{
-			BaseFilter: filter.BaseFilter{
+		filterData := &modelFilter.ProductFilter{
+			BaseFilter: commonFilter.BaseFilter{
 				Limit:  10,
 				Offset: 0,
 			},
@@ -285,8 +285,8 @@ func TestProductRepo_Filter_RangeFilters(t *testing.T) {
 
 		minSalePrice := 50.0
 		maxSalePrice := 200.0
-		filterData := &model.ProductFilter{
-			BaseFilter: filter.BaseFilter{
+		filterData := &modelFilter.ProductFilter{
+			BaseFilter: commonFilter.BaseFilter{
 				Limit:  10,
 				Offset: 0,
 			},
@@ -346,8 +346,8 @@ func TestProductRepo_Filter_RangeFilters(t *testing.T) {
 
 		minDiscount := 5.0
 		maxDiscount := 20.0
-		filterData := &model.ProductFilter{
-			BaseFilter: filter.BaseFilter{
+		filterData := &modelFilter.ProductFilter{
+			BaseFilter: commonFilter.BaseFilter{
 				Limit:  10,
 				Offset: 0,
 			},
@@ -409,8 +409,8 @@ func TestProductRepo_Filter_DateFilters(t *testing.T) {
 
 		updatedFrom := time.Now().AddDate(0, -1, 0)
 		updatedTo := time.Now()
-		filterData := &model.ProductFilter{
-			BaseFilter: filter.BaseFilter{
+		filterData := &modelFilter.ProductFilter{
+			BaseFilter: commonFilter.BaseFilter{
 				Limit:  10,
 				Offset: 0,
 			},
@@ -469,8 +469,8 @@ func TestProductRepo_Filter_DateFilters(t *testing.T) {
 		repo := &productRepo{db: mockDB}
 
 		updatedFrom := time.Now().AddDate(0, -1, 0)
-		filterData := &model.ProductFilter{
-			BaseFilter: filter.BaseFilter{
+		filterData := &modelFilter.ProductFilter{
+			BaseFilter: commonFilter.BaseFilter{
 				Limit:  10,
 				Offset: 0,
 			},
@@ -529,8 +529,8 @@ func TestProductRepo_Filter_DateFilters(t *testing.T) {
 		repo := &productRepo{db: mockDB}
 
 		updatedTo := time.Now()
-		filterData := &model.ProductFilter{
-			BaseFilter: filter.BaseFilter{
+		filterData := &modelFilter.ProductFilter{
+			BaseFilter: commonFilter.BaseFilter{
 				Limit:  10,
 				Offset: 0,
 			},
@@ -588,8 +588,8 @@ func TestProductRepo_Filter_ErrorScenarios(t *testing.T) {
 		ctx := context.Background()
 		repo := &productRepo{db: mockDB}
 
-		filterData := &model.ProductFilter{
-			BaseFilter: filter.BaseFilter{
+		filterData := &modelFilter.ProductFilter{
+			BaseFilter: commonFilter.BaseFilter{
 				Limit:  10,
 				Offset: 0,
 			},
@@ -622,8 +622,8 @@ func TestProductRepo_Filter_ErrorScenarios(t *testing.T) {
 		ctx := context.Background()
 		repo := &productRepo{db: mockDB}
 
-		filterData := &model.ProductFilter{
-			BaseFilter: filter.BaseFilter{
+		filterData := &modelFilter.ProductFilter{
+			BaseFilter: commonFilter.BaseFilter{
 				Limit:  10,
 				Offset: 0,
 			},
@@ -681,8 +681,8 @@ func TestProductRepo_Filter_ErrorScenarios(t *testing.T) {
 		ctx := context.Background()
 		repo := &productRepo{db: mockDB}
 
-		filterData := &model.ProductFilter{
-			BaseFilter: filter.BaseFilter{
+		filterData := &modelFilter.ProductFilter{
+			BaseFilter: commonFilter.BaseFilter{
 				Limit:  10,
 				Offset: 0,
 			},

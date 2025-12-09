@@ -3,6 +3,7 @@ package mock
 import (
 	"context"
 
+	modelFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/product/filter"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 	"github.com/stretchr/testify/mock"
 )
@@ -108,7 +109,7 @@ func (m *ProductMock) ProductExists(ctx context.Context, productID int64) (bool,
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *ProductMock) Filter(ctx context.Context, filterData *models.ProductFilter) ([]*models.Product, error) {
+func (m *ProductMock) Filter(ctx context.Context, filterData *modelFilter.ProductFilter) ([]*models.Product, error) {
 	args := m.Called(ctx, filterData)
 	if prods, ok := args.Get(0).([]*models.Product); ok {
 		return prods, args.Error(1)

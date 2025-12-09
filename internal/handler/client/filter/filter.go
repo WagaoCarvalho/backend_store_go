@@ -6,16 +6,17 @@ import (
 	"strconv"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/client/client"
+	dtoFilter "github.com/WagaoCarvalho/backend_store_go/internal/dto/client/filter"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *clientHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+func (h *clientFilterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	const ref = "[clientHandler - GetAll] "
 
-	var dtoFilter dto.ClientFilterDTO
+	var dtoFilter dtoFilter.ClientFilterDTO
 	query := r.URL.Query()
 
 	dtoFilter.Name = query.Get("name")

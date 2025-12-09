@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client"
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/client/filter"
 )
 
 type MockClient struct {
@@ -44,7 +45,7 @@ func (m *MockClient) GetVersionByID(ctx context.Context, id int64) (int, error) 
 	return args.Int(0), args.Error(1)
 }
 
-func (m *MockClient) GetAll(ctx context.Context, f *models.ClientFilter) ([]*models.Client, error) {
+func (m *MockClient) GetAll(ctx context.Context, f *filter.ClientFilter) ([]*models.Client, error) {
 	args := m.Called(ctx, f)
 
 	var result []*models.Client

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	mockDb "github.com/WagaoCarvalho/backend_store_go/infra/mock/db"
-	model "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client"
-	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/filter"
+	filterClient "github.com/WagaoCarvalho/backend_store_go/internal/model/client/filter"
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/common/filter"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -18,7 +18,7 @@ func TestClient_GetAll(t *testing.T) {
 
 	t.Run("successfully get all clients", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientRepo{db: mockDB}
+		repo := &clientFilterRepo{db: mockDB}
 		ctx := context.Background()
 
 		now := time.Now()
@@ -55,7 +55,7 @@ func TestClient_GetAll(t *testing.T) {
 		mockRows.On("Err").Return(nil)
 		mockRows.On("Close").Return()
 
-		filter := &model.ClientFilter{
+		filter := &filterClient.ClientFilter{
 			BaseFilter: filter.BaseFilter{
 				Limit:  10,
 				Offset: 0,
@@ -79,11 +79,11 @@ func TestClient_GetAll(t *testing.T) {
 
 	t.Run("return ErrGet when query fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientRepo{db: mockDB}
+		repo := &clientFilterRepo{db: mockDB}
 		ctx := context.Background()
 		dbErr := errors.New("database failure")
 
-		filter := &model.ClientFilter{
+		filter := &filterClient.ClientFilter{
 			BaseFilter: filter.BaseFilter{
 				Limit:  5,
 				Offset: 0,
@@ -103,7 +103,7 @@ func TestClient_GetAll(t *testing.T) {
 
 	t.Run("return ErrScan when scan fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientRepo{db: mockDB}
+		repo := &clientFilterRepo{db: mockDB}
 		ctx := context.Background()
 		scanErr := errors.New("failed to scan row")
 
@@ -123,7 +123,7 @@ func TestClient_GetAll(t *testing.T) {
 		).Return(scanErr).Once()
 		mockRows.On("Close").Return()
 
-		filter := &model.ClientFilter{
+		filter := &filterClient.ClientFilter{
 			BaseFilter: filter.BaseFilter{
 				Limit:  5,
 				Offset: 0,
@@ -143,7 +143,7 @@ func TestClient_GetAll(t *testing.T) {
 
 	t.Run("return ErrIterate when rows iteration fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientRepo{db: mockDB}
+		repo := &clientFilterRepo{db: mockDB}
 		ctx := context.Background()
 		rowsErr := errors.New("iteration error")
 
@@ -152,7 +152,7 @@ func TestClient_GetAll(t *testing.T) {
 		mockRows.On("Err").Return(rowsErr)
 		mockRows.On("Close").Return()
 
-		filter := &model.ClientFilter{
+		filter := &filterClient.ClientFilter{
 			BaseFilter: filter.BaseFilter{
 				Limit:  5,
 				Offset: 0,
@@ -172,7 +172,7 @@ func TestClient_GetAll(t *testing.T) {
 
 	t.Run("apply filters name, email and status correctly", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientRepo{db: mockDB}
+		repo := &clientFilterRepo{db: mockDB}
 		ctx := context.Background()
 
 		now := time.Now()
@@ -210,7 +210,7 @@ func TestClient_GetAll(t *testing.T) {
 		mockRows.On("Close").Return()
 
 		status := true
-		filter := &model.ClientFilter{
+		filter := &filterClient.ClientFilter{
 			BaseFilter: filter.BaseFilter{
 				Limit:  10,
 				Offset: 5,
@@ -249,7 +249,7 @@ func TestClient_GetAll(t *testing.T) {
 
 	t.Run("apply filters CPF and CNPJ correctly", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientRepo{db: mockDB}
+		repo := &clientFilterRepo{db: mockDB}
 		ctx := context.Background()
 
 		now := time.Now()
@@ -286,7 +286,7 @@ func TestClient_GetAll(t *testing.T) {
 		mockRows.On("Err").Return(nil)
 		mockRows.On("Close").Return()
 
-		filter := &model.ClientFilter{
+		filter := &filterClient.ClientFilter{
 			BaseFilter: filter.BaseFilter{
 				Limit:  10,
 				Offset: 0,
@@ -318,7 +318,7 @@ func TestClient_GetAll(t *testing.T) {
 
 	t.Run("apply filters version and date ranges correctly", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
-		repo := &clientRepo{db: mockDB}
+		repo := &clientFilterRepo{db: mockDB}
 		ctx := context.Background()
 
 		now := time.Now()
@@ -360,7 +360,7 @@ func TestClient_GetAll(t *testing.T) {
 		mockRows.On("Close").Return()
 
 		version := 9
-		filter := &model.ClientFilter{
+		filter := &filterClient.ClientFilter{
 			BaseFilter: filter.BaseFilter{
 				Limit:  5,
 				Offset: 0,

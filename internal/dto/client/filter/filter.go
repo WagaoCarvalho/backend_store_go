@@ -3,8 +3,8 @@ package dto
 import (
 	"time"
 
-	modelClient "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client"
-	modelFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/filter"
+	filterClient "github.com/WagaoCarvalho/backend_store_go/internal/model/client/filter"
+	commonFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/common/filter"
 )
 
 type ClientFilterDTO struct {
@@ -22,7 +22,7 @@ type ClientFilterDTO struct {
 	Offset      int     `schema:"offset"`
 }
 
-func (d *ClientFilterDTO) ToModel() (*modelClient.ClientFilter, error) {
+func (d *ClientFilterDTO) ToModel() (*filterClient.ClientFilter, error) {
 	parseDate := func(s *string) *time.Time {
 		if s == nil || *s == "" {
 			return nil
@@ -34,8 +34,8 @@ func (d *ClientFilterDTO) ToModel() (*modelClient.ClientFilter, error) {
 		return &t
 	}
 
-	filter := &modelClient.ClientFilter{
-		BaseFilter: modelFilter.BaseFilter{
+	filter := &filterClient.ClientFilter{
+		BaseFilter: commonFilter.BaseFilter{
 			Limit:  d.Limit,
 			Offset: d.Offset,
 		},

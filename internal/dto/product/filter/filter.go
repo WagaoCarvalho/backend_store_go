@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"time"
 
-	modelFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/filter"
-	modelProduct "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
+	modelFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/common/filter"
+	modelProduct "github.com/WagaoCarvalho/backend_store_go/internal/model/product/filter"
 )
 
 type ProductFilterDTO struct {

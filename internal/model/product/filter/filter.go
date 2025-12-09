@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/filter"
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/common/filter"
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 

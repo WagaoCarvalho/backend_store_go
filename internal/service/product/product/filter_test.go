@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	mockProduct "github.com/WagaoCarvalho/backend_store_go/infra/mock/product"
+	modelFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/product/filter"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -33,7 +34,7 @@ func TestProductService_Filter(t *testing.T) {
 	t.Run("falha: validação do filtro", func(t *testing.T) {
 		mockRepo, service := setup()
 
-		invalidFilter := &models.ProductFilter{
+		invalidFilter := &modelFilter.ProductFilter{
 			MinCostPrice: utils.Float64Ptr(100.0),
 			MaxCostPrice: utils.Float64Ptr(50.0), // Min > Max - inválido
 		}
@@ -50,7 +51,7 @@ func TestProductService_Filter(t *testing.T) {
 		mockRepo, service := setup()
 		ctx := context.Background()
 
-		filterData := &models.ProductFilter{
+		filterData := &modelFilter.ProductFilter{
 			ProductName: "Notebook",
 			Status:      utils.BoolPtr(true),
 		}
@@ -76,7 +77,7 @@ func TestProductService_Filter(t *testing.T) {
 		mockRepo, service := setup()
 		ctx := context.Background()
 
-		filterData := &models.ProductFilter{} // Filtro vazio
+		filterData := &modelFilter.ProductFilter{} // Filtro vazio
 
 		expectedProducts := []*models.Product{
 			{ID: 1, ProductName: "Produto 1"},
@@ -99,7 +100,7 @@ func TestProductService_Filter(t *testing.T) {
 		mockRepo, service := setup()
 		ctx := context.Background()
 
-		filterData := &models.ProductFilter{
+		filterData := &modelFilter.ProductFilter{
 			ProductName: "Test",
 		}
 
@@ -119,7 +120,7 @@ func TestProductService_Filter(t *testing.T) {
 		mockRepo, service := setup()
 		ctx := context.Background()
 
-		filterData := &models.ProductFilter{
+		filterData := &modelFilter.ProductFilter{
 			ProductName: "ProdutoInexistente",
 		}
 

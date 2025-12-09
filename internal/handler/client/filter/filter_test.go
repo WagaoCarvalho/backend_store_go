@@ -11,6 +11,7 @@ import (
 	mockClient "github.com/WagaoCarvalho/backend_store_go/infra/mock/client"
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/client/client"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client"
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/client/filter"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -26,7 +27,7 @@ func TestClientHandler_GetAll(t *testing.T) {
 
 	t.Run("erro - falha no serviço", func(t *testing.T) {
 		mockService := new(mockClient.MockClient)
-		handler := NewClientHandler(mockService, logger)
+		handler := NewClientFilterHandler(mockService, logger)
 
 		mockService.
 			On("GetAll", mock.Anything, mock.Anything).
@@ -49,7 +50,7 @@ func TestClientHandler_GetAll(t *testing.T) {
 
 	t.Run("erro - filtro inválido", func(t *testing.T) {
 		mockService := new(mockClient.MockClient)
-		handler := NewClientHandler(mockService, logger)
+		handler := NewClientFilterHandler(mockService, logger)
 
 		mockService.
 			On("GetAll", mock.Anything, mock.Anything).
@@ -72,7 +73,7 @@ func TestClientHandler_GetAll(t *testing.T) {
 
 	t.Run("sucesso - retorna lista de clientes", func(t *testing.T) {
 		mockService := new(mockClient.MockClient)
-		handler := NewClientHandler(mockService, logger)
+		handler := NewClientFilterHandler(mockService, logger)
 
 		mockClients := []*dto.ClientDTO{
 			{
@@ -136,7 +137,7 @@ func TestClientHandler_GetAll(t *testing.T) {
 
 	t.Run("sucesso - retorna lista vazia", func(t *testing.T) {
 		mockService := new(mockClient.MockClient)
-		handler := NewClientHandler(mockService, logger)
+		handler := NewClientFilterHandler(mockService, logger)
 
 		mockService.
 			On("GetAll", mock.Anything, mock.Anything).
@@ -163,7 +164,7 @@ func TestClientHandler_GetAll(t *testing.T) {
 
 	t.Run("sucesso - filtro com status true", func(t *testing.T) {
 		mockService := new(mockClient.MockClient)
-		handler := NewClientHandler(mockService, logger)
+		handler := NewClientFilterHandler(mockService, logger)
 
 		// Mock de retorno
 		mockClients := []*model.Client{
@@ -176,7 +177,7 @@ func TestClientHandler_GetAll(t *testing.T) {
 		}
 
 		mockService.
-			On("GetAll", mock.Anything, mock.MatchedBy(func(f *model.ClientFilter) bool {
+			On("GetAll", mock.Anything, mock.MatchedBy(func(f *filter.ClientFilter) bool {
 				return f.Status != nil && *f.Status == true
 			})).
 			Return(mockClients, nil)

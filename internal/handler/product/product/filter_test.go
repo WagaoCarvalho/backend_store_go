@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	mockProduct "github.com/WagaoCarvalho/backend_store_go/infra/mock/product"
+	modelFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/product/filter"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
@@ -132,7 +133,7 @@ func TestProductHandler_Filter(t *testing.T) {
 		handler := NewProductHandler(mockService, logger)
 
 		mockService.
-			On("Filter", mock.Anything, mock.MatchedBy(func(filter *model.ProductFilter) bool {
+			On("Filter", mock.Anything, mock.MatchedBy(func(filter *modelFilter.ProductFilter) bool {
 				return filter.SupplierID != nil && *filter.SupplierID == 123
 			})).
 			Return([]*model.Product{}, nil)
@@ -151,7 +152,7 @@ func TestProductHandler_Filter(t *testing.T) {
 		handler := NewProductHandler(mockService, logger)
 
 		mockService.
-			On("Filter", mock.Anything, mock.MatchedBy(func(filter *model.ProductFilter) bool {
+			On("Filter", mock.Anything, mock.MatchedBy(func(filter *modelFilter.ProductFilter) bool {
 				return filter.SupplierID == nil
 			})).
 			Return([]*model.Product{}, nil)
@@ -170,7 +171,7 @@ func TestProductHandler_Filter(t *testing.T) {
 		handler := NewProductHandler(mockService, logger)
 
 		mockService.
-			On("Filter", mock.Anything, mock.MatchedBy(func(filter *model.ProductFilter) bool {
+			On("Filter", mock.Anything, mock.MatchedBy(func(filter *modelFilter.ProductFilter) bool {
 				return filter.Version != nil && *filter.Version == 2
 			})).
 			Return([]*model.Product{}, nil)
@@ -189,7 +190,7 @@ func TestProductHandler_Filter(t *testing.T) {
 		handler := NewProductHandler(mockService, logger)
 
 		mockService.
-			On("Filter", mock.Anything, mock.MatchedBy(func(filter *model.ProductFilter) bool {
+			On("Filter", mock.Anything, mock.MatchedBy(func(filter *modelFilter.ProductFilter) bool {
 				return filter.Version == nil
 			})).
 			Return([]*model.Product{}, nil)
@@ -208,7 +209,7 @@ func TestProductHandler_Filter(t *testing.T) {
 		handler := NewProductHandler(mockService, logger)
 
 		mockService.
-			On("Filter", mock.Anything, mock.MatchedBy(func(filter *model.ProductFilter) bool {
+			On("Filter", mock.Anything, mock.MatchedBy(func(filter *modelFilter.ProductFilter) bool {
 				return filter.Status != nil && *filter.Status == true
 			})).
 			Return([]*model.Product{}, nil)
@@ -227,7 +228,7 @@ func TestProductHandler_Filter(t *testing.T) {
 		handler := NewProductHandler(mockService, logger)
 
 		mockService.
-			On("Filter", mock.Anything, mock.MatchedBy(func(filter *model.ProductFilter) bool {
+			On("Filter", mock.Anything, mock.MatchedBy(func(filter *modelFilter.ProductFilter) bool {
 				return filter.Status != nil && *filter.Status == false
 			})).
 			Return([]*model.Product{}, nil)
@@ -246,7 +247,7 @@ func TestProductHandler_Filter(t *testing.T) {
 		handler := NewProductHandler(mockService, logger)
 
 		mockService.
-			On("Filter", mock.Anything, mock.MatchedBy(func(filter *model.ProductFilter) bool {
+			On("Filter", mock.Anything, mock.MatchedBy(func(filter *modelFilter.ProductFilter) bool {
 				return filter.Status == nil
 			})).
 			Return([]*model.Product{}, nil)
@@ -265,7 +266,7 @@ func TestProductHandler_Filter(t *testing.T) {
 		handler := NewProductHandler(mockService, logger)
 
 		mockService.
-			On("Filter", mock.Anything, mock.MatchedBy(func(filter *model.ProductFilter) bool {
+			On("Filter", mock.Anything, mock.MatchedBy(func(filter *modelFilter.ProductFilter) bool {
 				return filter.AllowDiscount != nil && *filter.AllowDiscount == true
 			})).
 			Return([]*model.Product{}, nil)
@@ -284,7 +285,7 @@ func TestProductHandler_Filter(t *testing.T) {
 		handler := NewProductHandler(mockService, logger)
 
 		mockService.
-			On("Filter", mock.Anything, mock.MatchedBy(func(filter *model.ProductFilter) bool {
+			On("Filter", mock.Anything, mock.MatchedBy(func(filter *modelFilter.ProductFilter) bool {
 				return filter.AllowDiscount != nil && *filter.AllowDiscount == false
 			})).
 			Return([]*model.Product{}, nil)
@@ -303,7 +304,7 @@ func TestProductHandler_Filter(t *testing.T) {
 		handler := NewProductHandler(mockService, logger)
 
 		mockService.
-			On("Filter", mock.Anything, mock.MatchedBy(func(filter *model.ProductFilter) bool {
+			On("Filter", mock.Anything, mock.MatchedBy(func(filter *modelFilter.ProductFilter) bool {
 				return filter.AllowDiscount == nil
 			})).
 			Return([]*model.Product{}, nil)
@@ -322,7 +323,7 @@ func TestProductHandler_Filter(t *testing.T) {
 		handler := NewProductHandler(mockService, logger)
 
 		mockService.
-			On("Filter", mock.Anything, mock.MatchedBy(func(filter *model.ProductFilter) bool {
+			On("Filter", mock.Anything, mock.MatchedBy(func(filter *modelFilter.ProductFilter) bool {
 				return filter.SupplierID != nil && *filter.SupplierID == 456 &&
 					filter.Version != nil && *filter.Version == 3 &&
 					filter.Status != nil && *filter.Status == true &&

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	modelFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/product/filter"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	commonFilter "github.com/WagaoCarvalho/backend_store_go/internal/repo/common/filter"
@@ -13,10 +14,6 @@ import (
 // Abstrações de banco e scanner
 // ----------------------------
 
-type DB interface {
-	Query(ctx context.Context, query string, args ...any) (scanner, error)
-}
-
 type scanner interface {
 	Next() bool
 	Scan(dest ...any) error
@@ -25,7 +22,7 @@ type scanner interface {
 }
 
 // Filter retorna produtos filtrados e paginados usando o builder genérico.
-func (r *productRepo) Filter(ctx context.Context, filterData *model.ProductFilter) ([]*model.Product, error) {
+func (r *productRepo) Filter(ctx context.Context, filterData *modelFilter.ProductFilter) ([]*model.Product, error) {
 	qb := commonFilter.NewSQLQueryBuilder(
 		"products",
 		[]string{

@@ -26,10 +26,6 @@ type ClientChecker interface {
 	ClientExists(ctx context.Context, clientID int64) (bool, error)
 }
 
-type ClientFilter interface {
-	GetAll(ctx context.Context, f *models.ClientFilter) ([]*models.Client, error)
-}
-
 type ClientVersion interface {
 	GetVersionByID(ctx context.Context, id int64) (int, error)
 }

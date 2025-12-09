@@ -7,7 +7,8 @@ import (
 
 	mockClient "github.com/WagaoCarvalho/backend_store_go/infra/mock/client"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client"
-	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/filter"
+	clientFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/client/filter"
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/common/filter"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,7 @@ import (
 func TestClientService_GetAll(t *testing.T) {
 	t.Run("falha quando filtro é nulo", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClientService(mockRepo)
+		service := NewClientFilterService(mockRepo)
 
 		result, err := service.GetAll(context.Background(), nil)
 
@@ -28,9 +29,9 @@ func TestClientService_GetAll(t *testing.T) {
 
 	t.Run("falha na validação do filtro", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClientService(mockRepo)
+		service := NewClientFilterService(mockRepo)
 
-		invalidFilter := &model.ClientFilter{
+		invalidFilter := &clientFilter.ClientFilter{
 			BaseFilter: filter.BaseFilter{
 				Limit: -10, // inválido
 			},
@@ -45,9 +46,9 @@ func TestClientService_GetAll(t *testing.T) {
 
 	t.Run("falha ao buscar no repositório", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClientService(mockRepo)
+		service := NewClientFilterService(mockRepo)
 
-		validFilter := &model.ClientFilter{
+		validFilter := &clientFilter.ClientFilter{
 			BaseFilter: filter.BaseFilter{
 				Limit:  10,
 				Offset: 0,
@@ -68,9 +69,9 @@ func TestClientService_GetAll(t *testing.T) {
 
 	t.Run("sucesso ao retornar lista de clientes", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
-		service := NewClientService(mockRepo)
+		service := NewClientFilterService(mockRepo)
 
-		validFilter := &model.ClientFilter{
+		validFilter := &clientFilter.ClientFilter{
 			BaseFilter: filter.BaseFilter{
 				Limit:  10,
 				Offset: 0,

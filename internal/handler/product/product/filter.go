@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	dtoFilter "github.com/WagaoCarvalho/backend_store_go/internal/dto/product/filter"
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/product/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
@@ -15,7 +16,7 @@ func (h *productHandler) Filter(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	const ref = "[productHandler - Filter] "
 
-	var dtoFilter dto.ProductFilterDTO
+	var dtoFilter dtoFilter.ProductFilterDTO
 	query := r.URL.Query()
 
 	dtoFilter.ProductName = query.Get("product_name")

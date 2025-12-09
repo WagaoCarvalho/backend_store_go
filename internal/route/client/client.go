@@ -5,11 +5,14 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/client"
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/handler/client/filter"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwtMiddlewares "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/client/client"
+	repoFilter "github.com/WagaoCarvalho/backend_store_go/internal/repo/client/filter"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/client/client"
+	serviceFilter "github.com/WagaoCarvalho/backend_store_go/internal/service/client/filter"
 
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -24,6 +27,10 @@ func RegisterClientRoutes(
 	repo := repo.NewClient(db)
 	service := service.NewClientService(repo)
 	handler := handler.NewClientHandler(service, log)
+
+	repoFilter := repoFilter.NewFilterClient(db)
+	serviceFilter := serviceFilter.NewClientFilterService(repoFilter)
+	filter := filter.NewClientFilterHandler(serviceFilter, log)
 
 	jwtCfg := config.LoadJwtConfig()
 
@@ -41,7 +48,7 @@ func RegisterClientRoutes(
 	s.HandleFunc("/client/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)
 	s.HandleFunc("/clients/name/{name}", handler.GetByName).Methods(http.MethodGet)
 	s.HandleFunc("/client/{id:[0-9]+}/version", handler.GetVersionByID).Methods(http.MethodGet)
-	s.HandleFunc("/clients/filter", handler.GetAll).Methods(http.MethodGet)
+	s.HandleFunc("/clients/filter", filter.GetAll).Methods(http.MethodGet)
 	s.HandleFunc("/client/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
 	s.HandleFunc("/client/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
 	s.HandleFunc("/client/{id:[0-9]+}/disable", handler.Disable).Methods(http.MethodPatch)
