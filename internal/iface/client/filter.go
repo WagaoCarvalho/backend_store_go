@@ -8,5 +8,5 @@ import (
 )
 
 type ClientFilter interface {
-	GetAll(ctx context.Context, f *filter.ClientFilter) ([]*models.Client, error)
+	Filter(ctx context.Context, f *filter.ClientFilter) ([]*models.Client, error)
 }

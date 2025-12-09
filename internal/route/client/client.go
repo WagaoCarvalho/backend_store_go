@@ -53,5 +53,5 @@ func RegisterClientRoutes(
 	s.HandleFunc("/client/{id:[0-9]+}/disable", handler.Disable).Methods(http.MethodPatch)
 	s.HandleFunc("/client/{id:[0-9]+}/enable", handler.Enable).Methods(http.MethodPatch)
 
-	s.HandleFunc("/clients/filter", filter.GetAll).Methods(http.MethodGet)
+	s.HandleFunc("/clients/filter", filter.Filter).Methods(http.MethodGet)
 }

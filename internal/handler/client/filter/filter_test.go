@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestClientHandler_GetAll(t *testing.T) {
+func TestClientHandler_Filter(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
@@ -30,13 +30,13 @@ func TestClientHandler_GetAll(t *testing.T) {
 		handler := NewClientFilterHandler(mockService, logger)
 
 		mockService.
-			On("GetAll", mock.Anything, mock.Anything).
+			On("Filter", mock.Anything, mock.Anything).
 			Return(nil, errors.New("db error"))
 
 		req := httptest.NewRequest(http.MethodGet, "/clients/filter?limit=10&offset=0", nil)
 		rec := httptest.NewRecorder()
 
-		handler.GetAll(rec, req)
+		handler.Filter(rec, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
 
@@ -53,13 +53,13 @@ func TestClientHandler_GetAll(t *testing.T) {
 		handler := NewClientFilterHandler(mockService, logger)
 
 		mockService.
-			On("GetAll", mock.Anything, mock.Anything).
+			On("Filter", mock.Anything, mock.Anything).
 			Return(nil, errMsg.ErrInvalidFilter)
 
 		req := httptest.NewRequest(http.MethodGet, "/clients/filter?limit=-1", nil)
 		rec := httptest.NewRecorder()
 
-		handler.GetAll(rec, req)
+		handler.Filter(rec, req)
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 
@@ -111,13 +111,13 @@ func TestClientHandler_GetAll(t *testing.T) {
 		}
 
 		mockService.
-			On("GetAll", mock.Anything, mock.Anything).
+			On("Filter", mock.Anything, mock.Anything).
 			Return(modelClients, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/clients/filter?limit=2&offset=0", nil)
 		rec := httptest.NewRecorder()
 
-		handler.GetAll(rec, req)
+		handler.Filter(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
 
@@ -140,13 +140,13 @@ func TestClientHandler_GetAll(t *testing.T) {
 		handler := NewClientFilterHandler(mockService, logger)
 
 		mockService.
-			On("GetAll", mock.Anything, mock.Anything).
+			On("Filter", mock.Anything, mock.Anything).
 			Return([]*model.Client{}, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/clients/filter?limit=5&offset=0", nil)
 		rec := httptest.NewRecorder()
 
-		handler.GetAll(rec, req)
+		handler.Filter(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
 
@@ -177,7 +177,7 @@ func TestClientHandler_GetAll(t *testing.T) {
 		}
 
 		mockService.
-			On("GetAll", mock.Anything, mock.MatchedBy(func(f *filter.ClientFilter) bool {
+			On("Filter", mock.Anything, mock.MatchedBy(func(f *filter.ClientFilter) bool {
 				return f.Status != nil && *f.Status == true
 			})).
 			Return(mockClients, nil)
@@ -185,7 +185,7 @@ func TestClientHandler_GetAll(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/clients/filter?status=true", nil)
 		rec := httptest.NewRecorder()
 
-		handler.GetAll(rec, req)
+		handler.Filter(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
 

@@ -64,7 +64,7 @@ func TestClient_GetAll(t *testing.T) {
 
 		mockDB.On("Query", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).Return(mockRows, nil)
 
-		result, err := repo.GetAll(ctx, filter)
+		result, err := repo.Filter(ctx, filter)
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 1)
@@ -93,7 +93,7 @@ func TestClient_GetAll(t *testing.T) {
 		emptyRows := new(mockDb.MockRows)
 		mockDB.On("Query", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).Return(emptyRows, dbErr)
 
-		result, err := repo.GetAll(ctx, filter)
+		result, err := repo.Filter(ctx, filter)
 
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrGet)
@@ -132,7 +132,7 @@ func TestClient_GetAll(t *testing.T) {
 
 		mockDB.On("Query", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).Return(mockRows, nil)
 
-		result, err := repo.GetAll(ctx, filter)
+		result, err := repo.Filter(ctx, filter)
 
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrScan)
@@ -161,7 +161,7 @@ func TestClient_GetAll(t *testing.T) {
 
 		mockDB.On("Query", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).Return(mockRows, nil)
 
-		result, err := repo.GetAll(ctx, filter)
+		result, err := repo.Filter(ctx, filter)
 
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrIterate)
@@ -236,7 +236,7 @@ func TestClient_GetAll(t *testing.T) {
 				stat == true
 		})).Return(mockRows, nil)
 
-		result, err := repo.GetAll(ctx, filter)
+		result, err := repo.Filter(ctx, filter)
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 1)
@@ -305,7 +305,7 @@ func TestClient_GetAll(t *testing.T) {
 			return cpf == "111.222.333-44" && cnpj == "12.345.678/0001-99"
 		})).Return(mockRows, nil)
 
-		result, err := repo.GetAll(ctx, filter)
+		result, err := repo.Filter(ctx, filter)
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 1)
@@ -391,7 +391,7 @@ func TestClient_GetAll(t *testing.T) {
 				ut.Equal(updatedTo)
 		})).Return(mockRows, nil)
 
-		result, err := repo.GetAll(ctx, filter)
+		result, err := repo.Filter(ctx, filter)
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 1)

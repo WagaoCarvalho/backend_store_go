@@ -9,7 +9,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (r *clientFilterRepo) GetAll(ctx context.Context, filter *filter.ClientFilter) ([]*model.Client, error) {
+func (r *clientFilterRepo) Filter(ctx context.Context, filter *filter.ClientFilter) ([]*model.Client, error) {
 	query := `
 		SELECT id, name, email, cpf, cnpj, description, status, version, created_at, updated_at
 		FROM clients

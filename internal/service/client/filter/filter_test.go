@@ -15,16 +15,16 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestClientService_GetAll(t *testing.T) {
+func TestClientService_Filter(t *testing.T) {
 	t.Run("falha quando filtro é nulo", func(t *testing.T) {
 		mockRepo := new(mockClient.MockClient)
 		service := NewClientFilterService(mockRepo)
 
-		result, err := service.GetAll(context.Background(), nil)
+		result, err := service.Filter(context.Background(), nil)
 
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrInvalidFilter)
-		mockRepo.AssertNotCalled(t, "GetAll", mock.Anything, mock.Anything)
+		mockRepo.AssertNotCalled(t, "Filter", mock.Anything, mock.Anything)
 	})
 
 	t.Run("falha na validação do filtro", func(t *testing.T) {
@@ -37,11 +37,11 @@ func TestClientService_GetAll(t *testing.T) {
 			},
 		}
 
-		result, err := service.GetAll(context.Background(), invalidFilter)
+		result, err := service.Filter(context.Background(), invalidFilter)
 
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrInvalidFilter)
-		mockRepo.AssertNotCalled(t, "GetAll", mock.Anything, mock.Anything)
+		mockRepo.AssertNotCalled(t, "Filter", mock.Anything, mock.Anything)
 	})
 
 	t.Run("falha ao buscar no repositório", func(t *testing.T) {
@@ -57,9 +57,9 @@ func TestClientService_GetAll(t *testing.T) {
 
 		dbErr := errors.New("falha no banco de dados")
 
-		mockRepo.On("GetAll", mock.Anything, validFilter).Return(nil, dbErr).Once()
+		mockRepo.On("Filter", mock.Anything, validFilter).Return(nil, dbErr).Once()
 
-		result, err := service.GetAll(context.Background(), validFilter)
+		result, err := service.Filter(context.Background(), validFilter)
 
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrGet)
@@ -83,9 +83,9 @@ func TestClientService_GetAll(t *testing.T) {
 			{ID: 2, Name: "Maria Souza", Email: utils.StrToPtr("maria@email.com")},
 		}
 
-		mockRepo.On("GetAll", mock.Anything, validFilter).Return(mockClients, nil).Once()
+		mockRepo.On("Filter", mock.Anything, validFilter).Return(mockClients, nil).Once()
 
-		result, err := service.GetAll(context.Background(), validFilter)
+		result, err := service.Filter(context.Background(), validFilter)
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 2)

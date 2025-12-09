@@ -12,9 +12,9 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *clientFilterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+func (h *clientFilterHandler) Filter(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	const ref = "[clientHandler - GetAll] "
+	const ref = "[clientHandler - Filter] "
 
 	var dtoFilter dtoFilter.ClientFilterDTO
 	query := r.URL.Query()
@@ -36,7 +36,7 @@ func (h *clientFilterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{"filtro": dtoFilter})
 
-	clients, err := h.service.GetAll(ctx, filter)
+	clients, err := h.service.Filter(ctx, filter)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrInvalidFilter) {
 			h.logger.Warn(ctx, ref+"filtro inválido", map[string]any{"erro": err.Error(), "filtro": dtoFilter})
