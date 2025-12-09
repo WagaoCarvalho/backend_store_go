@@ -6,11 +6,11 @@ import (
 )
 
 type clientFilterHandler struct {
-	service service.Client
+	service service.ClientFilter
 	logger  *logger.LogAdapter
 }
 
-func NewClientFilterHandler(service service.Client, logger *logger.LogAdapter) *clientFilterHandler {
+func NewClientFilterHandler(service service.ClientFilter, logger *logger.LogAdapter) *clientFilterHandler {
 	return &clientFilterHandler{
 		service: service,
 		logger:  logger,

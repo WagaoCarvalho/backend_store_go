@@ -9,7 +9,7 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *productService) Filter(ctx context.Context, filterData *modelFilter.ProductFilter) ([]*models.Product, error) {
+func (s *productFilterService) Filter(ctx context.Context, filterData *modelFilter.ProductFilter) ([]*models.Product, error) {
 	if filterData == nil {
 		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}

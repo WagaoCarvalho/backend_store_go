@@ -12,7 +12,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
-func (h *productHandler) Filter(w http.ResponseWriter, r *http.Request) {
+func (h *productFilterHandler) Filter(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	const ref = "[productHandler - Filter] "
 

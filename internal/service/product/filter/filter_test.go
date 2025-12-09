@@ -15,9 +15,9 @@ import (
 
 func TestProductService_Filter(t *testing.T) {
 
-	setup := func() (*mockProduct.ProductMock, ProductService) {
+	setup := func() (*mockProduct.ProductMock, ProductFilterService) {
 		mockRepo := new(mockProduct.ProductMock)
-		service := NewProductService(mockRepo)
+		service := NewProductFilterService(mockRepo)
 		return mockRepo, service
 	}
 

@@ -8,6 +8,5 @@ type ProductService interface {
 	iface.ProductStock
 	iface.ProductDiscount
 	iface.ProductStatus
-	iface.ProductFilter
 	iface.ProductVersion
 }

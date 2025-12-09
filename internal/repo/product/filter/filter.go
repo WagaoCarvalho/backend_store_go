@@ -22,7 +22,7 @@ type scanner interface {
 }
 
 // Filter retorna produtos filtrados e paginados usando o builder genérico.
-func (r *productRepo) Filter(ctx context.Context, filterData *modelFilter.ProductFilter) ([]*model.Product, error) {
+func (r *productFilterRepo) Filter(ctx context.Context, filterData *modelFilter.ProductFilter) ([]*model.Product, error) {
 	qb := commonFilter.NewSQLQueryBuilder(
 		"products",
 		[]string{

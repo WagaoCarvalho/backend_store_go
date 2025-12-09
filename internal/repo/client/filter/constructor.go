@@ -6,6 +6,6 @@ type clientFilterRepo struct {
 	db repo.DBExecutor
 }
 
-func NewFilterClient(db repo.DBExecutor) Client {
+func NewFilterClient(db repo.DBExecutor) ClientFilter {
 	return &clientFilterRepo{db: db}
 }

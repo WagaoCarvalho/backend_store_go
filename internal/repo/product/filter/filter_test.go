@@ -20,7 +20,7 @@ func TestProductRepo_Filter_AllFilters(t *testing.T) {
 		mockRows := new(mockDb.MockRows)
 
 		ctx := context.Background()
-		repo := &productRepo{db: mockDB}
+		repo := &productFilterRepo{db: mockDB}
 
 		// Mock filter data with various filter types
 		minStock := 10
@@ -101,7 +101,7 @@ func TestProductRepo_Filter_TextFilters(t *testing.T) {
 		mockRows := new(mockDb.MockRows)
 
 		ctx := context.Background()
-		repo := &productRepo{db: mockDB}
+		repo := &productFilterRepo{db: mockDB}
 
 		filterData := &modelFilter.ProductFilter{
 			BaseFilter: commonFilter.BaseFilter{
@@ -161,7 +161,7 @@ func TestProductRepo_Filter_EqualFilters(t *testing.T) {
 		mockRows := new(mockDb.MockRows)
 
 		ctx := context.Background()
-		repo := &productRepo{db: mockDB}
+		repo := &productFilterRepo{db: mockDB}
 
 		version := 2
 		filterData := &modelFilter.ProductFilter{
@@ -220,7 +220,7 @@ func TestProductRepo_Filter_EqualFilters(t *testing.T) {
 		mockRows := new(mockDb.MockRows)
 
 		ctx := context.Background()
-		repo := &productRepo{db: mockDB}
+		repo := &productFilterRepo{db: mockDB}
 
 		allowDiscount := true
 		filterData := &modelFilter.ProductFilter{
@@ -281,7 +281,7 @@ func TestProductRepo_Filter_RangeFilters(t *testing.T) {
 		mockRows := new(mockDb.MockRows)
 
 		ctx := context.Background()
-		repo := &productRepo{db: mockDB}
+		repo := &productFilterRepo{db: mockDB}
 
 		minSalePrice := 50.0
 		maxSalePrice := 200.0
@@ -342,7 +342,7 @@ func TestProductRepo_Filter_RangeFilters(t *testing.T) {
 		mockRows := new(mockDb.MockRows)
 
 		ctx := context.Background()
-		repo := &productRepo{db: mockDB}
+		repo := &productFilterRepo{db: mockDB}
 
 		minDiscount := 5.0
 		maxDiscount := 20.0
@@ -405,7 +405,7 @@ func TestProductRepo_Filter_DateFilters(t *testing.T) {
 		mockRows := new(mockDb.MockRows)
 
 		ctx := context.Background()
-		repo := &productRepo{db: mockDB}
+		repo := &productFilterRepo{db: mockDB}
 
 		updatedFrom := time.Now().AddDate(0, -1, 0)
 		updatedTo := time.Now()
@@ -466,7 +466,7 @@ func TestProductRepo_Filter_DateFilters(t *testing.T) {
 		mockRows := new(mockDb.MockRows)
 
 		ctx := context.Background()
-		repo := &productRepo{db: mockDB}
+		repo := &productFilterRepo{db: mockDB}
 
 		updatedFrom := time.Now().AddDate(0, -1, 0)
 		filterData := &modelFilter.ProductFilter{
@@ -526,7 +526,7 @@ func TestProductRepo_Filter_DateFilters(t *testing.T) {
 		mockRows := new(mockDb.MockRows)
 
 		ctx := context.Background()
-		repo := &productRepo{db: mockDB}
+		repo := &productFilterRepo{db: mockDB}
 
 		updatedTo := time.Now()
 		filterData := &modelFilter.ProductFilter{
@@ -586,7 +586,7 @@ func TestProductRepo_Filter_ErrorScenarios(t *testing.T) {
 		// Setup
 		mockDB := new(mockDb.MockDatabase)
 		ctx := context.Background()
-		repo := &productRepo{db: mockDB}
+		repo := &productFilterRepo{db: mockDB}
 
 		filterData := &modelFilter.ProductFilter{
 			BaseFilter: commonFilter.BaseFilter{
@@ -620,7 +620,7 @@ func TestProductRepo_Filter_ErrorScenarios(t *testing.T) {
 		mockRows := new(mockDb.MockRows)
 
 		ctx := context.Background()
-		repo := &productRepo{db: mockDB}
+		repo := &productFilterRepo{db: mockDB}
 
 		filterData := &modelFilter.ProductFilter{
 			BaseFilter: commonFilter.BaseFilter{
@@ -679,7 +679,7 @@ func TestProductRepo_Filter_ErrorScenarios(t *testing.T) {
 		mockRows := new(mockDb.MockRows)
 
 		ctx := context.Background()
-		repo := &productRepo{db: mockDB}
+		repo := &productFilterRepo{db: mockDB}
 
 		filterData := &modelFilter.ProductFilter{
 			BaseFilter: commonFilter.BaseFilter{
