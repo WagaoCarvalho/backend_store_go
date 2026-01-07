@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewProduct(t *testing.T) {
-	t.Run("successfully create new product instance", func(t *testing.T) {
+	t.Run("successfully create new Product instance", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 
 		result := NewFilterProduct(mockDB)

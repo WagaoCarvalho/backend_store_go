@@ -3,7 +3,6 @@ package iface
 import (
 	"context"
 
-	modelFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/product/filter"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 )
 
@@ -19,10 +18,6 @@ type ProductWriter interface {
 	Create(ctx context.Context, product *models.Product) (*models.Product, error)
 	Update(ctx context.Context, product *models.Product) error
 	Delete(ctx context.Context, id int64) error
-}
-
-type ProductFilter interface {
-	Filter(ctx context.Context, f *modelFilter.ProductFilter) ([]*models.Product, error)
 }
 
 type ProductStock interface {

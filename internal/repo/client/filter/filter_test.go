@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,8 +15,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestClient_GetAll(t *testing.T) {
-
+func TestClient_Filter(t *testing.T) {
 	t.Run("successfully get all clients", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &clientFilterRepo{db: mockDB}
@@ -73,6 +73,138 @@ func TestClient_GetAll(t *testing.T) {
 		assert.Equal(t, "Cliente de teste", result[0].Description)
 		assert.Equal(t, true, result[0].Status)
 		assert.Equal(t, 1, result[0].Version)
+		mockDB.AssertExpectations(t)
+		mockRows.AssertExpectations(t)
+	})
+	t.Run("uses allowed sort field when SortBy is valid", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &clientFilterRepo{db: mockDB}
+		ctx := context.Background()
+
+		mockRows := new(mockDb.MockRows)
+		now := time.Now()
+
+		mockRows.On("Next").Return(true).Once()
+		mockRows.On("Scan",
+			mock.AnythingOfType("*int64"),
+			mock.AnythingOfType("*string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("*string"),
+			mock.AnythingOfType("*bool"),
+			mock.AnythingOfType("*int"),
+			mock.AnythingOfType("*time.Time"),
+			mock.AnythingOfType("*time.Time"),
+		).Run(func(args mock.Arguments) {
+			*args[0].(*int64) = 1
+			*args[1].(*string) = "João Silva"
+			email := "joao@email.com"
+			cpf := "123.456.789-09"
+			cnpj := ""
+			*args[2].(**string) = &email
+			*args[3].(**string) = &cpf
+			*args[4].(**string) = &cnpj
+			*args[5].(*string) = "Cliente de teste"
+			*args[6].(*bool) = true
+			*args[7].(*int) = 1
+			*args[8].(*time.Time) = now
+			*args[9].(*time.Time) = now
+		}).Return(nil).Once()
+		mockRows.On("Next").Return(false).Once()
+		mockRows.On("Err").Return(nil)
+		mockRows.On("Close").Return()
+
+		filter := &filterClient.ClientFilter{
+			BaseFilter: filter.BaseFilter{
+				Limit:     10,
+				Offset:    0,
+				SortBy:    "name",
+				SortOrder: "asc",
+			},
+		}
+
+		mockDB.
+			On(
+				"Query",
+				ctx,
+				mock.MatchedBy(func(q string) bool {
+					return strings.Contains(q, "ORDER BY name asc")
+				}),
+				mock.Anything,
+			).
+			Return(mockRows, nil)
+
+		result, err := repo.Filter(ctx, filter)
+
+		assert.NoError(t, err)
+		assert.Len(t, result, 1)
+		mockDB.AssertExpectations(t)
+		mockRows.AssertExpectations(t)
+	})
+
+	t.Run("defaults sort order to asc when SortOrder is invalid", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &clientFilterRepo{db: mockDB}
+		ctx := context.Background()
+
+		mockRows := new(mockDb.MockRows)
+		now := time.Now()
+
+		mockRows.On("Next").Return(true).Once()
+		mockRows.On("Scan",
+			mock.AnythingOfType("*int64"),
+			mock.AnythingOfType("*string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("*string"),
+			mock.AnythingOfType("*bool"),
+			mock.AnythingOfType("*int"),
+			mock.AnythingOfType("*time.Time"),
+			mock.AnythingOfType("*time.Time"),
+		).Run(func(args mock.Arguments) {
+			*args[0].(*int64) = 1
+			*args[1].(*string) = "João Silva"
+			email := "joao@email.com"
+			cpf := "123.456.789-09"
+			cnpj := ""
+			*args[2].(**string) = &email
+			*args[3].(**string) = &cpf
+			*args[4].(**string) = &cnpj
+			*args[5].(*string) = "Cliente de teste"
+			*args[6].(*bool) = true
+			*args[7].(*int) = 1
+			*args[8].(*time.Time) = now
+			*args[9].(*time.Time) = now
+		}).Return(nil).Once()
+		mockRows.On("Next").Return(false).Once()
+		mockRows.On("Err").Return(nil)
+		mockRows.On("Close").Return()
+
+		filter := &filterClient.ClientFilter{
+			BaseFilter: filter.BaseFilter{
+				Limit:     10,
+				Offset:    0,
+				SortBy:    "created_at",
+				SortOrder: "INVALID",
+			},
+		}
+
+		mockDB.
+			On(
+				"Query",
+				ctx,
+				mock.MatchedBy(func(q string) bool {
+					return strings.Contains(q, "ORDER BY created_at asc")
+				}),
+				mock.Anything,
+			).
+			Return(mockRows, nil)
+
+		_, err := repo.Filter(ctx, filter)
+
+		assert.NoError(t, err)
 		mockDB.AssertExpectations(t)
 		mockRows.AssertExpectations(t)
 	})

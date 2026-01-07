@@ -3,13 +3,27 @@ package repo
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/client/client"
 	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/client/filter"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
+var allowedSortFields = map[string]string{
+	"id":         "id",
+	"name":       "name",
+	"email":      "email",
+	"status":     "status",
+	"version":    "version",
+	"created_at": "created_at",
+	"updated_at": "updated_at",
+}
+
 func (r *clientFilterRepo) Filter(ctx context.Context, filter *filter.ClientFilter) ([]*model.Client, error) {
+
+	base := filter.BaseFilter.WithDefaults()
+
 	query := `
 		SELECT id, name, email, cpf, cnpj, description, status, version, created_at, updated_at
 		FROM clients
@@ -70,7 +84,23 @@ func (r *clientFilterRepo) Filter(ctx context.Context, filter *filter.ClientFilt
 		argPos++
 	}
 
-	query += fmt.Sprintf(" ORDER BY created_at DESC LIMIT %d OFFSET %d", filter.Limit, filter.Offset)
+	// ORDER BY seguro
+	sortField := "created_at"
+	if v, ok := allowedSortFields[strings.ToLower(base.SortBy)]; ok {
+		sortField = v
+	}
+
+	sortOrder := strings.ToLower(base.SortOrder)
+	if sortOrder != "asc" && sortOrder != "desc" {
+		sortOrder = "asc"
+	}
+
+	query += fmt.Sprintf(" ORDER BY %s %s LIMIT %d OFFSET %d",
+		sortField,
+		sortOrder,
+		base.Limit,
+		base.Offset,
+	)
 
 	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
@@ -82,16 +112,22 @@ func (r *clientFilterRepo) Filter(ctx context.Context, filter *filter.ClientFilt
 	for rows.Next() {
 		var c model.Client
 		if err := rows.Scan(
-			&c.ID, &c.Name, &c.Email, &c.CPF, &c.CNPJ,
-			&c.Description, &c.Status, &c.Version,
-			&c.CreatedAt, &c.UpdatedAt,
+			&c.ID,
+			&c.Name,
+			&c.Email,
+			&c.CPF,
+			&c.CNPJ,
+			&c.Description,
+			&c.Status,
+			&c.Version,
+			&c.CreatedAt,
+			&c.UpdatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("%w: %v", errMsg.ErrScan, err)
 		}
 		clients = append(clients, &c)
 	}
 
-	// 🔍 Checagem obrigatória de erro de iteração
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrIterate, err)
 	}
