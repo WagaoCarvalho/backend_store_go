@@ -4,11 +4,14 @@ import (
 	"net/http"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/handler/product/filter"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/product/product"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
+	repoFilter "github.com/WagaoCarvalho/backend_store_go/internal/repo/product/filter"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product/product"
+	serviceFilter "github.com/WagaoCarvalho/backend_store_go/internal/service/product/filter"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/product/product"
 
 	"github.com/gorilla/mux"
@@ -24,6 +27,10 @@ func RegisterProductRoutes(
 	repo := repo.NewProduct(db)
 	productService := service.NewProductService(repo)
 	handler := handler.NewProductHandler(productService, log)
+
+	repoFilter := repoFilter.NewFilterProduct(db)
+	serviceFilter := serviceFilter.NewProductFilterService(repoFilter)
+	filter := filter.NewProductFilterHandler(serviceFilter, log)
 
 	// Config JWT
 	jwtCfg := config.LoadJwtConfig()
@@ -56,5 +63,7 @@ func RegisterProductRoutes(
 	s.HandleFunc("/product/enable-discount/{id:[0-9]+}", handler.EnableDiscount).Methods(http.MethodPatch)
 	s.HandleFunc("/product/disable-discount/{id:[0-9]+}", handler.DisableDiscount).Methods(http.MethodPatch)
 	s.HandleFunc("/product/apply-discount/{id:[0-9]+}", handler.ApplyDiscount).Methods(http.MethodPatch)
+
+	s.HandleFunc("/products/filter", filter.Filter).Methods(http.MethodGet)
 
 }
