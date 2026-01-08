@@ -36,7 +36,7 @@ func ToSaleModel(dto SaleDTO) *models.Sale {
 		PaymentType:        dto.PaymentType,
 		Status:             utils.DefaultString(dto.Status, "active"),
 		Notes:              dto.Notes,
-		Version:            dto.Version,
+		Version:            utils.DefaultInt(dto.Version, 1),
 	}
 
 	if dto.SaleDate != nil {
@@ -44,11 +44,13 @@ func ToSaleModel(dto SaleDTO) *models.Sale {
 			model.SaleDate = t
 		}
 	}
+
 	if dto.CreatedAt != nil {
 		if t, err := time.Parse(time.RFC3339, *dto.CreatedAt); err == nil {
 			model.CreatedAt = t
 		}
 	}
+
 	if dto.UpdatedAt != nil {
 		if t, err := time.Parse(time.RFC3339, *dto.UpdatedAt); err == nil {
 			model.UpdatedAt = t
@@ -59,15 +61,10 @@ func ToSaleModel(dto SaleDTO) *models.Sale {
 }
 
 func ToSaleDTO(model *models.Sale) SaleDTO {
-	saleDate := model.SaleDate.Format(time.RFC3339)
-	createdAt := model.CreatedAt.Format(time.RFC3339)
-	updatedAt := model.UpdatedAt.Format(time.RFC3339)
-
-	return SaleDTO{
+	dto := SaleDTO{
 		ID:                 &model.ID,
 		ClientID:           model.ClientID,
 		UserID:             model.UserID,
-		SaleDate:           &saleDate,
 		TotalItemsAmount:   model.TotalItemsAmount,
 		TotalItemsDiscount: model.TotalItemsDiscount,
 		TotalSaleDiscount:  model.TotalSaleDiscount,
@@ -76,12 +73,25 @@ func ToSaleDTO(model *models.Sale) SaleDTO {
 		Status:             model.Status,
 		Notes:              model.Notes,
 		Version:            model.Version,
-		CreatedAt:          &createdAt,
-		UpdatedAt:          &updatedAt,
 	}
+
+	if !model.SaleDate.IsZero() {
+		v := model.SaleDate.Format(time.RFC3339)
+		dto.SaleDate = &v
+	}
+	if !model.CreatedAt.IsZero() {
+		v := model.CreatedAt.Format(time.RFC3339)
+		dto.CreatedAt = &v
+	}
+	if !model.UpdatedAt.IsZero() {
+		v := model.UpdatedAt.Format(time.RFC3339)
+		dto.UpdatedAt = &v
+	}
+
+	return dto
 }
 
-func ToSaleDTOList(modelsList []*models.Sale) []SaleDTO {
+func ToSaleDTOs(modelsList []*models.Sale) []SaleDTO {
 	result := make([]SaleDTO, len(modelsList))
 	for i, m := range modelsList {
 		result[i] = ToSaleDTO(m)

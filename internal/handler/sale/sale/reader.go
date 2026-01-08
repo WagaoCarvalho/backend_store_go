@@ -70,7 +70,7 @@ func (h *saleHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	salesDTO := dtoSale.ToSaleDTOList(sales)
+	salesDTO := dtoSale.ToSaleDTOs(sales)
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Vendas do cliente recuperadas",
@@ -105,7 +105,7 @@ func (h *saleHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	salesDTO := dtoSale.ToSaleDTOList(sales)
+	salesDTO := dtoSale.ToSaleDTOs(sales)
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Vendas do usuário recuperadas",
@@ -149,7 +149,7 @@ func (h *saleHandler) GetByDateRange(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	salesDTO := dtoSale.ToSaleDTOList(sales)
+	salesDTO := dtoSale.ToSaleDTOs(sales)
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Vendas por período recuperadas",

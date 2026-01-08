@@ -141,7 +141,7 @@ func TestSaleDTO_ToSaleDTOList(t *testing.T) {
 		},
 	}
 
-	dtoList := ToSaleDTOList(modelsList)
+	dtoList := ToSaleDTOs(modelsList)
 
 	assert.Len(t, dtoList, 2)
 	assert.Equal(t, modelsList[0].TotalAmount, dtoList[0].TotalAmount)

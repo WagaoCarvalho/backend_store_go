@@ -37,7 +37,7 @@ func (h *saleHandler) GetByStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	salesDTO := dtoSale.ToSaleDTOList(sales)
+	salesDTO := dtoSale.ToSaleDTOs(sales)
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Vendas por status recuperadas",

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/filter"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/mock"
@@ -102,4 +103,14 @@ func (m *MockSale) Activate(ctx context.Context, id int64) error {
 func (m *MockSale) Returned(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
+}
+
+func (m *MockSale) Filter(ctx context.Context, f *filter.SaleFilter) ([]*models.Sale, error) {
+	args := m.Called(ctx, f)
+
+	var result []*models.Sale
+	if res := args.Get(0); res != nil {
+		result = res.([]*models.Sale)
+	}
+	return result, args.Error(1)
 }

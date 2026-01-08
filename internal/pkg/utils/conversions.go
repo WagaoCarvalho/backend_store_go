@@ -87,6 +87,13 @@ func DefaultString(value string, defaultValue string) string {
 	return value
 }
 
+func DefaultInt(value int, defaultValue int) int {
+	if value == 0 {
+		return defaultValue
+	}
+	return value
+}
+
 func BoolPtr(b bool) *bool {
 	return &b
 }

@@ -10,7 +10,6 @@ type MockRowWithIDArgs struct {
 	Err    error
 }
 
-// No arquivo infra/mock/db/db.go, no método Scan do MockRowWithIDArgs, adicione:
 func (m *MockRowWithIDArgs) Scan(dest ...any) error {
 	if m.Err != nil {
 		return m.Err
@@ -23,26 +22,74 @@ func (m *MockRowWithIDArgs) Scan(dest ...any) error {
 	for i, d := range dest {
 		switch ptr := d.(type) {
 		case *int64:
-			*ptr = m.Values[i].(int64)
-		case **int64: // ADICIONAR ESTE CASE
+			// Para *int64, o valor pode ser int64 ou *int64
+			if m.Values[i] == nil {
+				*ptr = 0
+			} else {
+				switch v := m.Values[i].(type) {
+				case int64:
+					*ptr = v
+				case *int64:
+					if v == nil {
+						*ptr = 0
+					} else {
+						*ptr = *v
+					}
+				default:
+					return errors.New("Scan: tipo inválido para *int64")
+				}
+			}
+		case **int64:
+			// Para **int64, o valor pode ser nil, int64 ou *int64
 			if m.Values[i] == nil {
 				*ptr = nil
 			} else {
-				val := m.Values[i].(int64) // Valor direto, não ponteiro
-				*ptr = &val
+				switch v := m.Values[i].(type) {
+				case int64:
+					val := v
+					*ptr = &val
+				case *int64:
+					*ptr = v
+				default:
+					return errors.New("Scan: tipo inválido para **int64")
+				}
 			}
 		case *uint:
-			*ptr = m.Values[i].(uint)
+			if m.Values[i] == nil {
+				*ptr = 0
+			} else {
+				*ptr = m.Values[i].(uint)
+			}
 		case *int:
-			*ptr = m.Values[i].(int)
+			if m.Values[i] == nil {
+				*ptr = 0
+			} else {
+				*ptr = m.Values[i].(int)
+			}
 		case *float64:
-			*ptr = m.Values[i].(float64)
+			if m.Values[i] == nil {
+				*ptr = 0
+			} else {
+				*ptr = m.Values[i].(float64)
+			}
 		case *string:
-			*ptr = m.Values[i].(string)
+			if m.Values[i] == nil {
+				*ptr = ""
+			} else {
+				*ptr = m.Values[i].(string)
+			}
 		case *bool:
-			*ptr = m.Values[i].(bool)
+			if m.Values[i] == nil {
+				*ptr = false
+			} else {
+				*ptr = m.Values[i].(bool)
+			}
 		case *time.Time:
-			*ptr = m.Values[i].(time.Time)
+			if m.Values[i] == nil {
+				*ptr = time.Time{}
+			} else {
+				*ptr = m.Values[i].(time.Time)
+			}
 		default:
 			return errors.New("Scan: tipo não suportado")
 		}

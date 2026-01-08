@@ -4,11 +4,14 @@ import (
 	"net/http"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/handler/sale/filter"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/sale/sale"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
+	repoFilter "github.com/WagaoCarvalho/backend_store_go/internal/repo/sale/filter"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/sale/sale"
+	serviceFilter "github.com/WagaoCarvalho/backend_store_go/internal/service/sale/filter"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/sale/sale"
 
 	"github.com/gorilla/mux"
@@ -24,6 +27,10 @@ func RegisterSaleRoutes(
 	repoSale := repo.NewSale(db)
 	saleService := service.NewSaleService(repoSale)
 	handler := handler.NewSaleHandler(saleService, log)
+
+	repoFilter := repoFilter.NewFilterSale(db)
+	serviceFilter := serviceFilter.NewSaleFilterService(repoFilter)
+	filter := filter.NewSaleFilterHandler(serviceFilter, log)
 
 	// Config JWT
 	jwtCfg := config.LoadJwtConfig()
@@ -51,4 +58,6 @@ func RegisterSaleRoutes(
 	s.HandleFunc("/sale/{id:[0-9]+}/cancel", handler.Cancel).Methods(http.MethodPatch)
 	s.HandleFunc("/sale/{id:[0-9]+}/complete", handler.Complete).Methods(http.MethodPatch)
 	s.HandleFunc("/sale/{id:[0-9]+}/returned", handler.Returned).Methods(http.MethodPatch)
+
+	s.HandleFunc("/sales/filter", filter.Filter).Methods(http.MethodGet)
 }
