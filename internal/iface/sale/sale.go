@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	modelFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/filter"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/sale/sale"
 )
 
@@ -31,8 +30,4 @@ type SaleStatus interface {
 
 type SaleVersion interface {
 	GetVersionByID(ctx context.Context, uid int64) (int64, error)
-}
-
-type SaleFilter interface {
-	Filter(ctx context.Context, f *modelFilter.SaleFilter) ([]*models.Sale, error)
 }
