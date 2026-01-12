@@ -4,11 +4,14 @@ import (
 	"net/http"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/handler/supplier/filter"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/supplier/supplier"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
+	repoFilter "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/filter"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
+	serviceFilter "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/filter"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/supplier/supplier"
 
 	"github.com/gorilla/mux"
@@ -24,6 +27,10 @@ func RegisterSupplierRoutes(
 	repoSupplier := repo.NewSupplier(db)
 	supplierService := service.NewSupplierService(repoSupplier)
 	handler := handler.NewSupplierHandler(supplierService, log)
+
+	repoFilter := repoFilter.NewFilterSupplier(db)
+	serviceFilter := serviceFilter.NewSupplierFilterService(repoFilter)
+	filter := filter.NewSupplierFilterHandler(serviceFilter, log)
 
 	// Config JWT
 	jwtCfg := config.LoadJwtConfig()
@@ -47,4 +54,6 @@ func RegisterSupplierRoutes(
 	s.HandleFunc("/supplier/enable/{id:[0-9]+}", handler.Enable).Methods(http.MethodPatch)
 	s.HandleFunc("/supplier/disable/{id:[0-9]+}", handler.Disable).Methods(http.MethodPatch)
 	s.HandleFunc("/supplier/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
+
+	s.HandleFunc("/suppliers/filter", filter.Filter).Methods(http.MethodGet)
 }

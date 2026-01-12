@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/filter"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
 )
 
@@ -71,4 +72,14 @@ func (m *MockSupplier) GetVersionByID(ctx context.Context, id int64) (int64, err
 func (m *MockSupplier) SupplierExists(ctx context.Context, supplierID int64) (bool, error) {
 	args := m.Called(ctx, supplierID)
 	return args.Bool(0), args.Error(1)
+}
+
+func (m *MockSupplier) Filter(ctx context.Context, f *filter.SupplierFilter) ([]*models.Supplier, error) {
+	args := m.Called(ctx, f)
+
+	var result []*models.Supplier
+	if res := args.Get(0); res != nil {
+		result = res.([]*models.Supplier)
+	}
+	return result, args.Error(1)
 }
