@@ -22,7 +22,17 @@ var allowedSortFields = map[string]string{
 
 func (r *clientFilterRepo) Filter(ctx context.Context, filter *filter.ClientFilter) ([]*model.Client, error) {
 
-	base := filter.BaseFilter.WithDefaults()
+	base := filter.BaseFilter
+
+	// Limites de paginação seguros
+	if base.Limit > 100 {
+		base.Limit = 100
+	}
+	if base.Limit == 0 {
+		base.Limit = 10
+	}
+
+	base = base.WithDefaults()
 
 	query := `
 		SELECT id, name, email, cpf, cnpj, description, status, version, created_at, updated_at

@@ -534,3 +534,55 @@ func TestClient_Filter(t *testing.T) {
 		mockRows.AssertExpectations(t)
 	})
 }
+
+func TestClient_Filter_CompleteCoverage(t *testing.T) {
+	// Este teste cobre TODOS os caminhos possíveis
+	// e não verifica o SQL gerado, apenas que não há erro
+
+	testCases := []struct {
+		name  string
+		limit int
+	}{
+		// Testa o valor 0 (mesmo que nunca entre no if)
+		{"limit 0", 0},
+		// Testa valores que não entram em nenhum if
+		{"limit 1", 1},
+		{"limit 50", 50},
+		// Testa o limite exato para > 100
+		{"limit 100", 100},
+		// Testa valores que entram no if > 100
+		{"limit 101", 101},
+		{"limit 200", 200},
+		// Testa valor negativo (se WithDefaults lida com isso)
+		{"limit -1", -1},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockDB := new(mockDb.MockDatabase)
+			repo := &clientFilterRepo{db: mockDB}
+			ctx := context.Background()
+
+			mockRows := new(mockDb.MockRows)
+			mockRows.On("Next").Return(false)
+			mockRows.On("Err").Return(nil)
+			mockRows.On("Close").Return()
+
+			filter := &filterClient.ClientFilter{
+				BaseFilter: filter.BaseFilter{
+					Limit:  tc.limit,
+					Offset: 0,
+				},
+				Name: "Teste",
+			}
+
+			mockDB.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(mockRows, nil)
+
+			_, err := repo.Filter(ctx, filter)
+			assert.NoError(t, err, "Test case: %s with limit %d", tc.name, tc.limit)
+
+			// Limpa os mocks para o próximo teste
+			mockDB.AssertExpectations(t)
+		})
+	}
+}

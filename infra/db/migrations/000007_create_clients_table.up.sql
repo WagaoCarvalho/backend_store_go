@@ -16,6 +16,3 @@ CREATE TABLE IF NOT EXISTS clients (
     )
 );
 
--- Índices opcionais
-CREATE INDEX idx_clients_name ON clients (name);
-CREATE INDEX idx_clients_status_true ON clients (id) WHERE status = TRUE;

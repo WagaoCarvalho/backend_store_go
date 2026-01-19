@@ -77,28 +77,31 @@ func GetStringParam(r *http.Request, key string) (string, error) {
 }
 
 func GetPaginationParams(r *http.Request) (limit, offset int) {
-	cfg := config.LoadPaginationConfig()
+	// Valores padrão
+	limit = 10
+	offset = 0
 
-	limit = cfg.DefaultLimit
-	offset = cfg.DefaultOffset
-
-	query := r.URL.Query()
-
-	if limitStr := query.Get("limit"); limitStr != "" {
-		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
-			limit = l
+	// Parse de limit
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if lInt, err := strconv.Atoi(l); err == nil && lInt > 0 {
+			if lInt > 100 {
+				limit = 100 // Limite máximo
+			} else {
+				limit = lInt
+			}
 		}
 	}
 
-	if offsetStr := query.Get("offset"); offsetStr != "" {
+	// Parse de page (se page for usado ao invés de offset)
+	if pageStr := r.URL.Query().Get("page"); pageStr != "" {
+		if page, err := strconv.Atoi(pageStr); err == nil && page > 0 {
+			offset = (page - 1) * limit
+		}
+	} else if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		// Ou usar offset diretamente
 		if o, err := strconv.Atoi(offsetStr); err == nil && o >= 0 {
 			offset = o
 		}
-	}
-
-	// Garante que não passe do limite máximo definido no .env
-	if limit > cfg.MaxLimit {
-		limit = cfg.MaxLimit
 	}
 
 	return limit, offset
