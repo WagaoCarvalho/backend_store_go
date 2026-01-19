@@ -162,7 +162,7 @@ func TestClientHandler_Filter(t *testing.T) {
 		err := json.Unmarshal(rec.Body.Bytes(), &resp)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusBadRequest, resp.Status)
-		assert.Contains(t, resp.Message, "parâmetros inválidos na requisição")
+		assert.Contains(t, resp.Message, "pelo menos um filtro de busca deve ser fornecido")
 	})
 
 	t.Run("erro - falha no serviço", func(t *testing.T) {
