@@ -61,7 +61,7 @@ func TestAddressTx_CreateTx(t *testing.T) {
 
 		address := &models.Address{
 			UserID:       utils.Int64Ptr(1),
-			ClientID:     utils.Int64Ptr(2),
+			ClientCpfID:  utils.Int64Ptr(2),
 			SupplierID:   utils.Int64Ptr(3),
 			Street:       "Rua A",
 			StreetNumber: "123",

@@ -8,7 +8,7 @@ import (
 type AddressDTO struct {
 	ID           *int64 `json:"id,omitempty"`
 	UserID       *int64 `json:"user_id,omitempty"`
-	ClientID     *int64 `json:"client_id,omitempty"`
+	ClientCpfID  *int64 `json:"client_cpf_id,omitempty"`
 	SupplierID   *int64 `json:"supplier_id,omitempty"`
 	Street       string `json:"street"`
 	StreetNumber string `json:"street_number,omitempty"`
@@ -24,7 +24,7 @@ func ToAddressModel(dto AddressDTO) *models.Address {
 	model := &models.Address{
 		ID:           utils.NilToZero(dto.ID),
 		UserID:       dto.UserID,
-		ClientID:     dto.ClientID,
+		ClientCpfID:  dto.ClientCpfID,
 		SupplierID:   dto.SupplierID,
 		Street:       dto.Street,
 		StreetNumber: dto.StreetNumber,
@@ -45,7 +45,7 @@ func ToAddressDTO(model *models.Address) AddressDTO {
 	return AddressDTO{
 		ID:           &model.ID,
 		UserID:       model.UserID,
-		ClientID:     model.ClientID,
+		ClientCpfID:  model.ClientCpfID,
 		SupplierID:   model.SupplierID,
 		Street:       model.Street,
 		StreetNumber: model.StreetNumber,

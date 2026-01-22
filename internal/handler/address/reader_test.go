@@ -162,7 +162,7 @@ func TestAddressHandler_GetByUserID(t *testing.T) {
 	})
 }
 
-func TestAddressHandler_GetByClientID(t *testing.T) {
+func TestAddressHandler_GetByClientCpfID(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
 	loggerAdapter := logger.NewLoggerAdapter(baseLogger)
@@ -172,14 +172,14 @@ func TestAddressHandler_GetByClientID(t *testing.T) {
 		h := NewAddressHandler(mockService, loggerAdapter)
 
 		expected := []*models.Address{
-			{ID: 1, ClientID: utils.Int64Ptr(1), Street: "Rua 1", City: "Cidade A"},
-			{ID: 2, ClientID: utils.Int64Ptr(1), Street: "Rua 2", City: "Cidade B"},
+			{ID: 1, ClientCpfID: utils.Int64Ptr(1), Street: "Rua 1", City: "Cidade A"},
+			{ID: 2, ClientCpfID: utils.Int64Ptr(1), Street: "Rua 2", City: "Cidade B"},
 		}
 
-		mockService.On("GetByClientID", mock.Anything, int64(1)).
+		mockService.On("GetByClientCpfID", mock.Anything, int64(1)).
 			Return(expected, nil)
 
-		w := execRequest(h.GetByClientID, "GET", "/addresses/client/1", map[string]string{"id": "1"})
+		w := execRequest(h.GetByClientCpfID, "GET", "/addresses/client_cpf/1", map[string]string{"id": "1"})
 		assert.Equal(t, http.StatusOK, w.Result().StatusCode)
 
 		mockService.AssertExpectations(t)
@@ -189,7 +189,7 @@ func TestAddressHandler_GetByClientID(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		h := NewAddressHandler(mockService, loggerAdapter)
 
-		w := execRequest(h.GetByClientID, "GET", "/addresses/client/abc", map[string]string{"id": "abc"})
+		w := execRequest(h.GetByClientCpfID, "GET", "/addresses/client_cpf/abc", map[string]string{"id": "abc"})
 		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	})
 
@@ -197,10 +197,10 @@ func TestAddressHandler_GetByClientID(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		h := NewAddressHandler(mockService, loggerAdapter)
 
-		mockService.On("GetByClientID", mock.Anything, int64(1)).
+		mockService.On("GetByClientCpfID", mock.Anything, int64(1)).
 			Return(nil, assert.AnError)
 
-		w := execRequest(h.GetByClientID, "GET", "/addresses/client/1", map[string]string{"id": "1"})
+		w := execRequest(h.GetByClientCpfID, "GET", "/addresses/client_cpf/1", map[string]string{"id": "1"})
 		assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 
 		mockService.AssertExpectations(t)

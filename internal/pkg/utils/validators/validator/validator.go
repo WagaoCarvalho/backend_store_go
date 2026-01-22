@@ -53,3 +53,39 @@ func NewValidationErrors(errors []ValidationError) error {
 	}
 	return ValidationErrors(errors)
 }
+
+func IsEmail(email string) bool {
+	email = strings.TrimSpace(email)
+	if email == "" {
+		return false
+	}
+
+	// validação estrutural simples e segura (RFC-compatível para APIs)
+	if len(email) > 254 {
+		return false
+	}
+
+	at := strings.LastIndex(email, "@")
+	if at < 1 || at == len(email)-1 {
+		return false
+	}
+
+	local := email[:at]
+	domain := email[at+1:]
+
+	if len(local) > 64 {
+		return false
+	}
+
+	// domínio precisa ter pelo menos um ponto
+	if !strings.Contains(domain, ".") {
+		return false
+	}
+
+	// caracteres inválidos óbvios
+	if strings.ContainsAny(email, " <>(),;:\\\"[]") {
+		return false
+	}
+
+	return true
+}

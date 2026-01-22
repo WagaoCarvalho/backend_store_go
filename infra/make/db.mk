@@ -22,7 +22,8 @@ clean_db:
 
 migrate_up: migrate_up_user_all \
             migrate_up_supplier_all \
-            migrate_up_client_all \
+            migrate_up_client_cpf_all \
+            migrate_up_client_cnpj_all \
             migrate_up_contact \
             migrate_up_product \
             migrate_up_address

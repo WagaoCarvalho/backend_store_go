@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS sales (
     id SERIAL PRIMARY KEY,
 
-    client_id INTEGER REFERENCES clients(id) ON DELETE SET NULL,
+    client_id INTEGER REFERENCES clients_cpf(id) ON DELETE SET NULL,
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,    
     total_items_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 CHECK (total_items_amount >= 0),    
     total_items_discount DECIMAL(12,2) NOT NULL DEFAULT 0.00 CHECK (total_items_discount >= 0),    

@@ -25,6 +25,8 @@ var (
 	ErrInvalidDateRange      = errors.New("range de data inválido")
 	ErrInvalidFilter         = errors.New("filtro inválido")
 	ErrValidation            = errors.New("erro de validação")
+	ErrMethodNotAllowed      = errors.New("método não permitido")
+	ErrInvalidID             = errors.New("id inválido")
 
 	// version
 	ErrGetVersion      = errors.New("erro ao buscar versão")

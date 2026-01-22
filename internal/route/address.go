@@ -9,7 +9,7 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwtMiddlewares "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
 	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
-	repoClient "github.com/WagaoCarvalho/backend_store_go/internal/repo/client/client"
+	repoClientCpf "github.com/WagaoCarvalho/backend_store_go/internal/repo/client_cpf/client"
 	repoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
 	repoUser "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/address"
@@ -25,10 +25,10 @@ func RegisterAddressRoutes(
 	blacklist jwtMiddlewares.TokenBlacklist,
 ) {
 	repoAddress := repoAddress.NewAddress(db)
-	repoClient := repoClient.NewClient(db)
+	repoClientCpf := repoClientCpf.NewClientCpfRepo(db)
 	repoUser := repoUser.NewUser(db)
 	repoSupplier := repoSupplier.NewSupplier(db)
-	service := service.NewAddressService(repoAddress, repoClient, repoUser, repoSupplier)
+	service := service.NewAddressService(repoAddress, repoClientCpf, repoUser, repoSupplier)
 	handler := handler.NewAddressHandler(service, log)
 
 	jwtCfg := config.LoadJwtConfig()
@@ -46,7 +46,7 @@ func RegisterAddressRoutes(
 	s.HandleFunc("/addresses", handler.Create).Methods(http.MethodPost)
 	s.HandleFunc("/address/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)
 	s.HandleFunc("/address/user/{id:[0-9]+}", handler.GetByUserID).Methods(http.MethodGet)
-	s.HandleFunc("/address/client/{id:[0-9]+}", handler.GetByClientID).Methods(http.MethodGet)
+	s.HandleFunc("/address/client_cpf/{id:[0-9]+}", handler.GetByClientCpfID).Methods(http.MethodGet)
 	s.HandleFunc("/address/supplier/{id:[0-9]+}", handler.GetBySupplierID).Methods(http.MethodGet)
 	s.HandleFunc("/address/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
 	s.HandleFunc("/address/enable/{id:[0-9]+}", handler.Enable).Methods(http.MethodPatch)

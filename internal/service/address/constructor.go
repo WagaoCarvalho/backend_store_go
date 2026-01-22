@@ -2,29 +2,29 @@ package services
 
 import (
 	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
-	repoClient "github.com/WagaoCarvalho/backend_store_go/internal/repo/client/client"
+	repoClientCpf "github.com/WagaoCarvalho/backend_store_go/internal/repo/client_cpf/client"
 	repoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
 	repoUser "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
 )
 
 type addressService struct {
-	addressRepo  repoAddress.Address
-	clientRepo   repoClient.Client
-	userRepo     repoUser.User
-	supplierRepo repoSupplier.Supplier
+	addressRepo   repoAddress.Address
+	clientCpfRepo repoClientCpf.ClientCpf
+	userRepo      repoUser.User
+	supplierRepo  repoSupplier.Supplier
 }
 
 // Retorna a interface da camada de serviço
 func NewAddressService(
 	addressRepo repoAddress.Address,
-	clientRepo repoClient.Client,
+	clientCpfRepo repoClientCpf.ClientCpf,
 	userRepo repoUser.User,
 	supplierRepo repoSupplier.Supplier,
 ) Address {
 	return &addressService{
-		addressRepo:  addressRepo,
-		clientRepo:   clientRepo,
-		userRepo:     userRepo,
-		supplierRepo: supplierRepo,
+		addressRepo:   addressRepo,
+		clientCpfRepo: clientCpfRepo,
+		userRepo:      userRepo,
+		supplierRepo:  supplierRepo,
 	}
 }

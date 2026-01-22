@@ -45,7 +45,7 @@ func (m *MockAddress) GetByUserID(ctx context.Context, id int64) ([]*models.Addr
 	return nil, args.Error(1)
 }
 
-func (m *MockAddress) GetByClientID(ctx context.Context, id int64) ([]*models.Address, error) {
+func (m *MockAddress) GetByClientCpfID(ctx context.Context, id int64) ([]*models.Address, error) {
 	args := m.Called(ctx, id)
 	if result, ok := args.Get(0).([]*models.Address); ok {
 		return result, args.Error(1)

@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS client_cpf_contact_relations;

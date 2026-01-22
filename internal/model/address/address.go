@@ -10,7 +10,7 @@ import (
 type Address struct {
 	ID           int64
 	UserID       *int64
-	ClientID     *int64
+	ClientCpfID  *int64
 	SupplierID   *int64
 	Street       string
 	StreetNumber string
@@ -28,9 +28,9 @@ func (a *Address) Validate() error {
 	var errs validators.ValidationErrors
 
 	// --- Associação ---
-	if !validators.ValidateSingleNonNil(a.UserID, a.ClientID, a.SupplierID) {
+	if !validators.ValidateSingleNonNil(a.UserID, a.ClientCpfID, a.SupplierID) {
 		errs = append(errs, validators.ValidationError{
-			Field:   "user_id/client_id/supplier_id",
+			Field:   "user_id/client_cpf_id/supplier_id",
 			Message: validators.MsgInvalidAssociation,
 		})
 	}

@@ -23,28 +23,28 @@ func TestAddressDTO_ToModel(t *testing.T) {
 		{
 			name: "All fields set",
 			dto: dto.AddressDTO{
-				ID:         &id,
-				UserID:     &userID,
-				ClientID:   &clientID,
-				SupplierID: &supplierID,
-				Street:     "Rua A",
-				City:       "Cidade",
-				State:      "SP",
-				Country:    "Brasil",
-				PostalCode: "12345678",
-				IsActive:   &isActive,
+				ID:          &id,
+				UserID:      &userID,
+				ClientCpfID: &clientID,
+				SupplierID:  &supplierID,
+				Street:      "Rua A",
+				City:        "Cidade",
+				State:       "SP",
+				Country:     "Brasil",
+				PostalCode:  "12345678",
+				IsActive:    &isActive,
 			},
 			want: models.Address{
-				ID:         10,
-				UserID:     &userID,
-				ClientID:   &clientID,
-				SupplierID: &supplierID,
-				Street:     "Rua A",
-				City:       "Cidade",
-				State:      "SP",
-				Country:    "Brasil",
-				PostalCode: "12345678",
-				IsActive:   false,
+				ID:          10,
+				UserID:      &userID,
+				ClientCpfID: &clientID,
+				SupplierID:  &supplierID,
+				Street:      "Rua A",
+				City:        "Cidade",
+				State:       "SP",
+				Country:     "Brasil",
+				PostalCode:  "12345678",
+				IsActive:    false,
 			},
 		},
 		{
@@ -73,7 +73,7 @@ func TestAddressDTO_ToModel(t *testing.T) {
 			got := dto.ToAddressModel(tt.dto)
 			assert.Equal(t, tt.want.ID, got.ID)
 			assert.Equal(t, tt.want.UserID, got.UserID)
-			assert.Equal(t, tt.want.ClientID, got.ClientID)
+			assert.Equal(t, tt.want.ClientCpfID, got.ClientCpfID)
 			assert.Equal(t, tt.want.SupplierID, got.SupplierID)
 			assert.Equal(t, tt.want.Street, got.Street)
 			assert.Equal(t, tt.want.City, got.City)
@@ -115,15 +115,15 @@ func TestToAddressDTOs(t *testing.T) {
 	clientID := int64(2)
 
 	address1 := &models.Address{
-		ID:         1,
-		UserID:     &userID,
-		ClientID:   &clientID,
-		Street:     "Rua 1",
-		City:       "Cidade1",
-		State:      "SP",
-		Country:    "Brasil",
-		PostalCode: "11111-111",
-		IsActive:   true,
+		ID:          1,
+		UserID:      &userID,
+		ClientCpfID: &clientID,
+		Street:      "Rua 1",
+		City:        "Cidade1",
+		State:       "SP",
+		Country:     "Brasil",
+		PostalCode:  "11111-111",
+		IsActive:    true,
 	}
 
 	address2 := &models.Address{

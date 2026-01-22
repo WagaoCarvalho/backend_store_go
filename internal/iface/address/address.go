@@ -9,7 +9,7 @@ import (
 type AddressReader interface {
 	GetByID(ctx context.Context, id int64) (*models.Address, error)
 	GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error)
-	GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error)
+	GetByClientCpfID(ctx context.Context, clientID int64) ([]*models.Address, error)
 	GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error)
 }
 

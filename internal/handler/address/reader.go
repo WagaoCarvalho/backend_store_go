@@ -59,12 +59,12 @@ func (h *addressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-func (h *addressHandler) GetByClientID(w http.ResponseWriter, r *http.Request) {
+func (h *addressHandler) GetByClientCpfID(w http.ResponseWriter, r *http.Request) {
 	h.handleGetAddresses(
 		w, r,
 		"[addressHandler - GetByClientID] ",
 		"client_id",
-		h.service.GetByClientID,
+		h.service.GetByClientCpfID,
 		"Endereços do cliente encontrados",
 	)
 }

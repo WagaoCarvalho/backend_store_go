@@ -23,7 +23,7 @@ func NewAddressTx(db *pgxpool.Pool) ifaceTx.AddressTx {
 func (r *addressTx) CreateTx(ctx context.Context, tx pgx.Tx, address *models.Address) (*models.Address, error) {
 	const query = `
 		INSERT INTO addresses (
-			user_id, client_id, supplier_id,
+			user_id, client_cpf_id, supplier_id,
 			street, street_number, complement, city, state, country, postal_code,
 			is_active, created_at, updated_at
 		)
@@ -33,7 +33,7 @@ func (r *addressTx) CreateTx(ctx context.Context, tx pgx.Tx, address *models.Add
 
 	err := tx.QueryRow(ctx, query,
 		address.UserID,
-		address.ClientID,
+		address.ClientCpfID,
 		address.SupplierID,
 		address.Street,
 		address.StreetNumber,

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	mockAddress "github.com/WagaoCarvalho/backend_store_go/infra/mock/address"
-	mockClient "github.com/WagaoCarvalho/backend_store_go/infra/mock/client"
+	mockClient "github.com/WagaoCarvalho/backend_store_go/infra/mock/client_cpf"
 	mockSupplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/supplier"
 	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
@@ -16,7 +16,7 @@ import (
 
 func TestAddressService_DisableAddress(t *testing.T) {
 	mockRepoAddress := new(mockAddress.MockAddress)
-	mockRepoClient := new(mockClient.MockClient)
+	mockRepoClient := new(mockClient.MockClientCpf)
 	mockRepoUser := new(mockUser.MockUser)
 	mockSupplier := new(mockSupplier.MockSupplier)
 	service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
@@ -56,7 +56,7 @@ func TestAddressService_DisableAddress(t *testing.T) {
 
 func TestAddressService_EnableAddress(t *testing.T) {
 	mockRepoAddress := new(mockAddress.MockAddress)
-	mockRepoClient := new(mockClient.MockClient)
+	mockRepoClient := new(mockClient.MockClientCpf)
 	mockRepoUser := new(mockUser.MockUser)
 	mockSupplier := new(mockSupplier.MockSupplier)
 	service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)

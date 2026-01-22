@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	mockAddress "github.com/WagaoCarvalho/backend_store_go/infra/mock/address"
-	mockClient "github.com/WagaoCarvalho/backend_store_go/infra/mock/client"
+	mockClient "github.com/WagaoCarvalho/backend_store_go/infra/mock/client_cpf"
 	mockSupplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/supplier"
 	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
@@ -22,7 +22,7 @@ func TestAddressService_Create(t *testing.T) {
 
 	t.Run("falha na validacao do endereco", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClient.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
@@ -41,7 +41,7 @@ func TestAddressService_Create(t *testing.T) {
 
 	t.Run("sucesso na criação do endereço", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClient.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
@@ -68,7 +68,7 @@ func TestAddressService_Create(t *testing.T) {
 
 	t.Run("erro do repositório ao criar endereço", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClient.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
@@ -186,7 +186,7 @@ func TestAddressService_Update(t *testing.T) {
 func TestAddressService_DeleteAddress(t *testing.T) {
 	t.Run("sucesso ao deletar endereço", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClient.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
@@ -206,7 +206,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 
 	t.Run("erro ao deletar com ID inválido", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClient.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
@@ -220,7 +220,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 
 	t.Run("Delete retorna ErrNotFound quando GetByID não encontra endereço", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClient.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
@@ -237,7 +237,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 
 	t.Run("Delete retorna erro inesperado do GetByID encapsulado em ErrGet", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClient.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
@@ -257,7 +257,7 @@ func TestAddressService_DeleteAddress(t *testing.T) {
 
 	t.Run("erro ao deletar do repositório encapsulado em ErrDelete", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClient.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)

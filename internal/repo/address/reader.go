@@ -13,7 +13,7 @@ import (
 func (r *addressRepo) GetByID(ctx context.Context, id int64) (*models.Address, error) {
 	const query = `
 		SELECT 
-			id, user_id, client_id, supplier_id,
+			id, user_id, client_cpf_id, supplier_id,
 			street, street_number, complement, city, state, country, postal_code,
 			is_active, created_at, updated_at
 		FROM addresses
@@ -35,8 +35,8 @@ func (r *addressRepo) GetByUserID(ctx context.Context, userID int64) ([]*models.
 	return r.getByField(ctx, "user_id", userID)
 }
 
-func (r *addressRepo) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
-	return r.getByField(ctx, "client_id", clientID)
+func (r *addressRepo) GetByClientCpfID(ctx context.Context, clientCpfID int64) ([]*models.Address, error) {
+	return r.getByField(ctx, "client_cpf_id", clientCpfID)
 }
 
 func (r *addressRepo) GetBySupplierID(ctx context.Context, supplierID int64) ([]*models.Address, error) {
@@ -46,7 +46,7 @@ func (r *addressRepo) GetBySupplierID(ctx context.Context, supplierID int64) ([]
 func (r *addressRepo) getByField(ctx context.Context, field string, value any) ([]*models.Address, error) {
 	query := fmt.Sprintf(`
 		SELECT 
-			id, user_id, client_id, supplier_id,
+			id, user_id, client_cpf_id, supplier_id,
 			street, street_number, complement, city, state, country, postal_code,
 			is_active, created_at, updated_at
 		FROM addresses
@@ -81,7 +81,7 @@ func scanAddress(s scanner) (*models.Address, error) {
 	err := s.Scan(
 		&addr.ID,
 		&addr.UserID,
-		&addr.ClientID,
+		&addr.ClientCpfID,
 		&addr.SupplierID,
 		&addr.Street,
 		&addr.StreetNumber,

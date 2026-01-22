@@ -13,7 +13,7 @@ import (
 	recover "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/recover"
 	request "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/request"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
-	routesClient "github.com/WagaoCarvalho/backend_store_go/internal/route/client"
+	routesClient "github.com/WagaoCarvalho/backend_store_go/internal/route/client_cpf"
 	routesProduct "github.com/WagaoCarvalho/backend_store_go/internal/route/product"
 	routesSale "github.com/WagaoCarvalho/backend_store_go/internal/route/sale"
 	routesSupplier "github.com/WagaoCarvalho/backend_store_go/internal/route/supplier"

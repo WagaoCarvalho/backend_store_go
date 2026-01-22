@@ -25,7 +25,7 @@ func TestAddress_Create(t *testing.T) {
 
 		addr := &models.Address{
 			UserID:       utils.Int64Ptr(1),
-			ClientID:     utils.Int64Ptr(2),
+			ClientCpfID:  utils.Int64Ptr(2),
 			SupplierID:   utils.Int64Ptr(3),
 			Street:       "Rua A",
 			StreetNumber: "123",
@@ -98,7 +98,7 @@ func TestAddress_Update(t *testing.T) {
 		addr := &models.Address{
 			ID:           1,
 			UserID:       utils.Int64Ptr(1),
-			ClientID:     utils.Int64Ptr(2),
+			ClientCpfID:  utils.Int64Ptr(2),
 			SupplierID:   utils.Int64Ptr(3),
 			Street:       "Rua Nova",
 			StreetNumber: "456",
@@ -143,7 +143,7 @@ func TestAddress_Update(t *testing.T) {
 		address := &models.Address{
 			ID:           999,
 			UserID:       utils.Int64Ptr(1),
-			ClientID:     utils.Int64Ptr(2),
+			ClientCpfID:  utils.Int64Ptr(2),
 			SupplierID:   utils.Int64Ptr(3),
 			Street:       "Rua Teste",
 			StreetNumber: "123",
@@ -170,7 +170,7 @@ func TestAddress_Update(t *testing.T) {
 		ctx := context.Background()
 		addr := &models.Address{}
 
-		fkErr := errMsgPg.NewForeignKeyViolation("addresses_client_id_fkey")
+		fkErr := errMsgPg.NewForeignKeyViolation("addresses_client_cpf_id_fkey")
 		mockRow := mockDb.MockRow{Err: fkErr}
 		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
 			Return(mockRow, nil)

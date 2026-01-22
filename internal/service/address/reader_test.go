@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	mockAddress "github.com/WagaoCarvalho/backend_store_go/infra/mock/address"
-	mockClient "github.com/WagaoCarvalho/backend_store_go/infra/mock/client"
+	mockClientCpf "github.com/WagaoCarvalho/backend_store_go/infra/mock/client_cpf"
 	mockSupplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/supplier"
 	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
@@ -18,10 +18,10 @@ import (
 func TestAddressService_GetByID(t *testing.T) {
 	t.Run("falha por ID inválido", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClientCpf := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClientCpf, mockRepoUser, mockSupplier)
 		result, err := service.GetByID(context.Background(), 0)
 
 		assert.Nil(t, result)
@@ -31,10 +31,10 @@ func TestAddressService_GetByID(t *testing.T) {
 
 	t.Run("endereço não encontrado", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClientCpf := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClientCpf, mockRepoUser, mockSupplier)
 
 		addressID := int64(1)
 		mockRepoAddress.On("GetByID", mock.Anything, addressID).Return((*models.Address)(nil), errMsg.ErrNotFound)
@@ -47,10 +47,10 @@ func TestAddressService_GetByID(t *testing.T) {
 	})
 	t.Run("erro do repositório", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClientCpf := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClientCpf, mockRepoUser, mockSupplier)
 
 		userID := int64(2)
 		unexpectedErr := errors.New("erro no banco")
@@ -68,10 +68,10 @@ func TestAddressService_GetByID(t *testing.T) {
 
 	t.Run("sucesso na busca", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClientCpf := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClientCpf, mockRepoUser, mockSupplier)
 
 		addressID := int64(3)
 		expectedAddress := &models.Address{
@@ -94,7 +94,7 @@ func TestAddressService_GetByID(t *testing.T) {
 
 	t.Run("erro inesperado do repositório", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockRepoSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
@@ -120,10 +120,10 @@ func TestAddressService_GetByID(t *testing.T) {
 func TestAddressService_GetByUserID(t *testing.T) {
 	t.Run("falha por ID inválido", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClientCpf := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClientCpf, mockRepoUser, mockSupplier)
 
 		result, err := service.GetByUserID(context.Background(), 0)
 
@@ -134,7 +134,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 
 	t.Run("erro do repositório", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
@@ -155,7 +155,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 
 	t.Run("falha quando usuário não existe", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
@@ -176,7 +176,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 
 	t.Run("retorna vazio quando usuário existe mas não possui endereços", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
@@ -198,7 +198,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 
 	t.Run("falha quando UserExists retorna erro", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
@@ -220,7 +220,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 
 	t.Run("sucesso na busca", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
@@ -240,54 +240,26 @@ func TestAddressService_GetByUserID(t *testing.T) {
 		mockRepoAddress.AssertExpectations(t)
 	})
 
-	t.Run("falha por cliente não encontrado quando não existem endereços", func(t *testing.T) {
-		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
-		mockRepoUser := new(mockUser.MockUser)
-		mockSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
-
-		clientID := int64(123)
-
-		// mock para GetByClientID retornar lista vazia
-		mockRepoAddress.
-			On("GetByClientID", mock.Anything, clientID).
-			Return([]*models.Address{}, nil)
-
-		// mock para ClientExists retornar false
-		mockRepoClient.
-			On("ClientExists", mock.Anything, clientID).
-			Return(false, nil)
-
-		result, err := service.GetByClientID(context.Background(), clientID)
-
-		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrNotFound)
-
-		mockRepoAddress.AssertExpectations(t)
-		mockRepoClient.AssertExpectations(t)
-	})
-
 }
 
-func TestAddressService_GetByClientID(t *testing.T) {
+func TestAddressService_GetByClientCpfID(t *testing.T) {
 	t.Run("falha por ID inválido", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
-		result, err := service.GetByClientID(context.Background(), 0)
+		result, err := service.GetByClientCpfID(context.Background(), 0)
 
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrZeroID)
-		mockRepoAddress.AssertNotCalled(t, "GetByClientID", mock.Anything, mock.Anything)
+		mockRepoAddress.AssertNotCalled(t, "GetByClientCpfID", mock.Anything, mock.Anything)
 	})
 
 	t.Run("erro do repositório", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
@@ -295,9 +267,9 @@ func TestAddressService_GetByClientID(t *testing.T) {
 		clientID := int64(1)
 		expectedErr := errors.New("erro no banco")
 
-		mockRepoAddress.On("GetByClientID", mock.Anything, clientID).Return(nil, expectedErr)
+		mockRepoAddress.On("GetByClientCpfID", mock.Anything, clientID).Return(nil, expectedErr)
 
-		result, err := service.GetByClientID(context.Background(), clientID)
+		result, err := service.GetByClientCpfID(context.Background(), clientID)
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
@@ -309,20 +281,20 @@ func TestAddressService_GetByClientID(t *testing.T) {
 
 	t.Run("sucesso na busca", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClient := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
 		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
 
 		clientID := int64(2)
 		expectedAddresses := []*models.Address{
-			{ID: 1, ClientID: &clientID, Street: "Rua A", City: "Cidade A", State: "SP", Country: "Brasil", PostalCode: "12345678"},
-			{ID: 2, ClientID: &clientID, Street: "Rua B", City: "Cidade B", State: "RJ", Country: "Brasil", PostalCode: "87654321"},
+			{ID: 1, ClientCpfID: &clientID, Street: "Rua A", City: "Cidade A", State: "SP", Country: "Brasil", PostalCode: "12345678"},
+			{ID: 2, ClientCpfID: &clientID, Street: "Rua B", City: "Cidade B", State: "RJ", Country: "Brasil", PostalCode: "87654321"},
 		}
 
-		mockRepoAddress.On("GetByClientID", mock.Anything, clientID).Return(expectedAddresses, nil)
+		mockRepoAddress.On("GetByClientCpfID", mock.Anything, clientID).Return(expectedAddresses, nil)
 
-		result, err := service.GetByClientID(context.Background(), clientID)
+		result, err := service.GetByClientCpfID(context.Background(), clientID)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedAddresses, result)
@@ -331,25 +303,25 @@ func TestAddressService_GetByClientID(t *testing.T) {
 
 	t.Run("falha ao verificar existência do cliente quando não existem endereços", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClientCpf := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClientCpf, mockRepoUser, mockSupplier)
 
 		clientID := int64(123)
 
-		// mock para GetByClientID retornar lista vazia
+		// mock para GetByClientCpfID retornar lista vazia
 		mockRepoAddress.
-			On("GetByClientID", mock.Anything, clientID).
+			On("GetByClientCpfID", mock.Anything, clientID).
 			Return([]*models.Address{}, nil)
 
-		// mock para ClientExists retornar erro
+		// mock para ClientCpfExists retornar erro
 		expectedErr := errors.New("db failure")
-		mockRepoClient.
-			On("ClientExists", mock.Anything, clientID).
+		mockRepoClientCpf.
+			On("ClientCpfExists", mock.Anything, clientID).
 			Return(false, expectedErr)
 
-		result, err := service.GetByClientID(context.Background(), clientID)
+		result, err := service.GetByClientCpfID(context.Background(), clientID)
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
@@ -358,7 +330,7 @@ func TestAddressService_GetByClientID(t *testing.T) {
 		assert.Contains(t, err.Error(), expectedErr.Error())   // mensagem "db failure"
 
 		mockRepoAddress.AssertExpectations(t)
-		mockRepoClient.AssertExpectations(t)
+		mockRepoClientCpf.AssertExpectations(t)
 	})
 
 }
@@ -366,10 +338,10 @@ func TestAddressService_GetByClientID(t *testing.T) {
 func TestAddressService_GetBySupplierID(t *testing.T) {
 	t.Run("falha por ID inválido", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClientCpf := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClientCpf, mockRepoUser, mockSupplier)
 
 		result, err := service.GetBySupplierID(context.Background(), 0)
 
@@ -380,10 +352,10 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 
 	t.Run("erro do repositório", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClientCpf := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClientCpf, mockRepoUser, mockSupplier)
 
 		supplierID := int64(1)
 		expectedErr := errors.New("erro no banco")
@@ -403,11 +375,11 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 
 	t.Run("retorna vazio quando fornecedor existe mas não possui endereços", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClientCpf := new(mockClientCpf.MockClientCpf)
 
 		mockRepoUser := new(mockUser.MockUser)
 		mockRepoSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClientCpf, mockRepoUser, mockRepoSupplier)
 
 		supplierID := int64(789)
 
@@ -428,11 +400,11 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 
 	t.Run("falha quando fornecedor não existe", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClientCpf := new(mockClientCpf.MockClientCpf)
 
 		mockRepoUser := new(mockUser.MockUser)
 		mockRepoSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClientCpf, mockRepoUser, mockRepoSupplier)
 
 		supplierID := int64(999)
 
@@ -452,10 +424,10 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 
 	t.Run("falha quando SupplierExists retorna erro", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClientCpf := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockRepoSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockRepoSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClientCpf, mockRepoUser, mockRepoSupplier)
 
 		supplierID := int64(111)
 
@@ -478,10 +450,10 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 
 	t.Run("sucesso na busca", func(t *testing.T) {
 		mockRepoAddress := new(mockAddress.MockAddress)
-		mockRepoClient := new(mockClient.MockClient)
+		mockRepoClientCpf := new(mockClientCpf.MockClientCpf)
 		mockRepoUser := new(mockUser.MockUser)
 		mockSupplier := new(mockSupplier.MockSupplier)
-		service := NewAddressService(mockRepoAddress, mockRepoClient, mockRepoUser, mockSupplier)
+		service := NewAddressService(mockRepoAddress, mockRepoClientCpf, mockRepoUser, mockSupplier)
 
 		supplierID := int64(2)
 		expectedAddresses := []*models.Address{

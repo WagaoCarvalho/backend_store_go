@@ -34,12 +34,12 @@ func (s *addressService) GetByUserID(ctx context.Context, userID int64) ([]*mode
 	)
 }
 
-func (s *addressService) GetByClientID(ctx context.Context, clientID int64) ([]*models.Address, error) {
+func (s *addressService) GetByClientCpfID(ctx context.Context, clientCpfID int64) ([]*models.Address, error) {
 	return getAddressesByEntity(
 		ctx,
-		clientID,
-		s.addressRepo.GetByClientID,
-		s.clientRepo.ClientExists,
+		clientCpfID,
+		s.addressRepo.GetByClientCpfID,
+		s.clientCpfRepo.ClientCpfExists,
 	)
 }
 

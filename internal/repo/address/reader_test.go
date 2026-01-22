@@ -125,12 +125,12 @@ func TestAddress_GetByUserID(t *testing.T) {
 
 }
 
-func TestAddress_GetByClientID(t *testing.T) {
-	t.Run("successfully get addresses by client id", func(t *testing.T) {
+func TestAddress_GetByClientCpfID(t *testing.T) {
+	t.Run("successfully get addresses by client_cpf id", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
-		clientID := int64(1)
+		clientCpfID := int64(1)
 
 		mockRows := new(mockDb.MockRows)
 		mockRows.On("Next").Return(true).Once()
@@ -146,9 +146,9 @@ func TestAddress_GetByClientID(t *testing.T) {
 		mockRows.On("Conn").Return(nil).Maybe()
 		mockRows.On("FieldDescriptions").Return([]pgconn.FieldDescription{}).Maybe()
 
-		mockDB.On("Query", ctx, mock.Anything, []interface{}{clientID}).Return(mockRows, nil)
+		mockDB.On("Query", ctx, mock.Anything, []interface{}{clientCpfID}).Return(mockRows, nil)
 
-		result, err := repo.GetByClientID(ctx, clientID)
+		result, err := repo.GetByClientCpfID(ctx, clientCpfID)
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 1)
@@ -160,7 +160,7 @@ func TestAddress_GetByClientID(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &addressRepo{db: mockDB}
 		ctx := context.Background()
-		clientID := int64(1)
+		clientCpfID := int64(1)
 
 		mockRows := new(mockDb.MockRows)
 		mockRows.On("Next").Return(false)
@@ -170,9 +170,9 @@ func TestAddress_GetByClientID(t *testing.T) {
 		mockRows.On("Conn").Return(nil).Maybe()
 		mockRows.On("FieldDescriptions").Return([]pgconn.FieldDescription{}).Maybe()
 
-		mockDB.On("Query", ctx, mock.Anything, []interface{}{clientID}).Return(mockRows, nil)
+		mockDB.On("Query", ctx, mock.Anything, []interface{}{clientCpfID}).Return(mockRows, nil)
 
-		result, err := repo.GetByClientID(ctx, clientID)
+		result, err := repo.GetByClientCpfID(ctx, clientCpfID)
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 0)

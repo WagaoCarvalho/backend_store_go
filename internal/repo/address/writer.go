@@ -14,7 +14,7 @@ import (
 func (r *addressRepo) Create(ctx context.Context, address *models.Address) (*models.Address, error) {
 	const query = `
 		INSERT INTO addresses (
-			user_id, client_id, supplier_id,
+			user_id, client_cpf_id, supplier_id,
 			street, street_number, complement, city, state, country, postal_code,
 			is_active, created_at, updated_at
 		)
@@ -24,7 +24,7 @@ func (r *addressRepo) Create(ctx context.Context, address *models.Address) (*mod
 
 	err := r.db.QueryRow(ctx, query,
 		address.UserID,
-		address.ClientID,
+		address.ClientCpfID,
 		address.SupplierID,
 		address.Street,
 		address.StreetNumber,
@@ -51,7 +51,7 @@ func (r *addressRepo) Update(ctx context.Context, address *models.Address) error
 		UPDATE addresses
 		SET 
 			user_id       = $1,
-			client_id     = $2,
+			client_cpf_id     = $2,
 			supplier_id   = $3,
 			street        = $4,
 			street_number = $5,
@@ -68,7 +68,7 @@ func (r *addressRepo) Update(ctx context.Context, address *models.Address) error
 
 	err := r.db.QueryRow(ctx, query,
 		address.UserID,
-		address.ClientID,
+		address.ClientCpfID,
 		address.SupplierID,
 		address.Street,
 		address.StreetNumber,
