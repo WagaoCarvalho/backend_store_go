@@ -27,6 +27,7 @@ var (
 	ErrValidation            = errors.New("erro de validação")
 	ErrMethodNotAllowed      = errors.New("método não permitido")
 	ErrInvalidID             = errors.New("id inválido")
+	ErrInvalidField          = errors.New("campo inválido")
 
 	// version
 	ErrGetVersion      = errors.New("erro ao buscar versão")

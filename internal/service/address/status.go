@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
@@ -13,7 +13,7 @@ func (s *addressService) Disable(ctx context.Context, id int64) error {
 	}
 
 	if err := s.addressRepo.Disable(ctx, id); err != nil {
-		return fmt.Errorf("%w: %v", errMsg.ErrDisable, err)
+		return errors.Join(errMsg.ErrDisable, err)
 	}
 
 	return nil
@@ -25,7 +25,7 @@ func (s *addressService) Enable(ctx context.Context, id int64) error {
 	}
 
 	if err := s.addressRepo.Enable(ctx, id); err != nil {
-		return fmt.Errorf("%w: %v", errMsg.ErrEnable, err)
+		return errors.Join(errMsg.ErrEnable, err)
 	}
 
 	return nil

@@ -12,51 +12,32 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestNewAddressTx(t *testing.T) {
 	t.Run("successfully create new AddressTx instance", func(t *testing.T) {
-
-		var db *pgxpool.Pool
-
-		result := NewAddressTx(db)
+		result := NewAddressTx()
 
 		assert.NotNil(t, result)
 
 		_, ok := result.(*addressTx)
 		assert.True(t, ok, "Expected result to be of type *addressTx")
-
-	})
-
-	t.Run("return instance with provided db pool", func(t *testing.T) {
-
-		var db *pgxpool.Pool
-
-		result := NewAddressTx(db)
-
-		assert.NotNil(t, result)
 	})
 
 	t.Run("return different instances for different calls", func(t *testing.T) {
-		var db *pgxpool.Pool
-
-		instance1 := NewAddressTx(db)
-		instance2 := NewAddressTx(db)
+		instance1 := NewAddressTx()
+		instance2 := NewAddressTx()
 
 		assert.NotSame(t, instance1, instance2)
-
-		assert.NotNil(t, instance1)
-		assert.NotNil(t, instance2)
 	})
 }
 
 func TestAddressTx_CreateTx(t *testing.T) {
 	t.Run("successfully create address within transaction", func(t *testing.T) {
 		mockTx := new(mockDb.MockTx)
-		repo := &addressTx{db: &pgxpool.Pool{}}
+		repo := &addressTx{}
 		ctx := context.Background()
 
 		address := &models.Address{
@@ -80,7 +61,8 @@ func TestAddressTx_CreateTx(t *testing.T) {
 			TimeValue: now,
 		}
 
-		mockTx.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+		mockTx.
+			On("QueryRow", ctx, mock.Anything, mock.Anything).
 			Return(mockRow)
 
 		result, err := repo.CreateTx(ctx, mockTx, address)
@@ -90,42 +72,44 @@ func TestAddressTx_CreateTx(t *testing.T) {
 		assert.Equal(t, int64(1), result.ID)
 		assert.Equal(t, now, result.CreatedAt)
 		assert.Equal(t, now, result.UpdatedAt)
+
 		mockTx.AssertExpectations(t)
 	})
 
 	t.Run("return ErrDBInvalidForeignKey on FK violation", func(t *testing.T) {
 		mockTx := new(mockDb.MockTx)
-		repo := &addressTx{db: &pgxpool.Pool{}}
+		repo := &addressTx{}
 		ctx := context.Background()
 		address := &models.Address{}
 
 		fkErr := errMsgPg.NewForeignKeyViolation("addresses_user_id_fkey")
-		mockRow := &mockDb.MockRow{
-			Err: fkErr,
-		}
 
-		mockTx.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+		mockRow := &mockDb.MockRow{Err: fkErr}
+
+		mockTx.
+			On("QueryRow", ctx, mock.Anything, mock.Anything).
 			Return(mockRow)
 
 		result, err := repo.CreateTx(ctx, mockTx, address)
 
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrDBInvalidForeignKey)
+
 		mockTx.AssertExpectations(t)
 	})
 
-	t.Run("return ErrCreate when query fails with generic database error", func(t *testing.T) {
+	t.Run("return ErrCreate when generic database error occurs", func(t *testing.T) {
 		mockTx := new(mockDb.MockTx)
-		repo := &addressTx{db: &pgxpool.Pool{}}
+		repo := &addressTx{}
 		ctx := context.Background()
 		address := &models.Address{}
+
 		dbErr := errors.New("database connection failed")
 
-		mockRow := &mockDb.MockRow{
-			Err: dbErr,
-		}
+		mockRow := &mockDb.MockRow{Err: dbErr}
 
-		mockTx.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+		mockTx.
+			On("QueryRow", ctx, mock.Anything, mock.Anything).
 			Return(mockRow)
 
 		result, err := repo.CreateTx(ctx, mockTx, address)
@@ -133,30 +117,30 @@ func TestAddressTx_CreateTx(t *testing.T) {
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrCreate)
 		assert.ErrorContains(t, err, dbErr.Error())
+
 		mockTx.AssertExpectations(t)
 	})
 
-	t.Run("return ErrCreate when pgx error occurs", func(t *testing.T) {
+	t.Run("return ErrCreate when pg error occurs", func(t *testing.T) {
 		mockTx := new(mockDb.MockTx)
-		repo := &addressTx{db: &pgxpool.Pool{}}
+		repo := &addressTx{}
 		ctx := context.Background()
 		address := &models.Address{}
-		pgxErr := &pgconn.PgError{
-			Message: "connection timeout",
-		}
 
-		mockRow := &mockDb.MockRow{
-			Err: pgxErr,
-		}
+		pgErr := &pgconn.PgError{Message: "connection timeout"}
 
-		mockTx.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+		mockRow := &mockDb.MockRow{Err: pgErr}
+
+		mockTx.
+			On("QueryRow", ctx, mock.Anything, mock.Anything).
 			Return(mockRow)
 
 		result, err := repo.CreateTx(ctx, mockTx, address)
 
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrCreate)
-		assert.ErrorContains(t, err, pgxErr.Message)
+		assert.ErrorContains(t, err, pgErr.Message)
+
 		mockTx.AssertExpectations(t)
 	})
 }

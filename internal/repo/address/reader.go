@@ -7,20 +7,29 @@ import (
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+
 	"github.com/jackc/pgx/v5"
 )
 
+const baseSelectAddress = `
+	SELECT 
+		id, user_id, client_cpf_id, supplier_id,
+		street, street_number, complement, city, state, country, postal_code,
+		is_active, created_at, updated_at
+	FROM addresses
+`
+
+// =======================
+// Public methods
+// =======================
+
 func (r *addressRepo) GetByID(ctx context.Context, id int64) (*models.Address, error) {
-	const query = `
-		SELECT 
-			id, user_id, client_cpf_id, supplier_id,
-			street, street_number, complement, city, state, country, postal_code,
-			is_active, created_at, updated_at
-		FROM addresses
+	const query = baseSelectAddress + `
 		WHERE id = $1;
 	`
 
 	row := r.db.QueryRow(ctx, query, id)
+
 	addr, err := scanAddress(row)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -28,6 +37,7 @@ func (r *addressRepo) GetByID(ctx context.Context, id int64) (*models.Address, e
 		}
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 	}
+
 	return addr, nil
 }
 
@@ -43,15 +53,19 @@ func (r *addressRepo) GetBySupplierID(ctx context.Context, supplierID int64) ([]
 	return r.getByField(ctx, "supplier_id", supplierID)
 }
 
+// =======================
+// Internal helpers
+// =======================
+
 func (r *addressRepo) getByField(ctx context.Context, field string, value any) ([]*models.Address, error) {
+	if !isAllowedAddressField(field) {
+		return nil, errMsg.ErrInvalidField
+	}
+
 	query := fmt.Sprintf(`
-		SELECT 
-			id, user_id, client_cpf_id, supplier_id,
-			street, street_number, complement, city, state, country, postal_code,
-			is_active, created_at, updated_at
-		FROM addresses
+		%s
 		WHERE %s = $1;
-	`, field)
+	`, baseSelectAddress, field)
 
 	rows, err := r.db.Query(ctx, query, value)
 	if err != nil {
@@ -60,16 +74,34 @@ func (r *addressRepo) getByField(ctx context.Context, field string, value any) (
 	defer rows.Close()
 
 	var results []*models.Address
+
 	for rows.Next() {
 		addr, err := scanAddress(rows)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
 		}
 		results = append(results, addr)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+	}
+
 	return results, nil
 }
+
+func isAllowedAddressField(field string) bool {
+	switch field {
+	case "user_id", "client_cpf_id", "supplier_id":
+		return true
+	default:
+		return false
+	}
+}
+
+// =======================
+// Scanner
+// =======================
 
 type scanner interface {
 	Scan(dest ...any) error

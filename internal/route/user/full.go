@@ -27,7 +27,7 @@ func RegisterUserFullRoutes(
 	blacklist jwt.TokenBlacklist,
 ) {
 	repoUser := repoUser.NewUserFull(db)
-	repoAddress := repoAddress.NewAddressTx(db)
+	repoAddress := repoAddress.NewAddressTx()
 	repoContact := repoContact.NewContactTx(db)
 	repoUserCatRel := repoUserCatRel.NewUserCategoryRelationTx(db)
 	repoUserContactRel := repoUserContactRel.NewUserContactRelationTx(db)

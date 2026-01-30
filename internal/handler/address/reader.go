@@ -29,10 +29,18 @@ func (h *addressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	addressModel, err := h.service.GetByID(ctx, id)
 	if err != nil {
+		if errors.Is(err, errMsg.ErrNotFound) {
+			h.logger.Warn(ctx, ref+logger.LogGetError, map[string]any{
+				"address_id": id,
+			})
+			utils.ErrorResponse(w, errMsg.ErrNotFound, http.StatusNotFound)
+			return
+		}
+
 		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
 			"address_id": id,
 		})
-		utils.ErrorResponse(w, err, http.StatusNotFound)
+		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -92,7 +100,9 @@ func (h *addressHandler) handleGetAddresses(
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{"erro": err.Error()})
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
 		utils.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
@@ -100,12 +110,16 @@ func (h *addressHandler) handleGetAddresses(
 	addressModels, err := getFn(ctx, id)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
-			h.logger.Warn(ctx, ref+logger.LogGetError, map[string]any{idLabel: id})
+			h.logger.Warn(ctx, ref+logger.LogGetError, map[string]any{
+				idLabel: id,
+			})
 			utils.ErrorResponse(w, errMsg.ErrNotFound, http.StatusNotFound)
 			return
 		}
 
-		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{idLabel: id})
+		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+			idLabel: id,
+		})
 		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}

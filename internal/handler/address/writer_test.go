@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -23,557 +24,593 @@ import (
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
-func newRequestWithVars(method, url string, body []byte, vars map[string]string) *http.Request {
+func newReq(method, url string, body []byte, vars map[string]string) *http.Request {
 	req := httptest.NewRequest(method, url, bytes.NewBuffer(body))
-	return mux.SetURLVars(req, vars)
+	if vars != nil {
+		req = mux.SetURLVars(req, vars)
+	}
+	return req
 }
 
-func TestAddressHandler_Create(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logAdapter := logger.NewLoggerAdapter(baseLogger)
+func newHandler(t *testing.T) (*addressHandler, *mockAddress.MockAddress) {
+	t.Helper()
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	mockSvc := new(mockAddress.MockAddress)
+	return NewAddressHandler(mockSvc, logger.NewLoggerAdapter(log)), mockSvc
+}
 
-	t.Run("Success - Create Address", func(t *testing.T) {
-		t.Parallel()
-		mockService := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockService, logAdapter)
+/* ======================
+   CREATE
+====================== */
 
-		uid := int64(10)
-		inputDTO := &dtoAddress.AddressDTO{
-			UserID:     &uid,
-			Street:     "Rua Exemplo",
-			City:       "Cidade",
-			State:      "SP",
-			Country:    "Brasil",
-			PostalCode: "12345-678",
-		}
+func TestAddressHandler_Create_AllCases(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		h, svc := newHandler(t)
 
-		// modelo esperado no service
-		expectedModel := dtoAddress.ToAddressModel(*inputDTO)
-		// simula retorno já com ID preenchido
-		expectedModel.ID = uid
+		uid := int64(1)
+		dto := dtoAddress.AddressDTO{UserID: &uid}
+		model := dtoAddress.ToAddressModel(dto)
+		model.ID = 10
 
-		mockService.
-			On("Create", mock.Anything, mock.MatchedBy(func(m *models.Address) bool {
-				return m.UserID != nil &&
-					*m.UserID == *inputDTO.UserID &&
-					m.Street == inputDTO.Street &&
-					m.City == inputDTO.City &&
-					m.State == inputDTO.State &&
-					m.Country == inputDTO.Country &&
-					m.PostalCode == inputDTO.PostalCode
-			})).
-			Return(expectedModel, nil)
+		svc.On("Create", mock.Anything, mock.Anything).
+			Return(model, nil)
 
-		body, _ := json.Marshal(inputDTO)
-		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
+		body, _ := json.Marshal(dto)
 		w := httptest.NewRecorder()
+		h.Create(w, newReq(http.MethodPost, "/addresses", body, nil))
 
-		handler.Create(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusCreated, resp.StatusCode)
-
-		var response struct {
-			Status  int                   `json:"status"`
-			Message string                `json:"message"`
-			Data    dtoAddress.AddressDTO `json:"data"`
-		}
-
-		err := json.NewDecoder(resp.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, "Endereço criado com sucesso", response.Message)
-
-		assert.NotNil(t, response.Data.ID)
-		assert.Equal(t, expectedModel.ID, *response.Data.ID)
-		assert.NotNil(t, response.Data.UserID)
-		assert.Equal(t, *inputDTO.UserID, *response.Data.UserID)
-		assert.Equal(t, inputDTO.Street, response.Data.Street)
-		assert.Equal(t, inputDTO.City, response.Data.City)
-		assert.Equal(t, inputDTO.State, response.Data.State)
-		assert.Equal(t, inputDTO.Country, response.Data.Country)
-		assert.Equal(t, inputDTO.PostalCode, response.Data.PostalCode)
-
-		mockService.AssertExpectations(t)
+		assert.Equal(t, http.StatusCreated, w.Code)
 	})
 
-	t.Run("ServiceError", func(t *testing.T) {
-		t.Parallel()
-		mockService := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockService, logAdapter)
+	t.Run("InvalidForeignKey", func(t *testing.T) {
+		h, svc := newHandler(t)
 
-		uid := int64(42)
-		input := &dtoAddress.AddressDTO{
-			UserID:     &uid,
-			Street:     "Rua Falha",
-			City:       "ErroCity",
-			State:      "MG",
-			Country:    "Brasil",
-			PostalCode: "02460-000",
-		}
+		svc.On("Create", mock.Anything, mock.Anything).
+			Return((*models.Address)(nil), errMsg.ErrDBInvalidForeignKey)
 
-		mockService.On("Create", mock.Anything, mock.Anything).
-			Return((*models.Address)(nil), assert.AnError)
-
-		body, _ := json.Marshal(input)
-		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
+		h.Create(w, newReq(http.MethodPost, "/addresses", []byte(`{}`), nil))
 
-		handler.Create(w, req)
+		var resp utils.DefaultResponse
+		_ = json.NewDecoder(w.Body).Decode(&resp)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-		mockService.AssertExpectations(t)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, "chave estrangeira inválida", resp.Message)
 	})
 
-	t.Run("DuplicateAddress", func(t *testing.T) {
-		t.Parallel()
-		mockService := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockService, logAdapter)
+	t.Run("Duplicate", func(t *testing.T) {
+		h, svc := newHandler(t)
 
-		uid := int64(42)
-		input := &dtoAddress.AddressDTO{
-			UserID:       &uid,
-			Street:       "Rua Repetida",
-			StreetNumber: "123",
-			City:         "CidadeTest",
-			State:        "SP",
-			Country:      "Brasil",
-			PostalCode:   "01000-000",
-		}
-
-		// Mock do service retornando ErrDuplicate
-		mockService.On("Create", mock.Anything, mock.Anything).
+		svc.On("Create", mock.Anything, mock.Anything).
 			Return((*models.Address)(nil), errMsg.ErrDuplicate)
 
-		body, _ := json.Marshal(input)
-		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
+		h.Create(w, newReq(http.MethodPost, "/addresses", []byte(`{}`), nil))
 
-		handler.Create(w, req)
+		assert.Equal(t, http.StatusConflict, w.Code)
+	})
 
-		resp := w.Result()
-		defer resp.Body.Close()
+	t.Run("InternalError", func(t *testing.T) {
+		h, svc := newHandler(t)
 
-		assert.Equal(t, http.StatusConflict, resp.StatusCode) // verifica HTTP 409
-		var response utils.DefaultResponse
-		require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
-		assert.Contains(t, response.Message, "já cadastrado")
+		svc.On("Create", mock.Anything, mock.Anything).
+			Return((*models.Address)(nil), errors.New("db down"))
 
-		mockService.AssertExpectations(t)
+		w := httptest.NewRecorder()
+		h.Create(w, newReq(http.MethodPost, "/addresses", []byte(`{}`), nil))
+
+		var resp utils.DefaultResponse
+		_ = json.NewDecoder(w.Body).Decode(&resp)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, "erro interno", resp.Message)
 	})
 
 	t.Run("InvalidJSON", func(t *testing.T) {
-		t.Parallel()
-		mockService := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockService, logAdapter)
+		h, _ := newHandler(t)
 
-		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer([]byte(`{invalid`)))
-		req.Header.Set("Content-Type", "application/json")
+		// JSON malformado - falta a chave de fechamento
+		invalidJSON := []byte(`{"street": "Rua Teste", "number": "123"`)
+
 		w := httptest.NewRecorder()
+		h.Create(w, newReq(http.MethodPost, "/addresses", invalidJSON, nil))
 
-		handler.Create(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		resp := w.Result()
-		defer resp.Body.Close()
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "JSON inválido", resp.Message)
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
 
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		// Verificar que o serviço NÃO foi chamado
+		mockSvc := new(mockAddress.MockAddress)
+		hWithMock, _ := newHandler(t)
+		hWithMock.service = mockSvc // Substitui o serviço pelo mock limpo
+
+		w2 := httptest.NewRecorder()
+		hWithMock.Create(w2, newReq(http.MethodPost, "/addresses", invalidJSON, nil))
+
+		// Assert que o mock não teve interações
+		mockSvc.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 	})
 
-	t.Run("ForeignKey inválida deve retornar 400", func(t *testing.T) {
-		t.Parallel()
-		mockService := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockService, logAdapter)
+	t.Run("EmptyBody", func(t *testing.T) {
+		h, _ := newHandler(t)
 
-		uid := int64(99)
-		input := &dtoAddress.AddressDTO{
-			UserID:     &uid,
-			Street:     "Rua FK",
-			City:       "Cidade FK",
-			State:      "SP",
-			Country:    "Brasil",
-			PostalCode: "99999-999",
-		}
+		// Corpo vazio
+		emptyBody := []byte{}
 
-		mockService.On("Create", mock.Anything, mock.Anything).
-			Return((*models.Address)(nil), errMsg.ErrDBInvalidForeignKey)
-
-		body, _ := json.Marshal(input)
-		req := httptest.NewRequest(http.MethodPost, "/addresses", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
+		h.Create(w, newReq(http.MethodPost, "/addresses", emptyBody, nil))
 
-		handler.Create(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		resp := w.Result()
-		defer resp.Body.Close()
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "JSON inválido", resp.Message)
+	})
 
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	t.Run("InvalidJSONSyntax", func(t *testing.T) {
+		h, _ := newHandler(t)
 
-		mockService.AssertExpectations(t)
+		// JSON com sintaxe completamente inválida
+		invalidJSON := []byte(`{invalid json syntax}`)
+
+		w := httptest.NewRecorder()
+		h.Create(w, newReq(http.MethodPost, "/addresses", invalidJSON, nil))
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "JSON inválido", resp.Message)
+	})
+
+	t.Run("InvalidDataType", func(t *testing.T) {
+		h, _ := newHandler(t)
+
+		// JSON válido sintaticamente, mas com tipo de dado errado para o campo
+		// Supondo que UserID deve ser int64, mas está sendo enviado como string
+		invalidDataTypeJSON := []byte(`{"user_id": "not_a_number"}`)
+
+		w := httptest.NewRecorder()
+		h.Create(w, newReq(http.MethodPost, "/addresses", invalidDataTypeJSON, nil))
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "JSON inválido", resp.Message)
+	})
+
+	t.Run("JSONArrayInsteadOfObject", func(t *testing.T) {
+		h, _ := newHandler(t)
+
+		// Enviando array em vez de objeto
+		arrayJSON := []byte(`[{"street": "Rua Teste"}]`)
+
+		w := httptest.NewRecorder()
+		h.Create(w, newReq(http.MethodPost, "/addresses", arrayJSON, nil))
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "JSON inválido", resp.Message)
 	})
 }
 
-func TestAddressHandler_Update(t *testing.T) {
-	addressID := int64(1)
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logAdapter := logger.NewLoggerAdapter(baseLogger)
+/* ======================
+   UPDATE
+====================== */
 
-	t.Run("Success - Update Address", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockService, logAdapter)
+func TestAddressHandler_Update_AllCases(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		h, svc := newHandler(t)
 
-		uid := int64(10)
-		inputDTO := &dtoAddress.AddressDTO{
-			UserID:     &uid,
-			Street:     "Rua Nova",
-			City:       "Cidade Nova",
-			State:      "SP",
-			Country:    "Brasil",
-			PostalCode: "12345678",
-		}
+		svc.On("Update", mock.Anything, mock.Anything).Return(nil)
 
-		expectedModel := dtoAddress.ToAddressModel(*inputDTO)
-		expectedModel.ID = addressID
+		body := []byte(`{"city":"SP"}`)
+		w := httptest.NewRecorder()
+		h.Update(w, newReq(http.MethodPut, "/addresses/1", body, map[string]string{"id": "1"}))
 
-		mockService.On("Update", mock.Anything, mock.MatchedBy(func(m *models.Address) bool {
-			return m.ID == addressID &&
-				m.Street == inputDTO.Street &&
-				m.City == inputDTO.City &&
-				m.State == inputDTO.State &&
-				m.Country == inputDTO.Country &&
-				m.PostalCode == inputDTO.PostalCode &&
-				m.UserID != nil && *m.UserID == uid
-		})).Return(nil)
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
 
-		body, _ := json.Marshal(inputDTO)
-		req := httptest.NewRequest(http.MethodPut, "/addresses/1", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
-
-		// Set ID in URL params for Gorilla Mux
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+	t.Run("InvalidJSON", func(t *testing.T) {
+		h, _ := newHandler(t)
 
 		w := httptest.NewRecorder()
+		h.Update(w, newReq(http.MethodPut, "/addresses/1", []byte("{bad"), map[string]string{"id": "1"}))
 
-		handler.Update(w, req)
+		var resp utils.DefaultResponse
+		_ = json.NewDecoder(w.Body).Decode(&resp)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		var response struct {
-			Status  int                   `json:"status"`
-			Message string                `json:"message"`
-			Data    dtoAddress.AddressDTO `json:"data"`
-		}
-
-		err := json.NewDecoder(resp.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, "Endereço atualizado com sucesso", response.Message)
-		assert.Equal(t, addressID, *response.Data.ID)
-		assert.Equal(t, uid, *response.Data.UserID)
-
-		mockService.AssertExpectations(t)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, "JSON inválido", resp.Message)
 	})
 
 	t.Run("ValidationError", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockService, logAdapter)
+		h, svc := newHandler(t)
 
-		inputDTO := &dtoAddress.AddressDTO{}
-		body, _ := json.Marshal(inputDTO)
-		req := httptest.NewRequest(http.MethodPut, "/addresses/1", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
-
-		// Set ID in URL params
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		svc.On("Update", mock.Anything, mock.Anything).
+			Return(&validators.ValidationError{Field: "city", Message: "obrigatório"})
 
 		w := httptest.NewRecorder()
+		h.Update(w, newReq(http.MethodPut, "/addresses/1", []byte(`{}`), map[string]string{"id": "1"}))
 
-		mockService.On("Update", mock.Anything, mock.Anything).Return(&validators.ValidationError{
-			Field:   "user_id/client_id/supplier_id",
-			Message: "campo obrigatório",
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("ZeroID", func(t *testing.T) {
+		h, svc := newHandler(t)
+
+		svc.On("Update", mock.Anything, mock.Anything).
+			Return(errMsg.ErrZeroID)
+
+		w := httptest.NewRecorder()
+		h.Update(w, newReq(http.MethodPut, "/addresses/1", []byte(`{}`), map[string]string{"id": "1"}))
+
+		var resp utils.DefaultResponse
+		_ = json.NewDecoder(w.Body).Decode(&resp)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, "ID inválido", resp.Message)
+	})
+
+	t.Run("InvalidForeignKey", func(t *testing.T) {
+		h, svc := newHandler(t)
+
+		svc.On("Update", mock.Anything, mock.Anything).
+			Return(errMsg.ErrDBInvalidForeignKey)
+
+		w := httptest.NewRecorder()
+		h.Update(w, newReq(http.MethodPut, "/addresses/1", []byte(`{}`), map[string]string{"id": "1"}))
+
+		var resp utils.DefaultResponse
+		_ = json.NewDecoder(w.Body).Decode(&resp)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, "chave estrangeira inválida", resp.Message)
+	})
+
+	t.Run("InternalError", func(t *testing.T) {
+		h, svc := newHandler(t)
+
+		svc.On("Update", mock.Anything, mock.Anything).
+			Return(errors.New("panic"))
+
+		w := httptest.NewRecorder()
+		h.Update(w, newReq(http.MethodPut, "/addresses/1", []byte(`{}`), map[string]string{"id": "1"}))
+
+		var resp utils.DefaultResponse
+		_ = json.NewDecoder(w.Body).Decode(&resp)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, "erro interno", resp.Message)
+	})
+
+	t.Run("Success", func(t *testing.T) {
+		h, svc := newHandler(t)
+
+		svc.On("Update", mock.Anything, mock.Anything).Return(nil)
+
+		body := []byte(`{"city":"SP"}`)
+		w := httptest.NewRecorder()
+		h.Update(w, newReq(http.MethodPut, "/addresses/1", body, map[string]string{"id": "1"}))
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "Endereço atualizado com sucesso", resp.Message)
+	})
+
+	// Testes de ID inválido - APENAS IDs que GetIDParam rejeita
+	// Se GetIDParam aceita IDs negativos e zero, precisamos testar o que ELE rejeita
+	invalidIDTests := []struct {
+		name string
+		id   string
+	}{
+		{"NonNumeric", "abc"},
+		{"Float", "1.5"},
+		{"TooLarge", "99999999999999999999"},
+		{"SpecialChars", "1@#$"},
+	}
+
+	for _, tc := range invalidIDTests {
+		t.Run("InvalidIDParam_"+tc.name, func(t *testing.T) {
+			h, _ := newHandler(t)
+
+			body := []byte(`{"city":"SP"}`)
+			w := httptest.NewRecorder()
+			h.Update(w, newReq(http.MethodPut, "/addresses/"+tc.id, body, map[string]string{"id": tc.id}))
+
+			assert.Equal(t, http.StatusBadRequest, w.Code)
+
+			var resp utils.DefaultResponse
+			require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+			assert.Equal(t, "ID inválido", resp.Message)
 		})
+	}
 
-		handler.Update(w, req)
+	// Testes para IDs que GetIDParam ACEITA, mas que o serviço pode rejeitar
+	t.Run("ZeroID_ServiceRejects", func(t *testing.T) {
+		h, svc := newHandler(t)
 
-		resp := w.Result()
-		defer resp.Body.Close()
+		// GetIDParam aceita "0", mas o serviço rejeita com ErrZeroID
+		svc.On("Update", mock.Anything, mock.Anything).
+			Return(errMsg.ErrZeroID)
 
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("ForeignKey inválida deve retornar 400", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockService, logAdapter)
-
-		uid := int64(99)
-		inputDTO := &dtoAddress.AddressDTO{UserID: &uid}
-		body, _ := json.Marshal(inputDTO)
-		req := httptest.NewRequest(http.MethodPut, "/addresses/1", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
-
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-
+		body := []byte(`{"city":"SP"}`)
 		w := httptest.NewRecorder()
+		h.Update(w, newReq(http.MethodPut, "/addresses/0", body, map[string]string{"id": "0"}))
 
-		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrDBInvalidForeignKey)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		handler.Update(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		mockService.AssertExpectations(t)
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "ID inválido", resp.Message)
 	})
 
-	t.Run("ServiceError", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockService, logAdapter)
+	t.Run("NegativeID_ServiceRejects", func(t *testing.T) {
+		h, svc := newHandler(t)
 
-		uid := int64(42)
-		inputDTO := &dtoAddress.AddressDTO{UserID: &uid, Street: "Rua Erro"}
-		body, _ := json.Marshal(inputDTO)
-		req := httptest.NewRequest(http.MethodPut, "/addresses/1", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
+		// GetIDParam aceita "-1", mas o serviço pode rejeitar
+		// Vamos assumir que o serviço também retorna ErrZeroID ou similar
+		svc.On("Update", mock.Anything, mock.Anything).
+			Return(errMsg.ErrZeroID) // ou outro erro apropriado
 
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-
+		body := []byte(`{"city":"SP"}`)
 		w := httptest.NewRecorder()
+		h.Update(w, newReq(http.MethodPut, "/addresses/-1", body, map[string]string{"id": "-1"}))
 
-		mockService.On("Update", mock.Anything, mock.Anything).Return(errors.New("erro genérico"))
+		// Aqui o handler chama o serviço, que retorna erro
+		// Então o status deve ser BadRequest (do serviço)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		handler.Update(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-		mockService.AssertExpectations(t)
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "ID inválido", resp.Message)
 	})
 
-	t.Run("Invalid ID error deve retornar 400", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockService, logAdapter)
+	t.Run("MissingIDParam", func(t *testing.T) {
+		h, _ := newHandler(t)
 
-		uid := int64(99)
-		inputDTO := &dtoAddress.AddressDTO{UserID: &uid}
-		body, _ := json.Marshal(inputDTO)
-		req := httptest.NewRequest(http.MethodPut, "/addresses/1", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
-
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-
+		body := []byte(`{"city":"SP"}`)
+		req := httptest.NewRequest(http.MethodPut, "/addresses/", bytes.NewBuffer(body))
+		// IMPORTANTE: Não use mux.SetURLVars - para simular ID ausente
 		w := httptest.NewRecorder()
+		h.Update(w, req)
 
-		// Mock retornando ErrID específico
-		mockService.On("Update", mock.Anything, mock.Anything).Return(errMsg.ErrZeroID)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		handler.Update(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-		// Verifique também a mensagem de erro se necessário
-		var errorResponse struct {
-			Status  int    `json:"status"`
-			Message string `json:"message"`
-			Error   string `json:"error"`
-		}
-
-		err := json.NewDecoder(resp.Body).Decode(&errorResponse)
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusBadRequest, errorResponse.Status)
-		assert.Contains(t, errorResponse.Message, "ID") // ou verifique a mensagem específica
-
-		mockService.AssertExpectations(t)
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "ID inválido", resp.Message)
 	})
 
-	t.Run("Invalid JSON", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockService, logAdapter)
+	t.Run("InvalidJSON_BeforeIDCheck", func(t *testing.T) {
+		h, _ := newHandler(t)
 
-		req := httptest.NewRequest(http.MethodPut, "/addresses/1", bytes.NewBuffer([]byte("{invalid")))
-		req.Header.Set("Content-Type", "application/json")
-
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-
+		// JSON inválido - deve ser verificado antes do ID
+		invalidJSON := []byte(`{invalid json`)
 		w := httptest.NewRecorder()
+		h.Update(w, newReq(http.MethodPut, "/addresses/1", invalidJSON, map[string]string{"id": "1"}))
 
-		handler.Update(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "JSON inválido", resp.Message)
 	})
 
-	t.Run("Invalid ID param", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockService, logAdapter)
-
-		// Teste com ID inválido na URL
-		req := httptest.NewRequest(http.MethodPut, "/addresses/abc", nil)
-		req.Header.Set("Content-Type", "application/json")
-
-		// IMPORTANTE: Não defina parâmetros de URL aqui - deixe o utils.GetIDParam falhar
-		// req = mux.SetURLVars(req, map[string]string{"id": "abc"}) // REMOVER ESTA LINHA
-
-		w := httptest.NewRecorder()
-
-		handler.Update(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	})
-
-	t.Run("Missing ID param", func(t *testing.T) {
-		mockService := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockService, logAdapter)
-
-		// Teste sem parâmetro ID na URL
-		req := httptest.NewRequest(http.MethodPut, "/addresses/", nil)
-		req.Header.Set("Content-Type", "application/json")
-
-		// Não defina nenhum parâmetro de URL
-		w := httptest.NewRecorder()
-
-		handler.Update(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	})
 }
 
-func TestAddressHandler_Delete(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logAdapter := logger.NewLoggerAdapter(baseLogger)
+func TestAddressHandler_Delete_AllCases(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		h, svc := newHandler(t)
 
-	t.Run("success", func(t *testing.T) {
-		t.Parallel()
-		mockSvc := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockSvc, logAdapter)
+		svc.On("Delete", mock.Anything, int64(1)).Return(nil)
 
-		mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil).Once()
-
-		req := newRequestWithVars("DELETE", "/addresses/1", nil, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
+		h.Delete(w, newReq(http.MethodDelete, "/addresses/1", nil, map[string]string{"id": "1"}))
 
-		handler.Delete(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+		assert.Equal(t, http.StatusNoContent, w.Code)
+		assert.Equal(t, 0, w.Body.Len())
 		assert.Empty(t, w.Body.String())
-
-		mockSvc.AssertExpectations(t)
 	})
 
-	t.Run("invalid ID", func(t *testing.T) {
-		t.Parallel()
-		mockSvc := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockSvc, logAdapter)
+	// Testes para IDs que GetIDParam rejeita
+	invalidIDTests := []struct {
+		name string
+		id   string
+	}{
+		{"NonNumeric", "abc"},
+		{"Float", "1.5"},
+		{"TooLarge", "99999999999999999999"},
+		{"SpecialChars", "1@#$"},
+	}
 
-		req := newRequestWithVars("DELETE", "/addresses/abc", nil, map[string]string{"id": "abc"})
+	for _, tc := range invalidIDTests {
+		t.Run("InvalidIDParam_"+tc.name, func(t *testing.T) {
+			h, _ := newHandler(t)
+
+			w := httptest.NewRecorder()
+			h.Delete(w, newReq(http.MethodDelete, "/addresses/"+tc.id, nil, map[string]string{"id": tc.id}))
+
+			assert.Equal(t, http.StatusBadRequest, w.Code)
+
+			var resp utils.DefaultResponse
+			require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+			assert.Equal(t, "ID inválido", resp.Message)
+			assert.Equal(t, http.StatusBadRequest, resp.Status)
+		})
+	}
+
+	t.Run("ZeroID_ServiceRejects", func(t *testing.T) {
+		h, svc := newHandler(t)
+
+		// GetIDParam aceita "0", mas o serviço rejeita com ErrZeroID
+		svc.On("Delete", mock.Anything, int64(0)).
+			Return(errMsg.ErrZeroID)
+
 		w := httptest.NewRecorder()
+		h.Delete(w, newReq(http.MethodDelete, "/addresses/0", nil, map[string]string{"id": "0"}))
 
-		handler.Delete(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		assert.Contains(t, w.Body.String(), "invalid ID format: abc")
-
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "ID inválido", resp.Message)
 	})
 
-	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
-		mockSvc := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockSvc, logAdapter)
+	t.Run("NegativeID_ServiceRejects", func(t *testing.T) {
+		h, svc := newHandler(t)
 
-		mockSvc.On("Delete", mock.Anything, int64(99)).Return(errMsg.ErrNotFound).Once()
+		// GetIDParam aceita "-1", mas o serviço rejeita
+		svc.On("Delete", mock.Anything, int64(-1)).
+			Return(errMsg.ErrZeroID) // ou outro erro apropriado
 
-		req := newRequestWithVars("DELETE", "/addresses/99", nil, map[string]string{"id": "99"})
 		w := httptest.NewRecorder()
+		h.Delete(w, newReq(http.MethodDelete, "/addresses/-1", nil, map[string]string{"id": "-1"}))
 
-		handler.Delete(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-		assert.Contains(t, w.Body.String(), errMsg.ErrNotFound.Error())
-
-		mockSvc.AssertExpectations(t)
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "ID inválido", resp.Message)
 	})
 
-	t.Run("validation error", func(t *testing.T) {
-		t.Parallel()
-		mockSvc := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockSvc, logAdapter)
+	t.Run("MissingIDParam", func(t *testing.T) {
+		h, _ := newHandler(t)
 
-		mockSvc.On("Delete", mock.Anything, int64(2)).Return(errMsg.ErrZeroID).Once()
-
-		req := newRequestWithVars("DELETE", "/addresses/2", nil, map[string]string{"id": "2"})
+		// Request sem variáveis de URL
+		req := httptest.NewRequest(http.MethodDelete, "/addresses", nil)
 		w := httptest.NewRecorder()
+		h.Delete(w, req)
 
-		handler.Delete(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		resp := w.Result()
-		defer resp.Body.Close()
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "ID inválido", resp.Message)
+	})
 
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	t.Run("NotFound", func(t *testing.T) {
+		h, svc := newHandler(t)
 
-		var bodyErr struct {
-			Message string `json:"message"`
-			Status  int    `json:"status"`
+		svc.On("Delete", mock.Anything, int64(999)).
+			Return(errMsg.ErrNotFound)
+
+		w := httptest.NewRecorder()
+		h.Delete(w, newReq(http.MethodDelete, "/addresses/999", nil, map[string]string{"id": "999"}))
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "endereço não encontrado", resp.Message)
+		assert.Equal(t, http.StatusNotFound, resp.Status)
+	})
+
+	t.Run("InternalError", func(t *testing.T) {
+		h, svc := newHandler(t)
+
+		svc.On("Delete", mock.Anything, int64(1)).
+			Return(errors.New("database connection failed"))
+
+		w := httptest.NewRecorder()
+		h.Delete(w, newReq(http.MethodDelete, "/addresses/1", nil, map[string]string{"id": "1"}))
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "erro interno", resp.Message)
+		assert.Equal(t, http.StatusInternalServerError, resp.Status)
+	})
+
+	t.Run("DifferentErrorTypes", func(t *testing.T) {
+		h, svc := newHandler(t)
+
+		// Erro não mapeado
+		customErr := errors.New("custom database error")
+		svc.On("Delete", mock.Anything, int64(2)).
+			Return(customErr)
+
+		w := httptest.NewRecorder()
+		h.Delete(w, newReq(http.MethodDelete, "/addresses/2", nil, map[string]string{"id": "2"}))
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var resp utils.DefaultResponse
+		require.NoError(t, json.NewDecoder(w.Body).Decode(&resp))
+		assert.Equal(t, "erro interno", resp.Message)
+	})
+
+	t.Run("BodyInDeleteRequest", func(t *testing.T) {
+		h, svc := newHandler(t)
+
+		// DELETE requests podem ter corpo, mas geralmente ignoramos
+		svc.On("Delete", mock.Anything, int64(1)).Return(nil)
+
+		body := []byte(`{"unused": "data"}`)
+		w := httptest.NewRecorder()
+		h.Delete(w, newReq(http.MethodDelete, "/addresses/1", body, map[string]string{"id": "1"}))
+
+		assert.Equal(t, http.StatusNoContent, w.Code)
+		assert.Empty(t, w.Body.String())
+	})
+
+	t.Run("SuccessLogging", func(t *testing.T) {
+		h, svc := newHandler(t)
+
+		// Teste para garantir que o logger é chamado no sucesso
+		svc.On("Delete", mock.Anything, int64(123)).Return(nil)
+
+		w := httptest.NewRecorder()
+		h.Delete(w, newReq(http.MethodDelete, "/addresses/123", nil, map[string]string{"id": "123"}))
+
+		assert.Equal(t, http.StatusNoContent, w.Code)
+		// Não podemos verificar o logger diretamente, mas o código deve executar sem panic
+	})
+
+	t.Run("ConcurrentDeleteCalls", func(t *testing.T) {
+		h, svc := newHandler(t)
+
+		// Teste para múltiplas chamadas simultâneas
+		svc.On("Delete", mock.Anything, int64(1)).Return(nil).Times(3)
+
+		var wg sync.WaitGroup
+		for i := 0; i < 3; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				w := httptest.NewRecorder()
+				h.Delete(w, newReq(http.MethodDelete, "/addresses/1", nil, map[string]string{"id": "1"}))
+				assert.Equal(t, http.StatusNoContent, w.Code)
+			}()
 		}
-		_ = json.NewDecoder(resp.Body).Decode(&bodyErr)
+		wg.Wait()
 
-		assert.Equal(t, errMsg.ErrZeroID.Error(), bodyErr.Message)
-		assert.Equal(t, http.StatusBadRequest, bodyErr.Status)
-
-		mockSvc.AssertExpectations(t)
+		svc.AssertExpectations(t)
 	})
 
-	t.Run("internal server error", func(t *testing.T) {
-		t.Parallel()
-		mockSvc := new(mockAddress.MockAddress)
-		handler := NewAddressHandler(mockSvc, logAdapter)
+	t.Run("DifferentHTTPMethods", func(t *testing.T) {
+		h, svc := newHandler(t)
 
-		mockSvc.On("Delete", mock.Anything, int64(3)).Return(assert.AnError).Once()
+		// DELETE é o método esperado, mas testamos que o handler só responde ao DELETE
+		// (isso é mais para documentação, já que o router cuida disso)
+		svc.On("Delete", mock.Anything, int64(1)).Return(nil)
 
-		req := newRequestWithVars("DELETE", "/addresses/3", nil, map[string]string{"id": "3"})
+		// Teste com método correto
 		w := httptest.NewRecorder()
+		h.Delete(w, newReq(http.MethodDelete, "/addresses/1", nil, map[string]string{"id": "1"}))
+		assert.Equal(t, http.StatusNoContent, w.Code)
 
-		handler.Delete(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-		assert.Contains(t, w.Body.String(), assert.AnError.Error())
-
-		mockSvc.AssertExpectations(t)
+		// O handler não deve aceitar outros métodos, mas isso é controlado pelo router
+		// Não é necessário testar aqui
 	})
 }

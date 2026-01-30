@@ -9,29 +9,53 @@ import (
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type addressTx struct {
-	db *pgxpool.Pool
+// addressTx implementa operações transacionais de Address.
+// Não mantém referência ao pool, pois opera exclusivamente sobre pgx.Tx.
+type addressTx struct{}
+
+// NewAddressTx cria o repositório transacional de Address.
+func NewAddressTx() ifaceTx.AddressTx {
+	return &addressTx{}
 }
 
-func NewAddressTx(db *pgxpool.Pool) ifaceTx.AddressTx {
-	return &addressTx{db: db}
-}
+// CreateTx cria um endereço dentro de uma transação já aberta.
+func (r *addressTx) CreateTx(
+	ctx context.Context,
+	tx pgx.Tx,
+	address *models.Address,
+) (*models.Address, error) {
 
-func (r *addressTx) CreateTx(ctx context.Context, tx pgx.Tx, address *models.Address) (*models.Address, error) {
 	const query = `
 		INSERT INTO addresses (
-			user_id, client_cpf_id, supplier_id,
-			street, street_number, complement, city, state, country, postal_code,
-			is_active, created_at, updated_at
+			user_id,
+			client_cpf_id,
+			supplier_id,
+			street,
+			street_number,
+			complement,
+			city,
+			state,
+			country,
+			postal_code,
+			is_active,
+			created_at,
+			updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
+		VALUES (
+			$1, $2, $3,
+			$4, $5, $6, $7, $8, $9, $10,
+			$11,
+			NOW(),
+			NOW()
+		)
 		RETURNING id, created_at, updated_at;
 	`
 
-	err := tx.QueryRow(ctx, query,
+	err := tx.QueryRow(
+		ctx,
+		query,
 		address.UserID,
 		address.ClientCpfID,
 		address.SupplierID,
@@ -43,7 +67,11 @@ func (r *addressTx) CreateTx(ctx context.Context, tx pgx.Tx, address *models.Add
 		address.Country,
 		address.PostalCode,
 		address.IsActive,
-	).Scan(&address.ID, &address.CreatedAt, &address.UpdatedAt)
+	).Scan(
+		&address.ID,
+		&address.CreatedAt,
+		&address.UpdatedAt,
+	)
 
 	if err != nil {
 		if errMsgPg.IsForeignKeyViolation(err) {

@@ -26,7 +26,7 @@ func RegisterSupplierFullRoutes(
 	blacklist jwt.TokenBlacklist,
 ) {
 	repoSupplier := repoSupplier.NewSupplierFull(db)
-	repoAddress := repoAddress.NewAddressTx(db)
+	repoAddress := repoAddress.NewAddressTx()
 	repoContact := repoContact.NewContactTx(db)
 	repoCatRel := repoCatRel.NewSupplierCategoryRelationTx(db)
 	repoContactRel := repoContactRel.NewSupplierContactRelation(db)

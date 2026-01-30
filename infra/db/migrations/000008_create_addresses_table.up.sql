@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS addresses (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    client_id INTEGER REFERENCES clients_cpf(id) ON DELETE CASCADE,
+    client_cpf_id INTEGER REFERENCES clients_cpf(id) ON DELETE CASCADE,
     supplier_id INTEGER REFERENCES suppliers(id) ON DELETE CASCADE,
 
     street VARCHAR(255) NOT NULL,

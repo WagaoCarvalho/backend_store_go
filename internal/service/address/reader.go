@@ -2,8 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
@@ -14,15 +12,7 @@ func (s *addressService) GetByID(ctx context.Context, id int64) (*models.Address
 		return nil, errMsg.ErrZeroID
 	}
 
-	addressModel, err := s.addressRepo.GetByID(ctx, id)
-	if err != nil {
-		if errors.Is(err, errMsg.ErrNotFound) {
-			return nil, errMsg.ErrNotFound
-		}
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-
-	return addressModel, nil
+	return s.addressRepo.GetByID(ctx, id)
 }
 
 func (s *addressService) GetByUserID(ctx context.Context, userID int64) ([]*models.Address, error) {
@@ -65,13 +55,13 @@ func getAddressesByEntity(
 
 	addresses, err := findFn(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+		return nil, err
 	}
 
 	if len(addresses) == 0 {
 		exists, err := existsFn(ctx, id)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+			return nil, err
 		}
 		if !exists {
 			return nil, errMsg.ErrNotFound
