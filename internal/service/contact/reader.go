@@ -19,7 +19,7 @@ func (s *contactService) GetByID(ctx context.Context, id int64) (*models.Contact
 		if errors.Is(err, errMsg.ErrNotFound) {
 			return nil, errMsg.ErrNotFound
 		}
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %w", errMsg.ErrGet, err)
 	}
 
 	return contact, nil

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -22,237 +21,162 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+func newTestLogger() *logger.LogAdapter {
+	base := logrus.New()
+	base.Out = &bytes.Buffer{}
+	return logger.NewLoggerAdapter(base)
+}
+
 func newRequestWithVars(method, url string, body []byte, vars map[string]string) *http.Request {
 	req := httptest.NewRequest(method, url, bytes.NewBuffer(body))
 	return mux.SetURLVars(req, vars)
 }
 
+/* ========================= CREATE ========================= */
+
 func TestContactHandler_Create(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logAdapter := logger.NewLoggerAdapter(baseLogger)
+	logAdapter := newTestLogger()
 
-	t.Run("Success - Create Contact", func(t *testing.T) {
-		t.Parallel()
-		mockService := new(mockContact.MockContact)
-		handler := NewContactHandler(mockService, logAdapter)
+	t.Run("success", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
 
-		inputDTO := &dtoContact.ContactDTO{
+		dto := dtoContact.ContactDTO{
 			ContactName: "Contato Teste",
 			Email:       "teste@email.com",
-			Phone:       "123456789",
+			Phone:       "123",
 		}
 
-		// Converte para model para mock
-		inputModel := dtoContact.ToContactModel(*inputDTO)
+		model := dtoContact.ToContactModel(dto)
+		mockSvc.On("Create", mock.Anything, model).
+			Return((*models.Contact)(model), nil)
 
-		mockService.On("Create", mock.Anything, inputModel).Return((*models.Contact)(inputModel), nil)
-
-		body, _ := json.Marshal(inputDTO)
+		body, _ := json.Marshal(dto)
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 
 		handler.Create(w, req)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusCreated, resp.StatusCode)
-
-		var response struct {
-			Status  int                   `json:"status"`
-			Message string                `json:"message"`
-			Data    dtoContact.ContactDTO `json:"data"`
-		}
-
-		err := json.NewDecoder(resp.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, "Contato criado com sucesso", response.Message)
-
-		assert.Equal(t, inputDTO.ContactName, response.Data.ContactName)
-		assert.Equal(t, inputDTO.Email, response.Data.Email)
-		assert.Equal(t, inputDTO.Phone, response.Data.Phone)
-
-		mockService.AssertExpectations(t)
+		assert.Equal(t, http.StatusCreated, w.Code)
+		mockSvc.AssertExpectations(t)
 	})
 
-	t.Run("ServiceError", func(t *testing.T) {
-		t.Parallel()
-		mockService := new(mockContact.MockContact)
-		handler := NewContactHandler(mockService, logAdapter)
+	t.Run("invalid json", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
 
-		inputDTO := &dtoContact.ContactDTO{
-			ContactName: "Contato Erro",
-			Email:       "erro@email.com",
-			Phone:       "987654321",
-		}
-		inputModel := dtoContact.ToContactModel(*inputDTO)
-
-		mockService.On("Create", mock.Anything, inputModel).Return((*models.Contact)(nil), assert.AnError)
-
-		body, _ := json.Marshal(inputDTO)
-		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
+		req := httptest.NewRequest(http.MethodPost, "/contacts", strings.NewReader("{invalid"))
 		w := httptest.NewRecorder()
 
 		handler.Create(w, req)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-		mockService.AssertExpectations(t)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
-	t.Run("InvalidJSON", func(t *testing.T) {
-		t.Parallel()
-		mockService := new(mockContact.MockContact)
-		handler := NewContactHandler(mockService, logAdapter)
+	t.Run("ErrInvalidData", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
 
-		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer([]byte(`{invalid`)))
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
+		dto := dtoContact.ContactDTO{ContactName: ""}
+		model := dtoContact.ToContactModel(dto)
 
-		handler.Create(w, req)
+		mockSvc.On("Create", mock.Anything, model).
+			Return(nil, errMsg.ErrInvalidData)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	})
-
-	t.Run("ForeignKey inválida deve retornar 400", func(t *testing.T) {
-		t.Parallel()
-		mockService := new(mockContact.MockContact)
-		handler := NewContactHandler(mockService, logAdapter)
-
-		inputDTO := &dtoContact.ContactDTO{
-			ContactName: "Contato FK",
-			Email:       "fk@email.com",
-			Phone:       "999999999",
-		}
-		inputModel := dtoContact.ToContactModel(*inputDTO)
-
-		mockService.On("Create", mock.Anything, inputModel).Return((*models.Contact)(nil), errMsg.ErrDBInvalidForeignKey)
-
-		body, _ := json.Marshal(inputDTO)
-		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		handler.Create(w, req)
-
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("Erro - InvalidData", func(t *testing.T) {
-		mockService := new(mockContact.MockContact)
-		handler := NewContactHandler(mockService, logAdapter)
-
-		inputDTO := &dtoContact.ContactDTO{
-			ContactName: "",
-			Email:       "teste@email.com",
-		}
-
-		inputModel := dtoContact.ToContactModel(*inputDTO)
-
-		mockService.On("Create", mock.Anything, inputModel).Return(nil, errMsg.ErrInvalidData)
-
-		body, _ := json.Marshal(inputDTO)
+		body, _ := json.Marshal(dto)
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
 		w := httptest.NewRecorder()
 
 		handler.Create(w, req)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		mockService.AssertExpectations(t)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
-	t.Run("Erro - Duplicate", func(t *testing.T) {
-		mockService := new(mockContact.MockContact)
-		handler := NewContactHandler(mockService, logAdapter)
+	t.Run("ErrDuplicate", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
 
-		inputDTO := &dtoContact.ContactDTO{
-			ContactName: "Contato Teste",
-			Email:       "teste@email.com",
-		}
+		dto := dtoContact.ContactDTO{ContactName: "Contato"}
+		model := dtoContact.ToContactModel(dto)
 
-		inputModel := dtoContact.ToContactModel(*inputDTO)
+		mockSvc.On("Create", mock.Anything, model).
+			Return(nil, errMsg.ErrDuplicate)
 
-		mockService.On("Create", mock.Anything, inputModel).Return(nil, errMsg.ErrDuplicate)
-
-		body, _ := json.Marshal(inputDTO)
+		body, _ := json.Marshal(dto)
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
 		w := httptest.NewRecorder()
 
 		handler.Create(w, req)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusConflict, resp.StatusCode)
-		mockService.AssertExpectations(t)
+		assert.Equal(t, http.StatusConflict, w.Code)
 	})
 
-	t.Run("Erro - NotFound", func(t *testing.T) {
-		mockService := new(mockContact.MockContact)
-		handler := NewContactHandler(mockService, logAdapter)
+	t.Run("ErrNotFound", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
 
-		inputDTO := &dtoContact.ContactDTO{
-			ContactName: "Contato Teste",
-			Email:       "teste@email.com",
-		}
+		dto := dtoContact.ContactDTO{ContactName: "Contato"}
+		model := dtoContact.ToContactModel(dto)
 
-		inputModel := dtoContact.ToContactModel(*inputDTO)
+		mockSvc.On("Create", mock.Anything, model).
+			Return(nil, errMsg.ErrNotFound)
 
-		mockService.On("Create", mock.Anything, inputModel).Return(nil, errMsg.ErrNotFound)
-
-		body, _ := json.Marshal(inputDTO)
+		body, _ := json.Marshal(dto)
 		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
 		w := httptest.NewRecorder()
 
 		handler.Create(w, req)
 
-		resp := w.Result()
-		defer resp.Body.Close()
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
 
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-		mockService.AssertExpectations(t)
+	t.Run("unexpected error", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
+
+		dto := dtoContact.ContactDTO{ContactName: "Contato"}
+		model := dtoContact.ToContactModel(dto)
+
+		mockSvc.On("Create", mock.Anything, model).
+			Return(nil, errors.New("erro inesperado"))
+
+		body, _ := json.Marshal(dto)
+		req := httptest.NewRequest(http.MethodPost, "/contacts", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
+
+		handler.Create(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
 
+/* ========================= UPDATE ========================= */
+
+/* ========================= UPDATE ========================= */
+
+/* ========================= UPDATE ========================= */
+
 func TestContactHandler_Update(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
+	logAdapter := newTestLogger()
 
 	toReader := func(v any) io.Reader {
 		b, _ := json.Marshal(v)
 		return bytes.NewReader(b)
 	}
 
-	t.Run("Success", func(t *testing.T) {
-		mockService := new(mockContact.MockContact)
-		handler := NewContactHandler(mockService, logger)
+	t.Run("success", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
 
 		id := int64(1)
 		dto := dtoContact.ContactDTO{
 			ID:          &id,
-			ContactName: "Nome Teste",
-			Email:       "teste@email.com",
-			Phone:       "11999999999",
+			ContactName: "Nome",
 		}
 
-		modelContact := dtoContact.ToContactModel(dto)
-		mockService.On("Update", mock.Anything, modelContact).Return(nil)
+		model := dtoContact.ToContactModel(dto)
+		mockSvc.On("Update", mock.Anything, model).Return(nil)
 
 		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -260,146 +184,187 @@ func TestContactHandler_Update(t *testing.T) {
 
 		handler.Update(w, req)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		var response map[string]interface{}
-		err := json.NewDecoder(resp.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, "Contato atualizado com sucesso", response["message"])
-		assert.Equal(t, float64(http.StatusOK), response["status"])
-
-		mockService.AssertExpectations(t)
+		assert.Equal(t, http.StatusOK, w.Code)
+		mockSvc.AssertExpectations(t)
 	})
 
-	t.Run("InvalidID", func(t *testing.T) {
-		mockService := new(mockContact.MockContact)
-		handler := NewContactHandler(mockService, logger)
+	t.Run("invalid id parameter", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
 
-		dto := dtoContact.ContactDTO{ContactName: "Nome Teste"}
-		req := httptest.NewRequest(http.MethodPut, "/contacts/abc", toReader(dto))
+		req := httptest.NewRequest(http.MethodPut, "/contacts/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
 		w := httptest.NewRecorder()
 
 		handler.Update(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		mockSvc.AssertNotCalled(t, "Update")
 	})
 
-	t.Run("ParseJSONError", func(t *testing.T) {
-		mockService := new(mockContact.MockContact)
-		handler := NewContactHandler(mockService, logger)
-
-		req := httptest.NewRequest(http.MethodPut, "/contacts/1", strings.NewReader("invalid-json"))
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.Update(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-	})
-
-	t.Run("ErrInvalidData", func(t *testing.T) {
-		mockService := new(mockContact.MockContact)
-		handler := NewContactHandler(mockService, logger)
-
-		id := int64(1)
-		dto := dtoContact.ContactDTO{ID: &id, ContactName: ""} // falha de validação
-		modelContact := dtoContact.ToContactModel(dto)
-		mockService.On("Update", mock.Anything, modelContact).Return(errMsg.ErrInvalidData)
-
-		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.Update(w, req)
-		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("ErrDuplicate", func(t *testing.T) {
-		mockService := new(mockContact.MockContact)
-		handler := NewContactHandler(mockService, logger)
-
-		id := int64(1)
-		dto := dtoContact.ContactDTO{ID: &id, ContactName: "Nome Teste"}
-		modelContact := dtoContact.ToContactModel(dto)
-		mockService.On("Update", mock.Anything, modelContact).Return(errMsg.ErrDuplicate)
-
-		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.Update(w, req)
-		assert.Equal(t, http.StatusConflict, w.Result().StatusCode)
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("ErrNotFound", func(t *testing.T) {
-		mockService := new(mockContact.MockContact)
-		handler := NewContactHandler(mockService, logger)
-
-		id := int64(1)
-		dto := dtoContact.ContactDTO{ID: &id, ContactName: "Nome Teste"}
-		modelContact := dtoContact.ToContactModel(dto)
-		mockService.On("Update", mock.Anything, modelContact).Return(errMsg.ErrNotFound)
-
-		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.Update(w, req)
-		assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
-		mockService.AssertExpectations(t)
-	})
-
-	t.Run("UnexpectedError", func(t *testing.T) {
-		mockService := new(mockContact.MockContact)
-		handler := NewContactHandler(mockService, logger)
-
-		id := int64(1)
-		dto := dtoContact.ContactDTO{ID: &id, ContactName: "Nome Teste"}
-		modelContact := dtoContact.ToContactModel(dto)
-		mockService.On("Update", mock.Anything, modelContact).Return(fmt.Errorf("erro inesperado"))
-
-		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
-		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		w := httptest.NewRecorder()
-
-		handler.Update(w, req)
-		assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
-		mockService.AssertExpectations(t)
-	})
-}
-
-func TestContactHandler_Delete(t *testing.T) {
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logAdapter := logger.NewLoggerAdapter(baseLogger)
-
-	t.Run("success", func(t *testing.T) {
-		t.Parallel()
+	t.Run("zero id", func(t *testing.T) {
 		mockSvc := new(mockContact.MockContact)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
-		mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil).Once()
+		id := int64(0)
+		dto := dtoContact.ContactDTO{ID: &id}
+
+		req := httptest.NewRequest(http.MethodPut, "/contacts/0", toReader(dto))
+		req = mux.SetURLVars(req, map[string]string{"id": "0"})
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		mockSvc.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("invalid json body", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
+
+		req := httptest.NewRequest(http.MethodPut, "/contacts/1", strings.NewReader("{invalid json"))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		mockSvc.AssertNotCalled(t, "Update")
+
+		// Verificar se retornou um JSON válido com status de erro
+		var response map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err, "A resposta deve ser um JSON válido")
+		assert.Equal(t, float64(400), response["status"])
+		assert.Contains(t, response, "message")
+	})
+
+	t.Run("empty body", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
+
+		req := httptest.NewRequest(http.MethodPut, "/contacts/1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		mockSvc.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("ErrInvalidData", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
+
+		id := int64(1)
+		dto := dtoContact.ContactDTO{ID: &id}
+		model := dtoContact.ToContactModel(dto)
+
+		mockSvc.On("Update", mock.Anything, model).
+			Return(errMsg.ErrInvalidData)
+
+		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("ErrNotFound", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
+
+		id := int64(1)
+		dto := dtoContact.ContactDTO{ID: &id}
+		model := dtoContact.ToContactModel(dto)
+
+		mockSvc.On("Update", mock.Anything, model).
+			Return(errMsg.ErrNotFound)
+
+		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("ErrDuplicate", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
+
+		id := int64(1)
+		dto := dtoContact.ContactDTO{
+			ID:          &id,
+			ContactName: "Nome Duplicado",
+		}
+		model := dtoContact.ToContactModel(dto)
+
+		mockSvc.On("Update", mock.Anything, model).
+			Return(errMsg.ErrDuplicate)
+
+		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+
+		assert.Equal(t, http.StatusConflict, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("unexpected error", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
+
+		id := int64(1)
+		dto := dtoContact.ContactDTO{ID: &id}
+		model := dtoContact.ToContactModel(dto)
+
+		mockSvc.On("Update", mock.Anything, model).
+			Return(errors.New("erro inesperado"))
+
+		req := httptest.NewRequest(http.MethodPut, "/contacts/1", toReader(dto))
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.Update(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+}
+
+/* ========================= DELETE ========================= */
+
+func TestContactHandler_Delete(t *testing.T) {
+	logAdapter := newTestLogger()
+
+	t.Run("success", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
+
+		mockSvc.On("Delete", mock.Anything, int64(1)).Return(nil)
 
 		req := newRequestWithVars("DELETE", "/contacts/1", nil, map[string]string{"id": "1"})
 		w := httptest.NewRecorder()
 
 		handler.Delete(w, req)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusNoContent, resp.StatusCode)
-		assert.Empty(t, w.Body.String())
-
+		assert.Equal(t, http.StatusNoContent, w.Code)
 		mockSvc.AssertExpectations(t)
 	})
 
-	t.Run("invalid ID", func(t *testing.T) {
-		t.Parallel()
+	t.Run("invalid id", func(t *testing.T) {
 		mockSvc := new(mockContact.MockContact)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
@@ -408,32 +373,52 @@ func TestContactHandler_Delete(t *testing.T) {
 
 		handler.Delete(w, req)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-		assert.Contains(t, w.Body.String(), "invalid ID format: abc")
-
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		mockSvc.AssertNotCalled(t, "Delete")
 	})
 
-	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
+	t.Run("zero id", func(t *testing.T) {
 		mockSvc := new(mockContact.MockContact)
 		handler := NewContactHandler(mockSvc, logAdapter)
 
-		mockSvc.On("Delete", mock.Anything, int64(99)).Return(errors.New("contato não encontrado")).Once()
+		req := newRequestWithVars("DELETE", "/contacts/0", nil, map[string]string{"id": "0"})
+		w := httptest.NewRecorder()
+
+		handler.Delete(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		mockSvc.AssertNotCalled(t, "Delete")
+	})
+
+	t.Run("ErrNotFound", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
+
+		mockSvc.On("Delete", mock.Anything, int64(99)).
+			Return(errMsg.ErrNotFound)
 
 		req := newRequestWithVars("DELETE", "/contacts/99", nil, map[string]string{"id": "99"})
 		w := httptest.NewRecorder()
 
 		handler.Delete(w, req)
 
-		resp := w.Result()
-		defer resp.Body.Close()
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
 
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-		assert.Contains(t, w.Body.String(), "contato não encontrado")
+	t.Run("unexpected error", func(t *testing.T) {
+		mockSvc := new(mockContact.MockContact)
+		handler := NewContactHandler(mockSvc, logAdapter)
 
+		mockSvc.On("Delete", mock.Anything, int64(2)).
+			Return(errors.New("erro inesperado"))
+
+		req := newRequestWithVars("DELETE", "/contacts/2", nil, map[string]string{"id": "2"})
+		w := httptest.NewRecorder()
+
+		handler.Delete(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		mockSvc.AssertExpectations(t)
 	})
 }

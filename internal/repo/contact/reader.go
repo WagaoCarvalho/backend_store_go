@@ -36,7 +36,8 @@ func (r *contactRepo) GetByID(ctx context.Context, id int64) (*models.Contact, e
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errMsg.ErrNotFound
 		}
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+		return nil, fmt.Errorf("%w: %w", errMsg.ErrGet, err)
+
 	}
 
 	return &contact, nil

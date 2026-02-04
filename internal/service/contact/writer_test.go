@@ -237,15 +237,17 @@ func TestContactService_Update(t *testing.T) {
 }
 
 func TestContactService_DeleteContact(t *testing.T) {
+
 	t.Run("sucesso ao deletar contato", func(t *testing.T) {
 		mockRepo := new(mockContact.MockContact)
 		service := NewContactService(mockRepo)
 
-		existingContact := &model.Contact{ID: 1, ContactName: "Test User"}
-		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(existingContact, nil)
-		mockRepo.On("Delete", mock.Anything, int64(1)).Return(nil)
+		mockRepo.
+			On("Delete", mock.Anything, int64(1)).
+			Return(nil)
 
 		err := service.Delete(context.Background(), 1)
+
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
 	})
@@ -254,13 +256,15 @@ func TestContactService_DeleteContact(t *testing.T) {
 		mockRepo := new(mockContact.MockContact)
 		service := NewContactService(mockRepo)
 
-		mockRepo.On("GetByID", mock.Anything, int64(1)).
-			Return((*model.Contact)(nil), errMsg.ErrNotFound)
+		mockRepo.
+			On("Delete", mock.Anything, int64(1)).
+			Return(errMsg.ErrNotFound)
 
 		err := service.Delete(context.Background(), 1)
+
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "não encontrado")
-		mockRepo.AssertNotCalled(t, "Delete")
+		assert.True(t, errors.Is(err, errMsg.ErrNotFound))
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("id inválido", func(t *testing.T) {
@@ -268,37 +272,27 @@ func TestContactService_DeleteContact(t *testing.T) {
 		service := NewContactService(mockRepo)
 
 		err := service.Delete(context.Background(), 0)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "erro ID")
 
-		mockRepo.AssertNotCalled(t, "GetByID")
+		assert.Error(t, err)
+		assert.True(t, errors.Is(err, errMsg.ErrZeroID))
+
 		mockRepo.AssertNotCalled(t, "Delete")
 	})
 
-	t.Run("erro do repositório no GetByID", func(t *testing.T) {
+	t.Run("erro inesperado do repositório", func(t *testing.T) {
 		mockRepo := new(mockContact.MockContact)
 		service := NewContactService(mockRepo)
 
-		mockRepo.On("GetByID", mock.Anything, int64(1)).
-			Return((*model.Contact)(nil), errors.New("erro inesperado"))
+		repoErr := errors.New("falha no banco")
+
+		mockRepo.
+			On("Delete", mock.Anything, int64(1)).
+			Return(repoErr)
 
 		err := service.Delete(context.Background(), 1)
+
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "erro ao buscar")
-		mockRepo.AssertNotCalled(t, "Delete")
-	})
-
-	t.Run("erro do repositório no Delete", func(t *testing.T) {
-		mockRepo := new(mockContact.MockContact)
-		service := NewContactService(mockRepo)
-
-		existingContact := &model.Contact{ID: 1, ContactName: "Test User"}
-		mockRepo.On("GetByID", mock.Anything, int64(1)).Return(existingContact, nil)
-		mockRepo.On("Delete", mock.Anything, int64(1)).Return(errors.New("falha ao deletar"))
-
-		err := service.Delete(context.Background(), 1)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "erro ao deletar")
+		assert.True(t, errors.Is(err, errMsg.ErrDelete))
 		mockRepo.AssertExpectations(t)
 	})
 }

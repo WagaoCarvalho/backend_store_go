@@ -10,45 +10,34 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestNewContactTx(t *testing.T) {
-	t.Run("successfully create new ContactTx instance", func(t *testing.T) {
-		var db *pgxpool.Pool
-
-		result := NewContactTx(db)
+	t.Run("deve criar nova instância de ContactTx", func(t *testing.T) {
+		result := NewContactTx()
 
 		assert.NotNil(t, result)
+
 		_, ok := result.(*contactTx)
-		assert.True(t, ok, "Expected result to be of type *contactTx")
+		assert.True(t, ok)
 	})
 
-	t.Run("return instance with provided db pool", func(t *testing.T) {
-		var db *pgxpool.Pool
-		result := NewContactTx(db)
+	t.Run("deve retornar instâncias diferentes a cada chamada", func(t *testing.T) {
+		instance1 := NewContactTx()
+		instance2 := NewContactTx()
 
-		assert.NotNil(t, result)
-	})
-
-	t.Run("return different instances for different calls", func(t *testing.T) {
-		var db *pgxpool.Pool
-
-		instance1 := NewContactTx(db)
-		instance2 := NewContactTx(db)
-
-		assert.NotSame(t, instance1, instance2)
 		assert.NotNil(t, instance1)
 		assert.NotNil(t, instance2)
+		assert.NotSame(t, instance1, instance2)
 	})
 }
 
 func TestContactTx_CreateTx(t *testing.T) {
-	t.Run("successfully create contact within transaction", func(t *testing.T) {
+	t.Run("sucesso ao criar contato dentro da transação", func(t *testing.T) {
 		mockTx := new(mockDb.MockTx)
-		repo := &contactTx{db: &pgxpool.Pool{}}
+		repo := &contactTx{}
 		ctx := context.Background()
 
 		contact := &models.Contact{
@@ -66,7 +55,8 @@ func TestContactTx_CreateTx(t *testing.T) {
 			TimeValue: now,
 		}
 
-		mockTx.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+		mockTx.
+			On("QueryRow", ctx, mock.Anything, mock.Anything).
 			Return(mockRow)
 
 		result, err := repo.CreateTx(ctx, mockTx, contact)
@@ -76,36 +66,50 @@ func TestContactTx_CreateTx(t *testing.T) {
 		assert.Equal(t, int64(1), result.ID)
 		assert.Equal(t, now, result.CreatedAt)
 		assert.Equal(t, now, result.UpdatedAt)
+
 		mockTx.AssertExpectations(t)
 	})
 
-	t.Run("return ErrCreate when query fails with generic database error", func(t *testing.T) {
+	t.Run("deve retornar ErrNilEntity quando contact for nil", func(t *testing.T) {
 		mockTx := new(mockDb.MockTx)
-		repo := &contactTx{db: &pgxpool.Pool{}}
+		repo := &contactTx{}
 		ctx := context.Background()
-		contact := &models.Contact{}
-		dbErr := errors.New("database connection failed")
+
+		result, err := repo.CreateTx(ctx, mockTx, nil)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrNilModel)
+	})
+
+	t.Run("deve retornar ErrCreate em erro genérico de banco", func(t *testing.T) {
+		mockTx := new(mockDb.MockTx)
+		repo := &contactTx{}
+		ctx := context.Background()
+
+		dbErr := errors.New("database failure")
 
 		mockRow := &mockDb.MockRow{
 			Err: dbErr,
 		}
 
-		mockTx.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+		mockTx.
+			On("QueryRow", ctx, mock.Anything, mock.Anything).
 			Return(mockRow)
 
-		result, err := repo.CreateTx(ctx, mockTx, contact)
+		result, err := repo.CreateTx(ctx, mockTx, &models.Contact{})
 
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrCreate)
 		assert.ErrorContains(t, err, dbErr.Error())
+
 		mockTx.AssertExpectations(t)
 	})
 
-	t.Run("return ErrCreate when pgx error occurs", func(t *testing.T) {
+	t.Run("deve retornar ErrCreate em erro pgx", func(t *testing.T) {
 		mockTx := new(mockDb.MockTx)
-		repo := &contactTx{db: &pgxpool.Pool{}}
+		repo := &contactTx{}
 		ctx := context.Background()
-		contact := &models.Contact{}
+
 		pgxErr := &pgconn.PgError{
 			Message: "unique violation",
 		}
@@ -114,14 +118,16 @@ func TestContactTx_CreateTx(t *testing.T) {
 			Err: pgxErr,
 		}
 
-		mockTx.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+		mockTx.
+			On("QueryRow", ctx, mock.Anything, mock.Anything).
 			Return(mockRow)
 
-		result, err := repo.CreateTx(ctx, mockTx, contact)
+		result, err := repo.CreateTx(ctx, mockTx, &models.Contact{})
 
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrCreate)
 		assert.ErrorContains(t, err, pgxErr.Message)
+
 		mockTx.AssertExpectations(t)
 	})
 }

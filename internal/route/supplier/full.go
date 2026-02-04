@@ -27,7 +27,7 @@ func RegisterSupplierFullRoutes(
 ) {
 	repoSupplier := repoSupplier.NewSupplierFull(db)
 	repoAddress := repoAddress.NewAddressTx()
-	repoContact := repoContact.NewContactTx(db)
+	repoContact := repoContact.NewContactTx()
 	repoCatRel := repoCatRel.NewSupplierCategoryRelationTx(db)
 	repoContactRel := repoContactRel.NewSupplierContactRelation(db)
 

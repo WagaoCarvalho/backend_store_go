@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
@@ -15,17 +14,18 @@ import (
 )
 
 func (r *contactRepo) Create(ctx context.Context, contact *models.Contact) (*models.Contact, error) {
-	const query = `
-        INSERT INTO contacts (
-            contact_name, contact_description,
-            email, phone, cell, contact_type, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING id, created_at, updated_at
-    `
 
-	now := time.Now()
-	contact.CreatedAt = now
-	contact.UpdatedAt = now
+	const query = `
+		INSERT INTO contacts (
+			contact_name,
+			contact_description,
+			email,
+			phone,
+			cell,
+			contact_type
+		) VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id, created_at, updated_at
+	`
 
 	err := r.db.QueryRow(ctx, query,
 		contact.ContactName,
@@ -34,9 +34,11 @@ func (r *contactRepo) Create(ctx context.Context, contact *models.Contact) (*mod
 		contact.Phone,
 		contact.Cell,
 		contact.ContactType,
-		contact.CreatedAt,
-		contact.UpdatedAt,
-	).Scan(&contact.ID, &contact.CreatedAt, &contact.UpdatedAt)
+	).Scan(
+		&contact.ID,
+		&contact.CreatedAt,
+		&contact.UpdatedAt,
+	)
 
 	if err != nil {
 		if errMsgPg.IsForeignKeyViolation(err) {
@@ -47,7 +49,7 @@ func (r *contactRepo) Create(ctx context.Context, contact *models.Contact) (*mod
 			return nil, fmt.Errorf("%w: %s", errMsg.ErrDuplicate, constraint)
 		}
 
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
+		return nil, fmt.Errorf("%w: %w", errMsg.ErrCreate, err)
 	}
 
 	return contact, nil
@@ -62,13 +64,10 @@ func (r *contactRepo) Update(ctx context.Context, contact *models.Contact) error
 		    phone = $4,
 		    cell = $5,
 		    contact_type = $6,
-		    updated_at = $7
-		WHERE id = $8
+		    updated_at = NOW()
+		WHERE id = $7
 		RETURNING updated_at
 	`
-
-	now := time.Now()
-	contact.UpdatedAt = now
 
 	err := r.db.QueryRow(ctx, query,
 		contact.ContactName,
@@ -77,15 +76,16 @@ func (r *contactRepo) Update(ctx context.Context, contact *models.Contact) error
 		contact.Phone,
 		contact.Cell,
 		contact.ContactType,
-		contact.UpdatedAt,
 		contact.ID,
 	).Scan(&contact.UpdatedAt)
 
 	if err != nil {
 		var pgErr *pgconn.PgError
+
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
 			return errMsg.ErrNotFound
+
 		case errors.As(err, &pgErr):
 			switch pgErr.Code {
 			case "23505":
@@ -93,10 +93,11 @@ func (r *contactRepo) Update(ctx context.Context, contact *models.Contact) error
 			case "23514":
 				return errMsg.ErrInvalidData
 			default:
-				return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+				return fmt.Errorf("%w: %w", errMsg.ErrUpdate, err)
 			}
+
 		default:
-			return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+			return fmt.Errorf("%w: %w", errMsg.ErrUpdate, err)
 		}
 	}
 

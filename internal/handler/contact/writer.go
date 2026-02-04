@@ -30,13 +30,9 @@ func (h *contactHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	created, err := h.service.Create(ctx, contact)
 	if err != nil {
-
 		switch {
-		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
-			utils.ErrorResponse(w, err, http.StatusBadRequest)
-			return
-
-		case errors.Is(err, errMsg.ErrInvalidData):
+		case errors.Is(err, errMsg.ErrDBInvalidForeignKey),
+			errors.Is(err, errMsg.ErrInvalidData):
 			utils.ErrorResponse(w, err, http.StatusBadRequest)
 			return
 
@@ -80,6 +76,15 @@ func (h *contactHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validação antes de chamar o service
+	if id <= 0 {
+		h.logger.Warn(ctx, ref+"ID inválido para atualização", map[string]any{
+			"contact_id": id,
+		})
+		utils.ErrorResponse(w, errMsg.ErrZeroID, http.StatusBadRequest)
+		return
+	}
+
 	var dto dtoContact.ContactDTO
 	if err := utils.FromJSON(r.Body, &dto); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
@@ -94,19 +99,25 @@ func (h *contactHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.service.Update(ctx, contactModel); err != nil {
 		var status int
+
 		switch {
-		case errors.Is(err, errMsg.ErrZeroID), errors.Is(err, errMsg.ErrInvalidData):
+		case errors.Is(err, errMsg.ErrInvalidData):
 			status = http.StatusBadRequest
 			h.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{"erro": err.Error()})
+
 		case errors.Is(err, errMsg.ErrNotFound):
 			status = http.StatusNotFound
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"erro": err.Error()})
+
 		case errors.Is(err, errMsg.ErrDuplicate):
 			status = http.StatusConflict
 			h.logger.Warn(ctx, ref+logger.LogErrDuplicate, map[string]any{"erro": err.Error()})
+
 		default:
 			status = http.StatusInternalServerError
-			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{"contact_id": id})
+			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+				"contact_id": id,
+			})
 		}
 
 		utils.ErrorResponse(w, err, status)
@@ -114,6 +125,7 @@ func (h *contactHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	updatedDTO := dtoContact.ToContactDTO(contactModel)
+
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
 		"contact_id": updatedDTO.ID,
 	})
@@ -140,11 +152,29 @@ func (h *contactHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Delete(ctx, id); err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
+	// Validação antes de chamar o service
+	if id <= 0 {
+		h.logger.Warn(ctx, ref+"ID inválido para exclusão", map[string]any{
 			"contact_id": id,
 		})
-		utils.ErrorResponse(w, err, http.StatusNotFound)
+		utils.ErrorResponse(w, errMsg.ErrZeroID, http.StatusBadRequest)
+		return
+	}
+
+	if err := h.service.Delete(ctx, id); err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"contact_id": id,
+			})
+			utils.ErrorResponse(w, err, http.StatusNotFound)
+
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
+				"contact_id": id,
+			})
+			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		}
 		return
 	}
 
