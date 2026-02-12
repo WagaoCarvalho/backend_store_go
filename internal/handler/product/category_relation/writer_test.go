@@ -31,11 +31,11 @@ func TestProductCategoryRelationHandler_Create(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
 		handler := NewProductCategoryRelationHandler(mockService, logger)
 
-		dtoRel := dto.ProductCategoryRelationsDTO{
+		dtoRel := dto.ProductCategoryRelationDTO{
 			ProductID:  *utils.Int64Ptr(1),
 			CategoryID: *utils.Int64Ptr(2),
 		}
-		modelRel := dto.ToProductCategoryRelationsModel(dtoRel)
+		modelRel := dto.ToModel(dtoRel)
 
 		mockService.
 			On("Create", mock.Anything, mock.MatchedBy(func(rel *models.ProductCategoryRelation) bool {
@@ -83,7 +83,7 @@ func TestProductCategoryRelationHandler_Create(t *testing.T) {
 		handler := NewProductCategoryRelationHandler(mockService, logger)
 
 		// DTO com IDs zerados para forçar erro na validação
-		dtoRel := dto.ProductCategoryRelationsDTO{
+		dtoRel := dto.ProductCategoryRelationDTO{
 			ProductID:  *utils.Int64Ptr(0),  // ID inválido
 			CategoryID: *utils.Int64Ptr(-1), // ID inválido
 		}
@@ -107,7 +107,7 @@ func TestProductCategoryRelationHandler_Create(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
 		handler := NewProductCategoryRelationHandler(mockService, logger)
 
-		dtoRel := dto.ProductCategoryRelationsDTO{
+		dtoRel := dto.ProductCategoryRelationDTO{
 			ProductID:  *utils.Int64Ptr(1),
 			CategoryID: *utils.Int64Ptr(999), // ID que não existe
 		}
@@ -139,11 +139,11 @@ func TestProductCategoryRelationHandler_Create(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
 		handler := NewProductCategoryRelationHandler(mockService, logger)
 
-		dtoRel := dto.ProductCategoryRelationsDTO{
+		dtoRel := dto.ProductCategoryRelationDTO{
 			ProductID:  *utils.Int64Ptr(1),
 			CategoryID: *utils.Int64Ptr(2),
 		}
-		modelRel := dto.ToProductCategoryRelationsModel(dtoRel)
+		modelRel := dto.ToModel(dtoRel)
 
 		mockService.
 			On("Create", mock.Anything, mock.MatchedBy(func(rel *models.ProductCategoryRelation) bool {
@@ -173,7 +173,7 @@ func TestProductCategoryRelationHandler_Create(t *testing.T) {
 		mockService := new(mockProductCatRel.MockProductCategoryRelation)
 		handler := NewProductCategoryRelationHandler(mockService, logger)
 
-		dtoRel := dto.ProductCategoryRelationsDTO{
+		dtoRel := dto.ProductCategoryRelationDTO{
 			ProductID:  *utils.Int64Ptr(1),
 			CategoryID: *utils.Int64Ptr(2),
 		}

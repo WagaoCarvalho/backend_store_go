@@ -11,13 +11,13 @@ import (
 
 func (s *productCategoryService) Create(ctx context.Context, category *models.ProductCategory) (*models.ProductCategory, error) {
 	if err := category.Validate(); err != nil {
-		return nil, errMsg.ErrInvalidData
+		return nil, err // Retorna o erro específico de validação
 	}
 
 	createdCategory, err := s.repo.Create(ctx, category)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrAlreadyExists) {
-			return nil, errMsg.ErrAlreadyExists
+		if errors.Is(err, errMsg.ErrDuplicate) { // Consistência: ErrDuplicate
+			return nil, fmt.Errorf("%w: %v", errMsg.ErrDuplicate, err)
 		}
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
 	}
@@ -49,14 +49,11 @@ func (s *productCategoryService) Delete(ctx context.Context, id int64) error {
 		return errMsg.ErrZeroID
 	}
 
-	if _, err := s.repo.GetByID(ctx, id); err != nil {
+	// Remove a verificação duplicada - o repo.Delete já verifica
+	if err := s.repo.Delete(ctx, id); err != nil {
 		if errors.Is(err, errMsg.ErrNotFound) {
 			return errMsg.ErrNotFound
 		}
-		return fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-
-	if err := s.repo.Delete(ctx, id); err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
 

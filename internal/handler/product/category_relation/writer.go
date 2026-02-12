@@ -17,14 +17,14 @@ func (h *productCategoryRelationHandler) Create(w http.ResponseWriter, r *http.R
 
 	h.logger.Info(ctx, ref+logger.LogCreateInit, map[string]any{})
 
-	var requestData dto.ProductCategoryRelationsDTO
+	var requestData dto.ProductCategoryRelationDTO
 	if err := utils.FromJSON(r.Body, &requestData); err != nil {
 		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{"erro": err.Error()})
 		utils.ErrorResponse(w, fmt.Errorf("erro ao decodificar JSON"), http.StatusBadRequest)
 		return
 	}
 
-	modelRelation := dto.ToProductCategoryRelationsModel(requestData)
+	modelRelation := dto.ToModel(requestData)
 
 	// Validação simples antes de chamar o service
 	if modelRelation == nil || modelRelation.ProductID <= 0 || modelRelation.CategoryID <= 0 {
@@ -51,7 +51,7 @@ func (h *productCategoryRelationHandler) Create(w http.ResponseWriter, r *http.R
 				"category_id": modelRelation.CategoryID,
 			})
 			utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-				Data:    dto.ToProductCategoryRelationsDTO(created),
+				Data:    dto.ToDTO(created),
 				Message: "Relação já existente",
 				Status:  http.StatusOK,
 			})
@@ -73,7 +73,7 @@ func (h *productCategoryRelationHandler) Create(w http.ResponseWriter, r *http.R
 	})
 
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
-		Data:    dto.ToProductCategoryRelationsDTO(created),
+		Data:    dto.ToDTO(created),
 		Message: "Relação criada com sucesso",
 		Status:  http.StatusCreated,
 	})

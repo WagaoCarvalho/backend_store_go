@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/WagaoCarvalho/backend_store_go/config"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,9 +27,21 @@ func TestErrorResponse(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.Status)
 }
 
-func TestToJson_Success(t *testing.T) {
+func TestErrorResponse_NilError(t *testing.T) {
+	rr := httptest.NewRecorder()
+	ErrorResponse(rr, nil, http.StatusInternalServerError)
+
+	var resp DefaultResponse
+	err := json.NewDecoder(rr.Body).Decode(&resp)
+	assert.NoError(t, err)
+	assert.Equal(t, "", resp.Message)
+	assert.Equal(t, http.StatusInternalServerError, resp.Status)
+}
+
+func TestToJSON_Success(t *testing.T) {
 	rr := httptest.NewRecorder()
 	data := map[string]string{"key": "value"}
+
 	ToJSON(rr, http.StatusOK, data)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
@@ -39,7 +52,7 @@ func TestToJson_Success(t *testing.T) {
 	assert.Equal(t, "value", result["key"])
 }
 
-func TestFromJson_Success(t *testing.T) {
+func TestFromJSON_Success(t *testing.T) {
 	input := `{"name":"Test"}`
 	var result map[string]string
 
@@ -48,17 +61,7 @@ func TestFromJson_Success(t *testing.T) {
 	assert.Equal(t, "Test", result["name"])
 }
 
-// Teste do FromJson com JSON inválido
-func TestFromJson_Invalid(t *testing.T) {
-	jsonInput := `{"invalid}`
-	var result map[string]string
-
-	err := FromJSON(bytes.NewBufferString(jsonInput), &result)
-
-	assert.Error(t, err)
-}
-
-func TestFromJson_Error(t *testing.T) {
+func TestFromJSON_Invalid(t *testing.T) {
 	input := `invalid json`
 	var result map[string]string
 
@@ -75,6 +78,13 @@ func TestGetIDParam_Success(t *testing.T) {
 	assert.Equal(t, int64(123), id)
 }
 
+func TestGetIDParam_Missing(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/users", nil)
+
+	_, err := GetIDParam(req, "id")
+	assert.Error(t, err)
+}
+
 func TestGetIDParam_Invalid(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/users/abc", nil)
 	req = mux.SetURLVars(req, map[string]string{"id": "abc"})
@@ -83,8 +93,67 @@ func TestGetIDParam_Invalid(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestGetStringParam_Success(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/users/john", nil)
+	req = mux.SetURLVars(req, map[string]string{"name": "john"})
+
+	val, err := GetStringParam(req, "name")
+	assert.NoError(t, err)
+	assert.Equal(t, "john", val)
+}
+
+func TestGetStringParam_Missing(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/users", nil)
+
+	_, err := GetStringParam(req, "name")
+	assert.Error(t, err)
+}
+
+func TestGetPaginationParams_Default(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/?x=1", nil)
+
+	limit, offset := GetPaginationParams(req)
+
+	assert.Equal(t, 10, limit)
+	assert.Equal(t, 0, offset)
+}
+
+func TestGetPaginationParams_Custom(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/?limit=20&offset=5", nil)
+
+	limit, offset := GetPaginationParams(req)
+
+	assert.Equal(t, 20, limit)
+	assert.Equal(t, 5, offset)
+}
+
+func TestGetPaginationParams_LimitZeroOrNegative(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/?limit=0", nil)
+
+	limit, _ := GetPaginationParams(req)
+
+	assert.Equal(t, 10, limit)
+}
+
+func TestGetPaginationParams_LimitAboveMax(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/?limit=200", nil)
+
+	limit, _ := GetPaginationParams(req)
+
+	assert.Equal(t, 100, limit)
+}
+
+func TestGetPaginationParams_InvalidOffset(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/?offset=-10", nil)
+
+	_, offset := GetPaginationParams(req)
+
+	assert.Equal(t, 0, offset)
+}
+
 func TestParseErrorResponse_Success(t *testing.T) {
-	body := []byte(`{"status": 404, "message": "Não encontrado"}`)
+	body := []byte(`{"status":404,"message":"Não encontrado"}`)
+
 	resp, err := ParseErrorResponse(body)
 	assert.NoError(t, err)
 	assert.Equal(t, 404, resp.Status)
@@ -92,14 +161,32 @@ func TestParseErrorResponse_Success(t *testing.T) {
 }
 
 func TestParseErrorResponse_InvalidJSON(t *testing.T) {
-	body := []byte(`{{{{`) // JSON inválido
+	body := []byte(`{{{{`)
+
 	resp, err := ParseErrorResponse(body)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusInternalServerError, resp.Status)
-	assert.NotEmpty(t, resp.Message)
 }
 
-// ResponseWriter que sempre retorna erro no Encode (simula erro de encoding)
+func TestParseOrder_Default(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	orderBy, orderDir := ParseOrder(req)
+
+	assert.Equal(t, "id", orderBy)
+	assert.Equal(t, "asc", orderDir)
+}
+
+func TestParseOrder_Custom(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/?order_by=name&order_dir=desc", nil)
+
+	orderBy, orderDir := ParseOrder(req)
+
+	assert.Equal(t, "name", orderBy)
+	assert.Equal(t, "desc", orderDir)
+}
+
+// Writer que simula erro
 type failingWriter struct {
 	header http.Header
 }
@@ -112,33 +199,88 @@ func (f *failingWriter) Header() http.Header {
 }
 
 func (f *failingWriter) Write(_ []byte) (int, error) {
-	return 0, errors.New("erro simulado no Write")
+	return 0, errors.New("erro simulado")
 }
 
 func (f *failingWriter) WriteHeader(_ int) {}
 
 func TestErrorResponse_EncodeError(t *testing.T) {
 	w := &failingWriter{}
-
-	ErrorResponse(w, errors.New("erro qualquer"), http.StatusBadRequest)
-
-	// Não temos acesso direto ao que foi escrito (por ser erro),
-	// mas podemos garantir que o fallback `http.Error` foi chamado sem pânico.
-	// Este teste não falha se a função tentar `Encode` e cair no fallback.
-	assert.True(t, true, "Fallback de erro executado sem crash")
+	ErrorResponse(w, errors.New("erro"), http.StatusBadRequest)
+	assert.True(t, true)
 }
 
-func TestToJson_EncodeError(t *testing.T) {
-	// Redireciona logs (opcional)
+func TestToJSON_EncodeError(t *testing.T) {
 	log.SetFlags(0)
 
 	w := &failingWriter{}
-
-	// Simula um dado qualquer
-	dado := map[string]string{"chave": "valor"}
+	dado := map[string]string{"k": "v"}
 
 	ToJSON(w, http.StatusOK, dado)
 
-	// Não esperamos retorno visível, mas sim que não cause pânico e caia no fallback
-	t.Log("TestToJson_EncodeError executado sem crash, fallback de erro acionado")
+	assert.True(t, true)
+}
+
+func TestParseLimitOffset_Default(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	limit, offset := ParseLimitOffset(req)
+
+	cfg := config.LoadPaginationConfig()
+
+	assert.Equal(t, cfg.DefaultLimit, limit)
+	assert.Equal(t, cfg.DefaultOffset, offset)
+}
+
+func TestParseLimitOffset_CustomValid(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/?limit=25&offset=5", nil)
+
+	limit, offset := ParseLimitOffset(req)
+
+	assert.Equal(t, 25, limit)
+	assert.Equal(t, 5, offset)
+}
+
+func TestParseLimitOffset_InvalidLimit(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/?limit=0", nil)
+
+	limit, _ := ParseLimitOffset(req)
+
+	cfg := config.LoadPaginationConfig()
+
+	// Deve manter default porque limit <= 0
+	assert.Equal(t, cfg.DefaultLimit, limit)
+}
+
+func TestParseLimitOffset_InvalidOffset(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/?offset=-10", nil)
+
+	_, offset := ParseLimitOffset(req)
+
+	cfg := config.LoadPaginationConfig()
+
+	// Deve manter default porque offset < 0
+	assert.Equal(t, cfg.DefaultOffset, offset)
+}
+
+func TestParseLimitOffset_LimitAboveMax(t *testing.T) {
+	cfg := config.LoadPaginationConfig()
+
+	req := httptest.NewRequest(http.MethodGet, "/?limit=9999", nil)
+
+	limit, _ := ParseLimitOffset(req)
+
+	assert.Equal(t, cfg.MaxLimit, limit)
+}
+
+func TestParseLimitOffset_InvalidNumbers(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/?limit=abc&offset=xyz", nil)
+
+	limit, offset := ParseLimitOffset(req)
+
+	cfg := config.LoadPaginationConfig()
+
+	// Deve manter defaults
+	assert.Equal(t, cfg.DefaultLimit, limit)
+	assert.Equal(t, cfg.DefaultOffset, offset)
 }

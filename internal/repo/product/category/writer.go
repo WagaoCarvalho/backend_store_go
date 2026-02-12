@@ -30,6 +30,7 @@ func (r *productCategoryRepo) Create(ctx context.Context, category *models.Produ
 	return category, nil
 }
 
+// No método Update, adicionar verificação de conflito de nome único
 func (r *productCategoryRepo) Update(ctx context.Context, category *models.ProductCategory) error {
 	const query = `
 		UPDATE product_categories
@@ -45,6 +46,10 @@ func (r *productCategoryRepo) Update(ctx context.Context, category *models.Produ
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return errMsg.ErrNotFound
+		}
+		// Verificar se é violação de unique (exceto para o próprio registro)
+		if ok, constraint := errMsgPg.IsUniqueViolation(err); ok {
+			return fmt.Errorf("%w: %s", errMsg.ErrDuplicate, constraint)
 		}
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}

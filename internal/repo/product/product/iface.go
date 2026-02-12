@@ -8,7 +8,5 @@ type Product interface {
 	iface.ProductStock
 	iface.ProductDiscount
 	iface.ProductStatus
-	iface.ProductGetAll
-	iface.ProductChecker
 	iface.ProductVersion
 }

@@ -26,11 +26,20 @@ func (h *productCategoryHandler) Create(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Validação do DTO
+	if err := requestDTO.Validate(); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
 	categoryModel := dto.ToProductCategoryModel(requestDTO)
 
 	createdCategory, err := h.service.Create(ctx, categoryModel)
 	if err != nil {
-		if errors.Is(err, errMsg.ErrAlreadyExists) {
+		if errors.Is(err, errMsg.ErrDuplicate) {
 			h.logger.Warn(ctx, ref+"categoria já existe", nil)
 			utils.ErrorResponse(w, fmt.Errorf("categoria já existe"), http.StatusConflict)
 			return
@@ -70,8 +79,17 @@ func (h *productCategoryHandler) Update(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Validação do DTO
+	if err := requestDTO.Validate(); err != nil {
+		h.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
 	category := dto.ToProductCategoryModel(requestDTO)
-	category.ID = uint(id)
+	category.ID = int64(id) // Correção: int64 em vez de uint
 
 	err = h.service.Update(ctx, category)
 	if err != nil {
@@ -79,13 +97,17 @@ func (h *productCategoryHandler) Update(w http.ResponseWriter, r *http.Request) 
 		case errors.Is(err, errMsg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"id": id})
 			utils.ErrorResponse(w, fmt.Errorf("categoria não encontrada"), http.StatusNotFound)
+		case errors.Is(err, errMsg.ErrDuplicate):
+			h.logger.Warn(ctx, ref+"categoria já existe", map[string]any{"id": id})
+			utils.ErrorResponse(w, fmt.Errorf("categoria já existe"), http.StatusConflict)
 		default:
 			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{"id": id})
-			utils.ErrorResponse(w, fmt.Errorf("erro ao atualizar categoria: %v", err), http.StatusInternalServerError)
+			utils.ErrorResponse(w, fmt.Errorf("erro ao atualizar categoria"), http.StatusInternalServerError)
 		}
 		return
 	}
 
+	// Busca categoria atualizada para retornar
 	updatedCategory, err := h.service.GetByID(ctx, int64(id))
 	if err != nil {
 		h.logger.Error(ctx, err, ref+"erro ao buscar categoria atualizada", map[string]any{"id": id})
@@ -115,11 +137,17 @@ func (h *productCategoryHandler) Delete(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := h.service.Delete(ctx, id); err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
-			"id": id,
-		})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+	if err := h.service.Delete(ctx, int64(id)); err != nil { // Correção: int64
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{"id": id})
+			utils.ErrorResponse(w, fmt.Errorf("categoria não encontrada"), http.StatusNotFound)
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
+				"id": id,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("erro ao excluir categoria"), http.StatusInternalServerError)
+		}
 		return
 	}
 

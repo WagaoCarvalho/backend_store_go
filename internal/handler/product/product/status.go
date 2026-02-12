@@ -24,7 +24,7 @@ func (h *productHandler) DisableProduct(w http.ResponseWriter, r *http.Request) 
 
 	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
 
-	uid, err := utils.GetIDParam(r, "id")
+	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
@@ -33,32 +33,34 @@ func (h *productHandler) DisableProduct(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = h.service.DisableProduct(ctx, uid)
+	err = h.service.DisableProduct(ctx, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, errMsg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-				"product_id": uid,
+				"product_id": id,
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, errMsg.ErrVersionConflict):
-			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
-				"product_id": uid,
+
+		case errors.Is(err, errMsg.ErrZeroID):
+			h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+				"product_id": id,
 			})
-			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
+			utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
 			return
+
 		default:
 			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-				"product_id": uid,
+				"product_id": id,
 			})
-			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			utils.ErrorResponse(w, fmt.Errorf("erro ao desabilitar produto"), http.StatusInternalServerError)
 			return
 		}
 	}
 
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
-		"product_id": uid,
+		"product_id": id,
 	})
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -77,7 +79,7 @@ func (h *productHandler) EnableProduct(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
 
-	uid, err := utils.GetIDParam(r, "id")
+	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
@@ -86,32 +88,34 @@ func (h *productHandler) EnableProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.service.EnableProduct(ctx, uid)
+	err = h.service.EnableProduct(ctx, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, errMsg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-				"product_id": uid,
+				"product_id": id,
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
-		case errors.Is(err, errMsg.ErrVersionConflict):
-			h.logger.Warn(ctx, ref+"conflito de versão", map[string]any{
-				"product_id": uid,
+
+		case errors.Is(err, errMsg.ErrZeroID):
+			h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+				"product_id": id,
 			})
-			utils.ErrorResponse(w, fmt.Errorf("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
+			utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
 			return
+
 		default:
 			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-				"product_id": uid,
+				"product_id": id,
 			})
-			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			utils.ErrorResponse(w, fmt.Errorf("erro ao habilitar produto"), http.StatusInternalServerError)
 			return
 		}
 	}
 
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
-		"product_id": uid,
+		"product_id": id,
 	})
 	w.WriteHeader(http.StatusNoContent)
 }

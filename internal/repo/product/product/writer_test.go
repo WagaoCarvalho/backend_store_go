@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -162,6 +163,129 @@ func TestProductRepo_Create(t *testing.T) {
 		assert.ErrorContains(t, err, pgxErr.Message)
 		mockDB.AssertExpectations(t)
 	})
+
+	t.Run("return ErrInvalidData on check constraint violation", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &productRepo{db: mockDB}
+		ctx := context.Background()
+
+		product := &models.Product{
+			SupplierID:         utils.Int64Ptr(1),
+			ProductName:        "Test Product",
+			Manufacturer:       "Test Manufacturer",
+			Description:        "Test Description",
+			CostPrice:          10.50,
+			SalePrice:          -5.0, // Valor inválido (viola CHECK sale_price >= 0)
+			StockQuantity:      100,
+			MinStock:           0,
+			MaxStock:           nil,
+			Barcode:            utils.StrToPtr("1234567890123"),
+			Status:             true,
+			AllowDiscount:      true,
+			MinDiscountPercent: 0.0,
+			MaxDiscountPercent: 10.0,
+		}
+
+		// Cria erro de violação de CHECK (código 23514)
+		pgErr := &pgconn.PgError{
+			Code:    "23514", // Código específico para CHECK violation
+			Message: "new row for relation \"products\" violates check constraint \"products_sale_price_check\"",
+		}
+
+		mockRow := &mockDb.MockRow{Err: pgErr}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+			Return(mockRow)
+
+		result, err := repo.Create(ctx, product)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+
+		// Verifica que não é outro tipo de erro
+		assert.NotErrorIs(t, err, errMsg.ErrDuplicate)
+		assert.NotErrorIs(t, err, errMsg.ErrDBInvalidForeignKey)
+
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrInvalidData on check constraint violation - discount range", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &productRepo{db: mockDB}
+		ctx := context.Background()
+
+		product := &models.Product{
+			SupplierID:         utils.Int64Ptr(1),
+			ProductName:        "Test Product",
+			Manufacturer:       "Test Manufacturer",
+			Description:        "Test Description",
+			CostPrice:          10.0,
+			SalePrice:          20.0,
+			StockQuantity:      100,
+			MinStock:           0,
+			MaxStock:           nil,
+			Barcode:            utils.StrToPtr("1234567890123"),
+			Status:             true,
+			AllowDiscount:      true,
+			MinDiscountPercent: 30.0, // Maior que max_discount_percent (viola CHECK chk_discount_range)
+			MaxDiscountPercent: 20.0,
+		}
+
+		pgErr := &pgconn.PgError{
+			Code:    "23514",
+			Message: "new row for relation \"products\" violates check constraint \"chk_discount_range\"",
+		}
+
+		mockRow := &mockDb.MockRow{Err: pgErr}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+			Return(mockRow)
+
+		result, err := repo.Create(ctx, product)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrInvalidData on check constraint violation - sale price less than cost", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &productRepo{db: mockDB}
+		ctx := context.Background()
+
+		product := &models.Product{
+			SupplierID:         utils.Int64Ptr(1),
+			ProductName:        "Test Product",
+			Manufacturer:       "Test Manufacturer",
+			Description:        "Test Description",
+			CostPrice:          20.0,
+			SalePrice:          15.0, // Menor que cost_price (viola constraint implícita)
+			StockQuantity:      100,
+			MinStock:           0,
+			MaxStock:           nil,
+			Barcode:            utils.StrToPtr("1234567890123"),
+			Status:             true,
+			AllowDiscount:      true,
+			MinDiscountPercent: 0.0,
+			MaxDiscountPercent: 10.0,
+		}
+
+		pgErr := &pgconn.PgError{
+			Code:    "23514",
+			Message: "new row for relation \"products\" violates check constraint",
+		}
+
+		mockRow := &mockDb.MockRow{Err: pgErr}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+			Return(mockRow)
+
+		result, err := repo.Create(ctx, product)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		mockDB.AssertExpectations(t)
+	})
 }
 
 func TestProductRepo_Update(t *testing.T) {
@@ -203,6 +327,98 @@ func TestProductRepo_Update(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, now, product.UpdatedAt)
 		assert.Equal(t, 2, product.Version)
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrNotFound when product does not exist", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &productRepo{db: mockDB}
+		ctx := context.Background()
+
+		product := &models.Product{
+			ID:                 int64(999), // ID não existente
+			SupplierID:         utils.Int64Ptr(1),
+			ProductName:        "Product",
+			Manufacturer:       "Manufacturer",
+			Description:        "Description",
+			CostPrice:          10.0,
+			SalePrice:          15.0,
+			StockQuantity:      100,
+			MinStock:           5,
+			MaxStock:           utils.IntPtr(500),
+			Barcode:            utils.StrToPtr("12345678"),
+			Status:             true,
+			AllowDiscount:      false,
+			MinDiscountPercent: 0.0,
+			MaxDiscountPercent: 0.0,
+			Version:            1,
+		}
+
+		// Mock para query principal retorna no rows
+		mockRowMain := &mockDb.MockRow{Err: pgx.ErrNoRows}
+		// Mock para verificação de existência também retorna no rows
+		mockRowCheck := &mockDb.MockRow{Err: pgx.ErrNoRows}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
+			Return(mockRowMain)
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{product.ID}).
+			Return(mockRowCheck)
+
+		err := repo.Update(ctx, product)
+
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrOptimisticLock when version mismatch", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &productRepo{db: mockDB}
+		ctx := context.Background()
+
+		product := &models.Product{
+			ID:                 int64(1),
+			SupplierID:         utils.Int64Ptr(1),
+			ProductName:        "Updated Product",
+			Manufacturer:       "Updated Manufacturer",
+			Description:        "Updated Description",
+			CostPrice:          12.50,
+			SalePrice:          18.99,
+			StockQuantity:      150,
+			MinStock:           10,
+			MaxStock:           utils.IntPtr(1000),
+			Barcode:            utils.StrToPtr("9876543210987"),
+			Status:             true,
+			AllowDiscount:      true,
+			MinDiscountPercent: 0.0,
+			MaxDiscountPercent: 15.0,
+			Version:            1, // Versão desatualizada
+		}
+
+		// 1. Mock para query UPDATE retorna no rows (versão não corresponde)
+		mockRowUpdate := &mockDb.MockRow{Err: pgx.ErrNoRows}
+
+		// 2. Mock para verificação confirma que produto EXISTE
+		mockRowCheck := &mockDb.MockRow{Value: 1}
+
+		// Chamada 1: UPDATE com WHERE id=$15 AND version=$16
+		mockDB.On("QueryRow", ctx,
+			mock.MatchedBy(func(query string) bool {
+				return strings.Contains(query, "UPDATE products") && strings.Contains(query, "version = version + 1")
+			}),
+			mock.AnythingOfType("[]interface {}")).
+			Return(mockRowUpdate).Once()
+
+		// Chamada 2: SELECT 1 FROM products WHERE id = $1 (verificação)
+		mockDB.On("QueryRow", ctx,
+			mock.MatchedBy(func(query string) bool {
+				return strings.Contains(query, "SELECT 1 FROM products WHERE id =")
+			}),
+			[]interface{}{product.ID}).
+			Return(mockRowCheck).Once()
+
+		err := repo.Update(ctx, product)
+
+		assert.ErrorIs(t, err, errMsg.NotFoundOrErrVersionConflict)
 		mockDB.AssertExpectations(t)
 	})
 

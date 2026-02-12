@@ -14,7 +14,7 @@ func (s *productService) Create(ctx context.Context, product *models.Product) (*
 		return nil, fmt.Errorf("%w", errMsg.ErrInvalidData)
 	}
 
-	if err := product.Validate(); err != nil {
+	if err := product.Validate(true); err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 
@@ -31,7 +31,7 @@ func (s *productService) Update(ctx context.Context, product *models.Product) er
 		return errMsg.ErrZeroID
 	}
 
-	if err := product.Validate(); err != nil {
+	if err := product.Validate(false); err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrInvalidData, err)
 	}
 

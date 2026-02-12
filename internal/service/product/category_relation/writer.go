@@ -21,17 +21,6 @@ func (s *productCategoryRelationService) Create(ctx context.Context, relation *m
 	if err != nil {
 		switch {
 		case errors.Is(err, errMsg.ErrRelationExists):
-			relations, getErr := s.repo.GetAllRelationsByProductID(ctx, relation.ProductID)
-			if getErr != nil {
-				return nil, fmt.Errorf("%w: %v", errMsg.ErrRelationCheck, getErr)
-			}
-
-			for _, rel := range relations {
-				if rel.CategoryID == relation.CategoryID {
-					return rel, nil
-				}
-			}
-
 			return nil, errMsg.ErrRelationExists
 
 		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
@@ -55,6 +44,7 @@ func (s *productCategoryRelationService) Delete(ctx context.Context, productID, 
 
 	err := s.repo.Delete(ctx, productID, categoryID)
 	if err != nil {
+		// Propaga erros específicos sem encapsular
 		if errors.Is(err, errMsg.ErrNotFound) {
 			return err
 		}
@@ -71,6 +61,7 @@ func (s *productCategoryRelationService) DeleteAll(ctx context.Context, productI
 
 	err := s.repo.DeleteAll(ctx, productID)
 	if err != nil {
+		// DeleteAll não retorna ErrNotFound (sucesso com 0 linhas)
 		return fmt.Errorf("%w: %v", errMsg.ErrDelete, err)
 	}
 

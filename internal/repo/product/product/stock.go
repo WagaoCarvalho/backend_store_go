@@ -11,7 +11,7 @@ import (
 
 func (r *productRepo) GetStock(ctx context.Context, id int64) (int, error) {
 	const query = `
-		SELECT COALESCE(stock_quantity, 0)
+		SELECT stock_quantity
 		FROM products
 		WHERE id = $1;
 	`
@@ -29,6 +29,10 @@ func (r *productRepo) GetStock(ctx context.Context, id int64) (int, error) {
 }
 
 func (r *productRepo) UpdateStock(ctx context.Context, id int64, quantity int) error {
+	if quantity < 0 {
+		return errMsg.ErrInvalidQuantity
+	}
+
 	const query = `
 		UPDATE products
 		SET stock_quantity = $2, updated_at = NOW(), version = version + 1
@@ -49,9 +53,15 @@ func (r *productRepo) UpdateStock(ctx context.Context, id int64, quantity int) e
 }
 
 func (r *productRepo) IncreaseStock(ctx context.Context, id int64, amount int) error {
+	if amount <= 0 {
+		return errMsg.ErrInvalidQuantity
+	}
+
 	const query = `
 		UPDATE products
-		SET stock_quantity = stock_quantity + $2, updated_at = NOW(), version = version + 1
+		SET stock_quantity = stock_quantity + $2, 
+		    updated_at = NOW(), 
+		    version = version + 1
 		WHERE id = $1
 		RETURNING version;
 	`
@@ -69,12 +79,17 @@ func (r *productRepo) IncreaseStock(ctx context.Context, id int64, amount int) e
 }
 
 func (r *productRepo) DecreaseStock(ctx context.Context, id int64, amount int) error {
+	if amount <= 0 {
+		return errMsg.ErrInvalidQuantity
+	}
+
 	const query = `
 		UPDATE products
-		SET stock_quantity = GREATEST(COALESCE(stock_quantity, 0) - $2, 0),
-		    updated_at = NOW(),
+		SET stock_quantity = stock_quantity - $2, 
+		    updated_at = NOW(), 
 		    version = version + 1
-		WHERE id = $1
+		WHERE id = $1 
+		  AND stock_quantity >= $2  -- Garante que há estoque suficiente
 		RETURNING version;
 	`
 
@@ -82,7 +97,14 @@ func (r *productRepo) DecreaseStock(ctx context.Context, id int64, amount int) e
 	err := r.db.QueryRow(ctx, query, id, amount).Scan(&version)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return errMsg.ErrNotFound
+			// Pode ser produto não encontrado OU estoque insuficiente
+			// Verifica se o produto existe
+			const checkQuery = `SELECT 1 FROM products WHERE id = $1`
+			var exists int
+			if errCheck := r.db.QueryRow(ctx, checkQuery, id).Scan(&exists); errCheck != nil {
+				return errMsg.ErrNotFound
+			}
+			return errMsg.ErrInsufficientStock
 		}
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}

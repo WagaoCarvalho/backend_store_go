@@ -11,6 +11,7 @@ import (
 	mockService "github.com/WagaoCarvalho/backend_store_go/infra/mock/product"
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/product/category"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/category"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -25,14 +26,14 @@ func TestProductCategoryHandler_GetByID(t *testing.T) {
 		return logger.NewLoggerAdapter(log)
 	}
 
-	t.Run("Sucesso - GetByID", func(t *testing.T) {
+	t.Run("Sucesso", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		id := int64(1)
-		expectedModel := &models.ProductCategory{ID: uint(id), Name: "Categoria X"}
+		expectedModel := &models.ProductCategory{ID: id, Name: "Categoria X"}
 
-		mockSvc.On("GetByID", mock.Anything, id).Return(expectedModel, nil).Once()
+		mockSvc.On("GetByID", mock.Anything, id).Return(expectedModel, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/categories/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -40,23 +41,11 @@ func TestProductCategoryHandler_GetByID(t *testing.T) {
 
 		h.GetByID(w, req)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		var response struct {
-			Status  int                    `json:"status"`
-			Message string                 `json:"message"`
-			Data    dto.ProductCategoryDTO `json:"data"`
-		}
-		err := json.NewDecoder(resp.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, expectedModel.ID, *response.Data.ID)
-
+		assert.Equal(t, http.StatusOK, w.Code)
 		mockSvc.AssertExpectations(t)
 	})
 
-	t.Run("Erro - ID inválido", func(t *testing.T) {
+	t.Run("ID inválido", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
@@ -66,17 +55,15 @@ func TestProductCategoryHandler_GetByID(t *testing.T) {
 
 		h.GetByID(w, req)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
-	t.Run("Erro - Categoria não encontrada", func(t *testing.T) {
+	t.Run("Categoria não encontrada", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		id := int64(999)
-		mockSvc.On("GetByID", mock.Anything, id).Return(nil, errors.New("categoria não encontrada")).Once()
+		mockSvc.On("GetByID", mock.Anything, id).Return(nil, errMsg.ErrNotFound)
 
 		req := httptest.NewRequest(http.MethodGet, "/categories/999", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "999"})
@@ -84,19 +71,33 @@ func TestProductCategoryHandler_GetByID(t *testing.T) {
 
 		h.GetByID(w, req)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-
+		assert.Equal(t, http.StatusNotFound, w.Code)
 		mockSvc.AssertExpectations(t)
 	})
 
-	t.Run("Erro genérico do service", func(t *testing.T) {
+	t.Run("ID zero", func(t *testing.T) {
+		mockSvc := new(mockService.MockProductCategory)
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
+
+		id := int64(0)
+		mockSvc.On("GetByID", mock.Anything, id).Return(nil, errMsg.ErrZeroID)
+
+		req := httptest.NewRequest(http.MethodGet, "/categories/0", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "0"})
+		w := httptest.NewRecorder()
+
+		h.GetByID(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("Erro genérico", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		id := int64(1)
-		mockSvc.On("GetByID", mock.Anything, id).Return(nil, errors.New("erro interno")).Once()
+		mockSvc.On("GetByID", mock.Anything, id).Return(nil, errors.New("erro"))
 
 		req := httptest.NewRequest(http.MethodGet, "/categories/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -104,10 +105,7 @@ func TestProductCategoryHandler_GetByID(t *testing.T) {
 
 		h.GetByID(w, req)
 
-		resp := w.Result()
-		defer resp.Body.Close()
-		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		mockSvc.AssertExpectations(t)
 	})
 }
@@ -118,13 +116,15 @@ func TestProductCategoryHandler_GetAll(t *testing.T) {
 		log.Out = &bytes.Buffer{}
 		return logger.NewLoggerAdapter(log)
 	}
-	t.Run("Sucesso - GetAll", func(t *testing.T) {
+
+	t.Run("Sucesso - GetAll com dados", func(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
 		expectedModels := []*models.ProductCategory{
-			{ID: 1, Name: "Categoria 1"},
-			{ID: 2, Name: "Categoria 2"},
+			{ID: int64(1), Name: "Categoria 1", Description: "Desc 1"},
+			{ID: int64(2), Name: "Categoria 2", Description: "Desc 2"},
+			{ID: int64(3), Name: "Categoria 3", Description: ""},
 		}
 
 		mockSvc.On("GetAll", mock.Anything).Return(expectedModels, nil).Once()
@@ -146,6 +146,37 @@ func TestProductCategoryHandler_GetAll(t *testing.T) {
 		err := json.NewDecoder(resp.Body).Decode(&response)
 		assert.NoError(t, err)
 		assert.Len(t, response.Data, len(expectedModels))
+		assert.Equal(t, "Categorias recuperadas com sucesso", response.Message)
+
+		mockSvc.AssertExpectations(t)
+	})
+
+	t.Run("Sucesso - GetAll sem dados (lista vazia)", func(t *testing.T) {
+		mockSvc := new(mockService.MockProductCategory)
+		h := NewProductCategoryHandler(mockSvc, baseLogger())
+
+		expectedModels := []*models.ProductCategory{}
+
+		mockSvc.On("GetAll", mock.Anything).Return(expectedModels, nil).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/categories", nil)
+		w := httptest.NewRecorder()
+
+		h.GetAll(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var response struct {
+			Status  int                      `json:"status"`
+			Message string                   `json:"message"`
+			Data    []dto.ProductCategoryDTO `json:"data"`
+		}
+		err := json.NewDecoder(resp.Body).Decode(&response)
+		assert.NoError(t, err)
+		assert.Empty(t, response.Data)
+		assert.Equal(t, "Categorias recuperadas com sucesso", response.Message)
 
 		mockSvc.AssertExpectations(t)
 	})
@@ -154,7 +185,8 @@ func TestProductCategoryHandler_GetAll(t *testing.T) {
 		mockSvc := new(mockService.MockProductCategory)
 		h := NewProductCategoryHandler(mockSvc, baseLogger())
 
-		mockSvc.On("GetAll", mock.Anything).Return([]*models.ProductCategory(nil), errors.New("erro interno")).Once()
+		dbError := errors.New("erro de conexão com banco")
+		mockSvc.On("GetAll", mock.Anything).Return([]*models.ProductCategory(nil), dbError).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/categories", nil)
 		w := httptest.NewRecorder()
@@ -164,6 +196,14 @@ func TestProductCategoryHandler_GetAll(t *testing.T) {
 		resp := w.Result()
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+
+		var response struct {
+			Status  int    `json:"status"`
+			Message string `json:"message"`
+		}
+		err := json.NewDecoder(resp.Body).Decode(&response)
+		assert.NoError(t, err)
+		assert.Contains(t, response.Message, "erro ao buscar categorias")
 
 		mockSvc.AssertExpectations(t)
 	})

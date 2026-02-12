@@ -17,12 +17,13 @@ func (r *productRepo) Create(ctx context.Context, product *models.Product) (*mod
 		INSERT INTO products (
 			supplier_id, product_name, manufacturer,
 			product_description, cost_price, sale_price,
-			stock_quantity, barcode, status,
-			allow_discount, max_discount_percent,
+			stock_quantity, min_stock, max_stock,
+			barcode, status,
+			allow_discount, min_discount_percent, max_discount_percent,
 			created_at, updated_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
-		RETURNING id, created_at, updated_at;
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW())
+		RETURNING id, version, created_at, updated_at;
 	`
 
 	err := r.db.QueryRow(ctx, query,
@@ -33,11 +34,14 @@ func (r *productRepo) Create(ctx context.Context, product *models.Product) (*mod
 		product.CostPrice,
 		product.SalePrice,
 		product.StockQuantity,
+		product.MinStock,
+		product.MaxStock,
 		product.Barcode,
 		product.Status,
 		product.AllowDiscount,
+		product.MinDiscountPercent,
 		product.MaxDiscountPercent,
-	).Scan(&product.ID, &product.CreatedAt, &product.UpdatedAt)
+	).Scan(&product.ID, &product.Version, &product.CreatedAt, &product.UpdatedAt)
 
 	if err != nil {
 		if errMsgPg.IsForeignKeyViolation(err) {
@@ -46,6 +50,10 @@ func (r *productRepo) Create(ctx context.Context, product *models.Product) (*mod
 
 		if ok, constraint := errMsgPg.IsUniqueViolation(err); ok {
 			return nil, fmt.Errorf("%w: %s", errMsg.ErrDuplicate, constraint)
+		}
+
+		if errMsgPg.IsCheckViolation(err) {
+			return nil, errMsg.ErrInvalidData
 		}
 
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
@@ -98,6 +106,17 @@ func (r *productRepo) Update(ctx context.Context, product *models.Product) error
 	).Scan(&product.UpdatedAt, &product.Version)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			// Pode ser produto não encontrado OU versão desatualizada
+			// Verifica se o produto existe
+			const checkQuery = `SELECT 1 FROM products WHERE id = $1`
+			var exists int
+			if errCheck := r.db.QueryRow(ctx, checkQuery, product.ID).Scan(&exists); errCheck != nil {
+				return errMsg.ErrNotFound
+			}
+			return errMsg.NotFoundOrErrVersionConflict
+		}
+
 		// Unique
 		if ok, _ := errMsgPg.IsUniqueViolation(err); ok {
 			return errMsg.ErrConflict
@@ -111,11 +130,6 @@ func (r *productRepo) Update(ctx context.Context, product *models.Product) error
 		// Check constraint
 		if errMsgPg.IsCheckViolation(err) {
 			return errMsg.ErrInvalidData
-		}
-
-		// Not found
-		if errors.Is(err, pgx.ErrNoRows) {
-			return errMsg.ErrNotFound
 		}
 
 		// Default

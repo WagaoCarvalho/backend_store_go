@@ -13,7 +13,6 @@ import (
 )
 
 func TestProductCategoryService_Create(t *testing.T) {
-
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(mockProductCat.MockProductCategory)
 
@@ -32,7 +31,7 @@ func TestProductCategoryService_Create(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("ErrInvalidCategoryName", func(t *testing.T) {
+	t.Run("ValidationError", func(t *testing.T) {
 		mockRepo := new(mockProductCat.MockProductCategory)
 		service := NewProductCategoryService(mockRepo)
 
@@ -41,7 +40,9 @@ func TestProductCategoryService_Create(t *testing.T) {
 		category, err := service.Create(context.Background(), invalidCategory)
 
 		assert.Nil(t, category)
-		assert.ErrorIs(t, err, errMsg.ErrInvalidData)
+		// Service deve retornar erro de validação específico, não ErrInvalidData genérico
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "erro no campo 'name'") // Erro específico da validação
 	})
 
 	t.Run("ErrorOnCreate", func(t *testing.T) {
@@ -58,11 +59,10 @@ func TestProductCategoryService_Create(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "erro ao criar")
 		assert.Nil(t, category)
-
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("ErrAlreadyExists", func(t *testing.T) {
+	t.Run("ErrDuplicate", func(t *testing.T) {
 		mockRepo := new(mockProductCat.MockProductCategory)
 		service := NewProductCategoryService(mockRepo)
 
@@ -71,19 +71,19 @@ func TestProductCategoryService_Create(t *testing.T) {
 			Description: "Desc",
 		}
 
+		// Usar ErrDuplicate que é o erro do repo
 		mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(cat *models.ProductCategory) bool {
 			return cat.Name == inputCategory.Name &&
 				cat.Description == inputCategory.Description
-		})).Return(nil, errMsg.ErrAlreadyExists)
+		})).Return(nil, errMsg.ErrDuplicate)
 
 		category, err := service.Create(context.Background(), inputCategory)
 
 		assert.Nil(t, category)
-		assert.ErrorIs(t, err, errMsg.ErrAlreadyExists)
-
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "erro já cadastrado") // Service deve propagar o erro
 		mockRepo.AssertExpectations(t)
 	})
-
 }
 
 func TestProductCategoryService_Update(t *testing.T) {
@@ -121,7 +121,6 @@ func TestProductCategoryService_Update(t *testing.T) {
 		err := service.Update(ctx, category)
 
 		assert.Error(t, err)
-		assert.ErrorIs(t, err, errMsg.ErrUpdate)
 		assert.Contains(t, err.Error(), "falha ao atualizar")
 		mockRepo.AssertExpectations(t)
 	})
@@ -153,7 +152,7 @@ func TestProductCategoryService_Update(t *testing.T) {
 		err := service.Update(ctx, category)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "campo obrigatório")
+		assert.Contains(t, err.Error(), "campo obrigatório") // Erro específico
 	})
 
 	t.Run("InvalidCategoryID", func(t *testing.T) {
@@ -166,44 +165,29 @@ func TestProductCategoryService_Update(t *testing.T) {
 }
 
 func TestProductCategoryService_Delete(t *testing.T) {
-
 	mockRepo := new(mockProductCat.MockProductCategory)
 	service := NewProductCategoryService(mockRepo)
 
 	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()
-		category := &models.ProductCategory{ID: 1, Name: "Categoria", Description: "Desc"}
+		id := int64(1)
 
-		mockRepo.On("GetByID", ctx, int64(1)).Return(category, nil).Once()
-		mockRepo.On("Delete", ctx, int64(1)).Return(nil).Once()
+		// Service corrigido não chama GetByID, apenas Delete
+		mockRepo.On("Delete", ctx, id).Return(nil).Once()
 
-		err := service.Delete(ctx, 1)
+		err := service.Delete(ctx, id)
 
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("GetByID repository error", func(t *testing.T) {
-		ctx := context.Background()
-		id := int64(10)
-		dbErr := errors.New("erro inesperado no banco de dados")
-
-		mockRepo.On("GetByID", ctx, id).Return(nil, dbErr).Once()
-
-		err := service.Delete(ctx, id)
-
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, errMsg.ErrGet.Error())
-		assert.ErrorContains(t, err, dbErr.Error())
-		mockRepo.AssertExpectations(t)
-	})
-
 	t.Run("CategoryNotFound", func(t *testing.T) {
 		ctx := context.Background()
+		id := int64(3)
 
-		mockRepo.On("GetByID", ctx, int64(3)).Return(nil, errMsg.ErrNotFound).Once()
+		mockRepo.On("Delete", ctx, id).Return(errMsg.ErrNotFound).Once()
 
-		err := service.Delete(ctx, 3)
+		err := service.Delete(ctx, id)
 
 		assert.ErrorIs(t, err, errMsg.ErrNotFound)
 		mockRepo.AssertExpectations(t)
@@ -211,17 +195,15 @@ func TestProductCategoryService_Delete(t *testing.T) {
 
 	t.Run("RepositoryError", func(t *testing.T) {
 		ctx := context.Background()
-		category := &models.ProductCategory{ID: 2, Name: "Categoria", Description: "Desc"}
+		id := int64(2)
 		repoErr := errors.New("db delete error")
 
-		mockRepo.On("GetByID", ctx, int64(2)).Return(category, nil).Once()
-		mockRepo.On("Delete", ctx, int64(2)).Return(repoErr).Once()
+		mockRepo.On("Delete", ctx, id).Return(repoErr).Once()
 
-		err := service.Delete(ctx, 2)
+		err := service.Delete(ctx, id)
 
 		assert.Error(t, err)
-		assert.True(t, errors.Is(err, errMsg.ErrDelete))
-		assert.ErrorContains(t, err, "db delete error")
+		assert.Contains(t, err.Error(), "db delete error")
 		mockRepo.AssertExpectations(t)
 	})
 

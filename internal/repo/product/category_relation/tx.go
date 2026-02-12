@@ -8,38 +8,37 @@ import (
 	errMsgPg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type ProductCategoryRelationRepoTx interface {
-	CreateTx(ctx context.Context, tx pgx.Tx, relation *models.ProductCategoryRelation) (*models.ProductCategoryRelation, error)
+type ProductCategoryRelationRepoTx struct{}
+
+func NewProductCategoryRelationRepoTx() *ProductCategoryRelationRepoTx {
+	return &ProductCategoryRelationRepoTx{}
 }
 
-type productCategoryRelationRepoTx struct {
-	db *pgxpool.Pool
-}
-
-func NewProductCategoryRelationRepoTx(db *pgxpool.Pool) ProductCategoryRelationRepoTx {
-	return &productCategoryRelationRepoTx{db: db}
-}
-
-func (r *productCategoryRelationRepoTx) CreateTx(ctx context.Context, tx pgx.Tx, relation *models.ProductCategoryRelation) (*models.ProductCategoryRelation, error) {
+func (r *ProductCategoryRelationRepoTx) CreateTx(ctx context.Context, tx pgx.Tx, relation *models.ProductCategoryRelation) error {
 	const query = `
 		INSERT INTO product_category_relations (product_id, category_id, created_at)
-		VALUES ($1, $2, NOW());
+		VALUES ($1, $2, NOW())
+		RETURNING created_at;
 	`
 
-	_, err := tx.Exec(ctx, query, relation.ProductID, relation.CategoryID)
+	err := tx.QueryRow(ctx, query, relation.ProductID, relation.CategoryID).Scan(&relation.CreatedAt)
 	if err != nil {
 		switch {
 		case errMsgPg.IsDuplicateKey(err):
-			return nil, errMsg.ErrRelationExists
+			return fmt.Errorf("relação já existe [product_id=%d, category_id=%d]: %w",
+				relation.ProductID, relation.CategoryID, errMsg.ErrRelationExists)
+
 		case errMsgPg.IsForeignKeyViolation(err):
-			return nil, fmt.Errorf("productCategoryRelationRepoTx: %w", errMsg.ErrDBInvalidForeignKey)
+			return fmt.Errorf("chave estrangeira inválida [product_id=%d, category_id=%d]: %w",
+				relation.ProductID, relation.CategoryID, errMsg.ErrDBInvalidForeignKey)
+
 		default:
-			return nil, fmt.Errorf("%w: %v", errMsg.ErrCreate, err)
+			return fmt.Errorf("%w [product_id=%d, category_id=%d]: %v",
+				errMsg.ErrCreate, relation.ProductID, relation.CategoryID, err)
 		}
 	}
 
-	return relation, nil
+	return nil
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	mockDb "github.com/WagaoCarvalho/backend_store_go/infra/mock/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
@@ -125,20 +124,41 @@ func TestProductRepo_ApplyDiscount(t *testing.T) {
 		productID := int64(1)
 		discountPercent := 15.0
 
-		// Mock para a query principal
-		mockRow := &mockDb.MockRowWithID{
-			IDValue:   productID,
-			TimeValue: time.Now(),
-		}
+		// Use MockRowWithInt que já tem implementação Scan
+		mockRow := &mockDb.MockRowWithInt{IntValue: 2}
 
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{productID, discountPercent}).Return(mockRow)
 
-		result, err := repo.ApplyDiscount(ctx, productID, discountPercent)
+		err := repo.ApplyDiscount(ctx, productID, discountPercent)
 
 		assert.NoError(t, err)
-		assert.NotNil(t, result)
-		assert.Equal(t, productID, result.ID)
 		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return error for invalid discount percent (< 0)", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &productRepo{db: mockDB}
+		ctx := context.Background()
+		productID := int64(1)
+		discountPercent := -5.0
+
+		err := repo.ApplyDiscount(ctx, productID, discountPercent)
+
+		assert.ErrorIs(t, err, errMsg.ErrInvalidDiscountPercent)
+		mockDB.AssertNotCalled(t, "QueryRow")
+	})
+
+	t.Run("return error for invalid discount percent (> 100)", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &productRepo{db: mockDB}
+		ctx := context.Background()
+		productID := int64(1)
+		discountPercent := 150.0
+
+		err := repo.ApplyDiscount(ctx, productID, discountPercent)
+
+		assert.ErrorIs(t, err, errMsg.ErrInvalidDiscountPercent)
+		mockDB.AssertNotCalled(t, "QueryRow")
 	})
 
 	t.Run("return ErrNotFound when product does not exist", func(t *testing.T) {
@@ -148,17 +168,15 @@ func TestProductRepo_ApplyDiscount(t *testing.T) {
 		productID := int64(999)
 		discountPercent := 15.0
 
-		// Mock para a query principal retornando no rows
+		// Mock para ambas as queries retornando no rows
 		mockRowMain := &mockDb.MockRow{Err: pgx.ErrNoRows}
-		// Mock para a query de verificação também retornando no rows
 		mockRowCheck := &mockDb.MockRow{Err: pgx.ErrNoRows}
 
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{productID, discountPercent}).Return(mockRowMain)
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{productID}).Return(mockRowCheck)
 
-		result, err := repo.ApplyDiscount(ctx, productID, discountPercent)
+		err := repo.ApplyDiscount(ctx, productID, discountPercent)
 
-		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrNotFound)
 		mockDB.AssertExpectations(t)
 	})
@@ -170,17 +188,16 @@ func TestProductRepo_ApplyDiscount(t *testing.T) {
 		productID := int64(1)
 		discountPercent := 15.0
 
-		// Mock para a query principal retornando no rows (allow_discount = FALSE)
+		// Mock principal: no rows (allow_discount = FALSE)
 		mockRowMain := &mockDb.MockRow{Err: pgx.ErrNoRows}
-		// Mock para a query de verificação confirmando que produto existe
+		// Mock verificação: produto existe (retorna 1)
 		mockRowCheck := &mockDb.MockRowWithInt{IntValue: 1}
 
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{productID, discountPercent}).Return(mockRowMain)
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{productID}).Return(mockRowCheck)
 
-		result, err := repo.ApplyDiscount(ctx, productID, discountPercent)
+		err := repo.ApplyDiscount(ctx, productID, discountPercent)
 
-		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrProductDiscountNotAllowed)
 		mockDB.AssertExpectations(t)
 	})
@@ -197,9 +214,8 @@ func TestProductRepo_ApplyDiscount(t *testing.T) {
 
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{productID, discountPercent}).Return(mockRow)
 
-		result, err := repo.ApplyDiscount(ctx, productID, discountPercent)
+		err := repo.ApplyDiscount(ctx, productID, discountPercent)
 
-		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrProductApplyDiscount)
 		assert.ErrorContains(t, err, dbError.Error())
 		mockDB.AssertExpectations(t)

@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/product/category"
+	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
@@ -16,7 +18,6 @@ func (h *productCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request)
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{})
 
 	id, err := utils.GetIDParam(r, "id")
-
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
@@ -25,20 +26,25 @@ func (h *productCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	category, err := h.service.GetByID(ctx, id)
+	category, err := h.service.GetByID(ctx, int64(id))
 	if err != nil {
-		if err.Error() == "categoria não encontrada" {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
 				"id": id,
 			})
-			utils.ErrorResponse(w, err, http.StatusNotFound)
-			return
+			utils.ErrorResponse(w, fmt.Errorf("categoria não encontrada"), http.StatusNotFound)
+		case errors.Is(err, errMsg.ErrZeroID):
+			h.logger.Warn(ctx, ref+"ID zero", map[string]any{
+				"id": id,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		default:
+			h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
+				"id": id,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("erro ao buscar categoria"), http.StatusInternalServerError)
 		}
-
-		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{
-			"id": id,
-		})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -64,7 +70,7 @@ func (h *productCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) 
 	categories, err := h.service.GetAll(ctx)
 	if err != nil {
 		h.logger.Error(ctx, err, ref+logger.LogGetError, map[string]any{})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		utils.ErrorResponse(w, fmt.Errorf("erro ao buscar categorias"), http.StatusInternalServerError)
 		return
 	}
 

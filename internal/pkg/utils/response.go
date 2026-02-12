@@ -76,15 +76,18 @@ func GetStringParam(r *http.Request, key string) (string, error) {
 	return val, nil
 }
 
+// GetPaginationParams - ÚNICA função de paginação
 func GetPaginationParams(r *http.Request) (limit, offset int) {
 	// Valores padrão
 	limit = 10
 	offset = 0
 
-	// Parse de limit
+	// Parse limit
 	if l := r.URL.Query().Get("limit"); l != "" {
-		if lInt, err := strconv.Atoi(l); err == nil && lInt > 0 {
-			if lInt > 100 {
+		if lInt, err := strconv.Atoi(l); err == nil {
+			if lInt < 1 {
+				limit = 10 // Se for <=0, usa padrão
+			} else if lInt > 100 {
 				limit = 100 // Limite máximo
 			} else {
 				limit = lInt
@@ -92,15 +95,10 @@ func GetPaginationParams(r *http.Request) (limit, offset int) {
 		}
 	}
 
-	// Parse de page (se page for usado ao invés de offset)
-	if pageStr := r.URL.Query().Get("page"); pageStr != "" {
-		if page, err := strconv.Atoi(pageStr); err == nil && page > 0 {
-			offset = (page - 1) * limit
-		}
-	} else if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
-		// Ou usar offset diretamente
-		if o, err := strconv.Atoi(offsetStr); err == nil && o >= 0 {
-			offset = o
+	// Parse offset
+	if o := r.URL.Query().Get("offset"); o != "" {
+		if oInt, err := strconv.Atoi(o); err == nil && oInt >= 0 {
+			offset = oInt
 		}
 	}
 

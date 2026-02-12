@@ -10,9 +10,9 @@ import (
 	"testing"
 
 	mockProduct "github.com/WagaoCarvalho/backend_store_go/infra/mock/product"
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/product"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -252,10 +252,10 @@ func TestProductHandler_ApplyDiscount(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(1)
 		percent := 10.0
-		expectedProduct := &models.Product{ID: productID, SalePrice: 90.0}
 
+		// Apenas retorna nil (sucesso), sem produto
 		mockService.On("ApplyDiscount", mock.Anything, productID, percent).
-			Return(expectedProduct, nil).Once()
+			Return(nil).Once()
 
 		body := bytes.NewBufferString(`{"percent": 10}`)
 		req := httptest.NewRequest(http.MethodPatch, "/product/discount/1", body)
@@ -269,9 +269,18 @@ func TestProductHandler_ApplyDiscount(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-		var product models.Product
-		_ = json.NewDecoder(resp.Body).Decode(&product)
-		assert.Equal(t, expectedProduct.ID, product.ID)
+		// Verifica resposta padrão
+		var response utils.DefaultResponse
+		_ = json.NewDecoder(resp.Body).Decode(&response)
+		assert.Equal(t, http.StatusOK, response.Status)
+		assert.Equal(t, "Desconto aplicado com sucesso", response.Message)
+
+		// Verifica dados retornados
+		data, ok := response.Data.(map[string]interface{})
+		assert.True(t, ok)
+		assert.Equal(t, float64(productID), data["product_id"])
+		assert.Equal(t, percent, data["percent"])
+
 		mockService.AssertExpectations(t)
 	})
 
@@ -321,13 +330,45 @@ func TestProductHandler_ApplyDiscount(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
+	t.Run("Invalid percent (< 0)", func(t *testing.T) {
+		_, handler := setup()
+
+		body := bytes.NewBufferString(`{"percent": -5}`)
+		req := httptest.NewRequest(http.MethodPatch, "/product/discount/1", body)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.ApplyDiscount(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("Invalid percent (> 100)", func(t *testing.T) {
+		_, handler := setup()
+
+		body := bytes.NewBufferString(`{"percent": 150}`)
+		req := httptest.NewRequest(http.MethodPatch, "/product/discount/1", body)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.ApplyDiscount(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
 	t.Run("Product not found", func(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(1)
 		percent := 10.0
 
 		mockService.On("ApplyDiscount", mock.Anything, productID, percent).
-			Return(nil, errMsg.ErrNotFound).Once()
+			Return(errMsg.ErrNotFound).Once()
 
 		body := bytes.NewBufferString(`{"percent": 10}`)
 		req := httptest.NewRequest(http.MethodPatch, "/product/discount/1", body)
@@ -343,13 +384,35 @@ func TestProductHandler_ApplyDiscount(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
+	t.Run("Product discount not allowed", func(t *testing.T) {
+		mockService, handler := setup()
+		productID := int64(1)
+		percent := 10.0
+
+		mockService.On("ApplyDiscount", mock.Anything, productID, percent).
+			Return(errMsg.ErrProductDiscountNotAllowed).Once()
+
+		body := bytes.NewBufferString(`{"percent": 10}`)
+		req := httptest.NewRequest(http.MethodPatch, "/product/discount/1", body)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.ApplyDiscount(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
 	t.Run("Internal server error", func(t *testing.T) {
 		mockService, handler := setup()
 		productID := int64(1)
 		percent := 10.0
 
 		mockService.On("ApplyDiscount", mock.Anything, productID, percent).
-			Return(nil, errors.New("db error")).Once()
+			Return(errors.New("db error")).Once()
 
 		body := bytes.NewBufferString(`{"percent": 10}`)
 		req := httptest.NewRequest(http.MethodPatch, "/product/discount/1", body)
@@ -364,4 +427,27 @@ func TestProductHandler_ApplyDiscount(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 		mockService.AssertExpectations(t)
 	})
+
+	t.Run("Invalid discount percent error from service", func(t *testing.T) {
+		mockService, handler := setup()
+		productID := int64(1)
+		percent := 50.0 // Percentual válido, mas serviço retorna erro
+
+		mockService.On("ApplyDiscount", mock.Anything, productID, percent).
+			Return(errMsg.ErrInvalidDiscountPercent).Once()
+
+		body := bytes.NewBufferString(`{"percent": 50}`)
+		req := httptest.NewRequest(http.MethodPatch, "/product/discount/1", body)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		w := httptest.NewRecorder()
+
+		handler.ApplyDiscount(w, req)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
+
 }

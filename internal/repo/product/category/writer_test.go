@@ -59,7 +59,7 @@ func TestProductCategoryRepo_Create(t *testing.T) {
 		mockDB.AssertExpectations(t)
 	})
 
-	t.Run("return ErrAlreadyExists on duplicate key", func(t *testing.T) {
+	t.Run("return ErrDuplicate on duplicate key", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &productCategoryRepo{db: mockDB}
 		ctx := context.Background()
@@ -80,10 +80,8 @@ func TestProductCategoryRepo_Create(t *testing.T) {
 
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrDuplicate)
-
 		mockDB.AssertExpectations(t)
 	})
-
 }
 
 func TestProductCategoryRepo_Update(t *testing.T) {
@@ -93,7 +91,7 @@ func TestProductCategoryRepo_Update(t *testing.T) {
 		ctx := context.Background()
 
 		category := &models.ProductCategory{
-			ID:          uint(1),
+			ID:          int64(1), // Correção: int64
 			Name:        "Updated Category",
 			Description: "Updated Description",
 		}
@@ -114,7 +112,7 @@ func TestProductCategoryRepo_Update(t *testing.T) {
 		ctx := context.Background()
 
 		category := &models.ProductCategory{
-			ID:          uint(999),
+			ID:          int64(999), // Correção: int64
 			Name:        "Non-existent Category",
 			Description: "Non-existent Description",
 		}
@@ -135,7 +133,7 @@ func TestProductCategoryRepo_Update(t *testing.T) {
 		ctx := context.Background()
 
 		category := &models.ProductCategory{
-			ID:          uint(1),
+			ID:          int64(1), // Correção: int64
 			Name:        "Test Category",
 			Description: "Test Description",
 		}
@@ -149,6 +147,29 @@ func TestProductCategoryRepo_Update(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), dbError.Error())
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrDuplicate when unique constraint violation occurs", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &productCategoryRepo{db: mockDB}
+		ctx := context.Background()
+
+		category := &models.ProductCategory{
+			ID:          int64(1),
+			Name:        "Duplicate Category",
+			Description: "Duplicate Description",
+		}
+
+		pgErr := &pgconn.PgError{Code: "23505"}
+		mockRow := &mockDb.MockRow{Err: pgErr}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{category.Name, category.Description, category.ID}).Return(mockRow)
+
+		err := repo.Update(ctx, category)
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "erro já cadastrado") // Apenas se seu Update trata duplicate
 		mockDB.AssertExpectations(t)
 	})
 }

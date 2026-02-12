@@ -6,28 +6,46 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/category_relation"
 )
 
-type ProductCategoryRelationsDTO struct {
+type ProductCategoryRelationDTO struct {
 	ProductID  int64  `json:"product_id"`
 	CategoryID int64  `json:"category_id"`
 	CreatedAt  string `json:"created_at,omitempty"`
 }
 
-func ToProductCategoryRelationsModel(dto ProductCategoryRelationsDTO) *models.ProductCategoryRelation {
+func ToModel(dto ProductCategoryRelationDTO) *models.ProductCategoryRelation {
 	return &models.ProductCategoryRelation{
 		ProductID:  dto.ProductID,
 		CategoryID: dto.CategoryID,
-		CreatedAt:  time.Now(),
 	}
 }
 
-func ToProductCategoryRelationsDTO(m *models.ProductCategoryRelation) ProductCategoryRelationsDTO {
+func ToDTO(m *models.ProductCategoryRelation) ProductCategoryRelationDTO {
 	if m == nil {
-		return ProductCategoryRelationsDTO{}
+		return ProductCategoryRelationDTO{}
 	}
 
-	return ProductCategoryRelationsDTO{
+	dto := ProductCategoryRelationDTO{
 		ProductID:  m.ProductID,
 		CategoryID: m.CategoryID,
-		CreatedAt:  m.CreatedAt.Format(time.RFC3339),
 	}
+
+	if !m.CreatedAt.IsZero() {
+		dto.CreatedAt = m.CreatedAt.Format(time.RFC3339)
+	}
+
+	return dto
+}
+
+func ToDTOs(models []*models.ProductCategoryRelation) []ProductCategoryRelationDTO {
+	if len(models) == 0 {
+		return []ProductCategoryRelationDTO{}
+	}
+
+	dtos := make([]ProductCategoryRelationDTO, 0, len(models))
+	for _, m := range models {
+		if m != nil {
+			dtos = append(dtos, ToDTO(m))
+		}
+	}
+	return dtos
 }

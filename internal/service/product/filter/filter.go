@@ -9,9 +9,10 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-func (s *productFiltertService) Filter(ctx context.Context, filter *filter.ProductFilter) ([]*model.Product, error) {
+// No serviço:
+func (s *productFilterService) Filter(ctx context.Context, filter *filter.ProductFilter) ([]*model.Product, error) {
 	if filter == nil {
-		return nil, fmt.Errorf("%w: filtro não pode ser nulo", errMsg.ErrInvalidFilter)
+		return nil, errMsg.ErrInvalidFilter
 	}
 
 	if err := filter.Validate(); err != nil {
@@ -20,7 +21,7 @@ func (s *productFiltertService) Filter(ctx context.Context, filter *filter.Produ
 
 	products, err := s.repo.Filter(ctx, filter)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+		return nil, err
 	}
 
 	return products, nil

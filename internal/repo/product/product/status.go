@@ -8,14 +8,14 @@ import (
 )
 
 // EnableProduct ativa um produto, alterando o campo `status` para TRUE.
-func (r *productRepo) EnableProduct(ctx context.Context, uid int64) error {
+func (r *productRepo) EnableProduct(ctx context.Context, id int64) error {
 	const query = `
 		UPDATE products
-		SET status = TRUE, updated_at = NOW()
+		SET status = TRUE, updated_at = NOW(), version = version + 1
 		WHERE id = $1;
 	`
 
-	cmd, err := r.db.Exec(ctx, query, uid)
+	cmd, err := r.db.Exec(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
@@ -28,14 +28,14 @@ func (r *productRepo) EnableProduct(ctx context.Context, uid int64) error {
 }
 
 // DisableProduct desativa um produto, alterando o campo `status` para FALSE.
-func (r *productRepo) DisableProduct(ctx context.Context, uid int64) error {
+func (r *productRepo) DisableProduct(ctx context.Context, id int64) error {
 	const query = `
 		UPDATE products
-		SET status = FALSE, updated_at = NOW()
+		SET status = FALSE, updated_at = NOW(), version = version + 1
 		WHERE id = $1;
 	`
 
-	cmd, err := r.db.Exec(ctx, query, uid)
+	cmd, err := r.db.Exec(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}

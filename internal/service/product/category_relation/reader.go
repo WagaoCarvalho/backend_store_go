@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/product/category_relation"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
@@ -13,10 +13,18 @@ func (s *productCategoryRelationService) GetAllRelationsByProductID(ctx context.
 		return nil, errMsg.ErrZeroID
 	}
 
-	relationsPtr, err := s.repo.GetAllRelationsByProductID(ctx, productID)
+	relations, err := s.repo.GetAllRelationsByProductID(ctx, productID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+		if errors.Is(err, errMsg.ErrNotFound) {
+			return nil, err
+		}
+
+		return nil, err
 	}
 
-	return relationsPtr, nil
+	if relations == nil {
+		return []*models.ProductCategoryRelation{}, nil
+	}
+
+	return relations, nil
 }

@@ -15,7 +15,3 @@ type ProductCategoryRelationWriter interface {
 	Delete(ctx context.Context, productID, categoryID int64) error
 	DeleteAll(ctx context.Context, productID int64) error
 }
-
-type ProductCategoryRelationChecker interface {
-	HasProductCategoryRelation(ctx context.Context, productID, categoryID int64) (bool, error)
-}

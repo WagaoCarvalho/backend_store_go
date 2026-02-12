@@ -15,10 +15,14 @@ import (
 )
 
 func TestProductService_Filter(t *testing.T) {
-
-	t.Run("falha quando filtro é nulo", func(t *testing.T) {
+	setup := func() (*mockProduct.ProductMock, *productFilterService) {
 		mockRepo := new(mockProduct.ProductMock)
 		service := NewProductFilterService(mockRepo)
+		return mockRepo, service.(*productFilterService)
+	}
+
+	t.Run("falha quando filtro é nulo", func(t *testing.T) {
+		mockRepo, service := setup()
 
 		result, err := service.Filter(context.Background(), nil)
 
@@ -28,8 +32,7 @@ func TestProductService_Filter(t *testing.T) {
 	})
 
 	t.Run("falha na validação do filtro", func(t *testing.T) {
-		mockRepo := new(mockProduct.ProductMock)
-		service := NewProductFilterService(mockRepo)
+		mockRepo, service := setup()
 
 		invalidFilter := &filterProduct.ProductFilter{
 			BaseFilter: filter.BaseFilter{
@@ -44,9 +47,32 @@ func TestProductService_Filter(t *testing.T) {
 		mockRepo.AssertNotCalled(t, "Filter", mock.Anything, mock.Anything)
 	})
 
-	t.Run("falha ao buscar no repositório", func(t *testing.T) {
-		mockRepo := new(mockProduct.ProductMock)
-		service := NewProductFilterService(mockRepo)
+	t.Run("falha ao buscar no repositório - propaga erro específico", func(t *testing.T) {
+		mockRepo, service := setup()
+
+		validFilter := &filterProduct.ProductFilter{
+			BaseFilter: filter.BaseFilter{
+				Limit:  10,
+				Offset: 0,
+			},
+		}
+
+		repoErr := errMsg.ErrGet
+		mockRepo.
+			On("Filter", mock.Anything, validFilter).
+			Return(nil, repoErr).
+			Once()
+
+		result, err := service.Filter(context.Background(), validFilter)
+
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+		assert.NotErrorIs(t, err, errMsg.ErrInvalidFilter)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("falha ao buscar no repositório - propaga erro genérico", func(t *testing.T) {
+		mockRepo, service := setup()
 
 		validFilter := &filterProduct.ProductFilter{
 			BaseFilter: filter.BaseFilter{
@@ -56,7 +82,6 @@ func TestProductService_Filter(t *testing.T) {
 		}
 
 		dbErr := errors.New("falha no banco de dados")
-
 		mockRepo.
 			On("Filter", mock.Anything, validFilter).
 			Return(nil, dbErr).
@@ -65,14 +90,15 @@ func TestProductService_Filter(t *testing.T) {
 		result, err := service.Filter(context.Background(), validFilter)
 
 		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrGet)
-		assert.ErrorContains(t, err, dbErr.Error())
+		// Propaga o erro original, NÃO encapsula com ErrGet
+		assert.Equal(t, dbErr, err, "deve retornar o erro original sem encapsulamento")
+		assert.ErrorContains(t, err, "falha no banco de dados")
+		assert.NotErrorIs(t, err, errMsg.ErrGet, "não deve encapsular erro com ErrGet")
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("sucesso ao retornar lista de produtos", func(t *testing.T) {
-		mockRepo := new(mockProduct.ProductMock)
-		service := NewProductFilterService(mockRepo)
+		mockRepo, service := setup()
 
 		validFilter := &filterProduct.ProductFilter{
 			BaseFilter: filter.BaseFilter{

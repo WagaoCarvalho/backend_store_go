@@ -24,6 +24,10 @@ var allowedProductSortFields = map[string]string{
 }
 
 func (r *productFilterRepo) Filter(ctx context.Context, filter *filter.ProductFilter) ([]*model.Product, error) {
+	// Validação do filtro
+	if filter == nil {
+		return nil, errMsg.ErrInvalidFilter
+	}
 
 	base := filter.BaseFilter.WithDefaults()
 
@@ -54,15 +58,16 @@ func (r *productFilterRepo) Filter(ctx context.Context, filter *filter.ProductFi
 	args := []any{}
 	argPos := 1
 
+	// Filtros com ILIKE seguro
 	if filter.ProductName != "" {
-		query += fmt.Sprintf(" AND product_name ILIKE '%%' || $%d || '%%'", argPos)
-		args = append(args, filter.ProductName)
+		query += fmt.Sprintf(" AND product_name ILIKE $%d", argPos)
+		args = append(args, "%"+filter.ProductName+"%")
 		argPos++
 	}
 
 	if filter.Manufacturer != "" {
-		query += fmt.Sprintf(" AND manufacturer ILIKE '%%' || $%d || '%%'", argPos)
-		args = append(args, filter.Manufacturer)
+		query += fmt.Sprintf(" AND manufacturer ILIKE $%d", argPos)
+		args = append(args, "%"+filter.Manufacturer+"%")
 		argPos++
 	}
 
@@ -158,17 +163,20 @@ func (r *productFilterRepo) Filter(ctx context.Context, filter *filter.ProductFi
 
 	// ORDER BY seguro
 	sortField := "created_at"
-	if v, ok := allowedProductSortFields[strings.ToLower(base.SortBy)]; ok {
-		sortField = v
+	if filter.SortBy != "" {
+		if v, ok := allowedProductSortFields[strings.ToLower(filter.SortBy)]; ok {
+			sortField = v
+		}
 	}
 
-	sortOrder := strings.ToLower(base.SortOrder)
-	if sortOrder != "asc" && sortOrder != "desc" {
-		sortOrder = "asc"
+	sortOrder := "ASC"
+	if filter.SortOrder != "" {
+		if strings.ToUpper(filter.SortOrder) == "DESC" {
+			sortOrder = "DESC"
+		}
 	}
 
-	query += fmt.Sprintf(
-		" ORDER BY %s %s LIMIT %d OFFSET %d",
+	query += fmt.Sprintf(" ORDER BY %s %s LIMIT %d OFFSET %d",
 		sortField,
 		sortOrder,
 		base.Limit,
@@ -177,7 +185,7 @@ func (r *productFilterRepo) Filter(ctx context.Context, filter *filter.ProductFi
 
 	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+		return nil, fmt.Errorf("%w [filtro=%+v]: %v", errMsg.ErrGet, filter, err)
 	}
 	defer rows.Close()
 
@@ -211,6 +219,11 @@ func (r *productFilterRepo) Filter(ctx context.Context, filter *filter.ProductFi
 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrIterate, err)
+	}
+
+	// Retorna slice vazio, não nil, para consistência
+	if products == nil {
+		return []*model.Product{}, nil
 	}
 
 	return products, nil

@@ -119,7 +119,7 @@ func (h *productHandler) ApplyDiscount(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
 
-	uid, err := utils.GetIDParam(r, "id")
+	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
 		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
@@ -139,28 +139,57 @@ func (h *productHandler) ApplyDiscount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.service.ApplyDiscount(ctx, uid, payload.Percent)
+	// Validação básica do payload
+	if payload.Percent < 0 || payload.Percent > 100 {
+		h.logger.Warn(ctx, ref+"percentual inválido", map[string]any{
+			"percent": payload.Percent,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("percentual deve estar entre 0 e 100"), http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.ApplyDiscount(ctx, id, payload.Percent)
 	if err != nil {
 		switch {
 		case errors.Is(err, errMsg.ErrNotFound):
 			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-				"product_id": uid,
+				"product_id": id,
 			})
 			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
 			return
+		case errors.Is(err, errMsg.ErrProductDiscountNotAllowed):
+			h.logger.Warn(ctx, ref+"desconto não permitido", map[string]any{
+				"product_id": id,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("produto não permite desconto"), http.StatusBadRequest)
+			return
+		case errors.Is(err, errMsg.ErrInvalidDiscountPercent):
+			h.logger.Warn(ctx, ref+"percentual inválido", map[string]any{
+				"percent": payload.Percent,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("percentual inválido"), http.StatusBadRequest)
+			return
 		default:
 			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
-				"product_id": uid,
+				"product_id": id,
 			})
-			utils.ErrorResponse(w, err, http.StatusInternalServerError)
+			utils.ErrorResponse(w, fmt.Errorf("erro ao aplicar desconto"), http.StatusInternalServerError)
 			return
 		}
 	}
 
 	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
-		"product_id": uid,
+		"product_id": id,
 		"percent":    payload.Percent,
 	})
 
-	utils.ToJSON(w, http.StatusOK, product)
+	// Retorna apenas confirmação de sucesso
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Desconto aplicado com sucesso",
+		Data: map[string]interface{}{
+			"product_id": id,
+			"percent":    payload.Percent,
+		},
+	})
 }

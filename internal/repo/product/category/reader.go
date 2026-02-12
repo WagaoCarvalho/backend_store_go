@@ -14,6 +14,7 @@ func (r *productCategoryRepo) GetAll(ctx context.Context) ([]*models.ProductCate
 	const query = `
 		SELECT id, name, description, created_at, updated_at
 		FROM product_categories
+		ORDER BY created_at DESC -- Adicionar ordenação padrão
 	`
 
 	rows, err := r.db.Query(ctx, query)
@@ -22,7 +23,9 @@ func (r *productCategoryRepo) GetAll(ctx context.Context) ([]*models.ProductCate
 	}
 	defer rows.Close()
 
-	var categories []*models.ProductCategory
+	// Pré-aloca slice com capacidade razoável (opcional para performance)
+	categories := make([]*models.ProductCategory, 0, 10)
+
 	for rows.Next() {
 		category := new(models.ProductCategory)
 		if err := rows.Scan(

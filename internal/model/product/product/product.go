@@ -30,23 +30,44 @@ type Product struct {
 
 var barcodeRegex = regexp.MustCompile(`^[0-9]{8,14}$`)
 
-func (p *Product) Validate() error {
+func (p *Product) Validate(isUpdate bool) error {
 	var errs validators.ValidationErrors
 
+	// --- ProductName ---
 	if validators.IsBlank(p.ProductName) {
 		errs = append(errs, validators.ValidationError{
 			Field:   "product_name",
 			Message: validators.MsgRequiredField,
 		})
+	} else if len(p.ProductName) > 255 {
+		errs = append(errs, validators.ValidationError{
+			Field:   "product_name",
+			Message: "nome do produto máximo 255 caracteres",
+		})
 	}
 
+	// --- Manufacturer ---
 	if validators.IsBlank(p.Manufacturer) {
 		errs = append(errs, validators.ValidationError{
 			Field:   "manufacturer",
 			Message: validators.MsgRequiredField,
 		})
+	} else if len(p.Manufacturer) > 255 {
+		errs = append(errs, validators.ValidationError{
+			Field:   "manufacturer",
+			Message: "fabricante máximo 255 caracteres",
+		})
 	}
 
+	// --- SupplierID (obrigatório apenas na criação) ---
+	if !isUpdate && p.SupplierID == nil {
+		errs = append(errs, validators.ValidationError{
+			Field:   "supplier_id",
+			Message: "fornecedor é obrigatório",
+		})
+	}
+
+	// --- Preços ---
 	if p.CostPrice < 0 {
 		errs = append(errs, validators.ValidationError{
 			Field:   "cost_price",
@@ -66,6 +87,7 @@ func (p *Product) Validate() error {
 		})
 	}
 
+	// --- Estoque ---
 	if p.StockQuantity < 0 {
 		errs = append(errs, validators.ValidationError{
 			Field:   "stock_quantity",
@@ -85,46 +107,38 @@ func (p *Product) Validate() error {
 		})
 	}
 
+	// --- Barcode ---
 	if p.Barcode != nil && !validators.IsBlank(*p.Barcode) && !barcodeRegex.MatchString(*p.Barcode) {
 		errs = append(errs, validators.ValidationError{
 			Field:   "barcode",
-			Message: "código de barras inválido (esperado entre 8 e 14 dígitos numéricos)",
+			Message: "código de barras inválido (8-14 dígitos numéricos)",
 		})
 	}
 
-	if p.SupplierID == nil {
+	// --- Descontos (sempre valida valores, mesmo se AllowDiscount = false) ---
+	if p.MinDiscountPercent < 0 {
 		errs = append(errs, validators.ValidationError{
-			Field:   "supplier_id",
-			Message: "fornecedor é obrigatório",
+			Field:   "min_discount_percent",
+			Message: "desconto mínimo não pode ser negativo",
 		})
 	}
-
-	if !p.Status {
+	if p.MaxDiscountPercent < 0 {
 		errs = append(errs, validators.ValidationError{
-			Field:   "status",
-			Message: "produto inativo não permitido",
+			Field:   "max_discount_percent",
+			Message: "desconto máximo não pode ser negativo",
 		})
 	}
-
-	if p.AllowDiscount {
-		if p.MinDiscountPercent < 0 || p.MaxDiscountPercent < 0 {
-			errs = append(errs, validators.ValidationError{
-				Field:   "discount",
-				Message: "desconto não pode ser negativo",
-			})
-		}
-		if p.MinDiscountPercent > p.MaxDiscountPercent {
-			errs = append(errs, validators.ValidationError{
-				Field:   "discount_range",
-				Message: "desconto mínimo não pode ser maior que o máximo",
-			})
-		}
-		if p.MaxDiscountPercent > 100 {
-			errs = append(errs, validators.ValidationError{
-				Field:   "max_discount_percent",
-				Message: "desconto máximo não pode exceder 100%",
-			})
-		}
+	if p.MaxDiscountPercent > 100 {
+		errs = append(errs, validators.ValidationError{
+			Field:   "max_discount_percent",
+			Message: "desconto máximo não pode exceder 100%",
+		})
+	}
+	if p.MinDiscountPercent > p.MaxDiscountPercent {
+		errs = append(errs, validators.ValidationError{
+			Field:   "discount_range",
+			Message: "desconto mínimo não pode ser maior que o máximo",
+		})
 	}
 
 	if errs.HasErrors() {

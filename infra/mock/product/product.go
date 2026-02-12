@@ -96,12 +96,9 @@ func (m *ProductMock) DisableDiscount(ctx context.Context, id int64) error {
 	return args.Error(0)
 }
 
-func (m *ProductMock) ApplyDiscount(ctx context.Context, id int64, percent float64) (*models.Product, error) {
+func (m *ProductMock) ApplyDiscount(ctx context.Context, id int64, percent float64) error {
 	args := m.Called(ctx, id, percent)
-	if product, ok := args.Get(0).(*models.Product); ok {
-		return product, args.Error(1)
-	}
-	return nil, args.Error(1)
+	return args.Error(0)
 }
 
 func (m *ProductMock) ProductExists(ctx context.Context, productID int64) (bool, error) {

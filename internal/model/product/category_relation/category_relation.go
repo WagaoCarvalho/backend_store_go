@@ -7,18 +7,24 @@ import (
 )
 
 type ProductCategoryRelation struct {
-	ProductID  int64
-	CategoryID int64
-	CreatedAt  time.Time
+	ProductID  int64     `json:"product_id"`
+	CategoryID int64     `json:"category_id"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
-func (ucr *ProductCategoryRelation) Validate() error {
-	if ucr.ProductID <= 0 {
-		return &validators.ValidationError{Field: "ProductID", Message: "campo obrigatório e deve ser maior que zero"}
+func (pcr *ProductCategoryRelation) Validate() error {
+	if pcr.ProductID <= 0 {
+		return &validators.ValidationError{
+			Field:   "product_id",
+			Message: "ID do produto é obrigatório e deve ser maior que zero",
+		}
 	}
 
-	if ucr.CategoryID <= 0 {
-		return &validators.ValidationError{Field: "CategoryID", Message: "campo obrigatório e deve ser maior que zero"}
+	if pcr.CategoryID <= 0 {
+		return &validators.ValidationError{
+			Field:   "category_id",
+			Message: "ID da categoria é obrigatório e deve ser maior que zero",
+		}
 	}
 
 	return nil

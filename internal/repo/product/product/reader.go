@@ -67,34 +67,3 @@ func scanProductRow(row pgx.Row, p *models.Product) error {
 		&p.UpdatedAt,
 	)
 }
-
-func scanProductRowLimited(row pgx.Row, p *models.Product) error {
-	return row.Scan(
-		&p.ID,
-		&p.SupplierID,
-		&p.ProductName,
-		&p.Manufacturer,
-		&p.Description,
-		&p.CostPrice,
-		&p.SalePrice,
-		&p.StockQuantity,
-		&p.Barcode,
-		&p.Status,
-		&p.AllowDiscount,
-		&p.MaxDiscountPercent,
-		&p.CreatedAt,
-		&p.UpdatedAt,
-	)
-}
-
-func scanProductDiscountRow(row pgx.Row, p *models.Product) error {
-	return row.Scan(
-		&p.ID,
-		&p.ProductName,
-		&p.SalePrice,
-		&p.MaxDiscountPercent,
-		&p.AllowDiscount,
-		&p.Version,
-		&p.UpdatedAt,
-	)
-}
