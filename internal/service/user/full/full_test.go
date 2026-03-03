@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	modelsAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	modelsAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
 	modelsContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelUserCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/category"
 	modelsUserCatRel "github.com/WagaoCarvalho/backend_store_go/internal/model/user/category_relation"

@@ -3,7 +3,7 @@ package mock
 import (
 	"context"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/mock"
 )

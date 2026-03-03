@@ -41,15 +41,23 @@ func RegisterAddressRoutes(
 	)
 
 	s := r.PathPrefix("/").Subrouter()
+
+	addresses := "/addresses"
+
 	s.Use(jwtMiddlewares.IsAuthByBearerToken(blacklist, log, jwtManager))
 
-	s.HandleFunc("/addresses", handler.Create).Methods(http.MethodPost)
-	s.HandleFunc("/address/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)
-	s.HandleFunc("/address/user/{id:[0-9]+}", handler.GetByUserID).Methods(http.MethodGet)
-	s.HandleFunc("/address/client_cpf/{id:[0-9]+}", handler.GetByClientCpfID).Methods(http.MethodGet)
-	s.HandleFunc("/address/supplier/{id:[0-9]+}", handler.GetBySupplierID).Methods(http.MethodGet)
-	s.HandleFunc("/address/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
-	s.HandleFunc("/address/enable/{id:[0-9]+}", handler.Enable).Methods(http.MethodPatch)
-	s.HandleFunc("/address/disable/{id:[0-9]+}", handler.Disable).Methods(http.MethodPatch)
-	s.HandleFunc("/address/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
+	s.HandleFunc(baseUrl+addresses, handler.Create).Methods(http.MethodPost)
+
+	s.HandleFunc(baseUrl+idPath+addresses, handler.GetByID).Methods(http.MethodGet)
+
+	s.HandleFunc(baseUrl+idPath+addresses, handler.GetByUserID).Methods(http.MethodGet)
+	s.HandleFunc(baseUrl+idPath+addresses, handler.GetByClientCpfID).Methods(http.MethodGet)
+	s.HandleFunc(baseUrl+idPath+addresses, handler.GetBySupplierID).Methods(http.MethodGet)
+
+	s.HandleFunc(baseUrl+idPath+addresses, handler.Update).Methods(http.MethodPut)
+	s.HandleFunc(baseUrl+idPath+addresses, handler.Delete).Methods(http.MethodDelete)
+
+	s.HandleFunc(baseUrl+idPath+addresses+"/enable", handler.Enable).Methods(http.MethodPatch)
+	s.HandleFunc(baseUrl+idPath+addresses+"/disable", handler.Disable).Methods(http.MethodPatch)
+
 }

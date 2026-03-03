@@ -21,6 +21,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const (
+	baseUrl = "/api/v1"
+	idPath  = "/{id:[0-9]+}"
+)
+
 func NewRouter(log *logger.LogAdapter) *mux.Router {
 	r := mux.NewRouter().StrictSlash(true)
 

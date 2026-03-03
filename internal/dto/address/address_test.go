@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
 	"github.com/stretchr/testify/assert"
 )
 

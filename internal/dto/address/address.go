@@ -1,7 +1,7 @@
 package dto
 
 import (
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 

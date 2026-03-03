@@ -21,10 +21,6 @@ type ClientCpfStatus interface {
 	Enable(ctx context.Context, id int64) error
 }
 
-type ClientCpfChecker interface {
-	ClientCpfExists(ctx context.Context, clientCpfID int64) (bool, error)
-}
-
 type ClientCpfVersion interface {
 	GetVersionByID(ctx context.Context, id int64) (int, error)
 }

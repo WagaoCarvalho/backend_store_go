@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	modelsAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	modelsAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
 	modelsContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelsSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/category"
 	modelsSupplier "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"

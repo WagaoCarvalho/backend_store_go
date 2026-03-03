@@ -14,7 +14,7 @@ import (
 	dtoUserCategories "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/category"
 	dtoUserFull "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/full"
 	dtoUser "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user"
-	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
 	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/category"
 	modelUserFull "github.com/WagaoCarvalho/backend_store_go/internal/model/user/full"

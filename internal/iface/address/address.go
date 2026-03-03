@@ -3,7 +3,7 @@ package iface
 import (
 	"context"
 
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
 )
 
 type AddressReader interface {

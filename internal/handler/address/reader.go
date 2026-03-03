@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
@@ -55,16 +55,6 @@ func (h *addressHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		Message: "Endereço encontrado",
 		Data:    addressDTO,
 	})
-}
-
-func (h *addressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
-	h.handleGetAddresses(
-		w, r,
-		"[addressHandler - GetByUserID] ",
-		"user_id",
-		h.service.GetByUserID,
-		"Endereços do usuário encontrados",
-	)
 }
 
 func (h *addressHandler) GetByClientCpfID(w http.ResponseWriter, r *http.Request) {
@@ -136,4 +126,14 @@ func (h *addressHandler) handleGetAddresses(
 		Message: successMsg,
 		Data:    dto,
 	})
+}
+
+func (h *addressHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
+	h.handleGetAddresses(
+		w, r,
+		"[addressHandler - GetByUserID] ",
+		"user_id",
+		h.service.GetByUserID,
+		"Endereços do usuário encontrados",
+	)
 }

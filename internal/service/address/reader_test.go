@@ -9,8 +9,9 @@ import (
 	mockClientCpf "github.com/WagaoCarvalho/backend_store_go/infra/mock/client_cpf"
 	mockSupplier "github.com/WagaoCarvalho/backend_store_go/infra/mock/supplier"
 	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -112,81 +113,25 @@ func TestAddressService_GetByUserID(t *testing.T) {
 		assert.ErrorIs(t, err, unexpectedErr)
 	})
 
-	t.Run("nenhum endereço e erro no existsFn", func(t *testing.T) {
+	t.Run("nenhum endereço encontrado - retorna lista vazia", func(t *testing.T) {
 		mockAddressRepo := new(mockAddress.MockAddress)
-		mockUserRepo := new(mockUser.MockUser)
 
 		service := NewAddressService(
 			mockAddressRepo,
 			new(mockClientCpf.MockClientCpf),
-			mockUserRepo,
-			new(mockSupplier.MockSupplier),
-		)
-
-		existsErr := errors.New("exists error")
-
-		mockAddressRepo.
-			On("GetByUserID", mock.Anything, int64(1)).
-			Return([]*models.Address{}, nil)
-
-		mockUserRepo.
-			On("UserExists", mock.Anything, int64(1)).
-			Return(false, existsErr)
-
-		result, err := service.GetByUserID(context.Background(), 1)
-
-		assert.Nil(t, result)
-		assert.ErrorIs(t, err, existsErr)
-	})
-
-	t.Run("nenhum endereço e usuário não existe", func(t *testing.T) {
-		mockAddressRepo := new(mockAddress.MockAddress)
-		mockUserRepo := new(mockUser.MockUser)
-
-		service := NewAddressService(
-			mockAddressRepo,
-			new(mockClientCpf.MockClientCpf),
-			mockUserRepo,
+			new(mockUser.MockUser),
 			new(mockSupplier.MockSupplier),
 		)
 
 		mockAddressRepo.
 			On("GetByUserID", mock.Anything, int64(1)).
 			Return([]*models.Address{}, nil)
-
-		mockUserRepo.
-			On("UserExists", mock.Anything, int64(1)).
-			Return(false, nil)
-
-		result, err := service.GetByUserID(context.Background(), 1)
-
-		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrNotFound)
-	})
-
-	t.Run("nenhum endereço e usuário existe", func(t *testing.T) {
-		mockAddressRepo := new(mockAddress.MockAddress)
-		mockUserRepo := new(mockUser.MockUser)
-
-		service := NewAddressService(
-			mockAddressRepo,
-			new(mockClientCpf.MockClientCpf),
-			mockUserRepo,
-			new(mockSupplier.MockSupplier),
-		)
-
-		mockAddressRepo.
-			On("GetByUserID", mock.Anything, int64(1)).
-			Return([]*models.Address{}, nil)
-
-		mockUserRepo.
-			On("UserExists", mock.Anything, int64(1)).
-			Return(true, nil)
 
 		result, err := service.GetByUserID(context.Background(), 1)
 
 		assert.NoError(t, err)
 		assert.Empty(t, result)
+		assert.Len(t, result, 0)
 	})
 
 	t.Run("endereços encontrados", func(t *testing.T) {
@@ -200,8 +145,8 @@ func TestAddressService_GetByUserID(t *testing.T) {
 		)
 
 		addresses := []*models.Address{
-			{ID: 1},
-			{ID: 2},
+			{ID: 1, UserID: utils.Int64Ptr(1)},
+			{ID: 2, UserID: utils.Int64Ptr(1)},
 		}
 
 		mockAddressRepo.
@@ -212,6 +157,7 @@ func TestAddressService_GetByUserID(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 2)
+		assert.Equal(t, addresses, result)
 	})
 }
 
@@ -252,40 +198,12 @@ func TestAddressService_GetByClientCpfID(t *testing.T) {
 		assert.ErrorIs(t, err, unexpectedErr)
 	})
 
-	t.Run("nenhum endereço e erro no ClientCpfExists", func(t *testing.T) {
+	t.Run("nenhum endereço encontrado - retorna lista vazia", func(t *testing.T) {
 		addressRepo := new(mockAddress.MockAddress)
-		clientRepo := new(mockClientCpf.MockClientCpf)
 
 		service := NewAddressService(
 			addressRepo,
-			clientRepo,
-			new(mockUser.MockUser),
-			new(mockSupplier.MockSupplier),
-		)
-
-		existsErr := errors.New("exists error")
-
-		addressRepo.
-			On("GetByClientCpfID", mock.Anything, int64(1)).
-			Return([]*models.Address{}, nil)
-
-		clientRepo.
-			On("ClientCpfExists", mock.Anything, int64(1)).
-			Return(false, existsErr)
-
-		result, err := service.GetByClientCpfID(context.Background(), 1)
-
-		assert.Nil(t, result)
-		assert.ErrorIs(t, err, existsErr)
-	})
-
-	t.Run("nenhum endereço e cliente CPF não existe", func(t *testing.T) {
-		addressRepo := new(mockAddress.MockAddress)
-		clientRepo := new(mockClientCpf.MockClientCpf)
-
-		service := NewAddressService(
-			addressRepo,
-			clientRepo,
+			new(mockClientCpf.MockClientCpf),
 			new(mockUser.MockUser),
 			new(mockSupplier.MockSupplier),
 		)
@@ -293,40 +211,12 @@ func TestAddressService_GetByClientCpfID(t *testing.T) {
 		addressRepo.
 			On("GetByClientCpfID", mock.Anything, int64(1)).
 			Return([]*models.Address{}, nil)
-
-		clientRepo.
-			On("ClientCpfExists", mock.Anything, int64(1)).
-			Return(false, nil)
-
-		result, err := service.GetByClientCpfID(context.Background(), 1)
-
-		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrNotFound)
-	})
-
-	t.Run("nenhum endereço e cliente CPF existe", func(t *testing.T) {
-		addressRepo := new(mockAddress.MockAddress)
-		clientRepo := new(mockClientCpf.MockClientCpf)
-
-		service := NewAddressService(
-			addressRepo,
-			clientRepo,
-			new(mockUser.MockUser),
-			new(mockSupplier.MockSupplier),
-		)
-
-		addressRepo.
-			On("GetByClientCpfID", mock.Anything, int64(1)).
-			Return([]*models.Address{}, nil)
-
-		clientRepo.
-			On("ClientCpfExists", mock.Anything, int64(1)).
-			Return(true, nil)
 
 		result, err := service.GetByClientCpfID(context.Background(), 1)
 
 		assert.NoError(t, err)
 		assert.Empty(t, result)
+		assert.Len(t, result, 0)
 	})
 
 	t.Run("endereços encontrados", func(t *testing.T) {
@@ -339,7 +229,9 @@ func TestAddressService_GetByClientCpfID(t *testing.T) {
 			new(mockSupplier.MockSupplier),
 		)
 
-		addresses := []*models.Address{{ID: 1}}
+		addresses := []*models.Address{
+			{ID: 1, ClientCpfID: utils.Int64Ptr(1)},
+		}
 
 		addressRepo.
 			On("GetByClientCpfID", mock.Anything, int64(1)).
@@ -349,6 +241,7 @@ func TestAddressService_GetByClientCpfID(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 1)
+		assert.Equal(t, addresses, result)
 	})
 }
 
@@ -389,56 +282,25 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 		assert.ErrorIs(t, err, unexpectedErr)
 	})
 
-	t.Run("nenhum endereço e erro no SupplierExists", func(t *testing.T) {
+	t.Run("nenhum endereço encontrado - retorna lista vazia", func(t *testing.T) {
 		addressRepo := new(mockAddress.MockAddress)
-		supplierRepo := new(mockSupplier.MockSupplier)
 
 		service := NewAddressService(
 			addressRepo,
 			new(mockClientCpf.MockClientCpf),
 			new(mockUser.MockUser),
-			supplierRepo,
-		)
-
-		existsErr := errors.New("exists error")
-
-		addressRepo.
-			On("GetBySupplierID", mock.Anything, int64(1)).
-			Return([]*models.Address{}, nil)
-
-		supplierRepo.
-			On("SupplierExists", mock.Anything, int64(1)).
-			Return(false, existsErr)
-
-		result, err := service.GetBySupplierID(context.Background(), 1)
-
-		assert.Nil(t, result)
-		assert.ErrorIs(t, err, existsErr)
-	})
-
-	t.Run("nenhum endereço e fornecedor não existe", func(t *testing.T) {
-		addressRepo := new(mockAddress.MockAddress)
-		supplierRepo := new(mockSupplier.MockSupplier)
-
-		service := NewAddressService(
-			addressRepo,
-			new(mockClientCpf.MockClientCpf),
-			new(mockUser.MockUser),
-			supplierRepo,
+			new(mockSupplier.MockSupplier),
 		)
 
 		addressRepo.
 			On("GetBySupplierID", mock.Anything, int64(1)).
 			Return([]*models.Address{}, nil)
 
-		supplierRepo.
-			On("SupplierExists", mock.Anything, int64(1)).
-			Return(false, nil)
-
 		result, err := service.GetBySupplierID(context.Background(), 1)
 
-		assert.Nil(t, result)
-		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		assert.NoError(t, err)
+		assert.Empty(t, result)
+		assert.Len(t, result, 0)
 	})
 
 	t.Run("endereços encontrados", func(t *testing.T) {
@@ -451,7 +313,9 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 			new(mockSupplier.MockSupplier),
 		)
 
-		addresses := []*models.Address{{ID: 1}}
+		addresses := []*models.Address{
+			{ID: 1, SupplierID: utils.Int64Ptr(1)},
+		}
 
 		addressRepo.
 			On("GetBySupplierID", mock.Anything, int64(1)).
@@ -461,5 +325,6 @@ func TestAddressService_GetBySupplierID(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 1)
+		assert.Equal(t, addresses, result)
 	})
 }

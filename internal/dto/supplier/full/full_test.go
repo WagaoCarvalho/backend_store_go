@@ -7,7 +7,7 @@ import (
 	dtoContact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
 	dtoSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/category"
 	dtoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/supplier"
-	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
 	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/category"
 	modelSupplierFull "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/full"

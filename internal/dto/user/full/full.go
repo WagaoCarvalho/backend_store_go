@@ -5,7 +5,7 @@ import (
 	dtoContact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
 	dtoUserCategories "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/category"
 	dtoUser "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user"
-	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
 	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelsUserCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/user/category"
 	modelsUserFull "github.com/WagaoCarvalho/backend_store_go/internal/model/user/full"

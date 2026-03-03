@@ -14,7 +14,7 @@ import (
 	dtoSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/category"
 	dtoSupplierFull "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/full"
 	dtoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/supplier"
-	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	modelAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
 	modelContact "github.com/WagaoCarvalho/backend_store_go/internal/model/contact"
 	modelCategories "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/category"
 	modelSupplier_full "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/full"

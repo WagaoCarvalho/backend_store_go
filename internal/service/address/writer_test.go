@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	mockAddress "github.com/WagaoCarvalho/backend_store_go/infra/mock/address"
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address"
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
