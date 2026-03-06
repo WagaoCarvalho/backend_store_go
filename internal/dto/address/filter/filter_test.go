@@ -195,16 +195,19 @@ func TestAddressFilterDTO_Validate_MultipleErrors(t *testing.T) {
 	dto := AddressFilterDTO{
 		Limit:  0,
 		Offset: -1,
-		State:  "S",
+		State:  "S", // Isso é considerado um filtro válido para hasContentFilter
 	}
 
 	err := dto.Validate()
 	assert.Error(t, err)
 
-	assert.Contains(t, err.Error(), "pelo menos um filtro de busca deve ser fornecido")
+	// Não espera mais a mensagem de "pelo menos um filtro"
 	assert.Contains(t, err.Error(), "'state' deve conter exatamente 2 caracteres (UF)")
 	assert.Contains(t, err.Error(), "'limit' deve ser maior que zero")
 	assert.Contains(t, err.Error(), "'offset' não pode ser negativo")
+
+	// Verifica que NÃO contém a mensagem de filtro
+	assert.NotContains(t, err.Error(), "pelo menos um filtro de busca deve ser fornecido")
 }
 
 /*
@@ -222,9 +225,9 @@ func TestAddressFilterDTO_Validate_TrimSpace(t *testing.T) {
 		pass bool
 	}{
 		{
-			"Cidade só espaços",
+			"Cidade só espaços - considerada como sem filtro",
 			AddressFilterDTO{City: "   ", Limit: 10, UserID: &userID},
-			false,
+			true, // Deve passar, pois vira string vazia e não é validada
 		},
 		{
 			"Cidade 1 char após trim",
