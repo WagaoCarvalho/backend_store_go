@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	mockSupplierFull "github.com/WagaoCarvalho/backend_store_go/infra/mock/supplier"
-	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
+	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address/address"
 	dtoContact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
 	dtoSupplierCategories "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/category"
 	dtoSupplierFull "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/full"

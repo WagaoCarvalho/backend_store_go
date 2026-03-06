@@ -8,7 +8,7 @@ import (
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
-	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
+	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address/address"
 	repoContact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	repoCatRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/category_relation"
 	repoContactRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/contact_relation"

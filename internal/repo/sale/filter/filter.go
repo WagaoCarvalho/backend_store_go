@@ -121,7 +121,9 @@ func (r *saleFilterRepo) Filter(ctx context.Context, filter *filter.SaleFilter) 
 	}
 	defer rows.Close()
 
-	var sales []*model.Sale
+	// ALTERAÇÃO: Inicializa slice vazia para garantir que nunca retorna nil
+	sales := make([]*model.Sale, 0)
+
 	for rows.Next() {
 		var s model.Sale
 		if err := rows.Scan(

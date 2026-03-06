@@ -23,6 +23,7 @@ func TestProductFilterRepo_Filter(t *testing.T) {
 
 		result, err := repo.Filter(ctx, nil)
 
+		// ALTERAÇÃO: Em caso de erro, o resultado ainda é nil
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrInvalidFilter)
 		mockDB.AssertNotCalled(t, "Query")
@@ -38,24 +39,11 @@ func TestProductFilterRepo_Filter(t *testing.T) {
 
 		mockRows.On("Next").Return(true).Once()
 		mockRows.On("Scan",
-			mock.Anything, // ID
-			mock.Anything, // SupplierID
-			mock.Anything, // ProductName
-			mock.Anything, // Manufacturer
-			mock.Anything, // Description
-			mock.Anything, // CostPrice
-			mock.Anything, // SalePrice
-			mock.Anything, // StockQuantity
-			mock.Anything, // MinStock
-			mock.Anything, // MaxStock
-			mock.Anything, // Barcode
-			mock.Anything, // Status
-			mock.Anything, // Version
-			mock.Anything, // AllowDiscount
-			mock.Anything, // MinDiscountPercent
-			mock.Anything, // MaxDiscountPercent
-			mock.Anything, // CreatedAt
-			mock.Anything, // UpdatedAt
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+			mock.Anything, mock.Anything,
 		).Run(func(args mock.Arguments) {
 			// ID
 			if ptr, ok := args[0].(*int64); ok {
@@ -149,9 +137,38 @@ func TestProductFilterRepo_Filter(t *testing.T) {
 		result, err := repo.Filter(ctx, filter)
 
 		assert.NoError(t, err)
-		assert.Len(t, result, 1)
+		assert.Len(t, result, 1) // Slice com 1 elemento
 		mockDB.AssertExpectations(t)
 		mockRows.AssertExpectations(t)
+	})
+
+	// ADICIONADO: Teste específico para garantir que retorna slice vazia não-nil
+	t.Run("returns empty non-nil slice when no results", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &productFilterRepo{db: mockDB}
+		ctx := context.Background()
+
+		mockRows := new(mockDb.MockRows)
+		mockRows.On("Next").Return(false).Once()
+		mockRows.On("Err").Return(nil)
+		mockRows.On("Close").Return()
+
+		filter := &filter.ProductFilter{
+			BaseFilter: baseFilter.BaseFilter{
+				Limit:  10,
+				Offset: 0,
+			},
+		}
+
+		mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(mockRows, nil)
+
+		result, err := repo.Filter(ctx, filter)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result, "slice não deve ser nil")
+		assert.Empty(t, result, "slice deve estar vazia")
+		assert.Len(t, result, 0, "slice deve ter comprimento 0")
+		mockDB.AssertExpectations(t)
 	})
 
 	t.Run("apply filters with ILIKE correctly", func(t *testing.T) {

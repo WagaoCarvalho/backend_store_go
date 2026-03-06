@@ -189,7 +189,9 @@ func (r *productFilterRepo) Filter(ctx context.Context, filter *filter.ProductFi
 	}
 	defer rows.Close()
 
-	var products []*model.Product
+	// ALTERAÇÃO: Inicializa slice vazia para garantir que nunca retorna nil
+	products := make([]*model.Product, 0)
+
 	for rows.Next() {
 		var p model.Product
 		if err := rows.Scan(
@@ -221,10 +223,6 @@ func (r *productFilterRepo) Filter(ctx context.Context, filter *filter.ProductFi
 		return nil, fmt.Errorf("%w: %v", errMsg.ErrIterate, err)
 	}
 
-	// Retorna slice vazio, não nil, para consistência
-	if products == nil {
-		return []*model.Product{}, nil
-	}
-
+	// ALTERAÇÃO: Não precisa mais da verificação, products já é slice vazia
 	return products, nil
 }

@@ -3,7 +3,7 @@ package dto
 import (
 	"testing"
 
-	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
+	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address/address"
 	dtoContact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
 	dtoUserCategories "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/category"
 	dtoUser "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/user"

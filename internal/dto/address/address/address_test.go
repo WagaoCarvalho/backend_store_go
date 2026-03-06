@@ -3,7 +3,7 @@ package dto_test
 import (
 	"testing"
 
-	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
+	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/address/address"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
 	"github.com/stretchr/testify/assert"
 )

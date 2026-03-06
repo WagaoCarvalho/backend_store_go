@@ -9,7 +9,7 @@ import (
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
-	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
+	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address/address"
 	repoContact "github.com/WagaoCarvalho/backend_store_go/internal/repo/contact"
 	repoUserCatRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/category_relation"
 	repoUserContactRel "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/contact_relation"

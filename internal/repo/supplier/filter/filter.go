@@ -119,7 +119,9 @@ func (r *supplierFilterRepo) Filter(
 	}
 	defer rows.Close()
 
-	var suppliers []*model.Supplier
+	// ALTERAÇÃO: Inicializa slice vazia para garantir que nunca retorna nil
+	suppliers := make([]*model.Supplier, 0)
+
 	for rows.Next() {
 		var s model.Supplier
 		if err := rows.Scan(

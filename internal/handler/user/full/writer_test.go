@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	service "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
-	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address"
+	dtoAddress "github.com/WagaoCarvalho/backend_store_go/internal/dto/address/address"
 	dtoContact "github.com/WagaoCarvalho/backend_store_go/internal/dto/contact"
 	dtoUserCategories "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/category"
 	dtoUserFull "github.com/WagaoCarvalho/backend_store_go/internal/dto/user/full"

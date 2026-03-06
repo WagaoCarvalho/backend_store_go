@@ -8,7 +8,7 @@ import (
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwtMiddlewares "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
-	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address"
+	repoAddress "github.com/WagaoCarvalho/backend_store_go/internal/repo/address/address"
 	repoClientCpf "github.com/WagaoCarvalho/backend_store_go/internal/repo/client_cpf/client"
 	repoSupplier "github.com/WagaoCarvalho/backend_store_go/internal/repo/supplier/supplier"
 	repoUser "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"

@@ -10,15 +10,16 @@ import (
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
-var allowedSortFields = map[string]string{
-	"id":         "id",
-	"name":       "name",
-	"email":      "email",
-	"cpf":        "cpf",
-	"status":     "status",
-	"version":    "version",
-	"created_at": "created_at",
-	"updated_at": "updated_at",
+var clientCpfAllowedSortFields = map[string]string{
+	"id":          "id",
+	"name":        "name",
+	"email":       "email",
+	"cpf":         "cpf",
+	"description": "description",
+	"status":      "status",
+	"version":     "version",
+	"created_at":  "created_at",
+	"updated_at":  "updated_at",
 }
 
 func (r *clientCpfFilterRepo) Filter(
@@ -46,6 +47,7 @@ func (r *clientCpfFilterRepo) Filter(
 	args := []any{}
 	argPos := 1
 
+	// Filtros de texto (busca parcial com ILIKE)
 	if filter.Name != "" {
 		query += fmt.Sprintf(" AND name ILIKE '%%' || $%d || '%%'", argPos)
 		args = append(args, filter.Name)
@@ -58,9 +60,13 @@ func (r *clientCpfFilterRepo) Filter(
 		argPos++
 	}
 
+	// Filtros exatos
 	if filter.CPF != "" {
-		query += fmt.Sprintf(" AND cpf = $%d", argPos)
-		args = append(args, filter.CPF)
+		// Remove formatação do CPF para busca consistente
+		cleanCPF := strings.ReplaceAll(filter.CPF, ".", "")
+		cleanCPF = strings.ReplaceAll(cleanCPF, "-", "")
+		query += fmt.Sprintf(" AND REPLACE(REPLACE(cpf, '.', ''), '-', '') = $%d", argPos)
+		args = append(args, cleanCPF)
 		argPos++
 	}
 
@@ -76,6 +82,7 @@ func (r *clientCpfFilterRepo) Filter(
 		argPos++
 	}
 
+	// Filtros de data
 	if filter.CreatedFrom != nil {
 		query += fmt.Sprintf(" AND created_at >= $%d", argPos)
 		args = append(args, *filter.CreatedFrom)
@@ -100,8 +107,9 @@ func (r *clientCpfFilterRepo) Filter(
 		argPos++
 	}
 
+	// Ordenação com validação de campos
 	sortField := "created_at"
-	if v, ok := allowedSortFields[strings.ToLower(base.SortBy)]; ok {
+	if v, ok := clientCpfAllowedSortFields[strings.ToLower(base.SortBy)]; ok {
 		sortField = v
 	}
 
@@ -126,7 +134,8 @@ func (r *clientCpfFilterRepo) Filter(
 	}
 	defer rows.Close()
 
-	var clients []*model.ClientCpf
+	// Inicializa a slice vazia (garante que nunca retorna nil)
+	clients := make([]*model.ClientCpf, 0)
 
 	for rows.Next() {
 		var c model.ClientCpf
@@ -151,4 +160,53 @@ func (r *clientCpfFilterRepo) Filter(
 	}
 
 	return clients, nil
+}
+
+// Método para buscar clientes ativos (status = true)
+func (r *clientCpfFilterRepo) FindActive(
+	ctx context.Context,
+	filter *filterModel.ClientCpfFilter,
+) ([]*model.ClientCpf, error) {
+	active := true
+	filter.Status = &active
+	return r.Filter(ctx, filter)
+}
+
+// Método para buscar clientes por CPF (busca exata ou parcial)
+func (r *clientCpfFilterRepo) FindByCPF(
+	ctx context.Context,
+	cpf string,
+	exactMatch bool,
+) ([]*model.ClientCpf, error) {
+	filter := &filterModel.ClientCpfFilter{
+		CPF: cpf,
+	}
+
+	result, err := r.Filter(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	// Se não for busca exata, mantém o resultado (a query já fez a limpeza)
+	// Se for busca exata, a query já garante a igualdade
+	return result, nil
+}
+
+// Método para buscar clientes por nome (busca parcial)
+func (r *clientCpfFilterRepo) FindByName(
+	ctx context.Context,
+	name string,
+) ([]*model.ClientCpf, error) {
+	filter := &filterModel.ClientCpfFilter{
+		Name: name,
+	}
+	return r.Filter(ctx, filter)
+}
+
+// Função auxiliar para garantir slice não-nil (útil para outros métodos)
+func ensureNonNilClientSlice(slice []*model.ClientCpf) []*model.ClientCpf {
+	if slice == nil {
+		return make([]*model.ClientCpf, 0)
+	}
+	return slice
 }

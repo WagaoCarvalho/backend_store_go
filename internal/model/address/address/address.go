@@ -3,11 +3,13 @@ package model
 import (
 	"time"
 
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/common/filter"
 	valAddress "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/address"
 	validators "github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils/validators/validator"
 )
 
 type Address struct {
+	filter.BaseFilter
 	ID           int64
 	UserID       *int64
 	ClientCpfID  *int64
