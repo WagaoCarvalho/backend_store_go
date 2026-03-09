@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	model "github.com/WagaoCarvalho/backend_store_go/internal/model/client_cpf/client"
-	filterModel "github.com/WagaoCarvalho/backend_store_go/internal/model/client_cpf/filter"
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/client_cpf/filter"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
 
@@ -24,7 +24,7 @@ var clientCpfAllowedSortFields = map[string]string{
 
 func (r *clientCpfFilterRepo) Filter(
 	ctx context.Context,
-	filter *filterModel.ClientCpfFilter,
+	filter *filter.ClientCpfFilter,
 ) ([]*model.ClientCpf, error) {
 
 	base := filter.BaseFilter.WithDefaults()
@@ -165,7 +165,7 @@ func (r *clientCpfFilterRepo) Filter(
 // Método para buscar clientes ativos (status = true)
 func (r *clientCpfFilterRepo) FindActive(
 	ctx context.Context,
-	filter *filterModel.ClientCpfFilter,
+	filter *filter.ClientCpfFilter,
 ) ([]*model.ClientCpf, error) {
 	active := true
 	filter.Status = &active
@@ -178,7 +178,7 @@ func (r *clientCpfFilterRepo) FindByCPF(
 	cpf string,
 	exactMatch bool,
 ) ([]*model.ClientCpf, error) {
-	filter := &filterModel.ClientCpfFilter{
+	filter := &filter.ClientCpfFilter{
 		CPF: cpf,
 	}
 
@@ -197,7 +197,7 @@ func (r *clientCpfFilterRepo) FindByName(
 	ctx context.Context,
 	name string,
 ) ([]*model.ClientCpf, error) {
-	filter := &filterModel.ClientCpfFilter{
+	filter := &filter.ClientCpfFilter{
 		Name: name,
 	}
 	return r.Filter(ctx, filter)

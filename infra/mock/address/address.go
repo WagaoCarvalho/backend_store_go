@@ -4,6 +4,7 @@ import (
 	"context"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/address/filter"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/mock"
 )
@@ -79,4 +80,14 @@ func (m *MockAddress) Disable(ctx context.Context, aid int64) error {
 func (m *MockAddress) Enable(ctx context.Context, aid int64) error {
 	args := m.Called(ctx, aid)
 	return args.Error(0)
+}
+
+func (m *MockAddress) Filter(ctx context.Context, f *filter.AddressFilter) ([]*models.Address, error) {
+	args := m.Called(ctx, f)
+
+	var result []*models.Address
+	if res := args.Get(0); res != nil {
+		result = res.([]*models.Address)
+	}
+	return result, args.Error(1)
 }

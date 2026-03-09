@@ -13,17 +13,13 @@ import (
 	recover "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/recover"
 	request "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/request"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
+	routesAddress "github.com/WagaoCarvalho/backend_store_go/internal/route/address"
 	routesClient "github.com/WagaoCarvalho/backend_store_go/internal/route/client_cpf"
 	routesProduct "github.com/WagaoCarvalho/backend_store_go/internal/route/product"
 	routesSale "github.com/WagaoCarvalho/backend_store_go/internal/route/sale"
 	routesSupplier "github.com/WagaoCarvalho/backend_store_go/internal/route/supplier"
 	routesUser "github.com/WagaoCarvalho/backend_store_go/internal/route/user"
 	"github.com/gorilla/mux"
-)
-
-const (
-	baseUrl = "/api/v1"
-	idPath  = "/{id:[0-9]+}"
 )
 
 func NewRouter(log *logger.LogAdapter) *mux.Router {
@@ -72,7 +68,7 @@ func NewRouter(log *logger.LogAdapter) *mux.Router {
 	routesSale.RegisterSaleRoutes(r, db, log, blacklist)
 
 	//Adressess
-	RegisterAddressRoutes(r, db, log, blacklist)
+	routesAddress.RegisterAddressRoutes(r, db, log, blacklist)
 
 	//Contacts
 	RegisterContactRoutes(r, db, log, blacklist)

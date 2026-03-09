@@ -3,11 +3,14 @@ package repo
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
 	mockDb "github.com/WagaoCarvalho/backend_store_go/infra/mock/db"
-	address "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
+	model "github.com/WagaoCarvalho/backend_store_go/internal/model/address/address"
+	filterAddress "github.com/WagaoCarvalho/backend_store_go/internal/model/address/filter"
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/common/filter"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -17,51 +20,12 @@ import (
 // Testes do método Filter
 // ============================================================================
 
-func TestAddressFilter_Filter_Success_WithDifferentCombinations(t *testing.T) {
-	mockDB := new(mockDb.MockDatabase)
-	repo := &addressFilterRepo{db: mockDB}
-	ctx := context.Background()
-
-	// Configura rows vazias
-	rows := new(mockDb.MockRows)
-	rows.On("Next").Return(false)
-	rows.On("Err").Return(nil)
-	rows.On("Close").Return()
-
-	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(rows, nil)
-
-	userID := int64(1)
-	clientCpfID := int64(2)
-	supplierID := int64(3)
-
-	filters := []*address.Address{
-		{IsActive: true},
-		{UserID: &userID, IsActive: true},
-		{ClientCpfID: &clientCpfID, IsActive: true},
-		{SupplierID: &supplierID, IsActive: true},
-		{City: "São Paulo", IsActive: true},
-		{State: "sp", IsActive: true},
-		{PostalCode: "01234567", IsActive: true},
-		{PostalCode: "01234-567", IsActive: true},
-		{PostalCode: "01.234-567", IsActive: true},
-		{Street: "Rua Teste", IsActive: true},
-		{StreetNumber: "123", IsActive: true},
-		{Country: "Brasil", IsActive: true},
-	}
-
-	for _, f := range filters {
-		result, err := repo.Filter(ctx, f)
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
-		assert.Empty(t, result)
-	}
-}
-
-func TestAddressFilter_Filter_WithResults(t *testing.T) {
+func TestAddressFilter_Filter_Success_WithResults(t *testing.T) {
 	mockDB := new(mockDb.MockDatabase)
 	repo := &addressFilterRepo{db: mockDB}
 	ctx := context.Background()
 	now := time.Now()
+	isActive := true
 
 	rows := new(mockDb.MockRows)
 	rows.On("Next").Return(true).Once()
@@ -71,7 +35,6 @@ func TestAddressFilter_Filter_WithResults(t *testing.T) {
 		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
 		mock.Anything, mock.Anything,
 	).Run(func(args mock.Arguments) {
-		// Preenche todos os campos
 		if id, ok := args[0].(*int64); ok {
 			*id = 1
 		}
@@ -120,24 +83,116 @@ func TestAddressFilter_Filter_WithResults(t *testing.T) {
 	rows.On("Err").Return(nil)
 	rows.On("Close").Return()
 
+	f := &filterAddress.AddressFilter{
+		BaseFilter: filter.BaseFilter{Limit: 10},
+		IsActive:   &isActive,
+	}
+
 	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(rows, nil)
 
-	result, err := repo.Filter(ctx, &address.Address{IsActive: true})
+	result, err := repo.Filter(ctx, f)
 
 	assert.NoError(t, err)
 	assert.Len(t, result, 1)
 	assert.Equal(t, int64(1), result[0].ID)
 	assert.Equal(t, "Rua Teste", result[0].Street)
+	assert.Equal(t, "123", result[0].StreetNumber)
 	assert.Equal(t, "Apto 101", result[0].Complement)
 	assert.Equal(t, "São Paulo", result[0].City)
+	assert.Equal(t, "SP", result[0].State)
+	assert.Equal(t, "Brasil", result[0].Country)
+	assert.Equal(t, "01234567", result[0].PostalCode)
+	assert.True(t, result[0].IsActive)
+	mockDB.AssertExpectations(t)
+	rows.AssertExpectations(t)
 }
 
-func TestAddressFilter_Filter_WithNilComplement(t *testing.T) {
+func TestAddressFilter_Filter_WithAllFilters(t *testing.T) {
 	mockDB := new(mockDb.MockDatabase)
 	repo := &addressFilterRepo{db: mockDB}
 	ctx := context.Background()
 
 	rows := new(mockDb.MockRows)
+	rows.On("Next").Return(false)
+	rows.On("Err").Return(nil)
+	rows.On("Close").Return()
+
+	userID := int64(1)
+	clientCpfID := int64(2)
+	supplierID := int64(3)
+	isActive := true
+	createdFrom := time.Now().Add(-24 * time.Hour)
+	createdTo := time.Now()
+	updatedFrom := time.Now().Add(-12 * time.Hour)
+	updatedTo := time.Now()
+
+	f := &filterAddress.AddressFilter{
+		BaseFilter: filter.BaseFilter{
+			SortBy:    "city",
+			SortOrder: "asc",
+			Limit:     10,
+			Offset:    0,
+		},
+		UserID:       &userID,
+		ClientCpfID:  &clientCpfID,
+		SupplierID:   &supplierID,
+		Street:       "Rua Teste",
+		StreetNumber: "123",
+		Complement:   "Apto 101",
+		City:         "São Paulo",
+		State:        "SP",
+		Country:      "Brasil",
+		PostalCode:   "01234567",
+		IsActive:     &isActive,
+		CreatedFrom:  &createdFrom,
+		CreatedTo:    &createdTo,
+		UpdatedFrom:  &updatedFrom,
+		UpdatedTo:    &updatedTo,
+	}
+
+	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(rows, nil)
+
+	result, err := repo.Filter(ctx, f)
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Empty(t, result)
+	mockDB.AssertExpectations(t)
+}
+
+func TestAddressFilter_Filter_EmptyResult(t *testing.T) {
+	mockDB := new(mockDb.MockDatabase)
+	repo := &addressFilterRepo{db: mockDB}
+	ctx := context.Background()
+	isActive := true
+
+	rows := new(mockDb.MockRows)
+	rows.On("Next").Return(false)
+	rows.On("Err").Return(nil)
+	rows.On("Close").Return()
+
+	f := &filterAddress.AddressFilter{
+		BaseFilter: filter.BaseFilter{Limit: 10},
+		IsActive:   &isActive,
+	}
+
+	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(rows, nil)
+
+	result, err := repo.Filter(ctx, f)
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Empty(t, result)
+	mockDB.AssertExpectations(t)
+}
+
+func TestAddressFilter_Filter_MultipleRows(t *testing.T) {
+	mockDB := new(mockDb.MockDatabase)
+	repo := &addressFilterRepo{db: mockDB}
+	ctx := context.Background()
+	isActive := true
+
+	rows := new(mockDb.MockRows)
+
+	// Primeira linha
 	rows.On("Next").Return(true).Once()
 	rows.On("Scan",
 		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
@@ -145,43 +200,329 @@ func TestAddressFilter_Filter_WithNilComplement(t *testing.T) {
 		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
 		mock.Anything, mock.Anything,
 	).Run(func(args mock.Arguments) {
+		if id, ok := args[0].(*int64); ok {
+			*id = 1
+		}
+		if street, ok := args[4].(*string); ok {
+			*street = "Rua 1"
+		}
 		if complement, ok := args[6].(**string); ok {
 			*complement = nil
 		}
+		if isActive, ok := args[11].(*bool); ok {
+			*isActive = true
+		}
 	}).Return(nil).Once()
+
+	// Segunda linha
+	rows.On("Next").Return(true).Once()
+	rows.On("Scan",
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything,
+	).Run(func(args mock.Arguments) {
+		if id, ok := args[0].(*int64); ok {
+			*id = 2
+		}
+		if street, ok := args[4].(*string); ok {
+			*street = "Rua 2"
+		}
+		if complement, ok := args[6].(**string); ok {
+			*complement = nil
+		}
+		if isActive, ok := args[11].(*bool); ok {
+			*isActive = true
+		}
+	}).Return(nil).Once()
+
 	rows.On("Next").Return(false)
 	rows.On("Err").Return(nil)
 	rows.On("Close").Return()
 
+	f := &filterAddress.AddressFilter{
+		BaseFilter: filter.BaseFilter{Limit: 10},
+		IsActive:   &isActive,
+	}
+
 	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(rows, nil)
 
-	result, err := repo.Filter(ctx, &address.Address{IsActive: true})
-
+	result, err := repo.Filter(ctx, f)
 	assert.NoError(t, err)
-	assert.Len(t, result, 1)
-	assert.Empty(t, result[0].Complement)
+	assert.Len(t, result, 2)
+	assert.Equal(t, "Rua 1", result[0].Street)
+	assert.Equal(t, "Rua 2", result[1].Street)
+	mockDB.AssertExpectations(t)
 }
 
-func TestAddressFilter_Filter_QueryError(t *testing.T) {
+// ============================================================================
+// Testes de ordenação
+// ============================================================================
+
+func TestAddressFilter_SortField_Valid(t *testing.T) {
 	mockDB := new(mockDb.MockDatabase)
 	repo := &addressFilterRepo{db: mockDB}
 	ctx := context.Background()
+	isActive := true
 
-	dbErr := errors.New("database connection error")
+	rows := new(mockDb.MockRows)
+	rows.On("Next").Return(false)
+	rows.On("Err").Return(nil)
+	rows.On("Close").Return()
+
+	f := &filterAddress.AddressFilter{
+		BaseFilter: filter.BaseFilter{
+			SortBy:    "city",
+			SortOrder: "asc",
+			Limit:     10,
+		},
+		IsActive: &isActive,
+	}
+
+	mockDB.
+		On("Query",
+			ctx,
+			mock.MatchedBy(func(q string) bool {
+				return strings.Contains(q, "ORDER BY city asc")
+			}),
+			mock.Anything,
+		).
+		Return(rows, nil)
+
+	_, err := repo.Filter(ctx, f)
+	assert.NoError(t, err)
+}
+
+func TestAddressFilter_SortField_Invalid(t *testing.T) {
+	mockDB := new(mockDb.MockDatabase)
+	repo := &addressFilterRepo{db: mockDB}
+	ctx := context.Background()
+	isActive := true
+
+	rows := new(mockDb.MockRows)
+	rows.On("Next").Return(false)
+	rows.On("Err").Return(nil)
+	rows.On("Close").Return()
+
+	f := &filterAddress.AddressFilter{
+		BaseFilter: filter.BaseFilter{
+			SortBy:    "invalid_field",
+			SortOrder: "asc",
+			Limit:     10,
+		},
+		IsActive: &isActive,
+	}
+
+	mockDB.
+		On("Query",
+			ctx,
+			mock.MatchedBy(func(q string) bool {
+				return strings.Contains(q, "ORDER BY created_at asc")
+			}),
+			mock.Anything,
+		).
+		Return(rows, nil)
+
+	_, err := repo.Filter(ctx, f)
+	assert.NoError(t, err)
+}
+
+func TestAddressFilter_SortOrder_Invalid(t *testing.T) {
+	mockDB := new(mockDb.MockDatabase)
+	repo := &addressFilterRepo{db: mockDB}
+	ctx := context.Background()
+	isActive := true
+
+	rows := new(mockDb.MockRows)
+	rows.On("Next").Return(false)
+	rows.On("Err").Return(nil)
+	rows.On("Close").Return()
+
+	f := &filterAddress.AddressFilter{
+		BaseFilter: filter.BaseFilter{
+			SortBy:    "created_at",
+			SortOrder: "INVALID",
+			Limit:     10,
+		},
+		IsActive: &isActive,
+	}
+
+	mockDB.
+		On("Query",
+			ctx,
+			mock.MatchedBy(func(q string) bool {
+				return strings.Contains(q, "ORDER BY created_at desc")
+			}),
+			mock.Anything,
+		).
+		Return(rows, nil)
+
+	_, err := repo.Filter(ctx, f)
+	assert.NoError(t, err)
+}
+
+func TestAddressFilter_SortOrder_Descending(t *testing.T) {
+	mockDB := new(mockDb.MockDatabase)
+	repo := &addressFilterRepo{db: mockDB}
+	ctx := context.Background()
+	isActive := true
+
+	rows := new(mockDb.MockRows)
+	rows.On("Next").Return(false)
+	rows.On("Err").Return(nil)
+	rows.On("Close").Return()
+
+	f := &filterAddress.AddressFilter{
+		BaseFilter: filter.BaseFilter{
+			SortBy:    "city",
+			SortOrder: "desc",
+			Limit:     10,
+		},
+		IsActive: &isActive,
+	}
+
+	mockDB.
+		On("Query",
+			ctx,
+			mock.MatchedBy(func(q string) bool {
+				return strings.Contains(q, "ORDER BY city desc")
+			}),
+			mock.Anything,
+		).
+		Return(rows, nil)
+
+	_, err := repo.Filter(ctx, f)
+	assert.NoError(t, err)
+}
+
+func TestAddressFilter_AllSortFields(t *testing.T) {
+	for sortField := range addressAllowedSortFields {
+		t.Run(sortField, func(t *testing.T) {
+			mockDB := new(mockDb.MockDatabase)
+			repo := &addressFilterRepo{db: mockDB}
+			ctx := context.Background()
+			isActive := true
+
+			rows := new(mockDb.MockRows)
+			rows.On("Next").Return(false)
+			rows.On("Err").Return(nil)
+			rows.On("Close").Return()
+
+			f := &filterAddress.AddressFilter{
+				BaseFilter: filter.BaseFilter{
+					SortBy:    sortField,
+					SortOrder: "asc",
+					Limit:     10,
+				},
+				IsActive: &isActive,
+			}
+
+			mockDB.
+				On("Query",
+					ctx,
+					mock.MatchedBy(func(q string) bool {
+						expectedField := addressAllowedSortFields[sortField]
+						return strings.Contains(q, "ORDER BY "+expectedField+" asc")
+					}),
+					mock.Anything,
+				).
+				Return(rows, nil)
+
+			_, err := repo.Filter(ctx, f)
+			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestAddressFilter_CaseInsensitive(t *testing.T) {
+	mockDB := new(mockDb.MockDatabase)
+	repo := &addressFilterRepo{db: mockDB}
+	ctx := context.Background()
+	isActive := true
+
+	rows := new(mockDb.MockRows)
+	rows.On("Next").Return(false)
+	rows.On("Err").Return(nil)
+	rows.On("Close").Return()
+
+	t.Run("sort field uppercase", func(t *testing.T) {
+		f := &filterAddress.AddressFilter{
+			BaseFilter: filter.BaseFilter{
+				SortBy:    "CREATED_AT",
+				SortOrder: "asc",
+				Limit:     10,
+			},
+			IsActive: &isActive,
+		}
+
+		mockDB.
+			On("Query",
+				ctx,
+				mock.MatchedBy(func(q string) bool {
+					return strings.Contains(q, "ORDER BY created_at asc")
+				}),
+				mock.Anything,
+			).
+			Return(rows, nil)
+
+		_, err := repo.Filter(ctx, f)
+		assert.NoError(t, err)
+	})
+
+	t.Run("sort order uppercase", func(t *testing.T) {
+		f := &filterAddress.AddressFilter{
+			BaseFilter: filter.BaseFilter{
+				SortBy:    "city",
+				SortOrder: "DESC",
+				Limit:     10,
+			},
+			IsActive: &isActive,
+		}
+
+		mockDB.
+			On("Query",
+				ctx,
+				mock.MatchedBy(func(q string) bool {
+					return strings.Contains(q, "ORDER BY city desc")
+				}),
+				mock.Anything,
+			).
+			Return(rows, nil)
+
+		_, err := repo.Filter(ctx, f)
+		assert.NoError(t, err)
+	})
+}
+
+// ============================================================================
+// Testes de erro
+// ============================================================================
+
+func TestAddressFilter_QueryError(t *testing.T) {
+	mockDB := new(mockDb.MockDatabase)
+	repo := &addressFilterRepo{db: mockDB}
+	ctx := context.Background()
+	isActive := true
+
+	dbErr := errors.New("db error")
 	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(nil, dbErr)
 
-	result, err := repo.Filter(ctx, &address.Address{IsActive: true})
+	f := &filterAddress.AddressFilter{
+		BaseFilter: filter.BaseFilter{Limit: 10},
+		IsActive:   &isActive,
+	}
 
-	assert.Error(t, err)
-	assert.ErrorIs(t, err, errMsg.ErrGet)
-	assert.Contains(t, err.Error(), "database connection error")
+	result, err := repo.Filter(ctx, f)
 	assert.Nil(t, result)
+	assert.ErrorIs(t, err, errMsg.ErrGet)
+	assert.Contains(t, err.Error(), "db error")
 }
 
-func TestAddressFilter_Filter_ScanError(t *testing.T) {
+func TestAddressFilter_ScanError(t *testing.T) {
 	mockDB := new(mockDb.MockDatabase)
 	repo := &addressFilterRepo{db: mockDB}
 	ctx := context.Background()
+	isActive := true
 
 	rows := new(mockDb.MockRows)
 	rows.On("Next").Return(true).Once()
@@ -195,39 +536,46 @@ func TestAddressFilter_Filter_ScanError(t *testing.T) {
 
 	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(rows, nil)
 
-	result, err := repo.Filter(ctx, &address.Address{IsActive: true})
+	f := &filterAddress.AddressFilter{
+		BaseFilter: filter.BaseFilter{Limit: 10},
+		IsActive:   &isActive,
+	}
 
-	assert.Error(t, err)
+	result, err := repo.Filter(ctx, f)
+	assert.Nil(t, result)
 	assert.ErrorIs(t, err, errMsg.ErrScan)
 	assert.Contains(t, err.Error(), "scan error")
-	assert.Nil(t, result)
 }
 
-func TestAddressFilter_Filter_RowsError(t *testing.T) {
+func TestAddressFilter_RowsError(t *testing.T) {
 	mockDB := new(mockDb.MockDatabase)
 	repo := &addressFilterRepo{db: mockDB}
 	ctx := context.Background()
+	isActive := true
 
 	rows := new(mockDb.MockRows)
 	rows.On("Next").Return(false)
-	rows.On("Err").Return(errors.New("rows iteration error"))
+	rows.On("Err").Return(errors.New("iterate error"))
 	rows.On("Close").Return()
 
 	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(rows, nil)
 
-	result, err := repo.Filter(ctx, &address.Address{IsActive: true})
+	f := &filterAddress.AddressFilter{
+		BaseFilter: filter.BaseFilter{Limit: 10},
+		IsActive:   &isActive,
+	}
 
-	assert.Error(t, err)
-	assert.ErrorIs(t, err, errMsg.ErrIterate)
-	assert.Contains(t, err.Error(), "rows iteration error")
+	result, err := repo.Filter(ctx, f)
 	assert.Nil(t, result)
+	assert.ErrorIs(t, err, errMsg.ErrIterate)
+	assert.Contains(t, err.Error(), "iterate error")
 }
 
 // ============================================================================
-// Testes do método FindActive
+// Testes de métodos auxiliares
 // ============================================================================
 
-func TestAddressFilter_FindActive_Success(t *testing.T) {
+func TestAddressFilter_FindActive(t *testing.T) {
 	mockDB := new(mockDb.MockDatabase)
 	repo := &addressFilterRepo{db: mockDB}
 	ctx := context.Background()
@@ -239,26 +587,17 @@ func TestAddressFilter_FindActive_Success(t *testing.T) {
 
 	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(rows, nil)
 
-	filter := &address.Address{City: "São Paulo"}
+	filter := &filterAddress.AddressFilter{
+		City: "São Paulo",
+	}
+
 	result, err := repo.FindActive(ctx, filter)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Empty(t, result)
-	assert.True(t, filter.IsActive)
-}
-
-func TestAddressFilter_FindActive_Error(t *testing.T) {
-	mockDB := new(mockDb.MockDatabase)
-	repo := &addressFilterRepo{db: mockDB}
-	ctx := context.Background()
-
-	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(nil, errors.New("db error"))
-
-	result, err := repo.FindActive(ctx, &address.Address{})
-
-	assert.Error(t, err)
-	assert.Nil(t, result)
+	assert.NotNil(t, filter.IsActive)
+	assert.True(t, *filter.IsActive)
 }
 
 // ============================================================================
@@ -277,26 +616,26 @@ func TestAddressFilter_FindByPostalCode_Success(t *testing.T) {
 
 	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(rows, nil)
 
-	testCases := []struct {
-		code  string
-		exact bool
-	}{
-		{"01234567", true},
-		{"01234567", false},
-		{"01234-567", true},
-		{"01234-567", false},
-		{"01.234-567", true},
-		{"01.234-567", false},
-		{"", true},
-		{"", false},
-	}
-
-	for _, tc := range testCases {
-		result, err := repo.FindByPostalCode(ctx, tc.code, tc.exact)
+	t.Run("exact match true", func(t *testing.T) {
+		result, err := repo.FindByPostalCode(ctx, "01234567", true)
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
 		assert.Empty(t, result)
-	}
+	})
+
+	t.Run("exact match false", func(t *testing.T) {
+		result, err := repo.FindByPostalCode(ctx, "01234", false)
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Empty(t, result)
+	})
+
+	t.Run("CEP com formatação", func(t *testing.T) {
+		result, err := repo.FindByPostalCode(ctx, "01234-567", true)
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Empty(t, result)
+	})
 }
 
 func TestAddressFilter_FindByPostalCode_Error(t *testing.T) {
@@ -304,33 +643,28 @@ func TestAddressFilter_FindByPostalCode_Error(t *testing.T) {
 	repo := &addressFilterRepo{db: mockDB}
 	ctx := context.Background()
 
-	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(nil, errors.New("db error"))
+	dbErr := errors.New("database connection error")
+	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(nil, dbErr)
 
-	result, err := repo.FindByPostalCode(ctx, "01234567", true)
+	t.Run("error with exactMatch true", func(t *testing.T) {
+		result, err := repo.FindByPostalCode(ctx, "01234567", true)
 
-	assert.Error(t, err)
-	assert.Nil(t, result)
-}
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "database connection error")
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+	})
 
-// Teste específico para cobrir o trecho "if result == nil" no FindByPostalCode
-func TestAddressFilter_FindByPostalCode_NilResult(t *testing.T) {
-	// Similar ao FindActive, o Filter nunca retorna nil devido ao make
-	mockDB := new(mockDb.MockDatabase)
-	repo := &addressFilterRepo{db: mockDB}
-	ctx := context.Background()
+	t.Run("error with exactMatch false", func(t *testing.T) {
+		result, err := repo.FindByPostalCode(ctx, "01234", false)
 
-	rows := new(mockDb.MockRows)
-	rows.On("Next").Return(false)
-	rows.On("Err").Return(nil)
-	rows.On("Close").Return()
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "database connection error")
+		assert.ErrorIs(t, err, errMsg.ErrGet)
+	})
 
-	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(rows, nil)
-
-	result, err := repo.FindByPostalCode(ctx, "01234567", true)
-
-	assert.NoError(t, err)
-	assert.NotNil(t, result) // Não é nil, então o if não é executado
-	assert.Empty(t, result)
+	mockDB.AssertExpectations(t)
 }
 
 // ============================================================================
@@ -350,20 +684,23 @@ func TestAddressFilter_FindByCityAndState_Success(t *testing.T) {
 	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(rows, nil)
 
 	testCases := []struct {
+		name  string
 		city  string
 		state string
 	}{
-		{"São Paulo", "SP"},
-		{"Rio de Janeiro", "RJ"},
-		{"", ""},
-		{" ", " "},
+		{"cidade e estado preenchidos", "São Paulo", "SP"},
+		{"cidade vazia", "", "SP"},
+		{"estado vazio", "São Paulo", ""},
+		{"ambos vazios", "", ""},
 	}
 
 	for _, tc := range testCases {
-		result, err := repo.FindByCityAndState(ctx, tc.city, tc.state)
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
-		assert.Empty(t, result)
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := repo.FindByCityAndState(ctx, tc.city, tc.state)
+			assert.NoError(t, err)
+			assert.NotNil(t, result)
+			assert.Empty(t, result)
+		})
 	}
 }
 
@@ -378,26 +715,8 @@ func TestAddressFilter_FindByCityAndState_Error(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-}
-
-// Teste específico para cobrir o trecho "if result == nil" no FindByCityAndState
-func TestAddressFilter_FindByCityAndState_NilResult(t *testing.T) {
-	mockDB := new(mockDb.MockDatabase)
-	repo := &addressFilterRepo{db: mockDB}
-	ctx := context.Background()
-
-	rows := new(mockDb.MockRows)
-	rows.On("Next").Return(false)
-	rows.On("Err").Return(nil)
-	rows.On("Close").Return()
-
-	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(rows, nil)
-
-	result, err := repo.FindByCityAndState(ctx, "São Paulo", "SP")
-
-	assert.NoError(t, err)
-	assert.NotNil(t, result) // Não é nil, então o if não é executado
-	assert.Empty(t, result)
+	assert.Contains(t, err.Error(), "db error")
+	mockDB.AssertExpectations(t)
 }
 
 // ============================================================================
@@ -421,6 +740,7 @@ func TestAddressFilter_FindByPostalCodeV2_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Empty(t, result)
+	mockDB.AssertExpectations(t)
 }
 
 func TestAddressFilter_FindByPostalCodeV2_Error(t *testing.T) {
@@ -434,10 +754,14 @@ func TestAddressFilter_FindByPostalCodeV2_Error(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
+	mockDB.AssertExpectations(t)
 }
 
-// Teste específico para cobrir o retorno de ensureNonNilSlice no FindByPostalCodeV2
-func TestAddressFilter_FindByPostalCodeV2_WithEnsureNonNilSlice(t *testing.T) {
+// ============================================================================
+// Testes do método FindByPostalCodeImproved
+// ============================================================================
+
+func TestAddressFilter_FindByPostalCodeImproved_Success(t *testing.T) {
 	mockDB := new(mockDb.MockDatabase)
 	repo := &addressFilterRepo{db: mockDB}
 	ctx := context.Background()
@@ -449,12 +773,33 @@ func TestAddressFilter_FindByPostalCodeV2_WithEnsureNonNilSlice(t *testing.T) {
 
 	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(rows, nil)
 
-	// O Filter retorna slice vazia, ensureNonNilSlice retorna a mesma slice
-	result, err := repo.FindByPostalCodeV2(ctx, "01234567", true)
+	t.Run("exact match true", func(t *testing.T) {
+		result, err := repo.FindByPostalCodeImproved(ctx, "01234567", true)
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Empty(t, result)
+	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Empty(t, result)
+	t.Run("exact match false", func(t *testing.T) {
+		result, err := repo.FindByPostalCodeImproved(ctx, "01234-567", false)
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Empty(t, result)
+	})
+}
+
+func TestAddressFilter_FindByPostalCodeImproved_Error(t *testing.T) {
+	mockDB := new(mockDb.MockDatabase)
+	repo := &addressFilterRepo{db: mockDB}
+	ctx := context.Background()
+
+	mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(nil, errors.New("db error"))
+
+	result, err := repo.FindByPostalCodeImproved(ctx, "01234567", true)
+
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	mockDB.AssertExpectations(t)
 }
 
 // ============================================================================
@@ -462,22 +807,22 @@ func TestAddressFilter_FindByPostalCodeV2_WithEnsureNonNilSlice(t *testing.T) {
 // ============================================================================
 
 func TestEnsureNonNilSlice(t *testing.T) {
-	addr1 := &address.Address{ID: 1}
-	addr2 := &address.Address{ID: 2}
+	addr1 := &model.Address{ID: 1, Street: "Rua 1"}
+	addr2 := &model.Address{ID: 2, Street: "Rua 2"}
 
 	tests := []struct {
 		name  string
-		input []*address.Address
+		input []*model.Address
 	}{
 		{"slice nil", nil},
-		{"slice vazia", []*address.Address{}},
-		{"um elemento", []*address.Address{addr1}},
-		{"dois elementos", []*address.Address{addr1, addr2}},
+		{"slice vazia", []*model.Address{}},
+		{"um elemento", []*model.Address{addr1}},
+		{"dois elementos", []*model.Address{addr1, addr2}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := ensureNonNilSlice(tt.input)
+			result := ensureNonNilAddressSlice(tt.input)
 
 			assert.NotNil(t, result)
 			assert.Len(t, result, len(tt.input))
@@ -490,10 +835,56 @@ func TestEnsureNonNilSlice(t *testing.T) {
 }
 
 // ============================================================================
-// Teste para o mapa de campos de ordenação
+// Testes de limite/offset
+// ============================================================================
+
+func TestAddressFilter_LimitOffset(t *testing.T) {
+	cases := []struct {
+		name   string
+		limit  int
+		offset int
+	}{
+		{"limit 0 offset 0", 0, 0},
+		{"limit 10 offset 0", 10, 0},
+		{"limit 50 offset 100", 50, 100},
+		{"limit 100 offset 1000", 100, 1000},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockDB := new(mockDb.MockDatabase)
+			repo := &addressFilterRepo{db: mockDB}
+			ctx := context.Background()
+			isActive := true
+
+			rows := new(mockDb.MockRows)
+			rows.On("Next").Return(false)
+			rows.On("Err").Return(nil)
+			rows.On("Close").Return()
+
+			f := &filterAddress.AddressFilter{
+				BaseFilter: filter.BaseFilter{
+					Limit:  tc.limit,
+					Offset: tc.offset,
+				},
+				City:     "São Paulo",
+				IsActive: &isActive,
+			}
+
+			mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(rows, nil)
+
+			_, err := repo.Filter(ctx, f)
+			assert.NoError(t, err)
+		})
+	}
+}
+
+// ============================================================================
+// Testes do mapa de campos de ordenação
 // ============================================================================
 
 func TestAddressAllowedSortFields(t *testing.T) {
+	// Campos que DEVEM existir no mapa
 	expectedFields := []string{
 		"id", "user_id", "client_cpf_id", "supplier_id",
 		"street", "street_number", "city", "state",
@@ -502,17 +893,35 @@ func TestAddressAllowedSortFields(t *testing.T) {
 
 	for _, field := range expectedFields {
 		t.Run(field, func(t *testing.T) {
-			mappedField, exists := addressAllowedSortFields[field]
-			assert.True(t, exists, "Campo %s deve existir no mapa", field)
-			assert.Equal(t, field, mappedField)
+			lowerField := strings.ToLower(field)
+			_, exists := addressAllowedSortFields[lowerField]
+			assert.True(t, exists, "Campo %s deve estar em addressAllowedSortFields", field)
 		})
 	}
 
-	invalidFields := []string{"invalid", "name", "email", ""}
+	// Campos que NÃO devem existir no mapa
+	invalidFields := []string{"invalid", "name", "email", "description", "phone", ""}
 	for _, field := range invalidFields {
 		t.Run("invalid_"+field, func(t *testing.T) {
 			_, exists := addressAllowedSortFields[field]
-			assert.False(t, exists, "Campo %s não deve existir no mapa", field)
+			assert.False(t, exists, "Campo %s não deve estar em addressAllowedSortFields", field)
 		})
 	}
+
+	t.Run("field normalization", func(t *testing.T) {
+		testField := "CrEaTeD_At"
+		lowerField := strings.ToLower(testField)
+		mappedField, exists := addressAllowedSortFields[lowerField]
+
+		assert.True(t, exists)
+		assert.Equal(t, "created_at", mappedField)
+	})
+}
+
+// ============================================================================
+// Helper functions
+// ============================================================================
+
+func boolPtr(b bool) *bool {
+	return &b
 }

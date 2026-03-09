@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
-	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/client_cpf"
+	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/client_cpf/client_cpf"
 	filter "github.com/WagaoCarvalho/backend_store_go/internal/handler/client_cpf/filter"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
