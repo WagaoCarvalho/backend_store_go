@@ -27,7 +27,6 @@ func RegisterAddressRoutes(
 	log *logger.LogAdapter,
 	blacklist jwtMiddlewares.TokenBlacklist,
 ) {
-	// Load server configuration
 	serverConfig := config.LoadServerConfig()
 	baseURL := serverConfig.BaseURL
 	idPath := serverConfig.IDPath
@@ -56,16 +55,17 @@ func RegisterAddressRoutes(
 
 	s.Use(jwtMiddlewares.IsAuthByBearerToken(blacklist, log, jwtManager))
 
-	// Use the configuration values for routes
-	s.HandleFunc(baseURL+"/addresses", handler.Create).Methods(http.MethodPost)
+	const addresses = "/addresses"
 
-	s.HandleFunc(baseURL+idPath+"/addresses", handler.GetByID).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+addresses, handler.Create).Methods(http.MethodPost)
 
-	s.HandleFunc(baseURL+idPath+"/addresses", handler.Update).Methods(http.MethodPut)
-	s.HandleFunc(baseURL+idPath+"/addresses", handler.Delete).Methods(http.MethodDelete)
+	s.HandleFunc(baseURL+idPath+addresses, handler.GetByID).Methods(http.MethodGet)
 
-	s.HandleFunc(baseURL+idPath+"/addresses/enable", handler.Enable).Methods(http.MethodPatch)
-	s.HandleFunc(baseURL+idPath+"/addresses/disable", handler.Disable).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+idPath+addresses, handler.Update).Methods(http.MethodPut)
+	s.HandleFunc(baseURL+idPath+addresses, handler.Delete).Methods(http.MethodDelete)
 
-	s.HandleFunc(baseURL+"/addresses/filter", filter.Filter).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+idPath+addresses+"/enable", handler.Enable).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+idPath+addresses+"/disable", handler.Disable).Methods(http.MethodPatch)
+
+	s.HandleFunc(baseURL+addresses+"/filter", filter.Filter).Methods(http.MethodGet)
 }
