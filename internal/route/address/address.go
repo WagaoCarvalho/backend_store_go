@@ -27,6 +27,11 @@ func RegisterAddressRoutes(
 	log *logger.LogAdapter,
 	blacklist jwtMiddlewares.TokenBlacklist,
 ) {
+	// Load server configuration
+	serverConfig := config.LoadServerConfig()
+	baseURL := serverConfig.BaseURL
+	idPath := serverConfig.IDPath
+
 	repoAddress := repoAddress.NewAddress(db)
 	repoClientCpf := repoClientCpf.NewClientCpfRepo(db)
 	repoUser := repoUser.NewUser(db)
@@ -49,28 +54,18 @@ func RegisterAddressRoutes(
 
 	s := r.PathPrefix("/").Subrouter()
 
-	const (
-		baseUrl   = "/api/v1"
-		idPath    = "/{id:[0-9]+}"
-		addresses = "/addresses"
-	)
-
 	s.Use(jwtMiddlewares.IsAuthByBearerToken(blacklist, log, jwtManager))
 
-	s.HandleFunc(baseUrl+addresses, handler.Create).Methods(http.MethodPost)
+	// Use the configuration values for routes
+	s.HandleFunc(baseURL+"/addresses", handler.Create).Methods(http.MethodPost)
 
-	s.HandleFunc(baseUrl+idPath+addresses, handler.GetByID).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+idPath+"/addresses", handler.GetByID).Methods(http.MethodGet)
 
-	s.HandleFunc(baseUrl+idPath+addresses, handler.GetByUserID).Methods(http.MethodGet)
-	s.HandleFunc(baseUrl+idPath+addresses, handler.GetByClientCpfID).Methods(http.MethodGet)
-	s.HandleFunc(baseUrl+idPath+addresses, handler.GetBySupplierID).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+idPath+"/addresses", handler.Update).Methods(http.MethodPut)
+	s.HandleFunc(baseURL+idPath+"/addresses", handler.Delete).Methods(http.MethodDelete)
 
-	s.HandleFunc(baseUrl+idPath+addresses, handler.Update).Methods(http.MethodPut)
-	s.HandleFunc(baseUrl+idPath+addresses, handler.Delete).Methods(http.MethodDelete)
+	s.HandleFunc(baseURL+idPath+"/addresses/enable", handler.Enable).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+idPath+"/addresses/disable", handler.Disable).Methods(http.MethodPatch)
 
-	s.HandleFunc(baseUrl+idPath+addresses+"/enable", handler.Enable).Methods(http.MethodPatch)
-	s.HandleFunc(baseUrl+idPath+addresses+"/disable", handler.Disable).Methods(http.MethodPatch)
-
-	s.HandleFunc(baseUrl+addresses+"/filter", filter.Filter).Methods(http.MethodGet)
-
+	s.HandleFunc(baseURL+"/addresses/filter", filter.Filter).Methods(http.MethodGet)
 }

@@ -15,6 +15,8 @@ import (
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/db"
 	routesAddress "github.com/WagaoCarvalho/backend_store_go/internal/route/address"
 	routesClient "github.com/WagaoCarvalho/backend_store_go/internal/route/client_cpf"
+	routesContact "github.com/WagaoCarvalho/backend_store_go/internal/route/contact"
+	routesLogin "github.com/WagaoCarvalho/backend_store_go/internal/route/login"
 	routesProduct "github.com/WagaoCarvalho/backend_store_go/internal/route/product"
 	routesSale "github.com/WagaoCarvalho/backend_store_go/internal/route/sale"
 	routesSupplier "github.com/WagaoCarvalho/backend_store_go/internal/route/supplier"
@@ -40,7 +42,8 @@ func NewRouter(log *logger.LogAdapter) *mux.Router {
 
 	r.HandleFunc("/", handlers.GetHome).Methods(http.MethodGet)
 
-	RegisterLoginRoutes(r, db, log, blacklist)
+	//Login
+	routesLogin.RegisterLoginRoutes(r, db, log, blacklist)
 
 	//Suupliers
 	routesSupplier.RegisterSupplierRoutes(r, db, log, blacklist)
@@ -71,7 +74,7 @@ func NewRouter(log *logger.LogAdapter) *mux.Router {
 	routesAddress.RegisterAddressRoutes(r, db, log, blacklist)
 
 	//Contacts
-	RegisterContactRoutes(r, db, log, blacklist)
+	routesContact.RegisterContactRoutes(r, db, log, blacklist)
 
 	return r
 }
