@@ -11,16 +11,12 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-// addressTx implementa operações transacionais de Address.
-// Não mantém referência ao pool, pois opera exclusivamente sobre pgx.Tx.
 type addressTx struct{}
 
-// NewAddressTx cria o repositório transacional de Address.
 func NewAddressTx() ifaceTx.AddressTx {
 	return &addressTx{}
 }
 
-// CreateTx cria um endereço dentro de uma transação já aberta.
 func (r *addressTx) CreateTx(
 	ctx context.Context,
 	tx pgx.Tx,

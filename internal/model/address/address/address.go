@@ -29,7 +29,6 @@ type Address struct {
 func (a *Address) Validate() error {
 	var errs validators.ValidationErrors
 
-	// --- Associação ---
 	if !validators.ValidateSingleNonNil(a.UserID, a.ClientCpfID, a.SupplierID) {
 		errs = append(errs, validators.ValidationError{
 			Field:   "user_id/client_cpf_id/supplier_id",
@@ -37,7 +36,6 @@ func (a *Address) Validate() error {
 		})
 	}
 
-	// --- Street ---
 	if validators.IsBlank(a.Street) {
 		errs = append(errs, validators.ValidationError{Field: "street", Message: validators.MsgRequiredField})
 	} else {
@@ -49,7 +47,6 @@ func (a *Address) Validate() error {
 		}
 	}
 
-	// --- StreetNumber ---
 	if len(a.StreetNumber) > 20 {
 		errs = append(errs, validators.ValidationError{Field: "street_number", Message: "street_number max 20 characters"})
 	}
@@ -60,33 +57,28 @@ func (a *Address) Validate() error {
 		})
 	}
 
-	// --- Complement ---
 	if len(a.Complement) > 255 {
 		errs = append(errs, validators.ValidationError{Field: "complement", Message: "complement max 255 characters"})
 	}
 
-	// --- City ---
 	if validators.IsBlank(a.City) {
 		errs = append(errs, validators.ValidationError{Field: "city", Message: validators.MsgRequiredField})
 	} else if len(a.City) < 2 {
 		errs = append(errs, validators.ValidationError{Field: "city", Message: validators.MsgMin2})
 	}
 
-	// --- State ---
 	if validators.IsBlank(a.State) {
 		errs = append(errs, validators.ValidationError{Field: "state", Message: validators.MsgRequiredField})
 	} else if !valAddress.IsValidBrazilianState(a.State) {
 		errs = append(errs, validators.ValidationError{Field: "state", Message: validators.MsgInvalidState})
 	}
 
-	// --- Country ---
 	if validators.IsBlank(a.Country) {
 		errs = append(errs, validators.ValidationError{Field: "country", Message: validators.MsgRequiredField})
 	} else if !validators.EqualsIgnoreCaseAndTrim(a.Country, "Brasil") {
 		errs = append(errs, validators.ValidationError{Field: "country", Message: validators.MsgInvalidCountry})
 	}
 
-	// --- PostalCode ---
 	if validators.IsBlank(a.PostalCode) {
 		errs = append(errs, validators.ValidationError{Field: "postal_code", Message: validators.MsgRequiredField})
 	} else if !valAddress.IsValidPostalCode(a.PostalCode) {

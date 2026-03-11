@@ -110,7 +110,6 @@ func TestAddressHandler_Create_AllCases(t *testing.T) {
 	t.Run("InvalidJSON", func(t *testing.T) {
 		h, _ := newHandler(t)
 
-		// JSON malformado - falta a chave de fechamento
 		invalidJSON := []byte(`{"street": "Rua Teste", "number": "123"`)
 
 		w := httptest.NewRecorder()
@@ -123,22 +122,19 @@ func TestAddressHandler_Create_AllCases(t *testing.T) {
 		assert.Equal(t, "JSON inválido", resp.Message)
 		assert.Equal(t, http.StatusBadRequest, resp.Status)
 
-		// Verificar que o serviço NÃO foi chamado
 		mockSvc := new(mockAddress.MockAddress)
 		hWithMock, _ := newHandler(t)
-		hWithMock.service = mockSvc // Substitui o serviço pelo mock limpo
+		hWithMock.service = mockSvc
 
 		w2 := httptest.NewRecorder()
 		hWithMock.Create(w2, newReq(http.MethodPost, "/addresses", invalidJSON, nil))
 
-		// Assert que o mock não teve interações
 		mockSvc.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 	})
 
 	t.Run("EmptyBody", func(t *testing.T) {
 		h, _ := newHandler(t)
 
-		// Corpo vazio
 		emptyBody := []byte{}
 
 		w := httptest.NewRecorder()
@@ -154,7 +150,6 @@ func TestAddressHandler_Create_AllCases(t *testing.T) {
 	t.Run("InvalidJSONSyntax", func(t *testing.T) {
 		h, _ := newHandler(t)
 
-		// JSON com sintaxe completamente inválida
 		invalidJSON := []byte(`{invalid json syntax}`)
 
 		w := httptest.NewRecorder()
@@ -170,8 +165,6 @@ func TestAddressHandler_Create_AllCases(t *testing.T) {
 	t.Run("InvalidDataType", func(t *testing.T) {
 		h, _ := newHandler(t)
 
-		// JSON válido sintaticamente, mas com tipo de dado errado para o campo
-		// Supondo que UserID deve ser int64, mas está sendo enviado como string
 		invalidDataTypeJSON := []byte(`{"user_id": "not_a_number"}`)
 
 		w := httptest.NewRecorder()
@@ -187,7 +180,6 @@ func TestAddressHandler_Create_AllCases(t *testing.T) {
 	t.Run("JSONArrayInsteadOfObject", func(t *testing.T) {
 		h, _ := newHandler(t)
 
-		// Enviando array em vez de objeto
 		arrayJSON := []byte(`[{"street": "Rua Teste"}]`)
 
 		w := httptest.NewRecorder()
@@ -307,8 +299,6 @@ func TestAddressHandler_Update_AllCases(t *testing.T) {
 		assert.Equal(t, "Endereço atualizado com sucesso", resp.Message)
 	})
 
-	// Testes de ID inválido - APENAS IDs que GetIDParam rejeita
-	// Se GetIDParam aceita IDs negativos e zero, precisamos testar o que ELE rejeita
 	invalidIDTests := []struct {
 		name string
 		id   string
@@ -335,11 +325,9 @@ func TestAddressHandler_Update_AllCases(t *testing.T) {
 		})
 	}
 
-	// Testes para IDs que GetIDParam ACEITA, mas que o serviço pode rejeitar
 	t.Run("ZeroID_ServiceRejects", func(t *testing.T) {
 		h, svc := newHandler(t)
 
-		// GetIDParam aceita "0", mas o serviço rejeita com ErrZeroID
 		svc.On("Update", mock.Anything, mock.Anything).
 			Return(errMsg.ErrZeroID)
 
@@ -357,17 +345,13 @@ func TestAddressHandler_Update_AllCases(t *testing.T) {
 	t.Run("NegativeID_ServiceRejects", func(t *testing.T) {
 		h, svc := newHandler(t)
 
-		// GetIDParam aceita "-1", mas o serviço pode rejeitar
-		// Vamos assumir que o serviço também retorna ErrZeroID ou similar
 		svc.On("Update", mock.Anything, mock.Anything).
-			Return(errMsg.ErrZeroID) // ou outro erro apropriado
+			Return(errMsg.ErrZeroID)
 
 		body := []byte(`{"city":"SP"}`)
 		w := httptest.NewRecorder()
 		h.Update(w, newReq(http.MethodPut, "/addresses/-1", body, map[string]string{"id": "-1"}))
 
-		// Aqui o handler chama o serviço, que retorna erro
-		// Então o status deve ser BadRequest (do serviço)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
 		var resp utils.DefaultResponse
@@ -380,7 +364,7 @@ func TestAddressHandler_Update_AllCases(t *testing.T) {
 
 		body := []byte(`{"city":"SP"}`)
 		req := httptest.NewRequest(http.MethodPut, "/addresses/", bytes.NewBuffer(body))
-		// IMPORTANTE: Não use mux.SetURLVars - para simular ID ausente
+
 		w := httptest.NewRecorder()
 		h.Update(w, req)
 
@@ -394,7 +378,6 @@ func TestAddressHandler_Update_AllCases(t *testing.T) {
 	t.Run("InvalidJSON_BeforeIDCheck", func(t *testing.T) {
 		h, _ := newHandler(t)
 
-		// JSON inválido - deve ser verificado antes do ID
 		invalidJSON := []byte(`{invalid json`)
 		w := httptest.NewRecorder()
 		h.Update(w, newReq(http.MethodPut, "/addresses/1", invalidJSON, map[string]string{"id": "1"}))
@@ -422,7 +405,6 @@ func TestAddressHandler_Delete_AllCases(t *testing.T) {
 		assert.Empty(t, w.Body.String())
 	})
 
-	// Testes para IDs que GetIDParam rejeita
 	invalidIDTests := []struct {
 		name string
 		id   string
@@ -452,7 +434,6 @@ func TestAddressHandler_Delete_AllCases(t *testing.T) {
 	t.Run("ZeroID_ServiceRejects", func(t *testing.T) {
 		h, svc := newHandler(t)
 
-		// GetIDParam aceita "0", mas o serviço rejeita com ErrZeroID
 		svc.On("Delete", mock.Anything, int64(0)).
 			Return(errMsg.ErrZeroID)
 
@@ -469,9 +450,8 @@ func TestAddressHandler_Delete_AllCases(t *testing.T) {
 	t.Run("NegativeID_ServiceRejects", func(t *testing.T) {
 		h, svc := newHandler(t)
 
-		// GetIDParam aceita "-1", mas o serviço rejeita
 		svc.On("Delete", mock.Anything, int64(-1)).
-			Return(errMsg.ErrZeroID) // ou outro erro apropriado
+			Return(errMsg.ErrZeroID)
 
 		w := httptest.NewRecorder()
 		h.Delete(w, newReq(http.MethodDelete, "/addresses/-1", nil, map[string]string{"id": "-1"}))
@@ -486,7 +466,6 @@ func TestAddressHandler_Delete_AllCases(t *testing.T) {
 	t.Run("MissingIDParam", func(t *testing.T) {
 		h, _ := newHandler(t)
 
-		// Request sem variáveis de URL
 		req := httptest.NewRequest(http.MethodDelete, "/addresses", nil)
 		w := httptest.NewRecorder()
 		h.Delete(w, req)
@@ -535,7 +514,6 @@ func TestAddressHandler_Delete_AllCases(t *testing.T) {
 	t.Run("DifferentErrorTypes", func(t *testing.T) {
 		h, svc := newHandler(t)
 
-		// Erro não mapeado
 		customErr := errors.New("custom database error")
 		svc.On("Delete", mock.Anything, int64(2)).
 			Return(customErr)
@@ -553,7 +531,6 @@ func TestAddressHandler_Delete_AllCases(t *testing.T) {
 	t.Run("BodyInDeleteRequest", func(t *testing.T) {
 		h, svc := newHandler(t)
 
-		// DELETE requests podem ter corpo, mas geralmente ignoramos
 		svc.On("Delete", mock.Anything, int64(1)).Return(nil)
 
 		body := []byte(`{"unused": "data"}`)
@@ -567,20 +544,18 @@ func TestAddressHandler_Delete_AllCases(t *testing.T) {
 	t.Run("SuccessLogging", func(t *testing.T) {
 		h, svc := newHandler(t)
 
-		// Teste para garantir que o logger é chamado no sucesso
 		svc.On("Delete", mock.Anything, int64(123)).Return(nil)
 
 		w := httptest.NewRecorder()
 		h.Delete(w, newReq(http.MethodDelete, "/addresses/123", nil, map[string]string{"id": "123"}))
 
 		assert.Equal(t, http.StatusNoContent, w.Code)
-		// Não podemos verificar o logger diretamente, mas o código deve executar sem panic
+
 	})
 
 	t.Run("ConcurrentDeleteCalls", func(t *testing.T) {
 		h, svc := newHandler(t)
 
-		// Teste para múltiplas chamadas simultâneas
 		svc.On("Delete", mock.Anything, int64(1)).Return(nil).Times(3)
 
 		var wg sync.WaitGroup
@@ -601,16 +576,11 @@ func TestAddressHandler_Delete_AllCases(t *testing.T) {
 	t.Run("DifferentHTTPMethods", func(t *testing.T) {
 		h, svc := newHandler(t)
 
-		// DELETE é o método esperado, mas testamos que o handler só responde ao DELETE
-		// (isso é mais para documentação, já que o router cuida disso)
 		svc.On("Delete", mock.Anything, int64(1)).Return(nil)
 
-		// Teste com método correto
 		w := httptest.NewRecorder()
 		h.Delete(w, newReq(http.MethodDelete, "/addresses/1", nil, map[string]string{"id": "1"}))
 		assert.Equal(t, http.StatusNoContent, w.Code)
 
-		// O handler não deve aceitar outros métodos, mas isso é controlado pelo router
-		// Não é necessário testar aqui
 	})
 }

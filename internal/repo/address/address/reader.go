@@ -19,7 +19,6 @@ const baseSelectAddress = `
 	FROM addresses
 `
 
-// GetByID retrieves an address by its ID
 func (r *addressRepo) GetByID(ctx context.Context, id int64) (*models.Address, error) {
 	const query = baseSelectAddress + ` WHERE id = $1`
 
@@ -36,12 +35,10 @@ func (r *addressRepo) GetByID(ctx context.Context, id int64) (*models.Address, e
 	return addr, nil
 }
 
-// scanner interface for rows and row
 type scanner interface {
 	Scan(dest ...any) error
 }
 
-// scanAddress scans a row into an Address model
 func scanAddress(s scanner) (*models.Address, error) {
 	var addr models.Address
 

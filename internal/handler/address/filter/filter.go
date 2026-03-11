@@ -18,7 +18,6 @@ func (h *addressFilterHandler) Filter(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	const ref = "[addressHandler - Filter] "
 
-	// 1. Validar query parameters
 	if err := h.validateQueryParams(r); err != nil {
 		h.logger.Warn(ctx, ref+"validação de parâmetros falhou", map[string]any{
 			"erro":  err.Error(),
@@ -28,7 +27,6 @@ func (h *addressFilterHandler) Filter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 2. Parsear filtros
 	dtoFilter, err := h.parseFilterDTO(r)
 	if err != nil {
 		h.logger.Warn(ctx, ref+"erro ao parsear filtros", map[string]any{
@@ -39,7 +37,6 @@ func (h *addressFilterHandler) Filter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. Validar DTO
 	if err := dtoFilter.Validate(); err != nil {
 		h.logger.Warn(ctx, ref+"validação de DTO falhou", map[string]any{
 			"erro": err.Error(),
@@ -49,7 +46,6 @@ func (h *addressFilterHandler) Filter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 4. Converter para modelo
 	filter, err := dtoFilter.ToModel()
 	if err != nil {
 		h.logger.Warn(ctx, ref+"erro ao converter filtro", map[string]any{
@@ -62,7 +58,6 @@ func (h *addressFilterHandler) Filter(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info(ctx, ref+logger.LogGetInit, map[string]any{"filtro": dtoFilter})
 
-	// 5. Executar filtro
 	addresses, err := h.service.Filter(ctx, filter)
 	if err != nil {
 		if errors.Is(err, errMsg.ErrInvalidFilter) {
@@ -75,7 +70,6 @@ func (h *addressFilterHandler) Filter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 6. Preparar resposta
 	addressDTOs := dto.ToAddressDTOs(addresses)
 
 	h.logger.Info(ctx, ref+logger.LogGetSuccess, map[string]any{
@@ -120,7 +114,6 @@ func (h *addressFilterHandler) validateQueryParams(r *http.Request) error {
 
 	query := r.URL.Query()
 
-	// Verificar parâmetros desconhecidos
 	for param := range query {
 		paramLower := strings.ToLower(param)
 		if !allowedParams[paramLower] {
@@ -135,7 +128,6 @@ func (h *addressFilterHandler) parseFilterDTO(r *http.Request) (filterDTO.Addres
 	var dto filterDTO.AddressFilterDTO
 	query := r.URL.Query()
 
-	// IDs (int64)
 	if v := strings.TrimSpace(query.Get("user_id")); v != "" {
 		parsed, err := strconv.ParseInt(v, 10, 64)
 		if err != nil {
@@ -169,7 +161,6 @@ func (h *addressFilterHandler) parseFilterDTO(r *http.Request) (filterDTO.Addres
 		dto.SupplierID = &parsed
 	}
 
-	// Campos de texto
 	dto.Street = strings.TrimSpace(query.Get("street"))
 	dto.StreetNumber = strings.TrimSpace(query.Get("street_number"))
 	dto.Complement = strings.TrimSpace(query.Get("complement"))
@@ -178,7 +169,6 @@ func (h *addressFilterHandler) parseFilterDTO(r *http.Request) (filterDTO.Addres
 	dto.Country = strings.TrimSpace(query.Get("country"))
 	dto.PostalCode = strings.TrimSpace(query.Get("postal_code"))
 
-	// IsActive (boolean)
 	if v := strings.TrimSpace(query.Get("is_active")); v != "" {
 		parsed, err := strconv.ParseBool(v)
 		if err != nil {
@@ -187,13 +177,11 @@ func (h *addressFilterHandler) parseFilterDTO(r *http.Request) (filterDTO.Addres
 		dto.IsActive = &parsed
 	}
 
-	// Datas
 	dto.CreatedFrom = h.parseTimeParam(query, "created_from")
 	dto.CreatedTo = h.parseTimeParam(query, "created_to")
 	dto.UpdatedFrom = h.parseTimeParam(query, "updated_from")
 	dto.UpdatedTo = h.parseTimeParam(query, "updated_to")
 
-	// Validar formatos de data (se algum foi fornecido)
 	if v := query.Get("created_from"); v != "" && dto.CreatedFrom == nil {
 		return dto, errors.New("formato de data inválido para 'created_from': use formato RFC3339 (ex: 2024-01-01T00:00:00Z) ou YYYY-MM-DD")
 	}
@@ -207,7 +195,6 @@ func (h *addressFilterHandler) parseFilterDTO(r *http.Request) (filterDTO.Addres
 		return dto, errors.New("formato de data inválido para 'updated_to': use formato RFC3339 ou YYYY-MM-DD")
 	}
 
-	// Paginação e ordenação
 	dto.Limit, dto.Offset = utils.GetPaginationParams(r)
 	dto.SortBy = strings.TrimSpace(query.Get("sort_by"))
 	dto.SortOrder = strings.TrimSpace(query.Get("sort_order"))
@@ -226,12 +213,11 @@ func (h *addressFilterHandler) parseTimeParam(query map[string][]string, param s
 		return nil
 	}
 
-	// Tentar diferentes formatos de data
 	formats := []string{
-		time.RFC3339,          // "2006-01-02T15:04:05Z07:00"
-		"2006-01-02T15:04:05", // Sem timezone
-		"2006-01-02 15:04:05", // MySQL datetime format
-		"2006-01-02",          // Date only
+		time.RFC3339,
+		"2006-01-02T15:04:05",
+		"2006-01-02 15:04:05",
+		"2006-01-02",
 	}
 
 	for _, format := range formats {
@@ -244,7 +230,6 @@ func (h *addressFilterHandler) parseTimeParam(query map[string][]string, param s
 	return nil
 }
 
-// Função auxiliar para contar filtros aplicados
 func countFiltersApplied(dto filterDTO.AddressFilterDTO) int {
 	count := 0
 

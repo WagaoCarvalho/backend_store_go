@@ -63,7 +63,7 @@ func TestAddressDTO_ToModel(t *testing.T) {
 				State:      "RJ",
 				Country:    "Brasil",
 				PostalCode: "87654321",
-				IsActive:   true, // default
+				IsActive:   true,
 			},
 		},
 	}
@@ -151,7 +151,7 @@ func TestToAddressDTOs(t *testing.T) {
 		input := []*models.Address{address1, nil, address2}
 		result := dto.ToAddressDTOs(input)
 
-		assert.Len(t, result, 2) // ignora o nil
+		assert.Len(t, result, 2)
 		assert.Equal(t, address1.ID, *result[0].ID)
 		assert.Equal(t, address2.ID, *result[1].ID)
 	})
@@ -160,7 +160,7 @@ func TestToAddressDTOs(t *testing.T) {
 		input := []*models.Address{}
 		result := dto.ToAddressDTOs(input)
 
-		assert.NotNil(t, result) // deve retornar slice vazio, não nil
+		assert.NotNil(t, result)
 		assert.Empty(t, result)
 	})
 }

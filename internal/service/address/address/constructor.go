@@ -14,7 +14,6 @@ type addressService struct {
 	supplierRepo  repoSupplier.Supplier
 }
 
-// Retorna a interface da camada de serviço
 func NewAddressService(
 	addressRepo repoAddress.Address,
 	clientCpfRepo repoClientCpf.ClientCpf,

@@ -154,7 +154,6 @@ func TestAddress_Update(t *testing.T) {
 			IsActive:     true,
 		}
 
-		// Simula QueryRow retornando ErrNoRows
 		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
 			Return(mockDb.MockRow{Err: pgx.ErrNoRows}, nil)
 

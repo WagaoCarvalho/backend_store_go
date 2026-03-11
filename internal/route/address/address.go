@@ -5,7 +5,7 @@ import (
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/address/address"
-	filter "github.com/WagaoCarvalho/backend_store_go/internal/handler/address/filter"
+	handlerFilter "github.com/WagaoCarvalho/backend_store_go/internal/handler/address/filter"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
 	jwtMiddlewares "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
@@ -31,16 +31,17 @@ func RegisterAddressRoutes(
 	baseURL := serverConfig.BaseURL
 	idPath := serverConfig.IDPath
 
-	repoAddress := repoAddress.NewAddress(db)
-	repoClientCpf := repoClientCpf.NewClientCpfRepo(db)
-	repoUser := repoUser.NewUser(db)
-	repoSupplier := repoSupplier.NewSupplier(db)
-	service := service.NewAddressService(repoAddress, repoClientCpf, repoUser, repoSupplier)
-	handler := handler.NewAddressHandler(service, log)
+	newRepoAddress := repoAddress.NewAddress(db)
+	newRepoClientCpf := repoClientCpf.NewClientCpfRepo(db)
+	newRepoUser := repoUser.NewUser(db)
+	newRepoSupplier := repoSupplier.NewSupplier(db)
 
-	repoFilter := repoFilter.NewFilterAddress(db)
-	serviceFilter := serviceFilter.NewAddressFilterService(repoFilter)
-	filter := filter.NewAddressFilterHandler(serviceFilter, log)
+	newServiceAddress := service.NewAddressService(newRepoAddress, newRepoClientCpf, newRepoUser, newRepoSupplier)
+	newHandlerAddress := handler.NewAddressHandler(newServiceAddress, log)
+
+	newRepoFilter := repoFilter.NewFilterAddress(db)
+	newServiceFilter := serviceFilter.NewAddressFilterService(newRepoFilter)
+	newHandlerFilter := handlerFilter.NewAddressFilterHandler(newServiceFilter, log)
 
 	jwtCfg := config.LoadJwtConfig()
 
@@ -56,16 +57,19 @@ func RegisterAddressRoutes(
 	s.Use(jwtMiddlewares.IsAuthByBearerToken(blacklist, log, jwtManager))
 
 	const addresses = "/addresses"
+	const enable = "/enable"
+	const disable = "/disable"
+	const filter = "/filter"
 
-	s.HandleFunc(baseURL+addresses, handler.Create).Methods(http.MethodPost)
+	s.HandleFunc(baseURL+addresses, newHandlerAddress.Create).Methods(http.MethodPost)
 
-	s.HandleFunc(baseURL+idPath+addresses, handler.GetByID).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+idPath+addresses, newHandlerAddress.GetByID).Methods(http.MethodGet)
 
-	s.HandleFunc(baseURL+idPath+addresses, handler.Update).Methods(http.MethodPut)
-	s.HandleFunc(baseURL+idPath+addresses, handler.Delete).Methods(http.MethodDelete)
+	s.HandleFunc(baseURL+idPath+addresses, newHandlerAddress.Update).Methods(http.MethodPut)
+	s.HandleFunc(baseURL+idPath+addresses, newHandlerAddress.Delete).Methods(http.MethodDelete)
 
-	s.HandleFunc(baseURL+idPath+addresses+"/enable", handler.Enable).Methods(http.MethodPatch)
-	s.HandleFunc(baseURL+idPath+addresses+"/disable", handler.Disable).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+idPath+addresses+enable, newHandlerAddress.Enable).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+idPath+addresses+disable, newHandlerAddress.Disable).Methods(http.MethodPatch)
 
-	s.HandleFunc(baseURL+addresses+"/filter", filter.Filter).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+addresses+filter, newHandlerFilter.Filter).Methods(http.MethodGet)
 }

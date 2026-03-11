@@ -27,7 +27,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
 
-	// Helper function to create requests with proper URL encoding
 	createRequest := func(queryParams string) *http.Request {
 		fullURL := "/addresses/filter"
 		if queryParams != "" {
@@ -36,11 +35,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		return httptest.NewRequest(http.MethodGet, fullURL, nil)
 	}
 
-	// ============================================================================
-	// Testes de validação de parâmetros (erros)
-	// ============================================================================
-
-	// Teste de validação de parâmetros desconhecidos
 	t.Run("erro - parâmetro desconhecido", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -59,7 +53,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "parâmetro desconhecido")
 	})
 
-	// Teste de validação de formato de data inválido
 	t.Run("erro - formato de data inválido", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -78,7 +71,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "formato de data inválido")
 	})
 
-	// Teste de validação de is_active inválido
 	t.Run("erro - is_active inválido", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -97,7 +89,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "valor inválido para 'is_active'")
 	})
 
-	// Teste de validação de user_id inválido
 	t.Run("erro - user_id inválido", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -116,7 +107,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "valor inválido para 'user_id'")
 	})
 
-	// Teste de validação de user_id <= 0
 	t.Run("erro - user_id menor ou igual a zero", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -135,7 +125,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "deve ser maior que zero")
 	})
 
-	// Teste de validação de client_cpf_id inválido
 	t.Run("erro - client_cpf_id inválido", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -154,7 +143,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "valor inválido para 'client_cpf_id'")
 	})
 
-	// Teste para client_cpf_id <= 0
 	t.Run("erro - client_cpf_id menor ou igual a zero", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -174,7 +162,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "deve ser maior que zero")
 	})
 
-	// Teste para client_cpf_id com valor negativo
 	t.Run("erro - client_cpf_id negativo", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -192,7 +179,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "deve ser maior que zero")
 	})
 
-	// Teste de validação de supplier_id inválido
 	t.Run("erro - supplier_id inválido", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -211,7 +197,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "valor inválido para 'supplier_id'")
 	})
 
-	// Teste para supplier_id <= 0
 	t.Run("erro - supplier_id menor ou igual a zero", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -231,7 +216,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "deve ser maior que zero")
 	})
 
-	// Teste para supplier_id negativo
 	t.Run("erro - supplier_id negativo", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -249,12 +233,10 @@ func TestAddressHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "deve ser maior que zero")
 	})
 
-	// Teste de sem filtros de conteúdo (apenas paginação não é suficiente)
 	t.Run("erro - nenhum filtro de conteúdo fornecido", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
 
-		// Apenas parâmetros de paginação (sem filtros de conteúdo)
 		req := createRequest("page=1&limit=10&sort_by=city&sort_order=asc")
 		rec := httptest.NewRecorder()
 
@@ -269,10 +251,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "pelo menos um filtro de busca deve ser fornecido")
 	})
 
-	// ============================================================================
-	// Testes de erro do serviço
-	// ============================================================================
-
 	t.Run("erro - falha no serviço", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -281,7 +259,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 			On("Filter", mock.Anything, mock.Anything).
 			Return(nil, errors.New("db error"))
 
-		// URL encode the city name
 		req := createRequest("city=" + url.QueryEscape("São Paulo"))
 		rec := httptest.NewRecorder()
 
@@ -319,10 +296,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 
 		mockService.AssertExpectations(t)
 	})
-
-	// ============================================================================
-	// Testes de sucesso (casos felizes)
-	// ============================================================================
 
 	t.Run("sucesso - retorna lista vazia", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
@@ -400,7 +373,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	// Teste com data válida
 	t.Run("sucesso - filtro com data válida", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -431,7 +403,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	// Teste com múltiplos filtros
 	t.Run("sucesso - múltiplos filtros", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -468,7 +439,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	// Teste com filtro de UserID
 	t.Run("sucesso - filtro por user_id", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -500,7 +470,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	// Teste com ordenação
 	t.Run("sucesso - com ordenação", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -529,7 +498,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	// Teste com datas range
 	t.Run("sucesso - range de datas", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -557,10 +525,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		mockService.AssertExpectations(t)
 	})
-
-	// ============================================================================
-	// Testes de erro específicos para datas (parseFilterDTO)
-	// ============================================================================
 
 	t.Run("erro - created_from inválido", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
@@ -630,11 +594,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "formato de data inválido para 'updated_to'")
 	})
 
-	// ============================================================================
-	// Testes para cobrir a contagem de filtros (countFiltersApplied)
-	// ============================================================================
-
-	// Teste para verificar a contagem de filtros com todos os campos possíveis
 	t.Run("sucesso - verifica contagem completa de filtros aplicados", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -653,7 +612,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 			On("Filter", mock.Anything, mock.Anything).
 			Return(mockAddresses, nil)
 
-		// Requisição com todos os tipos de filtro para testar a função countFiltersApplied
 		req := createRequest(
 			"client_cpf_id=100&" +
 				"supplier_id=200&" +
@@ -688,7 +646,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	// Teste específico para garantir que campos de texto são contados corretamente
 	t.Run("sucesso - contagem de filtros para campos de texto", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -697,7 +654,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 			On("Filter", mock.Anything, mock.Anything).
 			Return([]*model.Address{}, nil)
 
-		// Teste 1: Apenas Street
 		t.Run("apenas street", func(t *testing.T) {
 			req := createRequest("street=Rua+Teste")
 			rec := httptest.NewRecorder()
@@ -709,7 +665,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 			assert.Equal(t, float64(1), data["filters_applied"])
 		})
 
-		// Teste 2: Street e StreetNumber
 		t.Run("street e street_number", func(t *testing.T) {
 			req := createRequest("street=Rua+Teste&street_number=123")
 			rec := httptest.NewRecorder()
@@ -721,7 +676,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 			assert.Equal(t, float64(2), data["filters_applied"])
 		})
 
-		// Teste 3: Complement
 		t.Run("complement", func(t *testing.T) {
 			req := createRequest("complement=Apto+101")
 			rec := httptest.NewRecorder()
@@ -733,7 +687,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 			assert.Equal(t, float64(1), data["filters_applied"])
 		})
 
-		// Teste 4: Country
 		t.Run("country", func(t *testing.T) {
 			req := createRequest("country=Brasil")
 			rec := httptest.NewRecorder()
@@ -745,7 +698,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 			assert.Equal(t, float64(1), data["filters_applied"])
 		})
 
-		// Teste 5: Todos os campos de texto
 		t.Run("todos campos de texto", func(t *testing.T) {
 			req := createRequest(
 				"street=Rua+X&" +
@@ -763,7 +715,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		})
 	})
 
-	// Teste para garantir que IDs (ClientCpfID, SupplierID) são contados
 	t.Run("sucesso - contagem de filtros para IDs", func(t *testing.T) {
 		mockService := new(mockAddress.MockAddress)
 		handler := NewAddressFilterHandler(mockService, logger)
@@ -772,7 +723,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 			On("Filter", mock.Anything, mock.Anything).
 			Return([]*model.Address{}, nil)
 
-		// Teste para ClientCpfID
 		t.Run("client_cpf_id", func(t *testing.T) {
 			req := createRequest("client_cpf_id=123")
 			rec := httptest.NewRecorder()
@@ -784,7 +734,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 			assert.Equal(t, float64(1), data["filters_applied"])
 		})
 
-		// Teste para SupplierID
 		t.Run("supplier_id", func(t *testing.T) {
 			req := createRequest("supplier_id=456")
 			rec := httptest.NewRecorder()
@@ -796,7 +745,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 			assert.Equal(t, float64(1), data["filters_applied"])
 		})
 
-		// Teste para ambos
 		t.Run("ambos os IDs", func(t *testing.T) {
 			req := createRequest("client_cpf_id=123&supplier_id=456")
 			rec := httptest.NewRecorder()
@@ -809,10 +757,6 @@ func TestAddressHandler_Filter(t *testing.T) {
 		})
 	})
 }
-
-// ============================================================================
-// Testes unitários para funções auxiliares
-// ============================================================================
 
 func TestAddressHandler_ParseTimeParam(t *testing.T) {
 	baseLogger := logrus.New()
@@ -882,10 +826,8 @@ func TestAddressHandler_ParseTimeParam(t *testing.T) {
 	}
 }
 
-// Teste direto para a função countFiltersApplied (opcional, mas ajuda na cobertura)
 func TestCountFiltersApplied(t *testing.T) {
-	// Este teste é opcional pois a função já é testada indiretamente
-	// através dos testes que verificam o campo "filters_applied" na resposta
+
 	now := time.Now()
 
 	dto := filterDTO.AddressFilterDTO{
@@ -907,7 +849,7 @@ func TestCountFiltersApplied(t *testing.T) {
 	}
 
 	count := countFiltersApplied(dto)
-	assert.Equal(t, 15, count) // Todos os 15 campos preenchidos
+	assert.Equal(t, 15, count)
 
 	dto2 := filterDTO.AddressFilterDTO{}
 	count2 := countFiltersApplied(dto2)

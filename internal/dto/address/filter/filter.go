@@ -55,11 +55,10 @@ func (d *AddressFilterDTO) ToModel() (*filterAddress.AddressFilter, error) {
 		UpdatedTo:    d.UpdatedTo,
 	}
 
-	// Tratar IsActive - se nil, usar false como padrão
 	if d.IsActive != nil {
 		filter.IsActive = d.IsActive
 	} else {
-		filter.IsActive = nil // valor padrão
+		filter.IsActive = nil
 	}
 
 	return filter, nil
@@ -68,7 +67,6 @@ func (d *AddressFilterDTO) ToModel() (*filterAddress.AddressFilter, error) {
 func (d *AddressFilterDTO) Validate() error {
 	var validationErrors []string
 
-	// Trim em todos os campos de string
 	d.Street = strings.TrimSpace(d.Street)
 	d.StreetNumber = strings.TrimSpace(d.StreetNumber)
 	d.Complement = strings.TrimSpace(d.Complement)
@@ -77,7 +75,6 @@ func (d *AddressFilterDTO) Validate() error {
 	d.Country = strings.TrimSpace(d.Country)
 	d.PostalCode = strings.TrimSpace(d.PostalCode)
 
-	// Pelo menos um filtro de conteúdo
 	hasContentFilter :=
 		d.UserID != nil ||
 			d.ClientCpfID != nil ||
@@ -99,7 +96,6 @@ func (d *AddressFilterDTO) Validate() error {
 		validationErrors = append(validationErrors, "pelo menos um filtro de busca deve ser fornecido")
 	}
 
-	// ===== VALIDAÇÕES ESPECÍFICAS =====
 	if d.Street != "" && len(d.Street) < 2 {
 		validationErrors = append(validationErrors, "'street' deve conter no mínimo 2 caracteres")
 	}
@@ -120,7 +116,7 @@ func (d *AddressFilterDTO) Validate() error {
 		if len(d.State) != 2 {
 			validationErrors = append(validationErrors, "'state' deve conter exatamente 2 caracteres (UF)")
 		}
-		// Converter para maiúsculas para padronização
+
 		d.State = strings.ToUpper(d.State)
 	}
 
@@ -135,13 +131,12 @@ func (d *AddressFilterDTO) Validate() error {
 		if len(cleanPostalCode) != 8 {
 			validationErrors = append(validationErrors, "'postal_code' inválido - deve conter 8 dígitos")
 		}
-		// Se for válido, armazenar sem formatação
+
 		if len(validationErrors) == 0 {
 			d.PostalCode = cleanPostalCode
 		}
 	}
 
-	// ===== VALIDAÇÃO DE IDs =====
 	if d.UserID != nil && *d.UserID <= 0 {
 		validationErrors = append(validationErrors, "'user_id' deve ser maior que zero")
 	}
@@ -154,7 +149,6 @@ func (d *AddressFilterDTO) Validate() error {
 		validationErrors = append(validationErrors, "'supplier_id' deve ser maior que zero")
 	}
 
-	// ===== PAGINAÇÃO =====
 	if d.Limit < 1 {
 		validationErrors = append(validationErrors, "'limit' deve ser maior que zero")
 	}
@@ -168,7 +162,6 @@ func (d *AddressFilterDTO) Validate() error {
 		validationErrors = append(validationErrors, "'offset' excede o limite permitido (máximo 10.000)")
 	}
 
-	// ===== ORDENAÇÃO =====
 	if d.SortBy != "" && !isValidAddressSortField(d.SortBy) {
 		validationErrors = append(validationErrors, "'sort_by' inválido. Campos permitidos: id, user_id, client_cpf_id, supplier_id, street, street_number, city, state, country, postal_code, is_active, created_at, updated_at")
 	}
@@ -178,11 +171,10 @@ func (d *AddressFilterDTO) Validate() error {
 		if order != "asc" && order != "desc" {
 			validationErrors = append(validationErrors, "'sort_order' inválido. Use 'asc' ou 'desc'")
 		} else {
-			d.SortOrder = order // normalizar para minúsculas
+			d.SortOrder = order
 		}
 	}
 
-	// ===== DATAS =====
 	if d.CreatedFrom != nil && d.CreatedTo != nil && d.CreatedFrom.After(*d.CreatedTo) {
 		validationErrors = append(validationErrors, "'created_from' não pode ser maior que 'created_to'")
 	}
@@ -214,14 +206,4 @@ func isValidAddressSortField(field string) bool {
 		"updated_at":    true,
 	}
 	return allowedFields[strings.ToLower(field)]
-}
-
-// Função auxiliar para criar DTO a partir de query params (opcional)
-func NewAddressFilterDTOFromQuery(params map[string][]string) (*AddressFilterDTO, error) {
-	dto := &AddressFilterDTO{}
-
-	// Implementar se necessário
-	// Pode usar uma biblioteca como "github.com/gorilla/schema" para decodificar
-
-	return dto, nil
 }

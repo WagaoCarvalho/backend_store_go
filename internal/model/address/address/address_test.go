@@ -222,13 +222,13 @@ func TestAddress_Validate(t *testing.T) {
 				UserID:     &userID,
 				Street:     "Rua 1",
 				City:       "Cidade",
-				State:      "   ", // só espaços
+				State:      "   ",
 				Country:    "Brasil",
 				PostalCode: "12345678",
 			},
 			wantErr: true,
 			errType: validators.ValidationErrors{},
-			errMsg:  validators.MsgRequiredField, // validar mensagem de campo obrigatório
+			errMsg:  validators.MsgRequiredField,
 		},
 		{
 			name: "Blank Country",
@@ -237,7 +237,7 @@ func TestAddress_Validate(t *testing.T) {
 				Street:     "Rua 1",
 				City:       "Cidade",
 				State:      "SP",
-				Country:    "   ", // só espaços
+				Country:    "   ",
 				PostalCode: "12345678",
 			},
 			wantErr: true,

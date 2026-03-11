@@ -18,10 +18,6 @@ func (r *addressRepo) Enable(ctx context.Context, aid int64) error {
 	return r.setActive(ctx, aid, true)
 }
 
-// =======================
-// Internal helper
-// =======================
-
 func (r *addressRepo) setActive(ctx context.Context, aid int64, active bool) error {
 
 	const query = `

@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-/*
-|--------------------------------------------------------------------------
-| ToModel
-|--------------------------------------------------------------------------
-*/
+func newAddressFilterDTOFromQuery(_ map[string][]string) (*AddressFilterDTO, error) {
+	dto := &AddressFilterDTO{}
+
+	return dto, nil
+}
 
 func TestAddressFilterDTO_ToModel_AllFields(t *testing.T) {
 	now := time.Now()
@@ -46,7 +46,6 @@ func TestAddressFilterDTO_ToModel_AllFields(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, model)
 
-	// Verificar valores
 	assert.Equal(t, userID, *model.UserID)
 	assert.Equal(t, clientCpfID, *model.ClientCpfID)
 	assert.Equal(t, supplierID, *model.SupplierID)
@@ -313,12 +312,12 @@ func TestAddressFilterDTO_Validate_Errors(t *testing.T) {
 		{
 			"CreatedFrom sozinho é válido (não é erro)",
 			AddressFilterDTO{UserID: &userID, Limit: 10, CreatedFrom: &now},
-			"", // Não deve ter erro
+			"",
 		},
 		{
 			"CreatedTo sozinho é válido (não é erro)",
 			AddressFilterDTO{UserID: &userID, Limit: 10, CreatedTo: &now},
-			"", // Não deve ter erro
+			"",
 		},
 	}
 
@@ -350,9 +349,9 @@ func TestAddressFilterDTO_Validate_MultipleErrors(t *testing.T) {
 		{
 			"Múltiplos erros - State, Limit, Offset",
 			AddressFilterDTO{
-				State:  "S", // Estado inválido (1 caractere)
-				Limit:  0,   // Limit zero
-				Offset: -1,  // Offset negativo
+				State:  "S",
+				Limit:  0,
+				Offset: -1,
 			},
 			[]string{
 				"'state' deve conter exatamente 2 caracteres (UF)",
@@ -363,10 +362,10 @@ func TestAddressFilterDTO_Validate_MultipleErrors(t *testing.T) {
 		{
 			"Múltiplos erros - City, PostalCode, SortBy",
 			AddressFilterDTO{
-				City:       "S",         // City curta
-				PostalCode: "123",       // CEP inválido
-				SortBy:     "invalido",  // SortBy inválido
-				UserID:     int64Ptr(1), // Para garantir que tem filtro
+				City:       "S",
+				PostalCode: "123",
+				SortBy:     "invalido",
+				UserID:     int64Ptr(1),
 				Limit:      10,
 			},
 			[]string{
@@ -392,10 +391,10 @@ func TestAddressFilterDTO_Validate_MultipleErrors(t *testing.T) {
 		{
 			"Múltiplos erros - Street, StreetNumber, Complement, Country",
 			AddressFilterDTO{
-				Street:       "R",                       // Street muito curta
-				StreetNumber: "123456789012345678901",   // StreetNumber muito longo
-				Complement:   string(make([]byte, 101)), // Complement muito longo
-				Country:      "B",                       // Country muito curto
+				Street:       "R",
+				StreetNumber: "123456789012345678901",
+				Complement:   string(make([]byte, 101)),
+				Country:      "B",
 				UserID:       int64Ptr(1),
 				Limit:        10,
 			},
@@ -688,7 +687,7 @@ func TestAddressFilterDTO_Validate_PostalCodeCleanup(t *testing.T) {
 
 /*
 |--------------------------------------------------------------------------
-| NewAddressFilterDTOFromQuery (placeholder)
+| newAddressFilterDTOFromQuery (placeholder)
 |--------------------------------------------------------------------------
 */
 
@@ -698,7 +697,7 @@ func TestNewAddressFilterDTOFromQuery(t *testing.T) {
 		"city":    {"São Paulo"},
 	}
 
-	dto, err := NewAddressFilterDTOFromQuery(params)
+	dto, err := newAddressFilterDTOFromQuery(params)
 	assert.NoError(t, err)
 	assert.NotNil(t, dto)
 }

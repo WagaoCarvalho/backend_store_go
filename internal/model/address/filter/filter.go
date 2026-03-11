@@ -31,9 +31,8 @@ func (f *AddressFilter) Validate() error {
 		return err
 	}
 
-	// IsActive agora é opcional - só valida se foi fornecido
 	if f.IsActive != nil {
-		// pode adicionar validações se necessário
+
 	}
 
 	if f.CreatedFrom != nil && f.CreatedTo != nil && f.CreatedFrom.After(*f.CreatedTo) {
