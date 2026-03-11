@@ -25,7 +25,6 @@ func TestClientHandler_Filter(t *testing.T) {
 	baseLogger.Out = &bytes.Buffer{}
 	logger := logger.NewLoggerAdapter(baseLogger)
 
-	// Teste de validação de parâmetros desconhecidos
 	t.Run("erro - parâmetro desconhecido", func(t *testing.T) {
 		mockService := new(mockClient.MockClientCpf)
 		handler := NewClientCpfFilterHandler(mockService, logger)
@@ -44,7 +43,6 @@ func TestClientHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "parâmetro desconhecido")
 	})
 
-	// Teste de validação de formato de data inválido
 	t.Run("erro - formato de data inválido", func(t *testing.T) {
 		mockService := new(mockClient.MockClientCpf)
 		handler := NewClientCpfFilterHandler(mockService, logger)
@@ -63,7 +61,6 @@ func TestClientHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "formato de data inválido")
 	})
 
-	// Teste de validação de status inválido
 	t.Run("erro - status inválido", func(t *testing.T) {
 		mockService := new(mockClient.MockClientCpf)
 		handler := NewClientCpfFilterHandler(mockService, logger)
@@ -82,15 +79,11 @@ func TestClientHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "valor inválido para 'status'")
 	})
 
-	// Teste que cobre o caminho do erro (se houver)
 	t.Run("cobre bloco de erro no ToModel", func(t *testing.T) {
-		// Para cobrir este bloco, precisamos que ToModel() retorne erro
-		// Se não retorna, o teste cobre apenas o fluxo feliz
 
 		mockService := new(mockClient.MockClientCpf)
 		handler := NewClientCpfFilterHandler(mockService, logger)
 
-		// Teste com dados válidos (fluxo feliz)
 		req := httptest.NewRequest(http.MethodGet, "/clients/filter?cpf=12345678900", nil)
 		rec := httptest.NewRecorder()
 
@@ -100,14 +93,11 @@ func TestClientHandler_Filter(t *testing.T) {
 
 		handler.Filter(rec, req)
 
-		// Se chegou aqui sem erro, ToModel() não retornou erro
-		// O teste ainda cobre a execução do método
 		assert.Equal(t, http.StatusOK, rec.Code)
 
 		mockService.AssertExpectations(t)
 	})
 
-	// Teste de validação de version inválido
 	t.Run("erro - version inválido", func(t *testing.T) {
 		mockService := new(mockClient.MockClientCpf)
 		handler := NewClientCpfFilterHandler(mockService, logger)
@@ -126,7 +116,6 @@ func TestClientHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "valor inválido para 'version'")
 	})
 
-	// Teste de validação de version <= 0
 	t.Run("erro - version menor ou igual a zero", func(t *testing.T) {
 		mockService := new(mockClient.MockClientCpf)
 		handler := NewClientCpfFilterHandler(mockService, logger)
@@ -145,12 +134,10 @@ func TestClientHandler_Filter(t *testing.T) {
 		assert.Contains(t, resp.Message, "deve ser maior que zero")
 	})
 
-	// Teste de sem filtros de conteúdo (apenas paginação não é suficiente)
 	t.Run("erro - nenhum filtro de conteúdo fornecido", func(t *testing.T) {
 		mockService := new(mockClient.MockClientCpf)
 		handler := NewClientCpfFilterHandler(mockService, logger)
 
-		// Apenas parâmetros de paginação (sem filtros de conteúdo)
 		req := httptest.NewRequest(http.MethodGet, "/clients/filter?page=1&limit=10&sort_by=name&sort_order=asc", nil)
 		rec := httptest.NewRecorder()
 
@@ -278,7 +265,6 @@ func TestClientHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	// Teste com data válida
 	t.Run("sucesso - filtro com data válida", func(t *testing.T) {
 		mockService := new(mockClient.MockClientCpf)
 		handler := NewClientCpfFilterHandler(mockService, logger)
@@ -307,7 +293,6 @@ func TestClientHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	// Teste com múltiplos filtros
 	t.Run("sucesso - múltiplos filtros", func(t *testing.T) {
 		mockService := new(mockClient.MockClientCpf)
 		handler := NewClientCpfFilterHandler(mockService, logger)
@@ -343,7 +328,6 @@ func TestClientHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	// Teste com filtro de CPF
 	t.Run("sucesso - filtro por CPF", func(t *testing.T) {
 		mockService := new(mockClient.MockClientCpf)
 		handler := NewClientCpfFilterHandler(mockService, logger)
@@ -373,7 +357,6 @@ func TestClientHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	// Teste com ordenação
 	t.Run("sucesso - com ordenação", func(t *testing.T) {
 		mockService := new(mockClient.MockClientCpf)
 		handler := NewClientCpfFilterHandler(mockService, logger)
@@ -400,7 +383,6 @@ func TestClientHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	// Teste com datas range
 	t.Run("sucesso - range de datas", func(t *testing.T) {
 		mockService := new(mockClient.MockClientCpf)
 		handler := NewClientCpfFilterHandler(mockService, logger)
@@ -511,8 +493,6 @@ func TestClientHandler_Filter(t *testing.T) {
 
 }
 
-// Testes unitários para funções auxiliares
-
 func TestClientHandler_ParseTimeParam(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
@@ -573,17 +553,4 @@ func TestClientHandler_ParseTimeParam(t *testing.T) {
 			}
 		})
 	}
-}
-
-// Helper functions para testes
-func boolPtr(b bool) *bool {
-	return &b
-}
-
-func intPtr(i int) *int {
-	return &i
-}
-
-func timePtr(t time.Time) *time.Time {
-	return &t
 }

@@ -22,8 +22,8 @@ func TestClientFilterDTO_ToModel_AllFields(t *testing.T) {
 	dto := ClientFilterDTO{
 		Name:        "Cliente XPTO",
 		Email:       "teste@teste.com",
-		CPF:         "12345678901",    // 11
-		CNPJ:        "12345678000199", // 14
+		CPF:         "12345678901",
+		CNPJ:        "12345678000199",
 		Status:      &status,
 		Version:     &version,
 		CreatedFrom: &now,
@@ -61,8 +61,8 @@ func TestClientFilterDTO_Validate_ValidCases(t *testing.T) {
 	tests := []ClientFilterDTO{
 		{Name: "Cliente", Limit: 10},
 		{Email: "teste@teste.com", Limit: 10},
-		{CPF: "12345678901", Limit: 10},     // válido
-		{CNPJ: "12345678000199", Limit: 10}, // válido
+		{CPF: "12345678901", Limit: 10},
+		{CNPJ: "12345678000199", Limit: 10},
 		{Status: utils.BoolPtr(true), Limit: 10},
 		{Version: utils.IntPtr(1), Limit: 10},
 		{CreatedFrom: &now, Limit: 10},

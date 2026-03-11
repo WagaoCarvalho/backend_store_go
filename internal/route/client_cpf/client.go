@@ -24,13 +24,17 @@ func RegisterClientRoutes(
 	log *logger.LogAdapter,
 	blacklist jwtMiddlewares.TokenBlacklist,
 ) {
-	repo := repo.NewClientCpfRepo(db)
-	service := service.NewClientCpfService(repo)
-	handler := handler.NewClientCpfHandler(service, log)
+	serverConfig := config.LoadServerConfig()
+	baseURL := serverConfig.BaseURL
+	idPath := serverConfig.IDPath
 
-	repoFilter := repoFilter.NewFilterClientCpf(db)
-	serviceFilter := serviceFilter.NewClientCpfFilterService(repoFilter)
-	filter := filter.NewClientCpfFilterHandler(serviceFilter, log)
+	newRepo := repo.NewClientCpfRepo(db)
+	newService := service.NewClientCpfService(newRepo)
+	newHandler := handler.NewClientCpfHandler(newService, log)
+
+	newRepoFilter := repoFilter.NewFilterClientCpf(db)
+	newServiceFilter := serviceFilter.NewClientCpfFilterService(newRepoFilter)
+	newFilter := filter.NewClientCpfFilterHandler(newServiceFilter, log)
 
 	jwtCfg := config.LoadJwtConfig()
 
@@ -44,13 +48,27 @@ func RegisterClientRoutes(
 	s := r.PathPrefix("/").Subrouter()
 	s.Use(jwtMiddlewares.IsAuthByBearerToken(blacklist, log, jwtManager))
 
-	s.HandleFunc("/client-cpf", handler.Create).Methods(http.MethodPost)
-	s.HandleFunc("/client-cpf/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)
-	s.HandleFunc("/client-cpf/{id:[0-9]+}/version", handler.GetVersionByID).Methods(http.MethodGet)
-	s.HandleFunc("/client-cpf/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
-	s.HandleFunc("/client-cpf/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
-	s.HandleFunc("/client-cpf/{id:[0-9]+}/disable", handler.Disable).Methods(http.MethodPatch)
-	s.HandleFunc("/client-cpf/{id:[0-9]+}/enable", handler.Enable).Methods(http.MethodPatch)
+	const (
+		clients = "/clients-cpf"
+		version = "/version"
+		enable  = "/enable"
+		disable = "/disable"
+		filter  = "/filter"
+	)
 
-	s.HandleFunc("/clients-cpf/filter", filter.Filter).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+clients, newHandler.Create).Methods(http.MethodPost)
+
+	s.HandleFunc(baseURL+idPath+clients, newHandler.GetByID).Methods(http.MethodGet)
+
+	s.HandleFunc(baseURL+idPath+clients+version, newHandler.GetVersionByID).Methods(http.MethodGet)
+
+	s.HandleFunc(baseURL+idPath+clients, newHandler.Update).Methods(http.MethodPut)
+
+	s.HandleFunc(baseURL+idPath+clients, newHandler.Delete).Methods(http.MethodDelete)
+
+	s.HandleFunc(baseURL+idPath+clients+disable, newHandler.Disable).Methods(http.MethodPatch)
+
+	s.HandleFunc(baseURL+idPath+clients+enable, newHandler.Enable).Methods(http.MethodPatch)
+
+	s.HandleFunc(baseURL+clients+filter, newFilter.Filter).Methods(http.MethodGet)
 }

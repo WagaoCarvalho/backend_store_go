@@ -92,7 +92,7 @@ func TestClientCpfFilter_Validate(t *testing.T) {
 	t.Run("return error when BaseFilter.Validate fails", func(t *testing.T) {
 		f := &ClientCpfFilter{
 			BaseFilter: filter.BaseFilter{
-				Limit: -1, // inválido
+				Limit: -1,
 			},
 		}
 

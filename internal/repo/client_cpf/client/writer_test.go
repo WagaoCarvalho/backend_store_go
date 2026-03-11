@@ -122,7 +122,6 @@ func TestClientRepo_Create_AllPaths(t *testing.T) {
 func TestClientRepo_Update_AllPaths(t *testing.T) {
 	ctx := context.Background()
 
-	// Helper para criar um novo cliente em cada teste
 	createClient := func() *models.ClientCpf {
 		return &models.ClientCpf{
 			ID:          1,
@@ -186,7 +185,7 @@ func TestClientRepo_Update_AllPaths(t *testing.T) {
 		repo := &clientCpfRepo{db: db}
 
 		client := createClient()
-		// Retornar versão 2 (diferente da versão do cliente que é 1)
+
 		db.On("QueryRow", ctx, selectQuery, []interface{}{client.ID}).
 			Return(&mockDb.MockRow{Values: []interface{}{2}})
 
@@ -202,7 +201,6 @@ func TestClientRepo_Update_AllPaths(t *testing.T) {
 		now := time.Now()
 		newVersion := 2
 
-		// Retornar versão 1 (igual à versão do cliente)
 		db.On("QueryRow", ctx, selectQuery, []interface{}{client.ID}).
 			Return(&mockDb.MockRow{Values: []interface{}{1}})
 
@@ -222,11 +220,10 @@ func TestClientRepo_Update_AllPaths(t *testing.T) {
 		repo := &clientCpfRepo{db: db}
 
 		client := createClient()
-		// Retornar versão 1 (igual) para passar pela verificação de versão
+
 		db.On("QueryRow", ctx, selectQuery, []interface{}{client.ID}).
 			Return(&mockDb.MockRow{Values: []interface{}{1}})
 
-		// Mock da query UPDATE com erro de violação única
 		db.On("QueryRow", ctx, updateQuery, mock.Anything).
 			Return(&mockDb.MockRow{Err: &pgconn.PgError{Code: "23505", Message: "duplicate key"}})
 
@@ -239,11 +236,10 @@ func TestClientRepo_Update_AllPaths(t *testing.T) {
 		repo := &clientCpfRepo{db: db}
 
 		client := createClient()
-		// Retornar versão 1 (igual)
+
 		db.On("QueryRow", ctx, selectQuery, []interface{}{client.ID}).
 			Return(&mockDb.MockRow{Values: []interface{}{1}})
 
-		// Mock da query UPDATE com erro de violação de check
 		db.On("QueryRow", ctx, updateQuery, mock.Anything).
 			Return(&mockDb.MockRow{Err: &pgconn.PgError{Code: "23514", Message: "check constraint"}})
 
@@ -256,7 +252,7 @@ func TestClientRepo_Update_AllPaths(t *testing.T) {
 		repo := &clientCpfRepo{db: db}
 
 		client := createClient()
-		// Retornar versão 1 (igual)
+
 		db.On("QueryRow", ctx, selectQuery, []interface{}{client.ID}).
 			Return(&mockDb.MockRow{Values: []interface{}{1}})
 
@@ -274,11 +270,10 @@ func TestClientRepo_Update_AllPaths(t *testing.T) {
 		repo := &clientCpfRepo{db: db}
 
 		client := createClient()
-		// Retornar versão 1 (igual)
+
 		db.On("QueryRow", ctx, selectQuery, []interface{}{client.ID}).
 			Return(&mockDb.MockRow{Values: []interface{}{1}})
 
-		// Testar um código de erro PostgreSQL diferente
 		db.On("QueryRow", ctx, updateQuery, mock.Anything).
 			Return(&mockDb.MockRow{Err: &pgconn.PgError{Code: "22000", Message: "data exception"}})
 

@@ -21,7 +21,7 @@ type ClientCpf struct {
 }
 
 func (c *ClientCpf) Validate() error {
-	// Name
+
 	if validators.IsBlank(c.Name) {
 		return &validators.ValidationError{Field: "Name", Message: "campo obrigatório"}
 	}
@@ -29,7 +29,6 @@ func (c *ClientCpf) Validate() error {
 		return &validators.ValidationError{Field: "Name", Message: "máximo de 255 caracteres"}
 	}
 
-	// Email
 	c.Email = strings.TrimSpace(strings.ToLower(c.Email))
 	if validators.IsBlank(c.Email) {
 		return &validators.ValidationError{Field: "Email", Message: "campo obrigatório"}
@@ -38,7 +37,6 @@ func (c *ClientCpf) Validate() error {
 		return &validators.ValidationError{Field: "Email", Message: "email inválido"}
 	}
 
-	// CPF
 	c.CPF = strings.TrimSpace(c.CPF)
 	if validators.IsBlank(c.CPF) {
 		return &validators.ValidationError{Field: "CPF", Message: "campo obrigatório"}
@@ -47,12 +45,10 @@ func (c *ClientCpf) Validate() error {
 		return &validators.ValidationError{Field: "CPF", Message: "CPF inválido"}
 	}
 
-	// Description
 	if len(c.Description) > 1000 {
 		return &validators.ValidationError{Field: "Description", Message: "máximo de 1000 caracteres"}
 	}
 
-	// Version
 	if c.Version <= 0 {
 		return &validators.ValidationError{Field: "Version", Message: "versão inválida"}
 	}

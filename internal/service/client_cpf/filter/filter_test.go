@@ -33,7 +33,7 @@ func TestClientService_Filter(t *testing.T) {
 
 		invalidFilter := &clientFilter.ClientCpfFilter{
 			BaseFilter: filter.BaseFilter{
-				Limit: -10, // inválido
+				Limit: -10,
 			},
 		}
 

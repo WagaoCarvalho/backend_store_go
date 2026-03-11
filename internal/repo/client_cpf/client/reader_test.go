@@ -25,15 +25,15 @@ func TestClientCpfRepo_GetByID(t *testing.T) {
 
 		mockRow := &mockDb.MockRow{
 			Values: []interface{}{
-				clientID,          // id
-				"Cliente Teste",   // name
-				"teste@email.com", // email
-				"12345678909",     // cpf
-				"descrição",       // description
-				true,              // status
-				1,                 // version
-				now,               // created_at
-				now,               // updated_at
+				clientID,
+				"Cliente Teste",
+				"teste@email.com",
+				"12345678909",
+				"descrição",
+				true,
+				1,
+				now,
+				now,
 			},
 		}
 

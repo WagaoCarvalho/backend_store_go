@@ -56,10 +56,12 @@ func RegisterAddressRoutes(
 
 	s.Use(jwtMiddlewares.IsAuthByBearerToken(blacklist, log, jwtManager))
 
-	const addresses = "/addresses"
-	const enable = "/enable"
-	const disable = "/disable"
-	const filter = "/filter"
+	const (
+		addresses = "/addresses"
+		enable    = "/enable"
+		disable   = "/disable"
+		filter    = "/filter"
+	)
 
 	s.HandleFunc(baseURL+addresses, newHandlerAddress.Create).Methods(http.MethodPost)
 

@@ -57,7 +57,6 @@ func (d *ClientFilterDTO) Validate() error {
 	cpf := strings.TrimSpace(d.CPF)
 	cnpj := strings.TrimSpace(d.CNPJ)
 
-	// Pelo menos um filtro de conteúdo
 	hasContentFilter :=
 		name != "" ||
 			email != "" ||
@@ -74,7 +73,6 @@ func (d *ClientFilterDTO) Validate() error {
 		validationErrors = append(validationErrors, "pelo menos um filtro de busca deve ser fornecido")
 	}
 
-	// ===== LIMITES MÍNIMOS (anti-abuso) =====
 	if name != "" && len(name) < 3 {
 		validationErrors = append(validationErrors, "'name' deve conter no mínimo 3 caracteres")
 	}
@@ -83,7 +81,6 @@ func (d *ClientFilterDTO) Validate() error {
 		validationErrors = append(validationErrors, "'email' deve conter no mínimo 5 caracteres")
 	}
 
-	// ===== CPF / CNPJ =====
 	if cpf != "" && len(cpf) != 11 {
 		validationErrors = append(validationErrors, "'cpf' inválido")
 	}
@@ -92,7 +89,6 @@ func (d *ClientFilterDTO) Validate() error {
 		validationErrors = append(validationErrors, "'cnpj' inválido")
 	}
 
-	// ===== PAGINAÇÃO =====
 	if d.Limit < 1 {
 		validationErrors = append(validationErrors, "'limit' deve ser maior que zero")
 	}
@@ -106,7 +102,6 @@ func (d *ClientFilterDTO) Validate() error {
 		validationErrors = append(validationErrors, "'offset' excede o limite permitido")
 	}
 
-	// ===== ORDENAÇÃO =====
 	if d.SortBy != "" && !isValidSortField(d.SortBy) {
 		validationErrors = append(validationErrors, "'sort_by' inválido")
 	}
@@ -118,7 +113,6 @@ func (d *ClientFilterDTO) Validate() error {
 		}
 	}
 
-	// ===== DATAS =====
 	if d.CreatedFrom != nil && d.CreatedTo != nil && d.CreatedFrom.After(*d.CreatedTo) {
 		validationErrors = append(validationErrors, "'created_from' não pode ser maior que 'created_to'")
 	}

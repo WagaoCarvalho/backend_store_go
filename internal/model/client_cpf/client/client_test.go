@@ -136,6 +136,6 @@ func TestClientCpf_Validate(t *testing.T) {
 
 		err := c.Validate()
 		assert.NoError(t, err)
-		assert.Equal(t, "teste@teste.com", c.Email) // normalização obrigatória
+		assert.Equal(t, "teste@teste.com", c.Email)
 	})
 }

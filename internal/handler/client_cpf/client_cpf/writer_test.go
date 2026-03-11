@@ -205,8 +205,7 @@ func TestClientHandler_Update(t *testing.T) {
 		mockService := new(mockClient.MockClientCpf)
 		handler := NewClientCpfHandler(mockService, logAdapter)
 
-		// Simula um client com dados inválidos
-		invalidClient := &models.ClientCpf{ID: 1, Name: ""} // Name obrigatório, por exemplo
+		invalidClient := &models.ClientCpf{ID: 1, Name: ""}
 
 		body, _ := json.Marshal(invalidClient)
 		req := httptest.NewRequest(http.MethodPut, "/clients/1", bytes.NewReader(body))

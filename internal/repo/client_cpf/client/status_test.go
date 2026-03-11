@@ -22,7 +22,7 @@ func TestClientCpfRepo_Disable(t *testing.T) {
 
 		mockRow := &mockDb.MockRow{
 			Values: []interface{}{
-				clientID, // returning id
+				clientID,
 			},
 		}
 
@@ -85,7 +85,7 @@ func TestClientCpfRepo_Enable(t *testing.T) {
 
 		mockRow := &mockDb.MockRow{
 			Values: []interface{}{
-				clientID, // returning id
+				clientID,
 			},
 		}
 
