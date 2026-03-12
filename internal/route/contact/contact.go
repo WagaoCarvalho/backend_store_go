@@ -22,14 +22,16 @@ func RegisterContactRoutes(
 	log *logger.LogAdapter,
 	blacklist jwtMiddleware.TokenBlacklist,
 ) {
-	repo := repo.NewContact(db)
-	service := service.NewContactService(repo)
-	handler := handler.NewContactHandler(service, log)
+	serverConfig := config.LoadServerConfig()
+	baseURL := serverConfig.BaseURL
+	idPath := serverConfig.IDPath
 
-	// Carrega a configuração do JWT
+	newRepo := repo.NewContact(db)
+	newService := service.NewContactService(newRepo)
+	newHandler := handler.NewContactHandler(newService, log)
+
 	jwtCfg := config.LoadJwtConfig()
 
-	// Instancia um JWTManager (implementa JWTService)
 	jwtManager := jwtAuth.NewJWTManager(
 		jwtCfg.SecretKey,
 		jwtCfg.TokenDuration,
@@ -38,10 +40,17 @@ func RegisterContactRoutes(
 	)
 
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(jwtMiddleware.IsAuthByBearerToken(blacklist, log, jwtManager)) // <- agora com JWTService válido
+	s.Use(jwtMiddleware.IsAuthByBearerToken(blacklist, log, jwtManager))
 
-	s.HandleFunc("/contact", handler.Create).Methods(http.MethodPost)
-	s.HandleFunc("/contact/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)
-	s.HandleFunc("/contact/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
-	s.HandleFunc("/contact/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
+	const (
+		contacts = "/contact"
+	)
+
+	s.HandleFunc(baseURL+contacts, newHandler.Create).Methods(http.MethodPost)
+
+	s.HandleFunc(baseURL+idPath+contacts, newHandler.GetByID).Methods(http.MethodGet)
+
+	s.HandleFunc(baseURL+idPath+contacts, newHandler.Update).Methods(http.MethodPut)
+
+	s.HandleFunc(baseURL+idPath+contacts, newHandler.Delete).Methods(http.MethodDelete)
 }
