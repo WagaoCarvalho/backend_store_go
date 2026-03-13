@@ -34,35 +34,30 @@ func NewLoginService(repo repo.User, jwt TokenGenerator, hasher pass.PasswordHas
 }
 
 func (s *loginService) Login(ctx context.Context, email, password string) (*models.AuthResponse, error) {
-	// Construir struct de credenciais
+
 	creds := &models.LoginCredential{
 		Email:    email,
 		Password: password,
 	}
 
-	// Validar email e senha
 	if err := creds.Validate(); err != nil {
-		return nil, err // Retorna erro de validação (ex: 400)
+		return nil, err
 	}
 
-	// Buscar usuário pelo email
 	user, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
-		time.Sleep(time.Second) // Mitigar timing attacks
+		time.Sleep(time.Second)
 		return nil, err_msg.ErrCredentials
 	}
 
-	// Comparar senha
 	if err := s.hasher.Compare(user.Password, password); err != nil {
 		return nil, err_msg.ErrCredentials
 	}
 
-	// Checar se conta está ativa
 	if !user.Status {
 		return nil, err_msg.ErrAccountDisabled
 	}
 
-	// Gerar token
 	token, err := s.jwtManager.Generate(user.UID, user.Email)
 	if err != nil {
 		return nil, err_msg.ErrTokenGeneration

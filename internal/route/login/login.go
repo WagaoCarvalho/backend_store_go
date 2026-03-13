@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 
+	"github.com/WagaoCarvalho/backend_store_go/config"
 	loginHandler "github.com/WagaoCarvalho/backend_store_go/internal/handler/login"
 	logoutHandler "github.com/WagaoCarvalho/backend_store_go/internal/handler/logout"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
@@ -12,7 +13,6 @@ import (
 	login "github.com/WagaoCarvalho/backend_store_go/internal/service/login"
 	logout "github.com/WagaoCarvalho/backend_store_go/internal/service/logout"
 
-	"github.com/WagaoCarvalho/backend_store_go/config"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -23,12 +23,13 @@ func RegisterLoginRoutes(
 	log *logger.LogAdapter,
 	blacklist logout.TokenBlacklist,
 ) {
+	serverConfig := config.LoadServerConfig()
+	baseURL := serverConfig.BaseURL
+
 	userRepo := repo.NewUser(db)
 
-	// Carregar config JWT
 	jwtCfg := config.LoadJwtConfig()
 
-	// Instanciar JWTManager que implementa JWTService
 	jwtManager := jwtAuth.NewJWTManager(
 		jwtCfg.SecretKey,
 		jwtCfg.TokenDuration,
@@ -38,13 +39,19 @@ func RegisterLoginRoutes(
 
 	hasher := pass.BcryptHasher{}
 
-	loginService := login.NewLoginService(userRepo, jwtManager, hasher)
-	loginHandler := loginHandler.NewLoginHandler(loginService, log)
+	newLoginService := login.NewLoginService(userRepo, jwtManager, hasher)
+	newLoginHandler := loginHandler.NewLoginHandler(newLoginService, log)
 
-	// Passa jwtManager (JWTService) em vez de string SecretKey
-	logoutService := logout.NewLogoutService(blacklist, jwtManager)
-	logoutHandler := logoutHandler.NewLogoutHandler(logoutService, log)
+	newLogoutService := logout.NewLogoutService(blacklist, jwtManager)
+	newLogoutHandler := logoutHandler.NewLogoutHandler(newLogoutService, log)
 
-	r.HandleFunc("/login", loginHandler.Login).Methods(http.MethodPost)
-	r.HandleFunc("/logout", logoutHandler.Logout).Methods(http.MethodPost)
+	s := r.PathPrefix("/").Subrouter()
+
+	const (
+		loginPath  = "/login"
+		logoutPath = "/logout"
+	)
+
+	s.HandleFunc(baseURL+loginPath, newLoginHandler.Login).Methods(http.MethodPost)
+	s.HandleFunc(baseURL+logoutPath, newLogoutHandler.Logout).Methods(http.MethodPost)
 }

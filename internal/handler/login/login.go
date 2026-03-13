@@ -46,7 +46,6 @@ func (h *loginHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Chamada ao service com model (strings) em vez de DTO
 	authRespDTO, err := h.service.Login(r.Context(), loginBody.Email, loginBody.Password)
 	if err != nil {
 		h.logger.Warn(r.Context(), ref+logger.LogValidateError, map[string]any{

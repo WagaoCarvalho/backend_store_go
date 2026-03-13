@@ -82,7 +82,7 @@ func TestLoginService_Login(t *testing.T) {
 
 		assert.ErrorIs(t, err, errMsg.ErrCredentials)
 		assert.Nil(t, authResp)
-		assert.GreaterOrEqual(t, elapsed.Milliseconds(), int64(1000)) // timing attack mitigation
+		assert.GreaterOrEqual(t, elapsed.Milliseconds(), int64(1000))
 		mockRepo.AssertExpectations(t)
 	})
 
