@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
+	models "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
+	modelFilter "github.com/WagaoCarvalho/backend_store_go/internal/model/user/filter"
 	pass "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
 	err_msg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-
-	models "github.com/WagaoCarvalho/backend_store_go/internal/model/login"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/filter"
 )
 
 type LoginService interface {
@@ -20,12 +20,12 @@ type TokenGenerator interface {
 }
 
 type loginService struct {
-	userRepo   repo.User
+	userRepo   repo.UserFilter
 	jwtManager TokenGenerator
 	hasher     pass.PasswordHasher
 }
 
-func NewLoginService(repo repo.User, jwt TokenGenerator, hasher pass.PasswordHasher) LoginService {
+func NewLoginService(repo repo.UserFilter, jwt TokenGenerator, hasher pass.PasswordHasher) LoginService {
 	return &loginService{
 		userRepo:   repo,
 		jwtManager: jwt,
@@ -34,7 +34,6 @@ func NewLoginService(repo repo.User, jwt TokenGenerator, hasher pass.PasswordHas
 }
 
 func (s *loginService) Login(ctx context.Context, email, password string) (*models.AuthResponse, error) {
-
 	creds := &models.LoginCredential{
 		Email:    email,
 		Password: password,
@@ -44,16 +43,33 @@ func (s *loginService) Login(ctx context.Context, email, password string) (*mode
 		return nil, err
 	}
 
-	user, err := s.userRepo.GetByEmail(ctx, email)
+	// 🔄 Substituído GetByEmail por Filter
+	userFilter := &modelFilter.UserFilter{
+		Email: email,
+		// Opcional: já filtrar por status ativo para evitar uma consulta extra
+		// Status: utils.BoolPtr(true),
+	}
+
+	users, err := s.userRepo.Filter(ctx, userFilter)
 	if err != nil {
 		time.Sleep(time.Second)
 		return nil, err_msg.ErrCredentials
 	}
 
-	if err := s.hasher.Compare(user.Password, password); err != nil {
+	if len(users) == 0 {
+		time.Sleep(time.Second)
 		return nil, err_msg.ErrCredentials
 	}
 
+	user := users[0]
+
+	// ✅ Verificação da senha
+	if err := s.hasher.Compare(user.Password, password); err != nil {
+		time.Sleep(time.Second)
+		return nil, err_msg.ErrCredentials
+	}
+
+	// ✅ Verificação se o usuário está ativo (já existente no seu código)
 	if !user.Status {
 		return nil, err_msg.ErrAccountDisabled
 	}

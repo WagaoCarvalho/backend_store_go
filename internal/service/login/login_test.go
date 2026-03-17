@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	mockUser "github.com/WagaoCarvalho/backend_store_go/infra/mock/user"
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/user/filter"
 	modelsUser "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 )
@@ -36,7 +37,6 @@ func (m *mockTokenGen) Generate(uid int64, email string) (string, error) {
 }
 
 func TestLoginService_Login(t *testing.T) {
-
 	mockRepo := new(mockUser.MockUser)
 	mockHasher := new(mockHasher)
 	mockToken := new(mockTokenGen)
@@ -49,7 +49,11 @@ func TestLoginService_Login(t *testing.T) {
 		password := "123456"
 		user := &modelsUser.User{UID: 1, Email: email, Password: "hashed", Status: true}
 
-		mockRepo.On("GetByEmail", ctx, email).Return(user, nil)
+		// 🔄 Substituído GetByEmail por Filter
+		mockRepo.On("Filter", ctx, mock.MatchedBy(func(f *filter.UserFilter) bool {
+			return f.Email == email
+		})).Return([]*modelsUser.User{user}, nil)
+
 		mockHasher.On("Compare", "hashed", password).Return(nil)
 		mockToken.On("Generate", int64(1), email).Return("valid-token", nil)
 
@@ -74,7 +78,29 @@ func TestLoginService_Login(t *testing.T) {
 	t.Run("usuário não encontrado", func(t *testing.T) {
 		ctx := context.Background()
 		email := "notfound@example.com"
-		mockRepo.On("GetByEmail", ctx, email).Return((*modelsUser.User)(nil), errors.New("not found"))
+
+		// 🔄 Retorna slice vazia em vez de nil
+		mockRepo.On("Filter", ctx, mock.MatchedBy(func(f *filter.UserFilter) bool {
+			return f.Email == email
+		})).Return([]*modelsUser.User{}, nil)
+
+		start := time.Now()
+		authResp, err := service.Login(ctx, email, "123")
+		elapsed := time.Since(start)
+
+		assert.ErrorIs(t, err, errMsg.ErrCredentials)
+		assert.Nil(t, authResp)
+		assert.GreaterOrEqual(t, elapsed.Milliseconds(), int64(1000))
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("erro no repositório", func(t *testing.T) {
+		ctx := context.Background()
+		email := "error@example.com"
+
+		mockRepo.On("Filter", ctx, mock.MatchedBy(func(f *filter.UserFilter) bool {
+			return f.Email == email
+		})).Return(nil, errors.New("db error"))
 
 		start := time.Now()
 		authResp, err := service.Login(ctx, email, "123")
@@ -91,7 +117,9 @@ func TestLoginService_Login(t *testing.T) {
 		email := "user@example.com"
 		user := &modelsUser.User{UID: 1, Email: email, Password: "hashed", Status: true}
 
-		mockRepo.On("GetByEmail", ctx, email).Return(user, nil)
+		mockRepo.On("Filter", ctx, mock.MatchedBy(func(f *filter.UserFilter) bool {
+			return f.Email == email
+		})).Return([]*modelsUser.User{user}, nil)
 		mockHasher.On("Compare", "hashed", "wrong").Return(errors.New("wrong password"))
 
 		authResp, err := service.Login(ctx, email, "wrong")
@@ -107,7 +135,9 @@ func TestLoginService_Login(t *testing.T) {
 		email := "inactive@example.com"
 		user := &modelsUser.User{UID: 2, Email: email, Password: "hashed", Status: false}
 
-		mockRepo.On("GetByEmail", ctx, email).Return(user, nil)
+		mockRepo.On("Filter", ctx, mock.MatchedBy(func(f *filter.UserFilter) bool {
+			return f.Email == email
+		})).Return([]*modelsUser.User{user}, nil)
 		mockHasher.On("Compare", "hashed", "123").Return(nil)
 
 		authResp, err := service.Login(ctx, email, "123")
@@ -123,7 +153,9 @@ func TestLoginService_Login(t *testing.T) {
 		email := "failtoken@example.com"
 		user := &modelsUser.User{UID: 3, Email: email, Password: "hashed", Status: true}
 
-		mockRepo.On("GetByEmail", ctx, email).Return(user, nil)
+		mockRepo.On("Filter", ctx, mock.MatchedBy(func(f *filter.UserFilter) bool {
+			return f.Email == email
+		})).Return([]*modelsUser.User{user}, nil)
 		mockHasher.On("Compare", "hashed", "123").Return(nil)
 		mockToken.On("Generate", int64(3), email).Return("", errors.New("gen error"))
 

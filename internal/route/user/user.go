@@ -4,12 +4,15 @@ import (
 	"net/http"
 
 	"github.com/WagaoCarvalho/backend_store_go/config"
+	handlerFilter "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/filter"
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/user/user"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	auth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
+	jwtMiddlewares "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
+	repoFilter "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/filter"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
+	serviceFilter "github.com/WagaoCarvalho/backend_store_go/internal/service/user/filter"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/user/user"
 
 	"github.com/gorilla/mux"
@@ -20,16 +23,26 @@ func RegisterUserRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
 	log *logger.LogAdapter,
-	blacklist jwt.TokenBlacklist,
+	blacklist jwtMiddlewares.TokenBlacklist,
 ) {
-	repoUser := repo.NewUser(db)
+	serverConfig := config.LoadServerConfig()
+	baseURL := serverConfig.BaseURL
+	idPath := serverConfig.IDPath
+
+	// Repositórios
+	newRepoUser := repo.NewUser(db)
+	newRepoFilter := repoFilter.NewUserFilter(db)
+
+	// Dependências
 	hasher := auth.BcryptHasher{}
 
-	userService := service.NewUserService(repoUser, hasher)
-	handler := handler.NewUserHandler(userService, log)
+	// Serviços
+	newServiceUser := service.NewUserService(newRepoUser, hasher)
+	newServiceFilter := serviceFilter.NewUserFilterService(newRepoFilter)
 
-	// Rota pública
-	r.HandleFunc("/user", handler.Create).Methods(http.MethodPost)
+	// Handlers
+	newHandlerUser := handler.NewUserHandler(newServiceUser, log)
+	newHandlerFilter := handlerFilter.NewUserFilterHandler(newServiceFilter, log)
 
 	// Config JWT
 	jwtCfg := config.LoadJwtConfig()
@@ -40,17 +53,42 @@ func RegisterUserRoutes(
 		jwtCfg.Audience,
 	)
 
+	// Rota pública (fora do subrouter protegido)
+	r.HandleFunc(baseURL+"/user", newHandlerUser.Create).Methods(http.MethodPost)
+
 	// Rotas protegidas
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(jwt.IsAuthByBearerToken(blacklist, log, jwtManager))
+	s.Use(jwtMiddlewares.IsAuthByBearerToken(blacklist, log, jwtManager))
 
-	s.HandleFunc("/users", handler.GetAll).Methods(http.MethodGet)
-	s.HandleFunc("/user/id/{id}", handler.GetByID).Methods(http.MethodGet)
-	s.HandleFunc("/user/version/{id:[0-9]+}", handler.GetVersionByID).Methods(http.MethodGet)
-	s.HandleFunc("/user/email/{email}", handler.GetByEmail).Methods(http.MethodGet)
-	s.HandleFunc("/user/name/{username}", handler.GetByName).Methods(http.MethodGet)
-	s.HandleFunc("/user/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
-	s.HandleFunc("/user/enable/{id:[0-9]+}", handler.Enable).Methods(http.MethodPatch)
-	s.HandleFunc("/user/disable/{id:[0-9]+}", handler.Disable).Methods(http.MethodPatch)
-	s.HandleFunc("/user/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
+	// Constantes para caminhos
+	const (
+		users   = "/users"
+		user    = "/user"
+		id      = "/id/"
+		version = "/version/"
+		email   = "/email/"
+		name    = "/name/"
+		enable  = "/enable/"
+		disable = "/disable/"
+		filter  = "/filter"
+		idParam = "{id:[0-9]+}"
+	)
+
+	// Rotas de listagem e busca
+	s.HandleFunc(baseURL+users, newHandlerUser.GetAll).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+users+filter, newHandlerFilter.Filter).Methods(http.MethodGet)
+
+	// Rotas por ID
+	s.HandleFunc(baseURL+user+idPath, newHandlerUser.GetByID).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+user+version+idParam, newHandlerUser.GetVersionByID).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+user+idParam, newHandlerUser.Update).Methods(http.MethodPut)
+	s.HandleFunc(baseURL+user+idParam, newHandlerUser.Delete).Methods(http.MethodDelete)
+
+	// Rotas por campos específicos
+	s.HandleFunc(baseURL+user+email+"{email}", newHandlerUser.GetByEmail).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+user+name+"{username}", newHandlerUser.GetByName).Methods(http.MethodGet)
+
+	// Rotas de status
+	s.HandleFunc(baseURL+user+enable+idParam, newHandlerUser.Enable).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+user+disable+idParam, newHandlerUser.Disable).Methods(http.MethodPatch)
 }

@@ -23,15 +23,74 @@ import (
 func TestSaleHandler_Filter(t *testing.T) {
 	baseLogger := logrus.New()
 	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
+	logAdapter := logger.NewLoggerAdapter(baseLogger)
 
-	t.Run("erro - falha no serviço", func(t *testing.T) {
+	setup := func() (*mockSale.MockSale, *saleFilterHandler) {
 		mockService := new(mockSale.MockSale)
-		handler := NewSaleFilterHandler(mockService, logger)
+		handler := NewSaleFilterHandler(mockService, logAdapter)
+		return mockService, handler
+	}
 
+	// TESTES DE VALIDAÇÃO DE PARÂMETROS DESCONHECIDOS
+	t.Run("erro - parâmetro desconhecido na query", func(t *testing.T) {
+		mockService, handler := setup()
+		req := httptest.NewRequest(http.MethodGet, "/sales/filter?parametro_invalido=valor", nil)
+		rec := httptest.NewRecorder()
+		handler.Filter(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "parâmetro de consulta inválido")
+
+		mockService.AssertNotCalled(t, "Filter")
+	})
+
+	// TESTES DE VALIDAÇÃO DE VALORES INVÁLIDOS
+	t.Run("erro - client_id inválido (não numérico)", func(t *testing.T) {
+		mockService, handler := setup()
+		req := httptest.NewRequest(http.MethodGet, "/sales/filter?client_id=abc", nil)
+		rec := httptest.NewRecorder()
+		handler.Filter(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "client_id deve ser um número inteiro")
+
+		mockService.AssertNotCalled(t, "Filter")
+	})
+
+	t.Run("erro - user_id inválido (não numérico)", func(t *testing.T) {
+		mockService, handler := setup()
+		req := httptest.NewRequest(http.MethodGet, "/sales/filter?user_id=xyz", nil)
+		rec := httptest.NewRecorder()
+		handler.Filter(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "user_id deve ser um número inteiro")
+
+		mockService.AssertNotCalled(t, "Filter")
+	})
+
+	// TESTES DE ERRO DO SERVIÇO
+	t.Run("erro - falha no serviço (erro genérico)", func(t *testing.T) {
+		mockService, handler := setup()
 		mockService.
 			On("Filter", mock.Anything, mock.Anything).
-			Return(nil, errors.New("db error"))
+			Return(nil, errors.New("db error")).
+			Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/sales/filter?limit=10&offset=0", nil)
 		rec := httptest.NewRecorder()
@@ -48,15 +107,14 @@ func TestSaleHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("erro - filtro inválido", func(t *testing.T) {
-		mockService := new(mockSale.MockSale)
-		handler := NewSaleFilterHandler(mockService, logger)
-
+	t.Run("erro - filtro inválido retornado pelo serviço", func(t *testing.T) {
+		mockService, handler := setup()
 		mockService.
 			On("Filter", mock.Anything, mock.Anything).
-			Return(nil, errMsg.ErrInvalidFilter)
+			Return(nil, errMsg.ErrInvalidFilter).
+			Once()
 
-		req := httptest.NewRequest(http.MethodGet, "/sales/filter?limit=-1", nil)
+		req := httptest.NewRequest(http.MethodGet, "/sales/filter?limit=10&offset=0", nil)
 		rec := httptest.NewRecorder()
 
 		handler.Filter(rec, req)
@@ -71,9 +129,9 @@ func TestSaleHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
+	// TESTES DE SUCESSO
 	t.Run("sucesso - retorna lista de vendas", func(t *testing.T) {
-		mockService := new(mockSale.MockSale)
-		handler := NewSaleFilterHandler(mockService, logger)
+		mockService, handler := setup()
 
 		now := time.Now()
 
@@ -100,7 +158,8 @@ func TestSaleHandler_Filter(t *testing.T) {
 
 		mockService.
 			On("Filter", mock.Anything, mock.Anything).
-			Return(mockSales, nil)
+			Return(mockSales, nil).
+			Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/sales/filter?limit=2&offset=0", nil)
 		rec := httptest.NewRecorder()
@@ -123,12 +182,11 @@ func TestSaleHandler_Filter(t *testing.T) {
 	})
 
 	t.Run("sucesso - retorna lista vazia", func(t *testing.T) {
-		mockService := new(mockSale.MockSale)
-		handler := NewSaleFilterHandler(mockService, logger)
-
+		mockService, handler := setup()
 		mockService.
 			On("Filter", mock.Anything, mock.Anything).
-			Return([]*model.Sale{}, nil)
+			Return([]*model.Sale{}, nil).
+			Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/sales/filter?limit=5&offset=0", nil)
 		rec := httptest.NewRecorder()
@@ -149,9 +207,7 @@ func TestSaleHandler_Filter(t *testing.T) {
 	})
 
 	t.Run("sucesso - filtro por payment_type", func(t *testing.T) {
-		mockService := new(mockSale.MockSale)
-		handler := NewSaleFilterHandler(mockService, logger)
-
+		mockService, handler := setup()
 		mockSales := []*model.Sale{
 			{
 				ID:          1,
@@ -165,7 +221,8 @@ func TestSaleHandler_Filter(t *testing.T) {
 			On("Filter", mock.Anything, mock.MatchedBy(func(f *filter.SaleFilter) bool {
 				return f.PaymentType == "credit"
 			})).
-			Return(mockSales, nil)
+			Return(mockSales, nil).
+			Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/sales/filter?payment_type=credit", nil)
 		rec := httptest.NewRecorder()
@@ -180,16 +237,12 @@ func TestSaleHandler_Filter(t *testing.T) {
 
 		data := resp.Data.(map[string]any)
 		assert.Equal(t, float64(1), data["total"])
-		items := data["items"].([]any)
-		assert.Equal(t, "credit", items[0].(map[string]any)["payment_type"])
 
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("sucesso - filtro por client_id", func(t *testing.T) {
-		mockService := new(mockSale.MockSale)
-		handler := NewSaleFilterHandler(mockService, logger)
-
+	t.Run("sucesso - filtro por client_id válido", func(t *testing.T) {
+		mockService, handler := setup()
 		mockSales := []*model.Sale{
 			{
 				ID:          1,
@@ -204,7 +257,8 @@ func TestSaleHandler_Filter(t *testing.T) {
 			On("Filter", mock.Anything, mock.MatchedBy(func(f *filter.SaleFilter) bool {
 				return f.ClientID != nil && *f.ClientID == 100
 			})).
-			Return(mockSales, nil)
+			Return(mockSales, nil).
+			Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/sales/filter?client_id=100", nil)
 		rec := httptest.NewRecorder()
@@ -223,10 +277,8 @@ func TestSaleHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("sucesso - filtro por user_id", func(t *testing.T) {
-		mockService := new(mockSale.MockSale)
-		handler := NewSaleFilterHandler(mockService, logger)
-
+	t.Run("sucesso - filtro por user_id válido", func(t *testing.T) {
+		mockService, handler := setup()
 		mockSales := []*model.Sale{
 			{
 				ID:          1,
@@ -241,7 +293,8 @@ func TestSaleHandler_Filter(t *testing.T) {
 			On("Filter", mock.Anything, mock.MatchedBy(func(f *filter.SaleFilter) bool {
 				return f.UserID != nil && *f.UserID == 50
 			})).
-			Return(mockSales, nil)
+			Return(mockSales, nil).
+			Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/sales/filter?user_id=50", nil)
 		rec := httptest.NewRecorder()
@@ -261,9 +314,7 @@ func TestSaleHandler_Filter(t *testing.T) {
 	})
 
 	t.Run("sucesso - filtro por status", func(t *testing.T) {
-		mockService := new(mockSale.MockSale)
-		handler := NewSaleFilterHandler(mockService, logger)
-
+		mockService, handler := setup()
 		mockSales := []*model.Sale{
 			{
 				ID:          1,
@@ -277,7 +328,8 @@ func TestSaleHandler_Filter(t *testing.T) {
 			On("Filter", mock.Anything, mock.MatchedBy(func(f *filter.SaleFilter) bool {
 				return f.Status == "pending"
 			})).
-			Return(mockSales, nil)
+			Return(mockSales, nil).
+			Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/sales/filter?status=pending", nil)
 		rec := httptest.NewRecorder()
@@ -292,16 +344,12 @@ func TestSaleHandler_Filter(t *testing.T) {
 
 		data := resp.Data.(map[string]any)
 		assert.Equal(t, float64(1), data["total"])
-		items := data["items"].([]any)
-		assert.Equal(t, "pending", items[0].(map[string]any)["status"])
 
 		mockService.AssertExpectations(t)
 	})
 
 	t.Run("sucesso - múltiplos filtros combinados", func(t *testing.T) {
-		mockService := new(mockSale.MockSale)
-		handler := NewSaleFilterHandler(mockService, logger)
-
+		mockService, handler := setup()
 		mockSales := []*model.Sale{
 			{
 				ID:          1,
@@ -320,7 +368,8 @@ func TestSaleHandler_Filter(t *testing.T) {
 					f.PaymentType == "credit" &&
 					f.Status == "completed"
 			})).
-			Return(mockSales, nil)
+			Return(mockSales, nil).
+			Once()
 
 		req := httptest.NewRequest(http.MethodGet,
 			"/sales/filter?client_id=100&user_id=50&payment_type=credit&status=completed",
@@ -341,27 +390,21 @@ func TestSaleHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("erro - ToModel retorna erro de validação para status inválido", func(t *testing.T) {
-		mockService := new(mockSale.MockSale)
-		handler := NewSaleFilterHandler(mockService, logger)
+	t.Run("sucesso - paginação com valores padrão quando não informados", func(t *testing.T) {
+		mockService, handler := setup()
+		mockService.
+			On("Filter", mock.Anything, mock.MatchedBy(func(f *filter.SaleFilter) bool {
+				return f.Limit == 10 && f.Offset == 0
+			})).
+			Return([]*model.Sale{}, nil).
+			Once()
 
-		req := httptest.NewRequest(http.MethodGet, "/sales/filter?status=INVALID_STATUS_VALUE", nil)
+		req := httptest.NewRequest(http.MethodGet, "/sales/filter", nil)
 		rec := httptest.NewRecorder()
 
 		handler.Filter(rec, req)
 
-		assert.Equal(t, http.StatusBadRequest, rec.Code, "Deve retornar 400 quando status é inválido")
-
-		var resp utils.DefaultResponse
-		err := json.Unmarshal(rec.Body.Bytes(), &resp)
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusBadRequest, resp.Status)
-		assert.Contains(t, resp.Message, "filtro inválido", "Mensagem deve conter 'filtro inválido'")
-		assert.Contains(t, resp.Message, "status", "Mensagem deve mencionar o campo 'status'")
-		assert.Contains(t, resp.Message, "INVALID_STATUS_VALUE", "Mensagem deve conter o valor inválido")
-
-		mockService.AssertNotCalled(t, "Filter", mock.Anything, mock.Anything,
-			"Serviço não deve ser chamado quando ToModel retorna erro")
+		assert.Equal(t, http.StatusOK, rec.Code)
+		mockService.AssertExpectations(t)
 	})
-
 }

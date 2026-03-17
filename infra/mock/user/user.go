@@ -3,6 +3,7 @@ package mock
 import (
 	"context"
 
+	filter "github.com/WagaoCarvalho/backend_store_go/internal/model/user/filter"
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/user/user"
 	"github.com/stretchr/testify/mock"
 )
@@ -86,4 +87,14 @@ func (m *MockUser) Delete(ctx context.Context, uid int64) error {
 func (m *MockUser) UserExists(ctx context.Context, userID int64) (bool, error) {
 	args := m.Called(ctx, userID)
 	return args.Bool(0), args.Error(1)
+}
+
+func (m *MockUser) Filter(ctx context.Context, f *filter.UserFilter) ([]*models.User, error) {
+	args := m.Called(ctx, f)
+
+	var result []*models.User
+	if res := args.Get(0); res != nil {
+		result = res.([]*models.User)
+	}
+	return result, args.Error(1)
 }

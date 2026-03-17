@@ -9,7 +9,7 @@ import (
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	pass "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/password"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/user"
+	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/user/filter"
 	login "github.com/WagaoCarvalho/backend_store_go/internal/service/login"
 	logout "github.com/WagaoCarvalho/backend_store_go/internal/service/logout"
 
@@ -26,7 +26,7 @@ func RegisterLoginRoutes(
 	serverConfig := config.LoadServerConfig()
 	baseURL := serverConfig.BaseURL
 
-	userRepo := repo.NewUser(db)
+	userRepo := repo.NewUserFilter(db)
 
 	jwtCfg := config.LoadJwtConfig()
 

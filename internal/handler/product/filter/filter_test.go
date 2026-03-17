@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -38,51 +39,76 @@ func TestProductFilterHandler_Filter(t *testing.T) {
 		mockService.AssertNotCalled(t, "Filter")
 	})
 
-	t.Run("erro - supplier_id inválido (não numérico) - continua sem erro", func(t *testing.T) {
+	// NOVOS TESTES PARA VALIDAÇÃO DE PARÂMETROS
+	t.Run("erro - parâmetro desconhecido na query", func(t *testing.T) {
 		mockService, handler := setup()
-		mockService.
-			On("Filter", mock.Anything, mock.MatchedBy(func(f *filter.ProductFilter) bool {
-				return f.SupplierID == nil
-			})).
-			Return([]*model.Product{}, nil).
-			Once()
-		req := httptest.NewRequest(http.MethodGet, "/products/filter?supplier_id=abc", nil)
+		req := httptest.NewRequest(http.MethodGet, "/products/filter?parametro_invalido=valor", nil)
 		rec := httptest.NewRecorder()
 		handler.Filter(rec, req)
-		assert.Equal(t, http.StatusOK, rec.Code)
-		mockService.AssertExpectations(t)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "parâmetro de consulta inválido")
+
+		mockService.AssertNotCalled(t, "Filter")
 	})
 
-	t.Run("erro - status inválido (não booleano) - continua sem erro", func(t *testing.T) {
+	t.Run("erro - status inválido (não booleano)", func(t *testing.T) {
 		mockService, handler := setup()
-		mockService.
-			On("Filter", mock.Anything, mock.MatchedBy(func(f *filter.ProductFilter) bool {
-				return f.Status == nil
-			})).
-			Return([]*model.Product{}, nil).
-			Once()
 		req := httptest.NewRequest(http.MethodGet, "/products/filter?status=abc", nil)
 		rec := httptest.NewRecorder()
 		handler.Filter(rec, req)
-		assert.Equal(t, http.StatusOK, rec.Code)
-		mockService.AssertExpectations(t)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "status deve ser true ou false")
+
+		mockService.AssertNotCalled(t, "Filter")
 	})
 
-	t.Run("erro - allow_discount inválido (não booleano) - continua sem erro", func(t *testing.T) {
+	t.Run("erro - supplier_id inválido (não numérico)", func(t *testing.T) {
 		mockService, handler := setup()
-		mockService.
-			On("Filter", mock.Anything, mock.MatchedBy(func(f *filter.ProductFilter) bool {
-				return f.AllowDiscount == nil
-			})).
-			Return([]*model.Product{}, nil).
-			Once()
+		req := httptest.NewRequest(http.MethodGet, "/products/filter?supplier_id=abc", nil)
+		rec := httptest.NewRecorder()
+		handler.Filter(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "supplier_id deve ser um número inteiro")
+
+		mockService.AssertNotCalled(t, "Filter")
+	})
+
+	t.Run("erro - allow_discount inválido (não booleano)", func(t *testing.T) {
+		mockService, handler := setup()
 		req := httptest.NewRequest(http.MethodGet, "/products/filter?allow_discount=abc", nil)
 		rec := httptest.NewRecorder()
 		handler.Filter(rec, req)
-		assert.Equal(t, http.StatusOK, rec.Code)
-		mockService.AssertExpectations(t)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.Status)
+		assert.Contains(t, resp.Message, "allow_discount deve ser true ou false")
+
+		mockService.AssertNotCalled(t, "Filter")
 	})
 
+	// TESTES DE ERRO DO SERVIÇO (mantidos)
 	t.Run("erro - falha no serviço (erro genérico)", func(t *testing.T) {
 		mockService, handler := setup()
 		mockService.
@@ -124,6 +150,7 @@ func TestProductFilterHandler_Filter(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
+	// TESTES DE SUCESSO (mantidos e ajustados)
 	t.Run("sucesso - retorna lista de produtos", func(t *testing.T) {
 		mockService, handler := setup()
 		modelProducts := []*model.Product{
@@ -135,6 +162,15 @@ func TestProductFilterHandler_Filter(t *testing.T) {
 		rec := httptest.NewRecorder()
 		handler.Filter(rec, req)
 		assert.Equal(t, http.StatusOK, rec.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.Status)
+
+		data := resp.Data.(map[string]any)
+		assert.Equal(t, float64(2), data["total"])
+
 		mockService.AssertExpectations(t)
 	})
 
@@ -145,10 +181,19 @@ func TestProductFilterHandler_Filter(t *testing.T) {
 		rec := httptest.NewRecorder()
 		handler.Filter(rec, req)
 		assert.Equal(t, http.StatusOK, rec.Code)
+
+		var resp utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.Status)
+
+		data := resp.Data.(map[string]any)
+		assert.Equal(t, float64(0), data["total"])
+
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("sucesso - filtro com supplier_id", func(t *testing.T) {
+	t.Run("sucesso - filtro com supplier_id válido", func(t *testing.T) {
 		mockService, handler := setup()
 		mockProducts := []*model.Product{{ID: 1, SupplierID: utils.Int64Ptr(10), ProductName: "Produto fornecedor"}}
 		mockService.
