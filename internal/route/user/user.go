@@ -75,7 +75,6 @@ func RegisterUserRoutes(
 	)
 
 	// Rotas de listagem e busca
-	s.HandleFunc(baseURL+users, newHandlerUser.GetAll).Methods(http.MethodGet)
 	s.HandleFunc(baseURL+users+filter, newHandlerFilter.Filter).Methods(http.MethodGet)
 
 	// Rotas por ID
@@ -83,10 +82,6 @@ func RegisterUserRoutes(
 	s.HandleFunc(baseURL+user+version+idParam, newHandlerUser.GetVersionByID).Methods(http.MethodGet)
 	s.HandleFunc(baseURL+user+idParam, newHandlerUser.Update).Methods(http.MethodPut)
 	s.HandleFunc(baseURL+user+idParam, newHandlerUser.Delete).Methods(http.MethodDelete)
-
-	// Rotas por campos específicos
-	s.HandleFunc(baseURL+user+email+"{email}", newHandlerUser.GetByEmail).Methods(http.MethodGet)
-	s.HandleFunc(baseURL+user+name+"{username}", newHandlerUser.GetByName).Methods(http.MethodGet)
 
 	// Rotas de status
 	s.HandleFunc(baseURL+user+enable+idParam, newHandlerUser.Enable).Methods(http.MethodPatch)
