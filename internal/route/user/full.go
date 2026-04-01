@@ -26,6 +26,9 @@ func RegisterUserFullRoutes(
 	log *logger.LogAdapter,
 	blacklist jwt.TokenBlacklist,
 ) {
+	serverConfig := config.LoadServerConfig()
+	baseURL := serverConfig.BaseURL
+
 	repoUser := repoUser.NewUserFull(db)
 	repoAddress := repoAddress.NewAddressTx()
 	repoContact := repoContact.NewContactTx()
@@ -49,5 +52,10 @@ func RegisterUserFullRoutes(
 	s := r.PathPrefix("/").Subrouter()
 	s.Use(jwt.IsAuthByBearerToken(blacklist, log, jwtManager)) // <- passa jwtManager, não string SecretKey
 
-	s.HandleFunc("/user-full", handler.CreateFull).Methods(http.MethodPost)
+	// Constantes para caminhos
+	const (
+		userFull = "/user-full"
+	)
+
+	s.HandleFunc(baseURL+userFull, handler.CreateFull).Methods(http.MethodPost)
 }

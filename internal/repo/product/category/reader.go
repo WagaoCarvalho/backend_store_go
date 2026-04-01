@@ -10,6 +10,31 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+func (r *productCategoryRepo) GetByID(ctx context.Context, id int64) (*models.ProductCategory, error) {
+	const query = `
+		SELECT id, name, description, created_at, updated_at
+		FROM product_categories
+		WHERE id = $1;
+	`
+
+	var category models.ProductCategory
+	err := r.db.QueryRow(ctx, query, id).Scan(
+		&category.ID,
+		&category.Name,
+		&category.Description,
+		&category.CreatedAt,
+		&category.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errMsg.ErrNotFound
+		}
+		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
+	}
+
+	return &category, nil
+}
+
 func (r *productCategoryRepo) GetAll(ctx context.Context) ([]*models.ProductCategory, error) {
 	const query = `
 		SELECT id, name, description, created_at, updated_at
@@ -45,29 +70,4 @@ func (r *productCategoryRepo) GetAll(ctx context.Context) ([]*models.ProductCate
 	}
 
 	return categories, nil
-}
-
-func (r *productCategoryRepo) GetByID(ctx context.Context, id int64) (*models.ProductCategory, error) {
-	const query = `
-		SELECT id, name, description, created_at, updated_at
-		FROM product_categories
-		WHERE id = $1;
-	`
-
-	var category models.ProductCategory
-	err := r.db.QueryRow(ctx, query, id).Scan(
-		&category.ID,
-		&category.Name,
-		&category.Description,
-		&category.CreatedAt,
-		&category.UpdatedAt,
-	)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, errMsg.ErrNotFound
-		}
-		return nil, fmt.Errorf("%w: %v", errMsg.ErrGet, err)
-	}
-
-	return &category, nil
 }

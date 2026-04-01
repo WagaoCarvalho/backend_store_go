@@ -88,10 +88,11 @@ func TestUserFullRepo_CreateTx(t *testing.T) {
 		ctx := context.Background()
 
 		user := &models.User{
-			Username: "testuser",
-			Email:    "test@example.com",
-			Password: "Password123",
-			Status:   true,
+			Username:    "testuser",
+			Email:       "test@example.com",
+			Password:    "Password123",
+			Description: "Usuário de teste",
+			Status:      true,
 		}
 
 		createdAt := time.Now()
@@ -108,6 +109,7 @@ func TestUserFullRepo_CreateTx(t *testing.T) {
 			user.Username,
 			user.Email,
 			user.Password,
+			user.Description,
 			user.Status,
 		}).Return(mockRow)
 
@@ -122,21 +124,70 @@ func TestUserFullRepo_CreateTx(t *testing.T) {
 		mockTx.AssertExpectations(t)
 	})
 
+	t.Run("successfully create user with empty description", func(t *testing.T) {
+		mockTx := new(mockDb.MockTx)
+		repo := &userFullRepo{db: nil}
+		ctx := context.Background()
+
+		emptyDescription := ""
+		user := &models.User{
+			Username:    "testuser3",
+			Email:       "test3@example.com",
+			Password:    "Password123",
+			Description: emptyDescription,
+			Status:      true,
+		}
+
+		createdAt := time.Now()
+		updatedAt := time.Now()
+		mockRow := &mockDb.MockRowWithIDArgs{
+			Values: []interface{}{
+				int64(3),  // UID
+				createdAt, // created_at
+				updatedAt, // updated_at
+			},
+		}
+
+		mockTx.On("QueryRow", ctx, mock.Anything, []interface{}{
+			user.Username,
+			user.Email,
+			user.Password,
+			user.Description,
+			user.Status,
+		}).Return(mockRow)
+
+		result, err := repo.CreateTx(ctx, mockTx, user)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, user, result)
+		assert.Equal(t, int64(3), user.UID)
+		assert.Equal(t, "", user.Description)
+		mockTx.AssertExpectations(t)
+	})
+
 	t.Run("return ErrCreate when database error occurs", func(t *testing.T) {
 		mockTx := new(mockDb.MockTx)
 		repo := &userFullRepo{db: nil}
 		ctx := context.Background()
 
 		user := &models.User{
-			Username: "testuser",
-			Email:    "test@example.com",
-			Password: "Password123",
-			Status:   true,
+			Username:    "testuser",
+			Email:       "test@example.com",
+			Password:    "Password123",
+			Description: "Test description",
+			Status:      true,
 		}
 
 		dbError := errors.New("database error")
 		mockRow := &mockDb.MockRow{Err: dbError}
-		mockTx.On("QueryRow", ctx, mock.Anything, mock.Anything).Return(mockRow)
+		mockTx.On("QueryRow", ctx, mock.Anything, []interface{}{
+			user.Username,
+			user.Email,
+			user.Password,
+			user.Description,
+			user.Status,
+		}).Return(mockRow)
 
 		result, err := repo.CreateTx(ctx, mockTx, user)
 
@@ -154,10 +205,11 @@ func TestUserFullRepo_CreateTx(t *testing.T) {
 		ctx := context.Background()
 
 		user := &models.User{
-			Username: "inactiveuser",
-			Email:    "inactive@example.com",
-			Password: "Password123",
-			Status:   false,
+			Username:    "inactiveuser",
+			Email:       "inactive@example.com",
+			Password:    "Password123",
+			Description: "Usuário inativo",
+			Status:      false,
 		}
 
 		createdAt := time.Now()
@@ -174,6 +226,7 @@ func TestUserFullRepo_CreateTx(t *testing.T) {
 			user.Username,
 			user.Email,
 			user.Password,
+			user.Description,
 			user.Status,
 		}).Return(mockRow)
 
@@ -193,10 +246,11 @@ func TestUserFullRepo_CreateTx(t *testing.T) {
 		ctx := context.Background()
 
 		user := &models.User{
-			Username: "testuser",
-			Email:    "test@example.com",
-			Password: "Password123",
-			Status:   true,
+			Username:    "testuser",
+			Email:       "test@example.com",
+			Password:    "Password123",
+			Description: "Test description",
+			Status:      true,
 		}
 
 		// MockRow com número incorreto de valores (apenas 2 em vez de 3)
@@ -211,6 +265,7 @@ func TestUserFullRepo_CreateTx(t *testing.T) {
 			user.Username,
 			user.Email,
 			user.Password,
+			user.Description,
 			user.Status,
 		}).Return(mockRow)
 
@@ -228,10 +283,11 @@ func TestUserFullRepo_CreateTx(t *testing.T) {
 		ctx := context.Background()
 
 		user := &models.User{
-			Username: "testuser",
-			Email:    "test@example.com",
-			Password: "Password123",
-			Status:   true,
+			Username:    "testuser",
+			Email:       "test@example.com",
+			Password:    "Password123",
+			Description: "Test description",
+			Status:      true,
 		}
 
 		// Usando MockRow com erro customizado
@@ -244,6 +300,7 @@ func TestUserFullRepo_CreateTx(t *testing.T) {
 			user.Username,
 			user.Email,
 			user.Password,
+			user.Description,
 			user.Status,
 		}).Return(mockRow)
 
@@ -254,6 +311,48 @@ func TestUserFullRepo_CreateTx(t *testing.T) {
 		assert.ErrorIs(t, err, errMsg.ErrCreate)
 		assert.Contains(t, err.Error(), scanError.Error())
 		assert.Contains(t, err.Error(), errMsg.ErrCreate.Error())
+		mockTx.AssertExpectations(t)
+	})
+
+	t.Run("successfully create user with long description", func(t *testing.T) {
+		mockTx := new(mockDb.MockTx)
+		repo := &userFullRepo{db: nil}
+		ctx := context.Background()
+
+		longDescription := "Esta é uma descrição muito longa para testar o comportamento do sistema com textos extensos. Deve funcionar normalmente."
+		user := &models.User{
+			Username:    "testuser_long",
+			Email:       "test_long@example.com",
+			Password:    "Password123",
+			Description: longDescription,
+			Status:      true,
+		}
+
+		createdAt := time.Now()
+		updatedAt := time.Now()
+		mockRow := &mockDb.MockRowWithIDArgs{
+			Values: []interface{}{
+				int64(4),  // UID
+				createdAt, // created_at
+				updatedAt, // updated_at
+			},
+		}
+
+		mockTx.On("QueryRow", ctx, mock.Anything, []interface{}{
+			user.Username,
+			user.Email,
+			user.Password,
+			user.Description,
+			user.Status,
+		}).Return(mockRow)
+
+		result, err := repo.CreateTx(ctx, mockTx, user)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, user, result)
+		assert.Equal(t, int64(4), user.UID)
+		assert.Equal(t, longDescription, user.Description)
 		mockTx.AssertExpectations(t)
 	})
 }

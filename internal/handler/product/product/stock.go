@@ -10,6 +10,68 @@ import (
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
 )
 
+func (h *productHandler) GetStock(w http.ResponseWriter, r *http.Request) {
+	const ref = "[productHandler - GetStock] "
+	ctx := r.Context()
+
+	if r.Method != http.MethodGet {
+		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
+			"method": r.Method,
+		})
+		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	h.logger.Info(ctx, ref+"iniciando", nil)
+
+	id, err := utils.GetIDParam(r, "id")
+	if err != nil {
+		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+			"erro": err.Error(),
+		})
+		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		return
+	}
+
+	stock, err := h.service.GetStock(ctx, id)
+	if err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+				"product_id": id,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
+			return
+
+		case errors.Is(err, errMsg.ErrZeroID):
+			h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+				"product_id": id,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+			return
+
+		default:
+			h.logger.Error(ctx, err, ref+"erro inesperado", map[string]any{
+				"product_id": id,
+			})
+			utils.ErrorResponse(w, fmt.Errorf("erro ao buscar estoque"), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	resp := map[string]any{
+		"product_id":     id,
+		"stock_quantity": stock,
+	}
+
+	h.logger.Info(ctx, ref+"sucesso", resp)
+	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
+		Status:  http.StatusOK,
+		Message: "Estoque recuperado com sucesso",
+		Data:    resp,
+	})
+}
+
 func (h *productHandler) UpdateStock(w http.ResponseWriter, r *http.Request) {
 	const ref = "[productHandler - UpdateStock] "
 	ctx := r.Context()
@@ -244,66 +306,4 @@ func (h *productHandler) DecreaseStock(w http.ResponseWriter, r *http.Request) {
 		"amount":     payload.Amount,
 	})
 	w.WriteHeader(http.StatusNoContent)
-}
-
-func (h *productHandler) GetStock(w http.ResponseWriter, r *http.Request) {
-	const ref = "[productHandler - GetStock] "
-	ctx := r.Context()
-
-	if r.Method != http.MethodGet {
-		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
-			"method": r.Method,
-		})
-		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
-		return
-	}
-
-	h.logger.Info(ctx, ref+"iniciando", nil)
-
-	id, err := utils.GetIDParam(r, "id")
-	if err != nil {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
-			"erro": err.Error(),
-		})
-		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
-		return
-	}
-
-	stock, err := h.service.GetStock(ctx, id)
-	if err != nil {
-		switch {
-		case errors.Is(err, errMsg.ErrNotFound):
-			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
-				"product_id": id,
-			})
-			utils.ErrorResponse(w, fmt.Errorf("produto não encontrado"), http.StatusNotFound)
-			return
-
-		case errors.Is(err, errMsg.ErrZeroID):
-			h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
-				"product_id": id,
-			})
-			utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
-			return
-
-		default:
-			h.logger.Error(ctx, err, ref+"erro inesperado", map[string]any{
-				"product_id": id,
-			})
-			utils.ErrorResponse(w, fmt.Errorf("erro ao buscar estoque"), http.StatusInternalServerError)
-			return
-		}
-	}
-
-	resp := map[string]any{
-		"product_id":     id,
-		"stock_quantity": stock,
-	}
-
-	h.logger.Info(ctx, ref+"sucesso", resp)
-	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
-		Status:  http.StatusOK,
-		Message: "Estoque recuperado com sucesso",
-		Data:    resp,
-	})
 }

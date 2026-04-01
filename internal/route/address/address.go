@@ -65,13 +65,13 @@ func RegisterAddressRoutes(
 
 	s.HandleFunc(baseURL+addresses, newHandlerAddress.Create).Methods(http.MethodPost)
 
-	s.HandleFunc(baseURL+idPath+addresses, newHandlerAddress.GetByID).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+addresses+idPath, newHandlerAddress.GetByID).Methods(http.MethodGet)
 
-	s.HandleFunc(baseURL+idPath+addresses, newHandlerAddress.Update).Methods(http.MethodPut)
-	s.HandleFunc(baseURL+idPath+addresses, newHandlerAddress.Delete).Methods(http.MethodDelete)
+	s.HandleFunc(baseURL+addresses+idPath, newHandlerAddress.Update).Methods(http.MethodPut)
+	s.HandleFunc(baseURL+addresses+idPath, newHandlerAddress.Delete).Methods(http.MethodDelete)
 
-	s.HandleFunc(baseURL+idPath+addresses+enable, newHandlerAddress.Enable).Methods(http.MethodPatch)
-	s.HandleFunc(baseURL+idPath+addresses+disable, newHandlerAddress.Disable).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+addresses+idPath+enable, newHandlerAddress.Enable).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+addresses+idPath+disable, newHandlerAddress.Disable).Methods(http.MethodPatch)
 
 	s.HandleFunc(baseURL+addresses+filter, newHandlerFilter.Filter).Methods(http.MethodGet)
 }

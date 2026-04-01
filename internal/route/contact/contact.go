@@ -43,14 +43,14 @@ func RegisterContactRoutes(
 	s.Use(jwtMiddleware.IsAuthByBearerToken(blacklist, log, jwtManager))
 
 	const (
-		contacts = "/contact"
+		contact = "/contact"
 	)
 
-	s.HandleFunc(baseURL+contacts, newHandler.Create).Methods(http.MethodPost)
+	s.HandleFunc(baseURL+contact, newHandler.Create).Methods(http.MethodPost)
 
-	s.HandleFunc(baseURL+idPath+contacts, newHandler.GetByID).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+contact+idPath, newHandler.GetByID).Methods(http.MethodGet)
 
-	s.HandleFunc(baseURL+idPath+contacts, newHandler.Update).Methods(http.MethodPut)
+	s.HandleFunc(baseURL+contact+idPath, newHandler.Update).Methods(http.MethodPut)
 
-	s.HandleFunc(baseURL+idPath+contacts, newHandler.Delete).Methods(http.MethodDelete)
+	s.HandleFunc(baseURL+contact+idPath, newHandler.Delete).Methods(http.MethodDelete)
 }

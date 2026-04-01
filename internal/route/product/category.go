@@ -7,9 +7,10 @@ import (
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/product/category"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
+	jwtMiddlewares "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product/category"
 	service "github.com/WagaoCarvalho/backend_store_go/internal/service/product/category"
+
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -18,16 +19,23 @@ func RegisterProductCategoryRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
 	log *logger.LogAdapter,
-	blacklist jwt.TokenBlacklist,
+	blacklist jwtMiddlewares.TokenBlacklist,
 ) {
-	productCategoryRepo := repo.NewProductCategory(db)
-	productCategoryService := service.NewProductCategoryService(productCategoryRepo)
-	productCategoryHandler := handler.NewProductCategoryHandler(productCategoryService, log)
+	serverConfig := config.LoadServerConfig()
+	baseURL := serverConfig.BaseURL
+	idPath := serverConfig.IDPath
 
-	// Carregar config JWT
+	// Repositórios
+	newRepoCategory := repo.NewProductCategory(db)
+
+	// Serviços
+	newServiceCategory := service.NewProductCategoryService(newRepoCategory)
+
+	// Handlers
+	newHandlerCategory := handler.NewProductCategoryHandler(newServiceCategory, log)
+
+	// Config JWT
 	jwtCfg := config.LoadJwtConfig()
-
-	// Criar jwtManager que implementa JWTService
 	jwtManager := jwtAuth.NewJWTManager(
 		jwtCfg.SecretKey,
 		jwtCfg.TokenDuration,
@@ -35,12 +43,20 @@ func RegisterProductCategoryRoutes(
 		jwtCfg.Audience,
 	)
 
+	// Rotas protegidas
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(jwt.IsAuthByBearerToken(blacklist, log, jwtManager)) // <- passe o jwtManager, não a string SecretKey
+	s.Use(jwtMiddlewares.IsAuthByBearerToken(blacklist, log, jwtManager))
 
-	s.HandleFunc("/product-category", productCategoryHandler.Create).Methods(http.MethodPost)
-	s.HandleFunc("/product-category/{id:[0-9]+}", productCategoryHandler.GetByID).Methods(http.MethodGet)
-	s.HandleFunc("/product-categories", productCategoryHandler.GetAll).Methods(http.MethodGet)
-	s.HandleFunc("/product-category/{id:[0-9]+}", productCategoryHandler.Update).Methods(http.MethodPut)
-	s.HandleFunc("/product-category/{id:[0-9]+}", productCategoryHandler.Delete).Methods(http.MethodDelete)
+	// Constantes para caminhos
+	const (
+		productCategory   = "/product-category"
+		productCategories = "/product-categories"
+	)
+
+	// Rotas de categoria de produto
+	s.HandleFunc(baseURL+productCategory, newHandlerCategory.Create).Methods(http.MethodPost)
+	s.HandleFunc(baseURL+productCategories, newHandlerCategory.GetAll).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+productCategory+idPath, newHandlerCategory.GetByID).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+productCategory+idPath, newHandlerCategory.Update).Methods(http.MethodPut)
+	s.HandleFunc(baseURL+productCategory+idPath, newHandlerCategory.Delete).Methods(http.MethodDelete)
 }

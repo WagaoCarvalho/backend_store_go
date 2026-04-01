@@ -64,14 +64,10 @@ func RegisterUserRoutes(
 	const (
 		users   = "/users"
 		user    = "/user"
-		id      = "/id/"
 		version = "/version/"
-		email   = "/email/"
-		name    = "/name/"
 		enable  = "/enable/"
 		disable = "/disable/"
 		filter  = "/filter"
-		idParam = "{id:[0-9]+}"
 	)
 
 	// Rotas de listagem e busca
@@ -79,11 +75,11 @@ func RegisterUserRoutes(
 
 	// Rotas por ID
 	s.HandleFunc(baseURL+user+idPath, newHandlerUser.GetByID).Methods(http.MethodGet)
-	s.HandleFunc(baseURL+user+version+idParam, newHandlerUser.GetVersionByID).Methods(http.MethodGet)
-	s.HandleFunc(baseURL+user+idParam, newHandlerUser.Update).Methods(http.MethodPut)
-	s.HandleFunc(baseURL+user+idParam, newHandlerUser.Delete).Methods(http.MethodDelete)
+	s.HandleFunc(baseURL+user+version+idPath, newHandlerUser.GetVersionByID).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+user+idPath, newHandlerUser.Update).Methods(http.MethodPut)
+	s.HandleFunc(baseURL+user+idPath, newHandlerUser.Delete).Methods(http.MethodDelete)
 
 	// Rotas de status
-	s.HandleFunc(baseURL+user+enable+idParam, newHandlerUser.Enable).Methods(http.MethodPatch)
-	s.HandleFunc(baseURL+user+disable+idParam, newHandlerUser.Disable).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+user+enable+idPath, newHandlerUser.Enable).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+user+disable+idPath, newHandlerUser.Disable).Methods(http.MethodPatch)
 }

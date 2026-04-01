@@ -57,18 +57,13 @@ func RegisterClientRoutes(
 	)
 
 	s.HandleFunc(baseURL+clients, newHandler.Create).Methods(http.MethodPost)
+	s.HandleFunc(baseURL+clients+idPath, newHandler.GetByID).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+clients+idPath+version, newHandler.GetVersionByID).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+clients+idPath, newHandler.Update).Methods(http.MethodPut)
+	s.HandleFunc(baseURL+clients+idPath, newHandler.Delete).Methods(http.MethodDelete)
 
-	s.HandleFunc(baseURL+idPath+clients, newHandler.GetByID).Methods(http.MethodGet)
-
-	s.HandleFunc(baseURL+idPath+clients+version, newHandler.GetVersionByID).Methods(http.MethodGet)
-
-	s.HandleFunc(baseURL+idPath+clients, newHandler.Update).Methods(http.MethodPut)
-
-	s.HandleFunc(baseURL+idPath+clients, newHandler.Delete).Methods(http.MethodDelete)
-
-	s.HandleFunc(baseURL+idPath+clients+disable, newHandler.Disable).Methods(http.MethodPatch)
-
-	s.HandleFunc(baseURL+idPath+clients+enable, newHandler.Enable).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+clients+idPath+disable, newHandler.Disable).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+clients+idPath+enable, newHandler.Enable).Methods(http.MethodPatch)
 
 	s.HandleFunc(baseURL+clients+filter, newFilter.Filter).Methods(http.MethodGet)
 }

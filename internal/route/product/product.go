@@ -8,7 +8,7 @@ import (
 	handler "github.com/WagaoCarvalho/backend_store_go/internal/handler/product/product"
 	jwtAuth "github.com/WagaoCarvalho/backend_store_go/internal/pkg/auth/jwt"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/logger"
-	jwt "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
+	jwtMiddlewares "github.com/WagaoCarvalho/backend_store_go/internal/pkg/middleware/jwt"
 	repoFilter "github.com/WagaoCarvalho/backend_store_go/internal/repo/product/filter"
 	repo "github.com/WagaoCarvalho/backend_store_go/internal/repo/product/product"
 	serviceFilter "github.com/WagaoCarvalho/backend_store_go/internal/service/product/filter"
@@ -22,15 +22,23 @@ func RegisterProductRoutes(
 	r *mux.Router,
 	db *pgxpool.Pool,
 	log *logger.LogAdapter,
-	blacklist jwt.TokenBlacklist,
+	blacklist jwtMiddlewares.TokenBlacklist,
 ) {
-	repo := repo.NewProduct(db)
-	productService := service.NewProductService(repo)
-	handler := handler.NewProductHandler(productService, log)
+	serverConfig := config.LoadServerConfig()
+	baseURL := serverConfig.BaseURL
+	idPath := serverConfig.IDPath
 
-	repoFilter := repoFilter.NewFilterProduct(db)
-	serviceFilter := serviceFilter.NewProductFilterService(repoFilter)
-	filter := filter.NewProductFilterHandler(serviceFilter, log)
+	// Repositórios
+	newRepoProduct := repo.NewProduct(db)
+	newRepoFilter := repoFilter.NewFilterProduct(db)
+
+	// Serviços
+	newServiceProduct := service.NewProductService(newRepoProduct)
+	newServiceFilter := serviceFilter.NewProductFilterService(newRepoFilter)
+
+	// Handlers
+	newHandlerProduct := handler.NewProductHandler(newServiceProduct, log)
+	newHandlerFilter := filter.NewProductFilterHandler(newServiceFilter, log)
 
 	// Config JWT
 	jwtCfg := config.LoadJwtConfig()
@@ -43,27 +51,51 @@ func RegisterProductRoutes(
 
 	// Rotas protegidas
 	s := r.PathPrefix("/").Subrouter()
-	s.Use(jwt.IsAuthByBearerToken(blacklist, log, jwtManager))
+	s.Use(jwtMiddlewares.IsAuthByBearerToken(blacklist, log, jwtManager))
 
-	s.HandleFunc("/product", handler.Create).Methods(http.MethodPost)
-	s.HandleFunc("/product/{id:[0-9]+}", handler.GetByID).Methods(http.MethodGet)
-	s.HandleFunc("/product/update/{id:[0-9]+}", handler.Update).Methods(http.MethodPut)
-	s.HandleFunc("/product/delete/{id:[0-9]+}", handler.Delete).Methods(http.MethodDelete)
+	// Constantes para caminhos
+	const (
+		product     = "/product"
+		products    = "/products"
+		filterPath  = "/filter"
+		update      = "/update"
+		delete      = "/delete"
+		enable      = "/enable"
+		disable     = "/disable"
+		version     = "/version"
+		stock       = "/stock"
+		increase    = "/increase-stock"
+		decrease    = "/decrease-stock"
+		getStock    = "/get-stock"
+		enableDisc  = "/enable-discount"
+		disableDisc = "/disable-discount"
+		applyDisc   = "/apply-discount"
+	)
 
-	s.HandleFunc("/product/enable/{id:[0-9]+}", handler.EnableProduct).Methods(http.MethodPatch)
-	s.HandleFunc("/product/disable/{id:[0-9]+}", handler.DisableProduct).Methods(http.MethodPatch)
+	// Rotas CRUD básicas
+	s.HandleFunc(baseURL+product, newHandlerProduct.Create).Methods(http.MethodPost)
+	s.HandleFunc(baseURL+product+idPath, newHandlerProduct.GetByID).Methods(http.MethodGet)
+	s.HandleFunc(baseURL+product+idPath, newHandlerProduct.Update).Methods(http.MethodPut)
+	s.HandleFunc(baseURL+product+idPath, newHandlerProduct.Delete).Methods(http.MethodDelete)
 
-	s.HandleFunc("/product/version/{id:[0-9]+}", handler.GetVersionByID).Methods(http.MethodGet)
+	// Rotas de status
+	s.HandleFunc(baseURL+product+idPath+enable, newHandlerProduct.EnableProduct).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+product+idPath+disable, newHandlerProduct.DisableProduct).Methods(http.MethodPatch)
 
-	s.HandleFunc("/product/stock/{id:[0-9]+}", handler.UpdateStock).Methods(http.MethodPatch)
-	s.HandleFunc("/product/increase-stock/{id:[0-9]+}", handler.IncreaseStock).Methods(http.MethodPatch)
-	s.HandleFunc("/product/decrease-stock/{id:[0-9]+}", handler.DecreaseStock).Methods(http.MethodPatch)
-	s.HandleFunc("/product/get-stock/{id:[0-9]+}", handler.GetStock).Methods(http.MethodGet)
+	// Rotas de versão
+	s.HandleFunc(baseURL+product+idPath+version, newHandlerProduct.GetVersionByID).Methods(http.MethodGet)
 
-	s.HandleFunc("/product/enable-discount/{id:[0-9]+}", handler.EnableDiscount).Methods(http.MethodPatch)
-	s.HandleFunc("/product/disable-discount/{id:[0-9]+}", handler.DisableDiscount).Methods(http.MethodPatch)
-	s.HandleFunc("/product/apply-discount/{id:[0-9]+}", handler.ApplyDiscount).Methods(http.MethodPatch)
+	// Rotas de estoque
+	s.HandleFunc(baseURL+product+idPath+stock, newHandlerProduct.UpdateStock).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+product+idPath+increase, newHandlerProduct.IncreaseStock).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+product+idPath+decrease, newHandlerProduct.DecreaseStock).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+product+idPath+getStock, newHandlerProduct.GetStock).Methods(http.MethodGet)
 
-	s.HandleFunc("/products/filter", filter.Filter).Methods(http.MethodGet)
+	// Rotas de desconto
+	s.HandleFunc(baseURL+product+idPath+enableDisc, newHandlerProduct.EnableDiscount).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+product+idPath+disableDisc, newHandlerProduct.DisableDiscount).Methods(http.MethodPatch)
+	s.HandleFunc(baseURL+product+idPath+applyDisc, newHandlerProduct.ApplyDiscount).Methods(http.MethodPatch)
 
+	// Rota de filtro
+	s.HandleFunc(baseURL+products+filterPath, newHandlerFilter.Filter).Methods(http.MethodGet)
 }
