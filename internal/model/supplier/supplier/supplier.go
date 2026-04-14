@@ -21,31 +21,53 @@ type Supplier struct {
 }
 
 func (s *Supplier) Validate() error {
+	var errs validators.ValidationErrors
+
+	// Validação do Nome
 	if validators.IsBlank(s.Name) {
-		return &validators.ValidationError{Field: "Name", Message: "campo obrigatório"}
-	}
-	if len(s.Name) > 100 {
-		return &validators.ValidationError{Field: "Name", Message: "máximo de 100 caracteres"}
+		errs = append(errs, validators.ValidationError{
+			Field:   "name",
+			Message: validators.MsgRequiredField,
+		})
+	} else if len(s.Name) > 100 {
+		errs = append(errs, validators.ValidationError{
+			Field:   "name",
+			Message: validators.MsgMax100,
+		})
 	}
 
-	// Valida CPF e CNPJ mutuamente exclusivos (se quiser aplicar isso):
+	// Validação mutuamente exclusiva de CPF/CNPJ
 	if s.CPF != nil && s.CNPJ != nil {
-		return &validators.ValidationError{Field: "CPF/CNPJ", Message: "não é permitido preencher ambos"}
+		errs = append(errs, validators.ValidationError{
+			Field:   "cpf_cnpj",
+			Message: validators.MsgInvalidAssociation, // ou criar MsgMutuallyExclusive
+		})
 	}
 
+	// Validação do CPF
 	if s.CPF != nil {
 		cpf := strings.TrimSpace(*s.CPF)
 		if !valCpfCnpj.IsValidCPF(cpf) {
-			return &validators.ValidationError{Field: "CPF", Message: "CPF inválido"}
+			errs = append(errs, validators.ValidationError{
+				Field:   "cpf",
+				Message: "CPF inválido", // Sugiro criar constante MsgInvalidCPF
+			})
 		}
 	}
 
+	// Validação do CNPJ
 	if s.CNPJ != nil {
 		cnpj := strings.TrimSpace(*s.CNPJ)
 		if !valCpfCnpj.IsValidCNPJ(cnpj) {
-			return &validators.ValidationError{Field: "CNPJ", Message: "CNPJ inválido"}
+			errs = append(errs, validators.ValidationError{
+				Field:   "cnpj",
+				Message: "CNPJ inválido", // Sugiro criar constante MsgInvalidCNPJ
+			})
 		}
 	}
 
+	if errs.HasErrors() {
+		return errs
+	}
 	return nil
 }

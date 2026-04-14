@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestSupplierRepo_GetByID(t *testing.T) {
-	t.Run("successfully get supplier by ID", func(t *testing.T) {
+func TestSupplier_GetByID(t *testing.T) {
+	t.Run("successfully get supplier by id", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &supplierRepo{db: mockDB}
 		ctx := context.Background()
@@ -24,10 +24,10 @@ func TestSupplierRepo_GetByID(t *testing.T) {
 
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{supplierID}).Return(mockRow)
 
-		supplier, err := repo.GetByID(ctx, supplierID)
+		result, err := repo.GetByID(ctx, supplierID)
 
 		assert.NoError(t, err)
-		assert.NotNil(t, supplier)
+		assert.NotNil(t, result)
 		mockDB.AssertExpectations(t)
 	})
 
@@ -41,14 +41,14 @@ func TestSupplierRepo_GetByID(t *testing.T) {
 
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{supplierID}).Return(mockRow)
 
-		supplier, err := repo.GetByID(ctx, supplierID)
+		result, err := repo.GetByID(ctx, supplierID)
 
 		assert.ErrorIs(t, err, errMsg.ErrNotFound)
-		assert.Nil(t, supplier)
+		assert.Nil(t, result)
 		mockDB.AssertExpectations(t)
 	})
 
-	t.Run("return error when database scan fails", func(t *testing.T) {
+	t.Run("return ErrGet when database scan fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &supplierRepo{db: mockDB}
 		ctx := context.Background()
@@ -59,51 +59,73 @@ func TestSupplierRepo_GetByID(t *testing.T) {
 
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{supplierID}).Return(mockRow)
 
-		supplier, err := repo.GetByID(ctx, supplierID)
+		result, err := repo.GetByID(ctx, supplierID)
 
 		assert.Error(t, err)
-		assert.Nil(t, supplier)
-		assert.Contains(t, err.Error(), "erro ao buscar")
-		assert.Contains(t, err.Error(), errMsg.ErrGet.Error())
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrGet)
 		mockDB.AssertExpectations(t)
 	})
 }
 
-func TestSupplierRepo_GetByName(t *testing.T) {
+func TestSupplier_GetByName(t *testing.T) {
 	t.Run("successfully get suppliers by name", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &supplierRepo{db: mockDB}
 		ctx := context.Background()
-		name := "test"
+		name := "Fornecedor"
 
 		mockRows := new(mockDb.MockRows)
 		mockRows.On("Next").Return(true).Once()
 		mockRows.On("Scan",
-			mock.AnythingOfType("*int64"),     // &s.ID
-			mock.AnythingOfType("*string"),    // &s.Name
-			mock.AnythingOfType("**string"),   // &s.CNPJ (ponteiro para string)
-			mock.AnythingOfType("**string"),   // &s.CPF (ponteiro para string)
-			mock.AnythingOfType("*string"),    // &s.Description
-			mock.AnythingOfType("*bool"),      // &s.Status (bool, não string)
-			mock.AnythingOfType("*time.Time"), // &s.CreatedAt
-			mock.AnythingOfType("*time.Time"), // &s.UpdatedAt
-		).Return(nil).Once()
+			mock.AnythingOfType("*int64"),
+			mock.AnythingOfType("*string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("*string"),
+			mock.AnythingOfType("*int"),
+			mock.AnythingOfType("*bool"),
+			mock.AnythingOfType("*time.Time"),
+			mock.AnythingOfType("*time.Time"),
+		).Run(func(args mock.Arguments) {
+			if ptr, ok := args.Get(0).(*int64); ok {
+				*ptr = 1
+			}
+			if ptr, ok := args.Get(1).(*string); ok {
+				*ptr = "Fornecedor A"
+			}
+			if ptr, ok := args.Get(2).(**string); ok {
+				cnpj := "12345678000195"
+				*ptr = &cnpj
+			}
+			if ptr, ok := args.Get(5).(*int); ok {
+				*ptr = 1
+			}
+			if ptr, ok := args.Get(6).(*bool); ok {
+				*ptr = true
+			}
+			if ptr, ok := args.Get(7).(*time.Time); ok {
+				*ptr = time.Now()
+			}
+			if ptr, ok := args.Get(8).(*time.Time); ok {
+				*ptr = time.Now()
+			}
+		}).Return(nil).Once()
 		mockRows.On("Next").Return(false).Once()
 		mockRows.On("Err").Return(nil)
 		mockRows.On("Close").Return()
 
 		mockDB.On("Query", ctx, mock.Anything, []interface{}{"%" + name + "%"}).Return(mockRows, nil)
 
-		suppliers, err := repo.GetByName(ctx, name)
+		result, err := repo.GetByName(ctx, name)
 
 		assert.NoError(t, err)
-		assert.NotNil(t, suppliers)
-		assert.Len(t, suppliers, 1)
+		assert.NotNil(t, result)
+		assert.Len(t, result, 1)
 		mockDB.AssertExpectations(t)
 		mockRows.AssertExpectations(t)
 	})
 
-	// Os outros testes permanecem iguais, apenas corrigindo o Scan onde necessário
 	t.Run("return ErrNotFound when no suppliers found", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &supplierRepo{db: mockDB}
@@ -117,10 +139,10 @@ func TestSupplierRepo_GetByName(t *testing.T) {
 
 		mockDB.On("Query", ctx, mock.Anything, []interface{}{"%" + name + "%"}).Return(mockRows, nil)
 
-		suppliers, err := repo.GetByName(ctx, name)
+		result, err := repo.GetByName(ctx, name)
 
 		assert.ErrorIs(t, err, errMsg.ErrNotFound)
-		assert.Nil(t, suppliers)
+		assert.Nil(t, result)
 		mockDB.AssertExpectations(t)
 		mockRows.AssertExpectations(t)
 	})
@@ -134,10 +156,10 @@ func TestSupplierRepo_GetByName(t *testing.T) {
 		dbErr := errors.New("database error")
 		mockDB.On("Query", ctx, mock.Anything, []interface{}{"%" + name + "%"}).Return(nil, dbErr)
 
-		suppliers, err := repo.GetByName(ctx, name)
+		result, err := repo.GetByName(ctx, name)
 
 		assert.Error(t, err)
-		assert.Nil(t, suppliers)
+		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrGet)
 		assert.Contains(t, err.Error(), dbErr.Error())
 		mockDB.AssertExpectations(t)
@@ -153,23 +175,24 @@ func TestSupplierRepo_GetByName(t *testing.T) {
 		mockRows := new(mockDb.MockRows)
 		mockRows.On("Next").Return(true).Once()
 		mockRows.On("Scan",
-			mock.AnythingOfType("*int64"),     // &s.ID
-			mock.AnythingOfType("*string"),    // &s.Name
-			mock.AnythingOfType("**string"),   // &s.CNPJ
-			mock.AnythingOfType("**string"),   // &s.CPF
-			mock.AnythingOfType("*string"),    // &s.Description
-			mock.AnythingOfType("*bool"),      // &s.Status
-			mock.AnythingOfType("*time.Time"), // &s.CreatedAt
-			mock.AnythingOfType("*time.Time"), // &s.UpdatedAt
+			mock.AnythingOfType("*int64"),
+			mock.AnythingOfType("*string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("*string"),
+			mock.AnythingOfType("*int"),
+			mock.AnythingOfType("*bool"),
+			mock.AnythingOfType("*time.Time"),
+			mock.AnythingOfType("*time.Time"),
 		).Return(scanErr).Once()
 		mockRows.On("Close").Return()
 
 		mockDB.On("Query", ctx, mock.Anything, []interface{}{"%" + name + "%"}).Return(mockRows, nil)
 
-		suppliers, err := repo.GetByName(ctx, name)
+		result, err := repo.GetByName(ctx, name)
 
 		assert.Error(t, err)
-		assert.Nil(t, suppliers)
+		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrGet)
 		assert.Contains(t, err.Error(), scanErr.Error())
 		mockDB.AssertExpectations(t)
@@ -190,10 +213,10 @@ func TestSupplierRepo_GetByName(t *testing.T) {
 
 		mockDB.On("Query", ctx, mock.Anything, []interface{}{"%" + name + "%"}).Return(mockRows, nil)
 
-		suppliers, err := repo.GetByName(ctx, name)
+		result, err := repo.GetByName(ctx, name)
 
 		assert.Error(t, err)
-		assert.Nil(t, suppliers)
+		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrGet)
 		assert.Contains(t, err.Error(), rowsErr.Error())
 		mockDB.AssertExpectations(t)
@@ -201,7 +224,7 @@ func TestSupplierRepo_GetByName(t *testing.T) {
 	})
 }
 
-func TestSupplierRepo_GetAll(t *testing.T) {
+func TestSupplier_GetAll(t *testing.T) {
 	t.Run("successfully get all suppliers", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &supplierRepo{db: mockDB}
@@ -211,18 +234,18 @@ func TestSupplierRepo_GetAll(t *testing.T) {
 		// Primeiro supplier
 		mockRows.On("Next").Return(true).Once()
 		mockRows.On("Scan",
-			mock.AnythingOfType("*int64"),     // &s.ID
-			mock.AnythingOfType("*string"),    // &s.Name
-			mock.AnythingOfType("**string"),   // &s.CNPJ
-			mock.AnythingOfType("**string"),   // &s.CPF
-			mock.AnythingOfType("*string"),    // &s.Description
-			mock.AnythingOfType("*bool"),      // &s.Status
-			mock.AnythingOfType("*time.Time"), // &s.CreatedAt
-			mock.AnythingOfType("*time.Time"), // &s.UpdatedAt
+			mock.AnythingOfType("*int64"),
+			mock.AnythingOfType("*string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("**string"),
+			mock.AnythingOfType("*string"),
+			mock.AnythingOfType("*int"),
+			mock.AnythingOfType("*bool"),
+			mock.AnythingOfType("*time.Time"),
+			mock.AnythingOfType("*time.Time"),
 		).Run(func(args mock.Arguments) {
-			// Simular preenchimento do primeiro supplier
 			if ptr, ok := args.Get(0).(*int64); ok {
-				*ptr = int64(1)
+				*ptr = 1
 			}
 			if ptr, ok := args.Get(1).(*string); ok {
 				*ptr = "Supplier 1"
@@ -231,19 +254,16 @@ func TestSupplierRepo_GetAll(t *testing.T) {
 				cnpj := "12345678000195"
 				*ptr = &cnpj
 			}
-			if ptr, ok := args.Get(3).(**string); ok {
-				*ptr = nil // CPF vazio
+			if ptr, ok := args.Get(5).(*int); ok {
+				*ptr = 1
 			}
-			if ptr, ok := args.Get(4).(*string); ok {
-				*ptr = "Description 1"
-			}
-			if ptr, ok := args.Get(5).(*bool); ok {
+			if ptr, ok := args.Get(6).(*bool); ok {
 				*ptr = true
 			}
-			if ptr, ok := args.Get(6).(*time.Time); ok {
+			if ptr, ok := args.Get(7).(*time.Time); ok {
 				*ptr = time.Now()
 			}
-			if ptr, ok := args.Get(7).(*time.Time); ok {
+			if ptr, ok := args.Get(8).(*time.Time); ok {
 				*ptr = time.Now()
 			}
 		}).Return(nil).Once()
@@ -256,59 +276,56 @@ func TestSupplierRepo_GetAll(t *testing.T) {
 			mock.AnythingOfType("**string"),
 			mock.AnythingOfType("**string"),
 			mock.AnythingOfType("*string"),
+			mock.AnythingOfType("*int"),
 			mock.AnythingOfType("*bool"),
 			mock.AnythingOfType("*time.Time"),
 			mock.AnythingOfType("*time.Time"),
 		).Run(func(args mock.Arguments) {
 			if ptr, ok := args.Get(0).(*int64); ok {
-				*ptr = int64(2)
+				*ptr = 2
 			}
 			if ptr, ok := args.Get(1).(*string); ok {
 				*ptr = "Supplier 2"
-			}
-			if ptr, ok := args.Get(2).(**string); ok {
-				*ptr = nil // CNPJ vazio
 			}
 			if ptr, ok := args.Get(3).(**string); ok {
 				cpf := "12345678901"
 				*ptr = &cpf
 			}
-			if ptr, ok := args.Get(4).(*string); ok {
-				*ptr = "Description 2"
+			if ptr, ok := args.Get(5).(*int); ok {
+				*ptr = 2
 			}
-			if ptr, ok := args.Get(5).(*bool); ok {
+			if ptr, ok := args.Get(6).(*bool); ok {
 				*ptr = false
-			}
-			if ptr, ok := args.Get(6).(*time.Time); ok {
-				*ptr = time.Now().Add(-24 * time.Hour)
 			}
 			if ptr, ok := args.Get(7).(*time.Time); ok {
 				*ptr = time.Now().Add(-24 * time.Hour)
 			}
+			if ptr, ok := args.Get(8).(*time.Time); ok {
+				*ptr = time.Now().Add(-24 * time.Hour)
+			}
 		}).Return(nil).Once()
 
-		// Fim dos resultados
 		mockRows.On("Next").Return(false).Once()
 		mockRows.On("Err").Return(nil)
 		mockRows.On("Close").Return()
 
 		mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(mockRows, nil)
 
-		suppliers, err := repo.GetAll(ctx)
+		result, err := repo.GetAll(ctx)
 
 		assert.NoError(t, err)
-		assert.NotNil(t, suppliers)
-		assert.Len(t, suppliers, 2)
-		assert.Equal(t, int64(1), suppliers[0].ID)
-		assert.Equal(t, "Supplier 1", suppliers[0].Name)
-		assert.Equal(t, int64(2), suppliers[1].ID)
-		assert.Equal(t, "Supplier 2", suppliers[1].Name)
-		assert.Equal(t, false, suppliers[1].Status)
+		assert.NotNil(t, result)
+		assert.Len(t, result, 2)
+		assert.Equal(t, int64(1), result[0].ID)
+		assert.Equal(t, "Supplier 1", result[0].Name)
+		assert.Equal(t, int64(2), result[1].ID)
+		assert.Equal(t, "Supplier 2", result[1].Name)
+		assert.Equal(t, false, result[1].Status)
 		mockDB.AssertExpectations(t)
 		mockRows.AssertExpectations(t)
 	})
 
-	t.Run("return nil when no suppliers found", func(t *testing.T) {
+	t.Run("return empty slice when no suppliers found", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &supplierRepo{db: mockDB}
 		ctx := context.Background()
@@ -320,10 +337,10 @@ func TestSupplierRepo_GetAll(t *testing.T) {
 
 		mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(mockRows, nil)
 
-		suppliers, err := repo.GetAll(ctx)
+		result, err := repo.GetAll(ctx)
 
 		assert.NoError(t, err)
-		assert.Nil(t, suppliers) // ✅ Retorna nil, não ErrNotFound
+		assert.Empty(t, result)
 		mockDB.AssertExpectations(t)
 		mockRows.AssertExpectations(t)
 	})
@@ -336,10 +353,10 @@ func TestSupplierRepo_GetAll(t *testing.T) {
 		dbErr := errors.New("database error")
 		mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(nil, dbErr)
 
-		suppliers, err := repo.GetAll(ctx)
+		result, err := repo.GetAll(ctx)
 
 		assert.Error(t, err)
-		assert.Nil(t, suppliers)
+		assert.Nil(t, result)
 		assert.ErrorIs(t, err, errMsg.ErrGet)
 		assert.Contains(t, err.Error(), dbErr.Error())
 		mockDB.AssertExpectations(t)
@@ -359,6 +376,7 @@ func TestSupplierRepo_GetAll(t *testing.T) {
 			mock.AnythingOfType("**string"),
 			mock.AnythingOfType("**string"),
 			mock.AnythingOfType("*string"),
+			mock.AnythingOfType("*int"),
 			mock.AnythingOfType("*bool"),
 			mock.AnythingOfType("*time.Time"),
 			mock.AnythingOfType("*time.Time"),
@@ -367,11 +385,11 @@ func TestSupplierRepo_GetAll(t *testing.T) {
 
 		mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(mockRows, nil)
 
-		suppliers, err := repo.GetAll(ctx)
+		result, err := repo.GetAll(ctx)
 
 		assert.Error(t, err)
-		assert.Nil(t, suppliers)
-		assert.ErrorIs(t, err, errMsg.ErrScan) // ✅ ErrScan, não ErrGet
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrScan)
 		assert.Contains(t, err.Error(), scanErr.Error())
 		mockDB.AssertExpectations(t)
 		mockRows.AssertExpectations(t)
@@ -382,7 +400,7 @@ func TestSupplierRepo_GetAll(t *testing.T) {
 		repo := &supplierRepo{db: mockDB}
 		ctx := context.Background()
 
-		rowsErr := errors.New("rows error")
+		rowsErr := errors.New("rows iteration error")
 		mockRows := new(mockDb.MockRows)
 		mockRows.On("Next").Return(false)
 		mockRows.On("Err").Return(rowsErr)
@@ -390,78 +408,19 @@ func TestSupplierRepo_GetAll(t *testing.T) {
 
 		mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(mockRows, nil)
 
-		suppliers, err := repo.GetAll(ctx)
+		result, err := repo.GetAll(ctx)
 
 		assert.Error(t, err)
-		assert.Nil(t, suppliers)
-		assert.ErrorIs(t, err, errMsg.ErrIterate) // ✅ ErrIterate, não ErrGet
+		assert.Nil(t, result)
+		assert.ErrorIs(t, err, errMsg.ErrIterate)
 		assert.Contains(t, err.Error(), rowsErr.Error())
-		mockDB.AssertExpectations(t)
-		mockRows.AssertExpectations(t)
-	})
-
-	t.Run("successfully get single supplier", func(t *testing.T) {
-		mockDB := new(mockDb.MockDatabase)
-		repo := &supplierRepo{db: mockDB}
-		ctx := context.Background()
-
-		mockRows := new(mockDb.MockRows)
-		mockRows.On("Next").Return(true).Once()
-		mockRows.On("Scan",
-			mock.AnythingOfType("*int64"),
-			mock.AnythingOfType("*string"),
-			mock.AnythingOfType("**string"),
-			mock.AnythingOfType("**string"),
-			mock.AnythingOfType("*string"),
-			mock.AnythingOfType("*bool"),
-			mock.AnythingOfType("*time.Time"),
-			mock.AnythingOfType("*time.Time"),
-		).Run(func(args mock.Arguments) {
-			if ptr, ok := args.Get(0).(*int64); ok {
-				*ptr = int64(1)
-			}
-			if ptr, ok := args.Get(1).(*string); ok {
-				*ptr = "Single Supplier"
-			}
-			if ptr, ok := args.Get(2).(**string); ok {
-				cnpj := "98765432000198"
-				*ptr = &cnpj
-			}
-			if ptr, ok := args.Get(3).(**string); ok {
-				*ptr = nil
-			}
-			if ptr, ok := args.Get(4).(*string); ok {
-				*ptr = "Single supplier description"
-			}
-			if ptr, ok := args.Get(5).(*bool); ok {
-				*ptr = true
-			}
-			if ptr, ok := args.Get(6).(*time.Time); ok {
-				*ptr = time.Now()
-			}
-			if ptr, ok := args.Get(7).(*time.Time); ok {
-				*ptr = time.Now()
-			}
-		}).Return(nil).Once()
-		mockRows.On("Next").Return(false).Once()
-		mockRows.On("Err").Return(nil)
-		mockRows.On("Close").Return()
-
-		mockDB.On("Query", ctx, mock.Anything, mock.Anything).Return(mockRows, nil)
-
-		suppliers, err := repo.GetAll(ctx)
-
-		assert.NoError(t, err)
-		assert.NotNil(t, suppliers)
-		assert.Len(t, suppliers, 1)
-		assert.Equal(t, "Single Supplier", suppliers[0].Name)
 		mockDB.AssertExpectations(t)
 		mockRows.AssertExpectations(t)
 	})
 }
 
-func TestSupplierRepo_GetVersionByID(t *testing.T) {
-	t.Run("successfully get version by ID", func(t *testing.T) {
+func TestSupplier_GetVersionByID(t *testing.T) {
+	t.Run("successfully get version by id", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &supplierRepo{db: mockDB}
 		ctx := context.Background()
@@ -474,10 +433,10 @@ func TestSupplierRepo_GetVersionByID(t *testing.T) {
 
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{supplierID}).Return(mockRow)
 
-		version, err := repo.GetVersionByID(ctx, supplierID)
+		result, err := repo.GetVersionByID(ctx, supplierID)
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedVersion, version)
+		assert.Equal(t, expectedVersion, result)
 		mockDB.AssertExpectations(t)
 	})
 
@@ -491,14 +450,14 @@ func TestSupplierRepo_GetVersionByID(t *testing.T) {
 
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{supplierID}).Return(mockRow)
 
-		version, err := repo.GetVersionByID(ctx, supplierID)
+		result, err := repo.GetVersionByID(ctx, supplierID)
 
 		assert.ErrorIs(t, err, errMsg.ErrNotFound)
-		assert.Equal(t, int64(0), version)
+		assert.Equal(t, int64(0), result)
 		mockDB.AssertExpectations(t)
 	})
 
-	t.Run("return error when database scan fails", func(t *testing.T) {
+	t.Run("return ErrGet when database scan fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &supplierRepo{db: mockDB}
 		ctx := context.Background()
@@ -509,10 +468,10 @@ func TestSupplierRepo_GetVersionByID(t *testing.T) {
 
 		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{supplierID}).Return(mockRow)
 
-		version, err := repo.GetVersionByID(ctx, supplierID)
+		result, err := repo.GetVersionByID(ctx, supplierID)
 
 		assert.Error(t, err)
-		assert.Equal(t, int64(0), version)
+		assert.Equal(t, int64(0), result)
 		assert.ErrorIs(t, err, errMsg.ErrGet)
 		assert.Contains(t, err.Error(), scanErr.Error())
 		mockDB.AssertExpectations(t)

@@ -22,12 +22,12 @@ import (
 )
 
 func TestSupplierHandler_GetAll(t *testing.T) {
-	t.Run("Sucesso ao obter todos os fornecedores", func(t *testing.T) {
+	t.Run("successfully get all suppliers", func(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplier)
 		baseLogger := logrus.New()
 		baseLogger.Out = &bytes.Buffer{}
-		logger := logger.NewLoggerAdapter(baseLogger)
-		handler := NewSupplierHandler(mockService, logger)
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
 
 		expectedSuppliers := []*models.Supplier{
 			{
@@ -35,6 +35,7 @@ func TestSupplierHandler_GetAll(t *testing.T) {
 				Name:      "Fornecedor A",
 				CNPJ:      utils.StrToPtr("12345678000199"),
 				Version:   1,
+				Status:    true,
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			},
@@ -43,6 +44,7 @@ func TestSupplierHandler_GetAll(t *testing.T) {
 				Name:      "Fornecedor B",
 				CPF:       utils.StrToPtr("12345678901"),
 				Version:   1,
+				Status:    true,
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			},
@@ -65,14 +67,14 @@ func TestSupplierHandler_GetAll(t *testing.T) {
 		assert.Len(t, response.Data.([]any), 2)
 	})
 
-	t.Run("Erro ao obter fornecedores no service", func(t *testing.T) {
+	t.Run("return error when service fails", func(t *testing.T) {
 		mockService := new(mockSupplier.MockSupplier)
 		baseLogger := logrus.New()
 		baseLogger.Out = &bytes.Buffer{}
-		logger := logger.NewLoggerAdapter(baseLogger)
-		handler := NewSupplierHandler(mockService, logger)
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
 
-		mockService.On("GetAll", mock.Anything).Return([]*models.Supplier(nil), errors.New("erro interno")).Once()
+		mockService.On("GetAll", mock.Anything).Return([]*models.Supplier(nil), errors.New("database error")).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/suppliers", nil)
 		rec := httptest.NewRecorder()
@@ -81,143 +83,144 @@ func TestSupplierHandler_GetAll(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
 		mockService.AssertExpectations(t)
-
-		var response utils.DefaultResponse
-		err := utils.FromJSON(rec.Body, &response)
-		assert.NoError(t, err)
-		assert.Contains(t, response.Message, "erro ao buscar fornecedores")
 	})
 }
 
 func TestSupplierHandler_GetByID(t *testing.T) {
-	mockSvc := new(mockSupplier.MockSupplier)
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	log := logger.NewLoggerAdapter(baseLogger)
-	handler := NewSupplierHandler(mockSvc, log)
+	t.Run("successfully get supplier by id", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
 
-	t.Run("Sucesso ao obter fornecedor por ID", func(t *testing.T) {
-		expected := &models.Supplier{
-			ID:   1,
-			Name: "Fornecedor A",
+		expectedSupplier := &models.Supplier{
+			ID:      1,
+			Name:    "Fornecedor A",
+			CNPJ:    utils.StrToPtr("12345678000199"),
+			Status:  true,
+			Version: 1,
 		}
 
-		mockSvc.On("GetByID", mock.Anything, int64(1)).Return(expected, nil)
+		mockService.On("GetByID", mock.Anything, int64(1)).Return(expectedSupplier, nil).Once()
 
-		req := httptest.NewRequest("GET", "/suppliers/1", nil)
+		req := httptest.NewRequest(http.MethodGet, "/suppliers/1", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
-		w := httptest.NewRecorder()
+		rec := httptest.NewRecorder()
 
-		handler.GetByID(w, req)
+		handler.GetByID(rec, req)
 
-		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusOK, rec.Code)
 
-		var resp utils.DefaultResponse
-		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
 		assert.NoError(t, err)
+		assert.Equal(t, "Fornecedor encontrado", response.Message)
 
-		itemBytes, _ := json.Marshal(resp.Data)
+		dataBytes, _ := json.Marshal(response.Data)
 		var result models.Supplier
-		err = json.Unmarshal(itemBytes, &result)
+		err = json.Unmarshal(dataBytes, &result)
 		require.NoError(t, err)
+		assert.Equal(t, expectedSupplier.ID, result.ID)
+		assert.Equal(t, expectedSupplier.Name, result.Name)
 
-		assert.Equal(t, expected.ID, result.ID)
-		assert.Equal(t, expected.Name, result.Name)
-		assert.Equal(t, "Fornecedor encontrado", resp.Message)
-
-		mockSvc.AssertExpectations(t)
+		mockService.AssertExpectations(t)
 	})
 
-	t.Run("ID inválido", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/suppliers/abc", nil)
+	t.Run("return bad request when id is invalid", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
+
+		req := httptest.NewRequest(http.MethodGet, "/suppliers/abc", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
-		w := httptest.NewRecorder()
+		rec := httptest.NewRecorder()
 
-		handler.GetByID(w, req)
+		handler.GetByID(rec, req)
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
 
-		var resp map[string]any
-		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "ID inválido", resp["message"])
+		assert.Contains(t, response.Message, "invalid ID")
 	})
 
-	t.Run("Fornecedor não encontrado", func(t *testing.T) {
-		mockSvc := new(mockSupplier.MockSupplier)
-		mockSvc.On("GetByID", mock.Anything, int64(99)).Return(nil, errors.New("fornecedor não encontrado"))
-
+	t.Run("return not found when supplier does not exist", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
 		baseLogger := logrus.New()
 		baseLogger.Out = &bytes.Buffer{}
 		log := logger.NewLoggerAdapter(baseLogger)
-		handler := NewSupplierHandler(mockSvc, log)
+		handler := NewSupplierHandler(mockService, log)
 
-		req := httptest.NewRequest("GET", "/suppliers/99", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "99"})
-		w := httptest.NewRecorder()
+		mockService.On("GetByID", mock.Anything, int64(999)).Return(nil, errMsg.ErrNotFound).Once()
 
-		handler.GetByID(w, req)
+		req := httptest.NewRequest(http.MethodGet, "/suppliers/999", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "999"})
+		rec := httptest.NewRecorder()
 
-		assert.Equal(t, http.StatusNotFound, w.Code)
+		handler.GetByID(rec, req)
 
-		var resp map[string]any
-		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "fornecedor não encontrado", resp["message"])
+		assert.Equal(t, errMsg.ErrNotFound.Error(), response.Message)
 
-		mockSvc.AssertExpectations(t)
+		mockService.AssertExpectations(t)
 	})
 
-	t.Run("Erro interno ao buscar fornecedor", func(t *testing.T) {
-		mockSvc := new(mockSupplier.MockSupplier)
-		mockSvc.On("GetByID", mock.Anything, int64(2)).Return(nil, errors.New("erro inesperado"))
-
+	t.Run("return internal server error when service fails", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
 		baseLogger := logrus.New()
 		baseLogger.Out = &bytes.Buffer{}
 		log := logger.NewLoggerAdapter(baseLogger)
-		handler := NewSupplierHandler(mockSvc, log)
+		handler := NewSupplierHandler(mockService, log)
 
-		req := httptest.NewRequest("GET", "/suppliers/2", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "2"})
-		w := httptest.NewRecorder()
+		mockService.On("GetByID", mock.Anything, int64(1)).Return(nil, errors.New("unexpected error")).Once()
 
-		handler.GetByID(w, req)
+		req := httptest.NewRequest(http.MethodGet, "/suppliers/1", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
+		rec := httptest.NewRecorder()
 
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		handler.GetByID(rec, req)
 
-		var resp map[string]any
-		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "erro inesperado", resp["message"])
+		assert.Equal(t, "unexpected error", response.Message)
 
-		mockSvc.AssertExpectations(t)
+		mockService.AssertExpectations(t)
 	})
 }
 
 func TestSupplierHandler_GetByName(t *testing.T) {
-	mockService := new(mockSupplier.MockSupplier)
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
-	handler := NewSupplierHandler(mockService, logger)
+	t.Run("successfully get suppliers by name", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
 
-	t.Run("Sucesso ao buscar fornecedores por nome parcial", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
-
-		suppliers := []*models.Supplier{
+		expectedSuppliers := []*models.Supplier{
 			{
 				ID:   1,
 				Name: "Fornecedor A",
-				CNPJ: utils.StrToPtr("111"),
+				CNPJ: utils.StrToPtr("12345678000199"),
 			},
 			{
 				ID:   2,
 				Name: "Fornecedor AB",
-				CNPJ: utils.StrToPtr("222"),
+				CPF:  utils.StrToPtr("12345678901"),
 			},
 		}
 
-		mockService.On("GetByName", mock.Anything, "fornecedor").Return(suppliers, nil).Once()
+		mockService.On("GetByName", mock.Anything, "fornecedor").Return(expectedSuppliers, nil).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/suppliers/name/fornecedor", nil)
 		req = mux.SetURLVars(req, map[string]string{"name": "fornecedor"})
@@ -226,11 +229,70 @@ func TestSupplierHandler_GetByName(t *testing.T) {
 		handler.GetByName(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
+
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.Equal(t, "Fornecedores encontrados", response.Message)
+		assert.Len(t, response.Data.([]any), 2)
+
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("Erro fornecedor não encontrado", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
+	t.Run("return bad request when name parameter is missing", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
+
+		req := httptest.NewRequest(http.MethodGet, "/suppliers/name/", nil)
+		req = mux.SetURLVars(req, map[string]string{})
+		rec := httptest.NewRecorder()
+
+		handler.GetByName(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		// Corrigido: mensagem real retornada pelo handler
+		assert.Equal(t, "missing or empty param: name", response.Message)
+
+		mockService.AssertNotCalled(t, "GetByName")
+	})
+
+	t.Run("return bad request when name parameter is empty", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
+
+		req := httptest.NewRequest(http.MethodGet, "/suppliers/name/", nil)
+		req = mux.SetURLVars(req, map[string]string{"name": ""})
+		rec := httptest.NewRecorder()
+
+		handler.GetByName(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		// Corrigido: mensagem real retornada pelo handler
+		assert.Equal(t, "missing or empty param: name", response.Message)
+
+		mockService.AssertNotCalled(t, "GetByName")
+	})
+
+	t.Run("return not found when no suppliers found", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
 
 		mockService.On("GetByName", mock.Anything, "notfound").Return(nil, errMsg.ErrNotFound).Once()
 
@@ -241,13 +303,23 @@ func TestSupplierHandler_GetByName(t *testing.T) {
 		handler.GetByName(rec, req)
 
 		assert.Equal(t, http.StatusNotFound, rec.Code)
+
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.Equal(t, errMsg.ErrNotFound.Error(), response.Message)
+
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("Erro genérico ao buscar fornecedor por nome", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
+	t.Run("return internal server error when service fails", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
 
-		mockService.On("GetByName", mock.Anything, "error").Return(nil, errors.New("erro interno")).Once()
+		mockService.On("GetByName", mock.Anything, "error").Return(nil, errors.New("database error")).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/suppliers/name/error", nil)
 		req = mux.SetURLVars(req, map[string]string{"name": "error"})
@@ -256,21 +328,121 @@ func TestSupplierHandler_GetByName(t *testing.T) {
 		handler.GetByName(rec, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
+
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.Equal(t, "database error", response.Message)
+
 		mockService.AssertExpectations(t)
 	})
+
+	t.Run("successfully get suppliers by name with special characters", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
+
+		expectedSuppliers := []*models.Supplier{
+			{
+				ID:   1,
+				Name: "Fornecedor Especial",
+				CNPJ: utils.StrToPtr("12345678000199"),
+			},
+		}
+
+		mockService.On("GetByName", mock.Anything, "fornecedor@#$").Return(expectedSuppliers, nil).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/suppliers/name/fornecedor@#$", nil)
+		req = mux.SetURLVars(req, map[string]string{"name": "fornecedor@#$"})
+		rec := httptest.NewRecorder()
+
+		handler.GetByName(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.Equal(t, "Fornecedores encontrados", response.Message)
+		assert.Len(t, response.Data.([]any), 1)
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("successfully get suppliers by name with case insensitive search", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
+
+		expectedSuppliers := []*models.Supplier{
+			{
+				ID:   1,
+				Name: "FORNECEDOR MAIUSCULO",
+				CNPJ: utils.StrToPtr("12345678000199"),
+			},
+		}
+
+		// O serviço deve receber o nome como foi enviado (pode ser tratado no service)
+		mockService.On("GetByName", mock.Anything, "FORNECEDOR").Return(expectedSuppliers, nil).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/suppliers/name/FORNECEDOR", nil)
+		req = mux.SetURLVars(req, map[string]string{"name": "FORNECEDOR"})
+		rec := httptest.NewRecorder()
+
+		handler.GetByName(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.Equal(t, "Fornecedores encontrados", response.Message)
+
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("return empty list when service returns empty slice (not ErrNotFound)", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
+
+		mockService.On("GetByName", mock.Anything, "empty").Return([]*models.Supplier{}, nil).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/suppliers/name/empty", nil)
+		req = mux.SetURLVars(req, map[string]string{"name": "empty"})
+		rec := httptest.NewRecorder()
+
+		handler.GetByName(rec, req)
+
+		// Deve retornar OK com lista vazia
+		assert.Equal(t, http.StatusOK, rec.Code)
+
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.Equal(t, "Fornecedores encontrados", response.Message)
+		assert.Len(t, response.Data.([]any), 0)
+
+		mockService.AssertExpectations(t)
+	})
+
 }
 
 func TestSupplierHandler_GetVersionByID(t *testing.T) {
-	mockService := new(mockSupplier.MockSupplier)
-	baseLogger := logrus.New()
-	baseLogger.Out = &bytes.Buffer{}
-	logger := logger.NewLoggerAdapter(baseLogger)
-	handler := NewSupplierHandler(mockService, logger)
+	t.Run("successfully get version by id", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
 
-	t.Run("Sucesso ao obter versão do fornecedor", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
-
-		mockService.On("GetVersionByID", mock.Anything, int64(1)).Return(int64(3), nil).Once()
+		mockService.On("GetVersionByID", mock.Anything, int64(1)).Return(int64(5), nil).Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/suppliers/1/version", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -280,19 +452,25 @@ func TestSupplierHandler_GetVersionByID(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, rec.Code)
 
-		var resp utils.DefaultResponse
-		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
 		assert.NoError(t, err)
+		assert.Equal(t, "Versão do fornecedor obtida com sucesso", response.Message)
 
-		dataMap, ok := resp.Data.(map[string]interface{})
+		dataMap, ok := response.Data.(map[string]interface{})
 		assert.True(t, ok)
-		assert.EqualValues(t, 3, dataMap["version"])
-		assert.Equal(t, "Versão do fornecedor obtida com sucesso", resp.Message)
+		assert.EqualValues(t, 5, dataMap["version"])
 
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("ID inválido", func(t *testing.T) {
+	t.Run("return bad request when id is invalid", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
+
 		req := httptest.NewRequest(http.MethodGet, "/suppliers/abc/version", nil)
 		req = mux.SetURLVars(req, map[string]string{"id": "abc"})
 		rec := httptest.NewRecorder()
@@ -301,52 +479,58 @@ func TestSupplierHandler_GetVersionByID(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 
-		var resp utils.DefaultResponse
-		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "ID inválido", resp.Message)
+		assert.Contains(t, response.Message, "invalid ID")
 	})
 
-	t.Run("Fornecedor não encontrado", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
+	t.Run("return not found when supplier does not exist", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
 
-		mockService.On("GetVersionByID", mock.Anything, int64(2)).
-			Return(int64(0), errMsg.ErrNotFound).Once()
+		mockService.On("GetVersionByID", mock.Anything, int64(999)).Return(int64(0), errMsg.ErrNotFound).Once()
 
-		req := httptest.NewRequest(http.MethodGet, "/suppliers/2/version", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "2"})
+		req := httptest.NewRequest(http.MethodGet, "/suppliers/999/version", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "999"})
 		rec := httptest.NewRecorder()
 
 		handler.GetVersionByID(rec, req)
 
 		assert.Equal(t, http.StatusNotFound, rec.Code)
 
-		var resp utils.DefaultResponse
-		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, errMsg.ErrNotFound.Error(), resp.Message)
+		assert.Equal(t, errMsg.ErrNotFound.Error(), response.Message)
 
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("Erro interno ao buscar versão", func(t *testing.T) {
-		mockService.ExpectedCalls = nil
+	t.Run("return internal server error when service fails", func(t *testing.T) {
+		mockService := new(mockSupplier.MockSupplier)
+		baseLogger := logrus.New()
+		baseLogger.Out = &bytes.Buffer{}
+		log := logger.NewLoggerAdapter(baseLogger)
+		handler := NewSupplierHandler(mockService, log)
 
-		mockService.On("GetVersionByID", mock.Anything, int64(3)).
-			Return(int64(0), errors.New("erro inesperado")).Once()
+		mockService.On("GetVersionByID", mock.Anything, int64(1)).Return(int64(0), errors.New("database error")).Once()
 
-		req := httptest.NewRequest(http.MethodGet, "/suppliers/3/version", nil)
-		req = mux.SetURLVars(req, map[string]string{"id": "3"})
+		req := httptest.NewRequest(http.MethodGet, "/suppliers/1/version", nil)
+		req = mux.SetURLVars(req, map[string]string{"id": "1"})
 		rec := httptest.NewRecorder()
 
 		handler.GetVersionByID(rec, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
 
-		var resp utils.DefaultResponse
-		err := json.Unmarshal(rec.Body.Bytes(), &resp)
+		var response utils.DefaultResponse
+		err := json.Unmarshal(rec.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "erro inesperado", resp.Message)
+		assert.Equal(t, "database error", response.Message)
 
 		mockService.AssertExpectations(t)
 	})

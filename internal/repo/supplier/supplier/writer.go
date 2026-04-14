@@ -2,10 +2,12 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
+	"github.com/jackc/pgx/v5"
 )
 
 func (r *supplierRepo) Create(ctx context.Context, supplier *models.Supplier) (*models.Supplier, error) {
@@ -32,19 +34,20 @@ func (r *supplierRepo) Create(ctx context.Context, supplier *models.Supplier) (*
 
 func (r *supplierRepo) Update(ctx context.Context, supplier *models.Supplier) error {
 	const query = `
-	UPDATE suppliers
-	SET
-		name        = $1,
-		cnpj        = $2,
-		cpf         = $3,
-		description = $4,
-		status      = $5,
-		updated_at  = NOW(),
-		version     = version + 1
-	WHERE id = $6 AND version = $7
-`
+		UPDATE suppliers
+		SET 
+			name        = $1,
+			cnpj        = $2,
+			cpf         = $3,
+			description = $4,
+			status      = $5,
+			updated_at  = NOW(),
+			version     = version + 1
+		WHERE id = $6 AND version = $7
+		RETURNING updated_at, version
+	`
 
-	result, err := r.db.Exec(ctx, query,
+	err := r.db.QueryRow(ctx, query,
 		supplier.Name,
 		supplier.CNPJ,
 		supplier.CPF,
@@ -52,17 +55,27 @@ func (r *supplierRepo) Update(ctx context.Context, supplier *models.Supplier) er
 		supplier.Status,
 		supplier.ID,
 		supplier.Version,
-	)
+	).Scan(&supplier.UpdatedAt, &supplier.Version)
+
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			// Verificar se é por não encontrar ou versão conflitante
+			var exists bool
+			checkQuery := `SELECT EXISTS(SELECT 1 FROM suppliers WHERE id = $1)`
+			err := r.db.QueryRow(ctx, checkQuery, supplier.ID).Scan(&exists)
+			if err != nil {
+				return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
+			}
+
+			if !exists {
+				return errMsg.ErrNotFound
+			}
+			return errMsg.ErrVersionConflict
+		}
 		return fmt.Errorf("%w: %v", errMsg.ErrUpdate, err)
 	}
 
-	if result.RowsAffected() == 0 {
-		return errMsg.ErrVersionConflict
-	}
-
 	return nil
-
 }
 
 func (r *supplierRepo) Delete(ctx context.Context, id int64) error {

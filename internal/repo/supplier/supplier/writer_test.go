@@ -10,6 +10,7 @@ import (
 	models "github.com/WagaoCarvalho/backend_store_go/internal/model/supplier/supplier"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
 	"github.com/WagaoCarvalho/backend_store_go/internal/pkg/utils"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -30,7 +31,7 @@ func TestSupplierRepo_Create(t *testing.T) {
 		}
 
 		now := time.Now()
-		mockRow := &mockDb.MockRowWithIDArgs{
+		mockRow := &mockDb.MockRow{
 			Values: []interface{}{
 				int64(1), // id
 				now,      // created_at
@@ -38,8 +39,14 @@ func TestSupplierRepo_Create(t *testing.T) {
 			},
 		}
 
-		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
-			Return(mockRow)
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.MatchedBy(func(args []interface{}) bool {
+			return len(args) == 5 &&
+				args[0] == supplier.Name &&
+				args[1] == supplier.CNPJ &&
+				args[2] == supplier.CPF &&
+				args[3] == supplier.Description &&
+				args[4] == supplier.Status
+		})).Return(mockRow)
 
 		result, err := repo.Create(ctx, supplier)
 
@@ -67,8 +74,7 @@ func TestSupplierRepo_Create(t *testing.T) {
 		dbError := errors.New("database error")
 		mockRow := &mockDb.MockRow{Err: dbError}
 
-		mockDB.On("QueryRow", ctx, mock.Anything, mock.AnythingOfType("[]interface {}")).
-			Return(mockRow)
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.Anything).Return(mockRow)
 
 		result, err := repo.Create(ctx, supplier)
 
@@ -76,7 +82,6 @@ func TestSupplierRepo_Create(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errMsg.ErrCreate)
 		assert.Contains(t, err.Error(), dbError.Error())
-		assert.Contains(t, err.Error(), errMsg.ErrCreate.Error())
 		mockDB.AssertExpectations(t)
 	})
 }
@@ -97,24 +102,34 @@ func TestSupplierRepo_Update(t *testing.T) {
 			Version:     1,
 		}
 
-		mockResult := pgconn.NewCommandTag("UPDATE 1")
-		mockDB.On("Exec", ctx, mock.Anything, []interface{}{
-			supplier.Name,
-			supplier.CNPJ,
-			supplier.CPF,
-			supplier.Description,
-			supplier.Status,
-			supplier.ID,
-			supplier.Version,
-		}).Return(mockResult, nil)
+		now := time.Now()
+		mockRow := &mockDb.MockRow{
+			Values: []interface{}{
+				now, // updated_at
+				2,   // new version
+			},
+		}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.MatchedBy(func(args []interface{}) bool {
+			return len(args) == 7 &&
+				args[0] == supplier.Name &&
+				args[1] == supplier.CNPJ &&
+				args[2] == supplier.CPF &&
+				args[3] == supplier.Description &&
+				args[4] == supplier.Status &&
+				args[5] == supplier.ID &&
+				args[6] == supplier.Version
+		})).Return(mockRow)
 
 		err := repo.Update(ctx, supplier)
 
 		assert.NoError(t, err)
+		assert.Equal(t, now, supplier.UpdatedAt)
+		assert.Equal(t, 2, supplier.Version)
 		mockDB.AssertExpectations(t)
 	})
 
-	t.Run("return ErrVersionConflict when no rows affected", func(t *testing.T) {
+	t.Run("return ErrVersionConflict when version mismatch", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &supplierRepo{db: mockDB}
 		ctx := context.Background()
@@ -129,16 +144,128 @@ func TestSupplierRepo_Update(t *testing.T) {
 			Version:     1,
 		}
 
-		mockResult := pgconn.NewCommandTag("UPDATE 0")
-		mockDB.On("Exec", ctx, mock.Anything, mock.Anything).Return(mockResult, nil)
+		mockRow := &mockDb.MockRow{Err: pgx.ErrNoRows}
+
+		// Mock para verificar se o registro existe
+		existsRow := &mockDb.MockRow{
+			Values: []interface{}{true},
+		}
+		mockDB.On("QueryRow", ctx, "SELECT EXISTS(SELECT 1 FROM suppliers WHERE id = $1)", []interface{}{supplier.ID}).Return(existsRow)
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.MatchedBy(func(args []interface{}) bool {
+			return len(args) == 7 && args[5] == supplier.ID && args[6] == supplier.Version
+		})).Return(mockRow)
 
 		err := repo.Update(ctx, supplier)
 
+		assert.Error(t, err)
 		assert.ErrorIs(t, err, errMsg.ErrVersionConflict)
 		mockDB.AssertExpectations(t)
 	})
 
-	t.Run("return ErrUpdate when database error occurs", func(t *testing.T) {
+	t.Run("return ErrNotFound when supplier does not exist", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &supplierRepo{db: mockDB}
+		ctx := context.Background()
+
+		supplier := &models.Supplier{
+			ID:          999,
+			Name:        "Updated Supplier",
+			CNPJ:        utils.StrToPtr("12345678000195"),
+			CPF:         nil,
+			Description: "Updated Description",
+			Status:      true,
+			Version:     1,
+		}
+
+		mockRow := &mockDb.MockRow{Err: pgx.ErrNoRows}
+
+		// Mock para verificar que o registro NÃO existe
+		existsRow := &mockDb.MockRow{
+			Values: []interface{}{false},
+		}
+		mockDB.On("QueryRow", ctx, "SELECT EXISTS(SELECT 1 FROM suppliers WHERE id = $1)", []interface{}{supplier.ID}).Return(existsRow)
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.MatchedBy(func(args []interface{}) bool {
+			return len(args) == 7 && args[5] == supplier.ID
+		})).Return(mockRow)
+
+		err := repo.Update(ctx, supplier)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrNotFound)
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrUpdate when check exists query fails", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &supplierRepo{db: mockDB}
+		ctx := context.Background()
+
+		supplier := &models.Supplier{
+			ID:          1,
+			Name:        "Updated Supplier",
+			CNPJ:        utils.StrToPtr("12345678000195"),
+			CPF:         nil,
+			Description: "Updated Description",
+			Status:      true,
+			Version:     1,
+		}
+
+		mockRow := &mockDb.MockRow{Err: pgx.ErrNoRows}
+
+		// Mock para verificar se o registro existe - RETORNA ERRO
+		checkError := errors.New("check exists database error")
+		existsRow := &mockDb.MockRow{Err: checkError}
+		mockDB.On("QueryRow", ctx, "SELECT EXISTS(SELECT 1 FROM suppliers WHERE id = $1)", []interface{}{supplier.ID}).Return(existsRow)
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.MatchedBy(func(args []interface{}) bool {
+			return len(args) == 7 && args[5] == supplier.ID && args[6] == supplier.Version
+		})).Return(mockRow)
+
+		err := repo.Update(ctx, supplier)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrUpdate)
+		assert.Contains(t, err.Error(), checkError.Error())
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrUpdate when check exists query fails with connection error", func(t *testing.T) {
+		mockDB := new(mockDb.MockDatabase)
+		repo := &supplierRepo{db: mockDB}
+		ctx := context.Background()
+
+		supplier := &models.Supplier{
+			ID:          1,
+			Name:        "Updated Supplier",
+			CNPJ:        utils.StrToPtr("12345678000195"),
+			CPF:         nil,
+			Description: "Updated Description",
+			Status:      true,
+			Version:     1,
+		}
+
+		mockRow := &mockDb.MockRow{Err: pgx.ErrNoRows}
+
+		// Mock para verificar se o registro existe - RETORNA ERRO DE CONEXÃO
+		connectionError := errors.New("connection refused")
+		existsRow := &mockDb.MockRow{Err: connectionError}
+		mockDB.On("QueryRow", ctx, "SELECT EXISTS(SELECT 1 FROM suppliers WHERE id = $1)", []interface{}{supplier.ID}).Return(existsRow)
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.MatchedBy(func(args []interface{}) bool {
+			return len(args) == 7 && args[5] == supplier.ID && args[6] == supplier.Version
+		})).Return(mockRow)
+
+		err := repo.Update(ctx, supplier)
+
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, errMsg.ErrUpdate)
+		assert.Contains(t, err.Error(), connectionError.Error())
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("return ErrUpdate when update query fails with database error", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &supplierRepo{db: mockDB}
 		ctx := context.Background()
@@ -154,14 +281,15 @@ func TestSupplierRepo_Update(t *testing.T) {
 		}
 
 		dbError := errors.New("database error")
-		mockDB.On("Exec", ctx, mock.Anything, mock.Anything).Return(nil, dbError)
+		mockRow := &mockDb.MockRow{Err: dbError}
+
+		mockDB.On("QueryRow", ctx, mock.Anything, mock.Anything).Return(mockRow)
 
 		err := repo.Update(ctx, supplier)
 
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errMsg.ErrUpdate)
 		assert.Contains(t, err.Error(), dbError.Error())
-		assert.Contains(t, err.Error(), errMsg.ErrUpdate.Error())
 		mockDB.AssertExpectations(t)
 	})
 }
@@ -211,7 +339,6 @@ func TestSupplierRepo_Delete(t *testing.T) {
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errMsg.ErrDelete)
 		assert.Contains(t, err.Error(), dbError.Error())
-		assert.Contains(t, err.Error(), errMsg.ErrDelete.Error())
 		mockDB.AssertExpectations(t)
 	})
 }

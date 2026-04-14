@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	mockDb "github.com/WagaoCarvalho/backend_store_go/infra/mock/db"
 	errMsg "github.com/WagaoCarvalho/backend_store_go/internal/pkg/err/message"
-	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -18,10 +19,13 @@ func TestSupplierRepo_Disable(t *testing.T) {
 		repo := &supplierRepo{db: mockDB}
 		ctx := context.Background()
 		supplierID := int64(1)
+		expectedTime := time.Now()
 
-		mockResult := pgconn.NewCommandTag("UPDATE 1")
+		mockRow := &mockDb.MockRow{
+			Value: expectedTime,
+		}
 
-		mockDB.On("Exec", ctx, mock.Anything, []interface{}{supplierID}).Return(mockResult, nil)
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{supplierID, false}).Return(mockRow)
 
 		err := repo.Disable(ctx, supplierID)
 
@@ -35,9 +39,9 @@ func TestSupplierRepo_Disable(t *testing.T) {
 		ctx := context.Background()
 		supplierID := int64(999)
 
-		mockResult := pgconn.NewCommandTag("UPDATE 0")
+		mockRow := &mockDb.MockRow{Err: pgx.ErrNoRows}
 
-		mockDB.On("Exec", ctx, mock.Anything, []interface{}{supplierID}).Return(mockResult, nil)
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{supplierID, false}).Return(mockRow)
 
 		err := repo.Disable(ctx, supplierID)
 
@@ -45,22 +49,22 @@ func TestSupplierRepo_Disable(t *testing.T) {
 		mockDB.AssertExpectations(t)
 	})
 
-	t.Run("return error when database exec fails", func(t *testing.T) {
+	t.Run("return ErrDisable when database query fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &supplierRepo{db: mockDB}
 		ctx := context.Background()
 		supplierID := int64(1)
 
-		execErr := errors.New("database error")
+		dbErr := errors.New("database error")
+		mockRow := &mockDb.MockRow{Err: dbErr}
 
-		mockDB.On("Exec", ctx, mock.Anything, []interface{}{supplierID}).Return(nil, execErr)
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{supplierID, false}).Return(mockRow)
 
 		err := repo.Disable(ctx, supplierID)
 
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errMsg.ErrDisable)
-		assert.Contains(t, err.Error(), execErr.Error())
-		assert.Contains(t, err.Error(), errMsg.ErrDisable.Error())
+		assert.Contains(t, err.Error(), dbErr.Error())
 		mockDB.AssertExpectations(t)
 	})
 }
@@ -71,10 +75,13 @@ func TestSupplierRepo_Enable(t *testing.T) {
 		repo := &supplierRepo{db: mockDB}
 		ctx := context.Background()
 		supplierID := int64(1)
+		expectedTime := time.Now()
 
-		mockResult := pgconn.NewCommandTag("UPDATE 1")
+		mockRow := &mockDb.MockRow{
+			Value: expectedTime,
+		}
 
-		mockDB.On("Exec", ctx, mock.Anything, []interface{}{supplierID}).Return(mockResult, nil)
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{supplierID, true}).Return(mockRow)
 
 		err := repo.Enable(ctx, supplierID)
 
@@ -88,9 +95,9 @@ func TestSupplierRepo_Enable(t *testing.T) {
 		ctx := context.Background()
 		supplierID := int64(999)
 
-		mockResult := pgconn.NewCommandTag("UPDATE 0")
+		mockRow := &mockDb.MockRow{Err: pgx.ErrNoRows}
 
-		mockDB.On("Exec", ctx, mock.Anything, []interface{}{supplierID}).Return(mockResult, nil)
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{supplierID, true}).Return(mockRow)
 
 		err := repo.Enable(ctx, supplierID)
 
@@ -98,22 +105,22 @@ func TestSupplierRepo_Enable(t *testing.T) {
 		mockDB.AssertExpectations(t)
 	})
 
-	t.Run("return error when database exec fails", func(t *testing.T) {
+	t.Run("return ErrEnable when database query fails", func(t *testing.T) {
 		mockDB := new(mockDb.MockDatabase)
 		repo := &supplierRepo{db: mockDB}
 		ctx := context.Background()
 		supplierID := int64(1)
 
-		execErr := errors.New("database error")
+		dbErr := errors.New("database error")
+		mockRow := &mockDb.MockRow{Err: dbErr}
 
-		mockDB.On("Exec", ctx, mock.Anything, []interface{}{supplierID}).Return(nil, execErr)
+		mockDB.On("QueryRow", ctx, mock.Anything, []interface{}{supplierID, true}).Return(mockRow)
 
 		err := repo.Enable(ctx, supplierID)
 
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, errMsg.ErrEnable)
-		assert.Contains(t, err.Error(), execErr.Error())
-		assert.Contains(t, err.Error(), errMsg.ErrEnable.Error())
+		assert.Contains(t, err.Error(), dbErr.Error())
 		mockDB.AssertExpectations(t)
 	})
 }

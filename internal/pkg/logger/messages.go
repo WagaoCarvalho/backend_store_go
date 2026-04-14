@@ -27,6 +27,8 @@ const (
 	LogCreateSuccess    = "sucesso ao criar"
 	LogMethodNotAllowed = "método não permitido"
 
+	LogInvalidParam = "parâmetro inválido"
+
 	// Get
 	LogGetInit      = "iniciando busca"
 	LogGetError     = "erro ao buscar"

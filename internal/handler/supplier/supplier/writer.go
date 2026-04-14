@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	dto "github.com/WagaoCarvalho/backend_store_go/internal/dto/supplier/supplier"
@@ -12,60 +11,52 @@ import (
 )
 
 func (h *supplierHandler) Create(w http.ResponseWriter, r *http.Request) {
-	const ref = "[SupplierHandler - Create] "
 	ctx := r.Context()
+	const ref = "[SupplierHandler] "
 
-	if r.Method != http.MethodPost {
-		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
-			"method": r.Method,
-		})
-		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
-		return
-	}
+	h.logger.Info(ctx, ref+"[Create] "+logger.LogCreateInit, nil)
 
-	h.logger.Info(ctx, ref+logger.LogCreateInit, nil)
-
-	var requestData struct {
-		Supplier *dto.SupplierDTO `json:"supplier"`
-	}
-
-	if err := utils.FromJSON(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
+	var supplierDTO dto.SupplierDTO
+	if err := utils.FromJSON(r.Body, &supplierDTO); err != nil {
+		h.logger.Warn(ctx, ref+"[Create] "+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, err, http.StatusBadRequest)
+		utils.ErrorResponse(w, errors.New("JSON inválido"), http.StatusBadRequest)
 		return
 	}
 
-	if requestData.Supplier == nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
-			"erro": "supplier não fornecido",
+	supplierModel := dto.ToSupplierModel(supplierDTO)
+
+	// Validação dos dados (se o model tiver método Validate)
+	if err := supplierModel.Validate(); err != nil {
+		h.logger.Warn(ctx, ref+"[Create] "+logger.LogValidateError, map[string]any{
+			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, fmt.Errorf("supplier não fornecido"), http.StatusBadRequest)
+		utils.ErrorResponse(w, errors.New("dados inválidos"), http.StatusUnprocessableEntity)
 		return
 	}
 
-	modelSupplier := dto.ToSupplierModel(*requestData.Supplier)
-
-	createdSupplier, err := h.service.Create(ctx, modelSupplier)
+	createdModel, err := h.service.Create(ctx, supplierModel)
 	if err != nil {
-		h.logger.Error(ctx, err, ref+logger.LogCreateError, map[string]any{
-			"name": modelSupplier.Name,
-			"cpf":  modelSupplier.CPF,
-			"cnpj": modelSupplier.CNPJ,
-		})
-		utils.ErrorResponse(w, err, http.StatusInternalServerError)
+		switch {
+		case errors.Is(err, errMsg.ErrDuplicate):
+			h.logger.Warn(ctx, ref+"[Create] Fornecedor duplicado", map[string]any{
+				"erro": err.Error(),
+			})
+			utils.ErrorResponse(w, errors.New("fornecedor já existente"), http.StatusConflict)
+
+		default:
+			h.logger.Error(ctx, err, ref+"[Create] "+logger.LogCreateError, nil)
+			utils.ErrorResponse(w, errors.New("erro interno"), http.StatusInternalServerError)
+		}
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogCreateSuccess, map[string]any{
-		"supplier_id": createdSupplier.ID,
-		"name":        createdSupplier.Name,
-		"cpf":         createdSupplier.CPF,
-		"cnpj":        createdSupplier.CNPJ,
-	})
+	createdDTO := dto.ToSupplierDTO(createdModel)
 
-	createdDTO := dto.ToSupplierDTO(createdSupplier)
+	h.logger.Info(ctx, ref+"[Create] "+logger.LogCreateSuccess, map[string]any{
+		"supplier_id": createdDTO.ID,
+	})
 
 	utils.ToJSON(w, http.StatusCreated, utils.DefaultResponse{
 		Status:  http.StatusCreated,
@@ -75,156 +66,124 @@ func (h *supplierHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *supplierHandler) Update(w http.ResponseWriter, r *http.Request) {
-	const ref = "[SupplierHandler - Update] "
 	ctx := r.Context()
-
-	if r.Method != http.MethodPut {
-		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
-			"method": r.Method,
-		})
-		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
-		return
-	}
-
-	h.logger.Info(ctx, ref+logger.LogUpdateInit, nil)
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+		h.logger.Warn(ctx, ref+"[Update] "+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		utils.ErrorResponse(w, errors.New("ID inválido"), http.StatusBadRequest)
 		return
 	}
 
-	var requestData struct {
-		Supplier *dto.SupplierDTO `json:"supplier"`
-	}
-
-	if err := utils.FromJSON(r.Body, &requestData); err != nil {
-		h.logger.Warn(ctx, ref+logger.LogParseJSONError, map[string]any{
+	var supplierDTO dto.SupplierDTO // ← Certifique-se que o pacote dto está importado
+	if err := utils.FromJSON(r.Body, &supplierDTO); err != nil {
+		h.logger.Warn(ctx, ref+"[Update] "+logger.LogParseJSONError, map[string]any{
 			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, fmt.Errorf("dados inválidos"), http.StatusBadRequest)
+		utils.ErrorResponse(w, errors.New("JSON inválido"), http.StatusBadRequest)
 		return
 	}
 
-	if requestData.Supplier == nil {
-		h.logger.Warn(ctx, ref+logger.LogMissingBodyData, nil)
-		utils.ErrorResponse(w, fmt.Errorf("dados do fornecedor são obrigatórios"), http.StatusBadRequest)
+	// CORRIGIDO: O version vem do DTO, não precisa ser definido manualmente
+	supplierDTO.ID = &id
+	supplierModel := dto.ToSupplierModel(supplierDTO)
+
+	// Validação dos dados
+	if err := supplierModel.Validate(); err != nil {
+		h.logger.Warn(ctx, ref+"[Update] "+logger.LogValidateError, map[string]any{
+			"erro": err.Error(),
+			"id":   id,
+		})
+		utils.ErrorResponse(w, errors.New("dados inválidos"), http.StatusUnprocessableEntity)
 		return
 	}
 
-	if requestData.Supplier.ID == nil {
-		requestData.Supplier.ID = new(int64)
-	}
-	*requestData.Supplier.ID = id
+	h.logger.Info(ctx, ref+"[Update] "+logger.LogUpdateInit, map[string]any{
+		"supplier_id": id,
+		"version":     supplierModel.Version, // ← Log para depuração
+	})
 
-	supplierModel := dto.ToSupplierModel(*requestData.Supplier)
-
-	err = h.service.Update(ctx, supplierModel)
-	if err != nil {
+	if err := h.service.Update(ctx, supplierModel); err != nil {
 		switch {
-		case errors.Is(err, errMsg.ErrInvalidData),
-			errors.Is(err, errMsg.ErrZeroID):
-			h.logger.Warn(ctx, ref+logger.LogValidateError, map[string]any{
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+"[Update] "+logger.LogNotFound, map[string]any{
 				"supplier_id": id,
-				"erro":        err.Error(),
 			})
-			utils.ErrorResponse(w, err, http.StatusBadRequest)
-			return
-
-		case errors.Is(err, errMsg.ErrDBInvalidForeignKey):
-			h.logger.Warn(ctx, ref+logger.LogForeignKeyViolation, map[string]any{
-				"supplier_id": id,
-				"erro":        err.Error(),
-			})
-			utils.ErrorResponse(w, err, http.StatusBadRequest)
-			return
-
-		case errors.Is(err, errMsg.ErrDuplicate):
-			h.logger.Warn(ctx, ref+"Fornecedor duplicado", map[string]any{
-				"supplier_id": id,
-				"erro":        err.Error(),
-			})
-			utils.ErrorResponse(w, err, http.StatusConflict)
-			return
+			utils.ErrorResponse(w, errors.New("fornecedor não encontrado"), http.StatusNotFound)
 
 		case errors.Is(err, errMsg.ErrVersionConflict):
-			h.logger.Warn(ctx, ref+logger.LogUpdateVersionConflict, map[string]any{
+			h.logger.Warn(ctx, ref+"[Update] Conflito de versão", map[string]any{
 				"supplier_id": id,
+				"version":     supplierModel.Version,
 			})
-			utils.ErrorResponse(w, err, http.StatusConflict)
-			return
+			utils.ErrorResponse(w, errors.New("conflito de versão: os dados foram modificados por outro processo"), http.StatusConflict)
 
-		case errors.Is(err, errMsg.ErrNotFound):
-			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+		case errors.Is(err, errMsg.ErrDuplicate):
+			h.logger.Warn(ctx, ref+"[Update] Fornecedor duplicado", map[string]any{
 				"supplier_id": id,
 			})
-			utils.ErrorResponse(w, err, http.StatusNotFound)
-			return
+			utils.ErrorResponse(w, errors.New("fornecedor já existente"), http.StatusConflict)
 
 		default:
-			h.logger.Error(ctx, err, ref+logger.LogUpdateError, map[string]any{
+			h.logger.Error(ctx, err, ref+"[Update] "+logger.LogUpdateError, map[string]any{
 				"supplier_id": id,
 			})
-			utils.ErrorResponse(w, err, http.StatusInternalServerError)
-			return
+			utils.ErrorResponse(w, errors.New("erro interno"), http.StatusInternalServerError)
 		}
+		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogUpdateSuccess, map[string]any{
+	h.logger.Info(ctx, ref+"[Update] "+logger.LogUpdateSuccess, map[string]any{
 		"supplier_id": id,
+		"new_version": supplierModel.Version, // ← Log da nova versão
 	})
+
+	updatedDTO := dto.ToSupplierDTO(supplierModel)
 
 	utils.ToJSON(w, http.StatusOK, utils.DefaultResponse{
 		Status:  http.StatusOK,
 		Message: "Fornecedor atualizado com sucesso",
+		Data:    updatedDTO,
 	})
 }
 
 func (h *supplierHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	const ref = "[SupplierHandler - Delete] "
 	ctx := r.Context()
-
-	if r.Method != http.MethodDelete {
-		h.logger.Warn(ctx, ref+logger.LogMethodNotAllowed, map[string]any{
-			"method": r.Method,
-		})
-		utils.ErrorResponse(w, fmt.Errorf("método %s não permitido", r.Method), http.StatusMethodNotAllowed)
-		return
-	}
-
-	h.logger.Info(ctx, ref+logger.LogDeleteInit, map[string]any{})
 
 	id, err := utils.GetIDParam(r, "id")
 	if err != nil {
-		h.logger.Warn(ctx, ref+logger.LogInvalidID, map[string]any{
+		h.logger.Warn(ctx, ref+"[Delete] "+logger.LogInvalidID, map[string]any{
 			"erro": err.Error(),
 		})
-		utils.ErrorResponse(w, fmt.Errorf("ID inválido"), http.StatusBadRequest)
+		utils.ErrorResponse(w, errors.New("ID inválido"), http.StatusBadRequest)
 		return
 	}
 
-	err = h.service.Delete(ctx, id)
-	if err != nil {
-		status := http.StatusInternalServerError
-		if err.Error() == "fornecedor não encontrado" {
-			status = http.StatusNotFound
-			h.logger.Warn(ctx, ref+logger.LogNotFound, map[string]any{
+	h.logger.Info(ctx, ref+"[Delete] "+logger.LogDeleteInit, map[string]any{
+		"supplier_id": id,
+		"path":        r.URL.Path,
+	})
+
+	if err := h.service.Delete(ctx, id); err != nil {
+		switch {
+		case errors.Is(err, errMsg.ErrNotFound):
+			h.logger.Warn(ctx, ref+"[Delete] "+logger.LogNotFound, map[string]any{
 				"supplier_id": id,
 			})
-		} else {
-			h.logger.Error(ctx, err, ref+logger.LogDeleteError, map[string]any{
+			utils.ErrorResponse(w, errors.New("fornecedor não encontrado"), http.StatusNotFound)
+
+		default:
+			h.logger.Error(ctx, err, ref+"[Delete] "+logger.LogDeleteError, map[string]any{
 				"supplier_id": id,
-				"status":      status,
 			})
+			utils.ErrorResponse(w, errors.New("erro interno"), http.StatusInternalServerError)
 		}
-		utils.ErrorResponse(w, err, status)
 		return
 	}
 
-	h.logger.Info(ctx, ref+logger.LogDeleteSuccess, map[string]any{
+	h.logger.Info(ctx, ref+"[Delete] "+logger.LogDeleteSuccess, map[string]any{
 		"supplier_id": id,
 	})
 
