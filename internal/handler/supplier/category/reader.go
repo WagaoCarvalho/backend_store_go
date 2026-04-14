@@ -46,6 +46,7 @@ func (h *supplierCategoryHandler) GetByID(w http.ResponseWriter, r *http.Request
 		Status:  http.StatusOK,
 	})
 }
+
 func (h *supplierCategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	const ref = "[SupplierCategoryHandler - GetAll] "
 	ctx := r.Context()

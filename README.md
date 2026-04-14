@@ -1,5 +1,9 @@
 # Nome do Projeto
 
+INSTALAR MAKE
+INSTALAR DOCKER
+INSTALAR MIGRATE
+make db
 
 
 ## Tecnologias
